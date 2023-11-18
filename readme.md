@@ -34,3 +34,4 @@ type app struct {
 
 ## Similar workings
 https://github.com/mkideal/cli
+https://github.com/SuperPaintman/nice pretty print help
