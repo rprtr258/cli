@@ -31,7 +31,3 @@ type app struct {
 
 // what next ???
 ```
-
-## Similar workings
-https://github.com/mkideal/cli
-https://github.com/SuperPaintman/nice pretty print help
