@@ -1,0 +1,3 @@
+.PHONY: lint
+lint:
+	gotestsum --format dots-v2 ./...
