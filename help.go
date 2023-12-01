@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/rprtr258/cli/internal"
+	"golang.org/x/sys/unix"
 )
 
 type alignmentInfo struct {
@@ -44,6 +45,14 @@ func (a *alignmentInfo) descriptionStart() int {
 func (a *alignmentInfo) updateLen(name string, indent bool) {
 	l := utf8.RuneCountInString(name) + b01(indent)*4
 	a.maxLongLen = max(a.maxLongLen, l)
+}
+
+func getTerminalColumns() int {
+	ws, err := unix.IoctlGetWinsize(0, unix.TIOCGWINSZ)
+	if err != nil {
+		return 80
+	}
+	return int(ws.Col)
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {

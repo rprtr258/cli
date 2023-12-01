@@ -1,11 +1,6 @@
-//go:build !windows || forceposix
-// +build !windows forceposix
-
 package cli
 
-import (
-	"strings"
-)
+import "strings"
 
 const (
 	defaultShortOptDelimiter = '-'
@@ -32,13 +27,14 @@ func argumentIsOption(arg string) bool {
 // stripOptionPrefix returns the option without the prefix and whether or
 // not the option is a long option or not.
 func stripOptionPrefix(optname string) (prefix, name string, islong bool) {
-	if strings.HasPrefix(optname, "--") {
+	switch {
+	case strings.HasPrefix(optname, "--"):
 		return "--", optname[2:], true
-	} else if strings.HasPrefix(optname, "-") {
+	case strings.HasPrefix(optname, "-"):
 		return "-", optname[1:], false
+	default:
+		return "", optname, false
 	}
-
-	return "", optname, false
 }
 
 // splitOption attempts to split the passed option into a name and an argument.

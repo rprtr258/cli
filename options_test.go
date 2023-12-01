@@ -65,9 +65,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs([]string{"-v", "1", "2", "3"})
 	assert.NoError(t, err)
-
 	assert.True(t, opts.Value)
-
 	assert.Equal(t, ret, []string{})
 	for i, rest := range opts.Positional.Rest {
 		assert.Equal(t, i+1, rest)
