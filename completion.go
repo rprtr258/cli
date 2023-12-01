@@ -8,6 +8,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Completion is a type containing information of a completion.
@@ -36,13 +38,11 @@ type completion struct {
 type Filename string
 
 func completionsWithoutDescriptions(items []string) []Completion {
-	ret := make([]Completion, len(items))
-
-	for i, v := range items {
-		ret[i].Item = v
-	}
-
-	return ret
+	return internal.Map(func(v string) Completion {
+		return Completion{
+			Item: v,
+		}
+	}, items...)
 }
 
 // Complete returns a list of existing files with the given prefix.
