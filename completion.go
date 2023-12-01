@@ -37,14 +37,6 @@ type completion struct {
 // Filename is a string alias which provides filename completion.
 type Filename string
 
-func completionsWithoutDescriptions(items []string) []Completion {
-	return internal.Map(func(v string) Completion {
-		return Completion{
-			Item: v,
-		}
-	}, items...)
-}
-
 // Complete returns a list of existing files with the given prefix.
 func (f *Filename) Complete(match string) []Completion {
 	ret, _ := filepath.Glob(match + "*")
@@ -53,7 +45,12 @@ func (f *Filename) Complete(match string) []Completion {
 			ret[0] += "/"
 		}
 	}
-	return completionsWithoutDescriptions(ret)
+
+	return internal.Map(func(v string) Completion {
+		return Completion{
+			Item: v,
+		}
+	}, ret...)
 }
 
 func (c *completion) skipPositional(s *parseState, n int) {
@@ -75,7 +72,6 @@ func (c *completion) completeOptionNames(s *parseState, prefix, match string, sh
 
 	var results []Completion
 	repeats := map[string]bool{}
-
 	for name, opt := range s.lookup.longNames {
 		if strings.HasPrefix(name, match) && !opt.Hidden {
 			results = append(results, Completion{
@@ -112,18 +108,12 @@ func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match st
 }
 
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
-	n := make([]Completion, 0, len(s.command.commands))
-
-	for _, cmd := range s.command.commands {
-		if cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match) {
-			n = append(n, Completion{
-				Item:        cmd.Name,
-				Description: cmd.ShortDescription,
-			})
-		}
-	}
-
-	return n
+	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
+		return Completion{
+			Item:        cmd.Name,
+			Description: cmd.ShortDescription,
+		}, cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match)
+	}, s.command.commands...)
 }
 
 func (c *completion) completeValue(value reflect.Value, prefix, match string) []Completion {
@@ -133,7 +123,6 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 	i := value.Interface()
 
 	var ret []Completion
-
 	if cmp, ok := i.(Completer); ok {
 		ret = cmp.Complete(match)
 	} else if value.CanAddr() {
@@ -141,11 +130,9 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 			ret = cmp.Complete(match)
 		}
 	}
-
 	for i, v := range ret {
 		ret[i].Item = prefix + v.Item
 	}
-
 	return ret
 }
 
@@ -161,7 +148,6 @@ func (c *completion) complete(args []string) []Completion {
 	c.parser.fillParseState(s)
 
 	var opt *Option
-
 	for len(s.args) > 1 {
 		arg := s.pop()
 
