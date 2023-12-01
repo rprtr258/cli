@@ -1,13 +1,22 @@
-// Example of use of the flags package.
 package cli
 
 import (
-	"fmt"
-	"os/exec"
+	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func Example() {
-	var opts struct {
+func ptr[T any](v T) *T {
+	return &v
+}
+
+func TestExample(t *testing.T) {
+	type Args struct {
+		ID   string
+		Num  int
+		Rest []string
+	}
+	type Opts struct {
 		// Slice of bool will append 'true' each time the option
 		// is encountered (can be set multiple times, like -vvv)
 		Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
@@ -40,24 +49,24 @@ func Example() {
 		Filename Filename `long:"filename" description:"A filename"`
 
 		// Example of positional arguments
-		Args struct {
-			ID   string
-			Num  int
-			Rest []string
-		} `positional-args:"yes" required:"yes"`
+		Args Args `positional-args:"yes" required:"yes"`
 	}
+	var opts Opts
 
 	// Callback which will invoke callto:<argument> to call a number.
 	// Note that this works just on OS X (and probably only with
 	// Skype) but it shows the idea.
+	called := false
 	opts.Call = func(num string) {
-		_ = exec.Command("open", "callto:"+num).Run()
+		assert.Equal(t, "123-456-7890", num)
+		called = true
 	}
 
 	// Make some fake arguments to parse.
 	args := []string{
 		"-vv",
 		"--offset=5",
+		"-c", "123-456-7890",
 		"-n", "Me",
 		"-p", "3",
 		"-s", "hello",
@@ -77,31 +86,25 @@ func Example() {
 	// the sake of making a working example. Normally, you would simply use
 	// cli.Parse(&opts) which uses os.Args
 	_, err := ParseArgs(&opts, args)
-	if err != nil {
-		panic(err)
-	}
+	assert.NoError(t, err)
 
-	fmt.Printf("Verbosity: %v\n", opts.Verbose)
-	fmt.Printf("Offset: %d\n", opts.Offset)
-	fmt.Printf("Name: %s\n", opts.Name)
-	fmt.Printf("Ptr: %d\n", *opts.Ptr)
-	fmt.Printf("StringSlice: %v\n", opts.StringSlice)
-	fmt.Printf("PtrSlice: [%v %v]\n", *opts.PtrSlice[0], *opts.PtrSlice[1])
-	fmt.Printf("IntMap: [a:%v b:%v]\n", opts.IntMap["a"], opts.IntMap["b"])
-	fmt.Printf("Filename: %v\n", opts.Filename)
-	fmt.Printf("Args.ID: %s\n", opts.Args.ID)
-	fmt.Printf("Args.Num: %d\n", opts.Args.Num)
-	fmt.Printf("Args.Rest: %v\n", opts.Args.Rest)
+	assert.Equal(t, Opts{
+		Verbose:     []bool{true, true},
+		Offset:      5,
+		Name:        "Me",
+		Ptr:         ptr(3),
+		StringSlice: []string{"hello", "world"},
+		PtrSlice:    []*string{ptr("hello"), ptr("world")},
+		IntMap:      map[string]int{"a": 1, "b": 5},
+		Filename:    "hello.go",
+		Args: Args{
+			ID:   "id",
+			Num:  10,
+			Rest: []string{"remaining1", "remaining2"},
+		},
 
-	// Output: Verbosity: [true true]
-	// Offset: 5
-	// Name: Me
-	// Ptr: 3
-	// StringSlice: [hello world]
-	// PtrSlice: [hello world]
-	// IntMap: [a:1 b:5]
-	// Filename: hello.go
-	// Args.ID: id
-	// Args.Num: 10
-	// Args.Rest: [remaining1 remaining2]
+		Call: opts.Call,
+		File: "",
+	}, opts)
+	assert.True(t, called)
 }

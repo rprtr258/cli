@@ -1,6 +1,8 @@
 package cli
 
-func levenshtein(s, t string) int {
+// dist returns the Levenshtein distance between two strings.
+// that is 0 for s == t, 1 for s and t differing by one letter, etc.
+func dist(s, t string) int {
 	if s == "" {
 		return len(t)
 	}
@@ -9,6 +11,8 @@ func levenshtein(s, t string) int {
 		return len(s)
 	}
 
+	// TODO: memory layout can be optimized: store contaguous array instead of list of lists
+	// TODO: memory consumption can be optimized: store just last row
 	dists := make([][]int, len(s)+1)
 	for i := range dists {
 		dists[i] = make([]int, len(t)+1)
@@ -43,17 +47,11 @@ func closestChoice(cmd string, choices []string) (string, int) {
 		return "", 0
 	}
 
-	mincmd := -1
-	mindist := -1
-
-	for i, c := range choices {
-		l := levenshtein(cmd, c)
-
-		if mincmd < 0 || l < mindist {
-			mindist = l
-			mincmd = i
+	minChoice, minDist := "", -1
+	for _, c := range choices {
+		if l := dist(cmd, c); minDist == -1 || l < minDist {
+			minChoice, minDist = c, l
 		}
 	}
-
-	return choices[mincmd], mindist
+	return minChoice, minDist
 }

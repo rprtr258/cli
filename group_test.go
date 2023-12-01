@@ -15,7 +15,7 @@ func TestGroupInline(t *testing.T) {
 		} `group:"Grouped Options"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "-g")
+	p, ret := useParser(t, &opts, "-v", "-g")
 
 	assert.Equal(t, ret, []string{})
 
@@ -68,7 +68,7 @@ func TestGroupNestedInline(t *testing.T) {
 		} `group:"Grouped Options"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
+	p, ret := useParser(t, &opts, "-v", "-g", "--n", "n", "rest")
 
 	assert.Equal(t, ret, []string{"rest"})
 
@@ -95,7 +95,7 @@ func TestGroupNestedInlineNamespace(t *testing.T) {
 		} `group:"Subgroup" namespace:"sip"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
+	p, ret := useParser(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
 
 	assert.Equal(t, ret, []string{"rest"})
 

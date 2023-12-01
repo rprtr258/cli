@@ -11,7 +11,7 @@ func TestPointerBool(t *testing.T) {
 		Value *bool `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := useParsedArgs(t, &opts, "-v")
 	assert.Equal(t, ret, []string{})
 	assert.True(t, *opts.Value)
 }
@@ -21,7 +21,7 @@ func TestPointerString(t *testing.T) {
 		Value *string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := useParsedArgs(t, &opts, "-v", "value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, *opts.Value, "value")
 }
@@ -31,7 +31,7 @@ func TestPointerSlice(t *testing.T) {
 		Value *[]string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value1", "-v", "value2")
+	ret := useParsedArgs(t, &opts, "-v", "value1", "-v", "value2")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, *opts.Value, []string{"value1", "value2"})
 }
@@ -41,7 +41,7 @@ func TestPointerMap(t *testing.T) {
 		Value *map[string]int `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
+	ret := useParsedArgs(t, &opts, "-v", "k1:2", "-v", "k2:-5")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, map[string]int{
 		"k1": 2,
@@ -65,7 +65,7 @@ func TestPointerStringMarshalled(t *testing.T) {
 		Value *marshalledString `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := useParsedArgs(t, &opts, "-v", "value")
 	assert.Equal(t, ret, []string{})
 	assert.NotNil(t, opts.Value)
 	assert.Equal(t, string(*opts.Value), "value")
@@ -89,7 +89,7 @@ func TestPointerStructMarshalled(t *testing.T) {
 		Value *marshalledStruct `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := useParsedArgs(t, &opts, "-v", "value")
 	assert.Equal(t, ret, []string{})
 	assert.NotNil(t, opts.Value)
 	assert.Equal(t, opts.Value.Value, "value")
@@ -104,7 +104,7 @@ func TestPointerGroup(t *testing.T) {
 		Group *PointerGroup `group:"Group Options"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := useParsedArgs(t, &opts, "-v")
 	assert.Equal(t, ret, []string{})
 	assert.True(t, opts.Group.Value)
 }
@@ -119,7 +119,7 @@ func TestDoNotChangeNonTaggedFields(t *testing.T) {
 		}
 	}
 
-	ret := assertParseSuccess(t, &opts)
+	ret := useParsedArgs(t, &opts)
 	assert.Equal(t, ret, []string{})
 	assert.Nil(t, opts.A.Pointer)
 	assert.Nil(t, opts.B)

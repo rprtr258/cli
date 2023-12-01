@@ -11,10 +11,8 @@ func TestLong(t *testing.T) {
 		Value bool `long:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value")
-
+	ret := useParsedArgs(t, &opts, "--value")
 	assert.Equal(t, ret, []string{})
-
 	assert.True(t, opts.Value)
 }
 
@@ -23,8 +21,7 @@ func TestLongArg(t *testing.T) {
 		Value string `long:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value", "value")
-
+	ret := useParsedArgs(t, &opts, "--value", "value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -34,8 +31,7 @@ func TestLongArgEqual(t *testing.T) {
 		Value string `long:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value=value")
-
+	ret := useParsedArgs(t, &opts, "--value=value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -45,8 +41,7 @@ func TestLongDefault(t *testing.T) {
 		Value string `long:"value" default:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts)
-
+	ret := useParsedArgs(t, &opts)
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -56,8 +51,7 @@ func TestLongOptional(t *testing.T) {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value")
-
+	ret := useParsedArgs(t, &opts, "--value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -67,8 +61,7 @@ func TestLongOptionalArg(t *testing.T) {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value", "no")
-
+	ret := useParsedArgs(t, &opts, "--value", "no")
 	assert.Equal(t, ret, []string{"no"})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -78,8 +71,7 @@ func TestLongOptionalArgEqual(t *testing.T) {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "--value=value", "no")
-
+	ret := useParsedArgs(t, &opts, "--value=value", "no")
 	assert.Equal(t, ret, []string{"no"})
 	assert.Equal(t, opts.Value, "value")
 }

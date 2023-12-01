@@ -16,7 +16,7 @@ func TestCommandInline(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
+	p, ret := useParser(t, &opts, "-v", "cmd", "-g")
 
 	assert.Equal(t, ret, []string{})
 
@@ -40,7 +40,7 @@ func TestCommandInlineMulti(t *testing.T) {
 		} `command:"c2"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
+	p, ret := useParser(t, &opts, "-v", "c2", "-g")
 
 	assert.Equal(t, ret, []string{})
 
@@ -66,7 +66,7 @@ func TestCommandFlagOrder1(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseFail(t, ErrUnknownFlag, "unknown flag `g'", &opts, "-v", "-g", "cmd")
+	assertParseFailed(t, ErrUnknownFlag, "unknown flag `g'", &opts, "-v", "-g", "cmd")
 }
 
 func TestCommandFlagOrder2(t *testing.T) {
@@ -78,7 +78,7 @@ func TestCommandFlagOrder2(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd", "-v", "-g")
+	useParsedArgs(t, &opts, "cmd", "-v", "-g")
 
 	assert.True(t, opts.Value)
 
@@ -98,7 +98,7 @@ func TestCommandFlagOrderSub(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
+	useParsedArgs(t, &opts, "cmd", "sub", "-v", "-g", "-b")
 
 	assert.True(t, opts.Value)
 
@@ -116,7 +116,7 @@ func TestCommandFlagOverride1(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "-v", "cmd")
+	useParsedArgs(t, &opts, "-v", "cmd")
 
 	assert.True(t, opts.Value)
 
@@ -134,7 +134,7 @@ func TestCommandFlagOverride2(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd", "-v")
+	useParsedArgs(t, &opts, "cmd", "-v")
 
 	if opts.Value {
 		t.Errorf("Expected Value to be false")
@@ -145,23 +145,19 @@ func TestCommandFlagOverride2(t *testing.T) {
 
 func TestCommandFlagOverrideSub(t *testing.T) {
 	var opts struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
-			Value bool `short:"v"`
-
+			Value      bool `short:"v"`
 			SubCommand struct {
 				Value bool `short:"v"`
 			} `command:"sub"`
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
-
+	useParsedArgs(t, &opts, "cmd", "sub", "-v")
 	if opts.Value {
 		t.Errorf("Expected Value to be false")
 	}
-
 	if opts.Command.Value {
 		t.Errorf("Expected Command.Value to be false")
 	}
@@ -171,19 +167,16 @@ func TestCommandFlagOverrideSub(t *testing.T) {
 
 func TestCommandFlagOverrideSub2(t *testing.T) {
 	var opts struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
-			Value bool `short:"v"`
-
+			Value      bool `short:"v"`
 			SubCommand struct {
 				G bool `short:"g"`
 			} `command:"sub"`
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
-
+	useParsedArgs(t, &opts, "cmd", "sub", "-v")
 	if opts.Value {
 		t.Errorf("Expected Value to be false")
 	}
@@ -193,32 +186,30 @@ func TestCommandFlagOverrideSub2(t *testing.T) {
 
 func TestCommandEstimate(t *testing.T) {
 	var opts struct {
-		Value bool `short:"v"`
-
-		Cmd1 struct{} `command:"remove"`
-
-		Cmd2 struct{} `command:"add"`
+		Value bool     `short:"v"`
+		Cmd1  struct{} `command:"remove"`
+		Cmd2  struct{} `command:"add"`
 	}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs([]string{})
-
-	assertError(t, err, ErrCommandRequired, "Please specify one command of: add or remove")
+	_, err := NewParser(&opts, None).ParseArgs([]string{})
+	assert.Equal(t, err, &Error{
+		Type:    ErrCommandRequired,
+		Message: "Please specify one command of: add or remove",
+	})
 }
 
 func TestCommandEstimate2(t *testing.T) {
 	var opts struct {
-		Value bool `short:"v"`
-
-		Cmd1 struct{} `command:"remove"`
-
-		Cmd2 struct{} `command:"add"`
+		Value bool     `short:"v"`
+		Cmd1  struct{} `command:"remove"`
+		Cmd2  struct{} `command:"add"`
 	}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs([]string{"rmive"})
-
-	assertError(t, err, ErrUnknownCommand, "Unknown command `rmive', did you mean `remove'?")
+	_, err := NewParser(&opts, None).ParseArgs([]string{"rmive"})
+	assert.Equal(t, err, &Error{
+		Type:    ErrUnknownCommand,
+		Message: "Unknown command `rmive', did you mean `remove'?",
+	})
 }
 
 type testCommand struct {
@@ -241,7 +232,7 @@ func TestCommandExecute(t *testing.T) {
 		Command testCommand `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
+	useParsedArgs(t, &opts, "-v", "cmd", "-g", "a", "b")
 
 	assert.True(t, opts.Value)
 
@@ -261,7 +252,7 @@ func TestCommandClosest(t *testing.T) {
 		Cmd2 struct{} `command:"add"`
 	}
 
-	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	args := assertParseFailed(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 
 	assert.Equal(t, args, []string{"addd"})
 }
@@ -307,7 +298,7 @@ func TestCommandNestedInline(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
+	p, ret := useParser(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
 	assert.Equal(t, ret, []string{"rest"})
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
@@ -331,7 +322,7 @@ func TestRequiredOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts, "cmd")
+	assertParseFailed(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts, "cmd")
 }
 
 func TestRequiredAllOnCommand(t *testing.T) {
@@ -344,7 +335,7 @@ func TestRequiredAllOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter), &opts, "cmd")
+	assertParseFailed(t, ErrRequired, fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter), &opts, "cmd")
 }
 
 func TestDefaultOnCommand(t *testing.T) {
@@ -354,7 +345,7 @@ func TestDefaultOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}
 
-	assertParseSuccess(t, &opts, "cmd")
+	useParsedArgs(t, &opts, "cmd")
 
 	assert.Equal(t, "value", opts.Command.G)
 }
@@ -368,7 +359,7 @@ func TestAfterNonCommand(t *testing.T) {
 		Cmd2 struct{} `command:"add"`
 	}
 
-	assertParseFail(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: add or remove", &opts, "nocmd", "remove")
+	assertParseFailed(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: add or remove", &opts, "nocmd", "remove")
 }
 
 func TestSubcommandsOptional(t *testing.T) {
@@ -414,7 +405,7 @@ func TestCommandAlias(t *testing.T) {
 		} `command:"cmd" alias:"cm"`
 	}
 
-	assertParseSuccess(t, &opts, "cm")
+	useParsedArgs(t, &opts, "cm")
 
 	assert.Equal(t, "value", opts.Command.G)
 }

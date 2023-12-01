@@ -41,7 +41,7 @@ func TestUnmarshal(t *testing.T) {
 		Value marshalled `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v=yes")
+	ret := useParsedArgs(t, &opts, "-v=yes")
 
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, marshalled("true"), opts.Value)
@@ -52,7 +52,7 @@ func TestUnmarshalDefault(t *testing.T) {
 		Value marshalled `short:"v" default:"yes"`
 	}
 
-	ret := assertParseSuccess(t, &opts)
+	ret := useParsedArgs(t, &opts)
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, marshalled("true"), opts.Value)
 }
@@ -62,7 +62,7 @@ func TestUnmarshalOptional(t *testing.T) {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := useParsedArgs(t, &opts, "-v")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, marshalled("true"), opts.Value)
 }
@@ -72,7 +72,7 @@ func TestUnmarshalError(t *testing.T) {
 		Value marshalled `short:"v"`
 	}
 
-	assertParseFail(t, ErrMarshal, fmt.Sprintf("invalid argument for flag `%cv' (expected cli.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", defaultShortOptDelimiter), &opts, "-vinvalid")
+	assertParseFailed(t, ErrMarshal, fmt.Sprintf("invalid argument for flag `%cv' (expected cli.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", defaultShortOptDelimiter), &opts, "-vinvalid")
 }
 
 func TestUnmarshalPositionalError(t *testing.T) {
@@ -84,15 +84,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 
 	parser := NewParser(&opts, Default&^PrintErrors)
 	_, err := parser.ParseArgs([]string{"invalid"})
-
-	msg := "`invalid' is not a valid value, please specify `yes' or `no'"
-
-	if err == nil {
-		assertFatalf(t, "Expected error: %s", msg)
-		return
-	}
-
-	assert.Equal(t, msg, err.Error())
+	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }
 
 func TestMarshalError(t *testing.T) {
@@ -104,6 +96,8 @@ func TestMarshalError(t *testing.T) {
 	o := p.Command.Groups()[0].Options()[0]
 
 	_, err := convertToString(o.value, o.tag)
-
-	assertError(t, err, ErrMarshal, "Failed to marshal")
+	assert.Equal(t, err, &Error{
+		Type:    ErrMarshal,
+		Message: "Failed to marshal",
+	})
 }

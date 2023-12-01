@@ -134,9 +134,9 @@ func TestNoDefaultsForBools(t *testing.T) {
 	}
 
 	if runtime.GOOS == "windows" {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have default values, they always default to `false' and can only be turned on", &opts)
+		assertParseFailed(t, ErrInvalidTag, "boolean flag `/d' may not have default values, they always default to `false' and can only be turned on", &opts)
 	} else {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have default values, they always default to `false' and can only be turned on", &opts)
+		assertParseFailed(t, ErrInvalidTag, "boolean flag `-d' may not have default values, they always default to `false' and can only be turned on", &opts)
 	}
 }
 
@@ -456,9 +456,9 @@ func TestOptionAsArgument(t *testing.T) {
 
 	for _, test := range tests {
 		if test.expectError {
-			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
+			assertParseFailed(t, test.errType, test.errMsg, &opts, test.args...)
 		} else {
-			args := assertParseSuccess(t, &opts, test.args...)
+			args := useParsedArgs(t, &opts, test.args...)
 
 			assert.Equal(t, args, test.rest)
 		}
@@ -515,16 +515,11 @@ func TestUnknownFlagHandler(t *testing.T) {
 	assert.Equal(t, unknownFlag1, "blah")
 	assert.Equal(t, unknownFlag3, "baz")
 
-	if !unknownFlag2 {
-		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
-	}
+	assert.True(t, unknownFlag2, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
 
 	// Parse args with unknown flags that callback doesn't handle, verify it returns error
 	_, err = p.ParseArgs([]string{"--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo"})
-
-	if err == nil {
-		assertErrorf(t, "Parser should have returned error, but returned nil")
-	}
+	assert.Error(t, err, "Parser should have returned error, but returned nil")
 }
 
 func TestChoices(t *testing.T) {
@@ -532,8 +527,8 @@ func TestChoices(t *testing.T) {
 		Choice string `long:"choose" choice:"v1" choice:"v2"` //nolint:staticcheck // multilple choice tags
 	}
 
-	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
-	assertParseSuccess(t, &opts, "--choose", "v2")
+	assertParseFailed(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	useParsedArgs(t, &opts, "--choose", "v2")
 	assert.Equal(t, opts.Choice, "v2")
 }
 
@@ -545,7 +540,7 @@ func TestEmbedded(t *testing.T) {
 		embedded
 	}
 
-	assertParseSuccess(t, &opts, "-v")
+	useParsedArgs(t, &opts, "-v")
 
 	assert.True(t, opts.V)
 }
@@ -579,11 +574,8 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 
 	_, err := parser.ParseArgs([]string{"arg1", "arg2"})
 	assert.NoError(t, err)
-
 	assert.True(t, executed)
-
 	assert.Equal(t, nil, executedCommand)
-
 	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
 }
 
@@ -612,10 +604,26 @@ func TestCommandHandler(t *testing.T) {
 
 	_, err := parser.ParseArgs([]string{"cmd", "arg1", "arg2"})
 	assert.NoError(t, err)
-
 	assert.True(t, executed)
-
 	assert.NotNil(t, executedCommand)
-
 	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
+}
+
+type unknownOpts struct {
+	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+}
+
+func TestUnknownFlags(t *testing.T) {
+	var opts unknownOpts
+	p := NewParser(&opts, 0)
+	_, err := p.ParseArgs([]string{"-f"})
+	assert.Error(t, err)
+}
+
+func TestIgnoreUnknownFlags(t *testing.T) {
+	var opts unknownOpts
+	p := NewParser(&opts, IgnoreUnknown)
+	got, err := p.ParseArgs([]string{"hello", "world", "-v", "--foo=bar", "--verbose", "-f"})
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"hello", "world", "--foo=bar", "-f"}, got)
 }

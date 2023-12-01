@@ -12,7 +12,7 @@ func TestShort(t *testing.T) {
 		Value bool `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := useParsedArgs(t, &opts, "-v")
 	assert.Equal(t, ret, []string{})
 	assert.True(t, opts.Value)
 }
@@ -22,7 +22,7 @@ func TestShortTooLong(t *testing.T) {
 		Value bool `short:"vv"`
 	}
 
-	assertParseFail(t, ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
+	assertParseFailed(t, ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
 }
 
 func TestShortRequired(t *testing.T) {
@@ -30,7 +30,7 @@ func TestShortRequired(t *testing.T) {
 		Value bool `short:"v" required:"true"`
 	}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
+	assertParseFailed(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
 }
 
 func TestShortRequiredFalsy1(t *testing.T) {
@@ -38,7 +38,7 @@ func TestShortRequiredFalsy1(t *testing.T) {
 		Value bool `short:"v" required:"false"`
 	}
 
-	assertParseSuccess(t, &opts)
+	useParsedArgs(t, &opts)
 }
 
 func TestShortRequiredFalsy2(t *testing.T) {
@@ -46,7 +46,7 @@ func TestShortRequiredFalsy2(t *testing.T) {
 		Value bool `short:"v" required:"no"`
 	}
 
-	assertParseSuccess(t, &opts)
+	useParsedArgs(t, &opts)
 }
 
 func TestShortMultiConcat(t *testing.T) {
@@ -56,7 +56,7 @@ func TestShortMultiConcat(t *testing.T) {
 		F bool `short:"f"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+	ret := useParsedArgs(t, &opts, "-vo", "-f")
 	assert.Equal(t, ret, []string{})
 	assert.True(t, opts.V)
 	assert.True(t, opts.O)
@@ -70,7 +70,7 @@ func TestShortMultiRequiredConcat(t *testing.T) {
 		F bool `short:"f" required:"true"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+	ret := useParsedArgs(t, &opts, "-vo", "-f")
 	assert.Equal(t, ret, []string{})
 	assert.True(t, opts.V)
 	assert.True(t, opts.O)
@@ -82,7 +82,7 @@ func TestShortMultiSlice(t *testing.T) {
 		Values []bool `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "-v")
+	ret := useParsedArgs(t, &opts, "-v", "-v")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Values, []bool{true, true})
 }
@@ -92,7 +92,7 @@ func TestShortMultiSliceConcat(t *testing.T) {
 		Values []bool `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-vvv")
+	ret := useParsedArgs(t, &opts, "-vvv")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Values, []bool{true, true, true})
 }
@@ -102,7 +102,7 @@ func TestShortWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v=value")
+	ret := useParsedArgs(t, &opts, "-v=value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -112,7 +112,7 @@ func TestShortWithArg(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-vvalue")
+	ret := useParsedArgs(t, &opts, "-vvalue")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -122,7 +122,7 @@ func TestShortArg(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := useParsedArgs(t, &opts, "-v", "value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -133,7 +133,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffv=value")
+	assertParseFailed(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -142,7 +142,7 @@ func TestShortMultiArg(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-ffv", "value")
+	ret := useParsedArgs(t, &opts, "-ffv", "value")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.F, []bool{true, true})
 	assert.Equal(t, opts.Value, "value")
@@ -154,7 +154,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffvvalue")
+	assertParseFailed(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {
@@ -163,7 +163,7 @@ func TestShortMultiArgConcat(t *testing.T) {
 		Value string `short:"v"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-vff")
+	ret := useParsedArgs(t, &opts, "-vff")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "ff")
 }
@@ -174,7 +174,7 @@ func TestShortOptional(t *testing.T) {
 		Value string `short:"v" optional:"yes" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := useParsedArgs(t, &opts, "-fv", "f")
 	assert.Equal(t, ret, []string{"f"})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -185,7 +185,7 @@ func TestShortOptionalFalsy1(t *testing.T) {
 		Value string `short:"v" optional:"false" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := useParsedArgs(t, &opts, "-fv", "f")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "f")
 }
@@ -196,7 +196,7 @@ func TestShortOptionalFalsy2(t *testing.T) {
 		Value string `short:"v" optional:"no" optional-value:"value"`
 	}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := useParsedArgs(t, &opts, "-fv", "f")
 	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "f")
 }

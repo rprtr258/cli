@@ -6,7 +6,6 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"testing"
@@ -84,10 +83,8 @@ var completionTests = func() map[string]completionTest {
 
 	completionTestSubdir := internal.Map(
 		func(s string) string { return filepath.Join(completionTestSourcedir, "examples", s) },
-		"add.go",
 		"bash-completion",
 		"main.go",
-		"rm.go",
 	)
 
 	return map[string]completionTest{
@@ -234,7 +231,7 @@ func TestCompletion(t *testing.T) {
 			return v.Item
 		}, ret...)
 
-		assert.True(t, reflect.DeepEqual(items, test.Completed))
+		assert.Equal(t, test.Completed, items)
 	}
 }
 
@@ -277,7 +274,6 @@ func TestParserCompletion(t *testing.T) {
 		assert.NoError(t, err)
 
 		got := strings.Split(strings.Trim(<-out, "\n"), "\n")
-
-		assert.True(t, reflect.DeepEqual(got, test.Completed))
+		assert.Equal(t, test.Completed, got)
 	}
 }
