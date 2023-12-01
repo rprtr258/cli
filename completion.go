@@ -266,20 +266,15 @@ func (c *completion) complete(args []string) []Completion {
 func (c *completion) print(items []Completion, showDescriptions bool) {
 	if showDescriptions && len(items) > 1 {
 		maxl := 0
-
 		for _, v := range items {
-			if len(v.Item) > maxl {
-				maxl = len(v.Item)
-			}
+			maxl = max(maxl, len(v.Item))
 		}
 
 		for _, v := range items {
 			fmt.Printf("%s", v.Item)
-
 			if len(v.Description) > 0 {
 				fmt.Printf("%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
 			}
-
 			fmt.Printf("\n")
 		}
 	} else {
