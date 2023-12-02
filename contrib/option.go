@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Option flag information. Contains a description of the option, short and
@@ -429,19 +431,12 @@ func (option *Option) isValueValidator() ValueValidator {
 
 func (option *Option) isBool() bool {
 	tp := option.value.Type()
-
-	for {
-		switch tp.Kind() {
-		case reflect.Slice, reflect.Ptr:
-			tp = tp.Elem()
-		case reflect.Bool:
-			return true
-		case reflect.Func:
-			return tp.NumIn() == 0
-		default:
-			return false
-		}
+	for internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+		tp = tp.Elem()
 	}
+
+	return tp.Kind() == reflect.Bool ||
+		tp.Kind() == reflect.Func && tp.NumIn() == 0
 }
 
 func (option *Option) isSignedNumber() bool {
