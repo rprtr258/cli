@@ -504,13 +504,14 @@ func (p *parseState) estimateCommand() error {
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
-	if !option.canArgument() {
+	switch {
+	case !option.canArgument():
 		if argument != nil {
 			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
 		}
 
 		err = option.Set(nil)
-	} else if argument != nil || (canarg && !s.eof()) {
+	case argument != nil || canarg && !s.eof():
 		var arg string
 
 		if argument != nil {
@@ -532,7 +533,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		if err == nil {
 			err = option.Set(&arg)
 		}
-	} else if option.OptionalArgument {
+	case option.OptionalArgument:
 		option.empty()
 
 		for _, v := range option.OptionalValue {
@@ -542,7 +543,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 				break
 			}
 		}
-	} else {
+	default:
 		err = newErrorf(ErrExpectedArgument, "expected argument for flag `%s'", option)
 	}
 
@@ -557,26 +558,21 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 func (p *Parser) marshalError(option *Option, err error) *Error {
 	s := "invalid argument for flag `%s'"
-
-	expected := p.expectedType(option)
-
-	if expected != "" {
+	if expected := p.expectedType(option); expected != "" {
 		s = s + " (expected " + expected + ")"
 	}
 
-	return newErrorf(ErrMarshal, s+": %s",
-		option,
-		err.Error())
+	return newErrorf(ErrMarshal, s+": %s", option, err.Error())
 }
 
 func (p *Parser) expectedType(option *Option) string {
 	valueType := option.value.Type()
 
-	if valueType.Kind() == reflect.Func {
-		return ""
+	if valueType.Kind() != reflect.Func {
+		return valueType.String()
 	}
 
-	return valueType.String()
+	return ""
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
