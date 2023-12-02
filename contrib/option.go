@@ -455,17 +455,16 @@ func (option *Option) isFunc() bool {
 	return option.value.Type().Kind() == reflect.Func
 }
 
+func typeof[T any]() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem()
+}
+
 func (option *Option) call(value *string) error {
 	var retval []reflect.Value
-
 	if value == nil {
 		retval = option.value.Call(nil)
 	} else {
-		tp := option.value.Type().In(0)
-
-		val := reflect.New(tp)
-		val = reflect.Indirect(val)
-
+		val := reflect.Indirect(reflect.New(option.value.Type().In(0)))
 		if err := convert(*value, val, option.tag); err != nil {
 			return err
 		}
@@ -473,7 +472,7 @@ func (option *Option) call(value *string) error {
 		retval = option.value.Call([]reflect.Value{val})
 	}
 
-	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
+	if len(retval) == 1 && retval[0].Type() == typeof[error]() {
 		if retval[0].Interface() == nil {
 			return nil
 		}
