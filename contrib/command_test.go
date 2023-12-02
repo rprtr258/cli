@@ -3,6 +3,8 @@ package flags
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestCommandInline(t *testing.T) {
@@ -532,19 +534,15 @@ func TestSubCommandFindOptionByLongFlag(t *testing.T) {
 	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByLongName("other")
-
 	if opt == nil {
 		t.Errorf("Expected option, but found none")
 	}
-
 	assertString(t, opt.LongName, "other")
 
 	opt = c.FindOptionByLongName("testing")
-
 	if opt == nil {
 		t.Errorf("Expected option, but found none")
 	}
-
 	assertString(t, opt.LongName, "testing")
 }
 
@@ -561,21 +559,15 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByShortName('o')
-
 	if opt == nil {
 		t.Errorf("Expected option, but found none")
 	}
-
-	if opt.ShortName != 'o' {
-		t.Errorf("Expected 'o', but got %v", opt.ShortName)
-	}
+	assert.Equal(t, 'o', opt.ShortName)
 
 	opt = c.FindOptionByShortName('t')
-
 	if opt == nil {
 		t.Errorf("Expected option, but found none")
 	}
-
 	if opt.ShortName != 't' {
 		t.Errorf("Expected 'o', but got %v", opt.ShortName)
 	}
