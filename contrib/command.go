@@ -2,7 +2,6 @@ package flags
 
 import (
 	"reflect"
-	"sort"
 	"strconv"
 	"strings"
 )
@@ -406,10 +405,7 @@ func (c commandList) Swap(i, j int) {
 }
 
 func (c *Command) sortedVisibleCommands() []*Command {
-	ret := commandList(c.visibleCommands())
-	sort.Sort(ret)
-
-	return []*Command(ret)
+	return []*Command(commandList(c.visibleCommands()))
 }
 
 func (c *Command) visibleCommands() []*Command {

@@ -255,20 +255,10 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 }
 
 func maxCommandLength(s []*Command) int {
-	if len(s) == 0 {
-		return 0
+	ret := 0
+	for _, v := range s {
+		ret = max(ret, len(v.Name))
 	}
-
-	ret := len(s[0].Name)
-
-	for _, v := range s[1:] {
-		l := len(v.Name)
-
-		if l > ret {
-			ret = l
-		}
-	}
-
 	return ret
 }
 
@@ -441,22 +431,20 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			descStart := aligninfo.descriptionStart() + paddingBeforeOption
 
 			for _, arg := range args {
-				argPrefix := strings.Repeat(" ", paddingBeforeOption)
-				argPrefix += arg.Name
-
+				argPrefix := strings.Repeat(" ", paddingBeforeOption) + arg.Name
 				if len(arg.Description) > 0 {
 					argPrefix += ":"
 					wr.WriteString(argPrefix)
 
 					// Space between "arg:" and the description start
-					descPadding := strings.Repeat(" ", descStart-len(argPrefix))
-					// How much space the description gets before wrapping
-					descWidth := aligninfo.terminalColumns - 1 - descStart
-					// Whitespace to which we can indent new description lines
-					descPrefix := strings.Repeat(" ", descStart)
-
-					wr.WriteString(descPadding)
-					wr.WriteString(wrapText(arg.Description, descWidth, descPrefix))
+					wr.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
+					wr.WriteString(wrapText(
+						arg.Description,
+						// How much space the description gets before wrapping
+						aligninfo.terminalColumns-1-descStart,
+						// Whitespace to which we can indent new description lines
+						strings.Repeat(" ", descStart),
+					))
 				} else {
 					wr.WriteString(argPrefix)
 				}
@@ -468,9 +456,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		c = c.Active
 	}
 
-	scommands := cmd.sortedVisibleCommands()
-
-	if len(scommands) > 0 {
+	if scommands := cmd.sortedVisibleCommands(); len(scommands) > 0 {
 		maxnamelen := maxCommandLength(scommands)
 
 		fmt.Fprintln(wr)
