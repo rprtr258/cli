@@ -390,22 +390,8 @@ func (c *Command) groupByName(name string) *Group {
 	return nil
 }
 
-type commandList []*Command
-
-func (c commandList) Less(i, j int) bool {
-	return c[i].Name < c[j].Name
-}
-
-func (c commandList) Len() int {
-	return len(c)
-}
-
-func (c commandList) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
-}
-
 func (c *Command) sortedVisibleCommands() []*Command {
-	return []*Command(commandList(c.visibleCommands()))
+	return []*Command(c.visibleCommands())
 }
 
 func (c *Command) visibleCommands() []*Command {
