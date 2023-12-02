@@ -6,11 +6,13 @@ import (
 	"regexp"
 )
 
+type fieldID int
+
 type flagMeta struct {
 	isRest bool
 	isBool bool
 
-	idx int
+	idx fieldID
 
 	short       byte
 	long        string
@@ -19,8 +21,8 @@ type flagMeta struct {
 
 type base struct {
 	args      []string
-	flags     map[string][]string
-	boolFlags map[string]struct{}
+	flags     map[fieldID][]string
+	boolFlags map[fieldID]struct{}
 }
 
 func Parse[T any](args ...string) (T, error) {
@@ -30,21 +32,23 @@ func Parse[T any](args ...string) (T, error) {
 		return dest, fmt.Errorf("%s is not a struct", typ.String())
 	}
 
-	flagsMeta := map[int]flagMeta{}
-	shorts := map[byte]int{}
-	longs := map[string]int{}
+	flagsMeta := map[fieldID]flagMeta{}
+	shorts := map[byte]fieldID{}
+	longs := map[string]fieldID{}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		if !field.IsExported() {
 			continue
 		}
 
+		id := fieldID(i)
+
 		rawTags := string(field.Tag)
 		tagsMatches := regexp.MustCompile(`(short|long|description):"([^"]*)"|rest`).FindAllStringSubmatch(rawTags, -1)
 
 		tags := flagMeta{
 			isBool: field.Type.Kind() == reflect.Bool,
-			idx:    i,
+			idx:    id,
 		}
 		for _, tagMatch := range tagsMatches {
 			switch {
@@ -59,19 +63,19 @@ func Parse[T any](args ...string) (T, error) {
 			}
 		}
 
-		flagsMeta[i] = tags
+		flagsMeta[fieldID(i)] = tags
 
 		if tags.short != 0 {
-			shorts[tags.short] = i
+			shorts[tags.short] = id
 		}
 		if tags.long != "" {
-			longs[tags.long] = i
+			longs[tags.long] = id
 		}
 	}
 
 	argss := []string{}
-	flags := map[string][]string{}
-	boolFlags := map[string]struct{}{}
+	flags := map[fieldID][]string{}
+	boolFlags := map[fieldID]struct{}{}
 LOOP:
 	for i := 1; i < len(args); i++ {
 		switch arg := args[i]; {
@@ -89,16 +93,16 @@ LOOP:
 			case arg[2] == '-': // ---aboba, not a flag
 				argss = append(argss, arg)
 			default: // long flag
-				flagName := arg[2:]
-				if flagsMeta[longs[flagName]].isBool {
-					boolFlags[flagName] = struct{}{}
+				j := longs[arg[2:]]
+				if flagsMeta[j].isBool {
+					boolFlags[j] = struct{}{}
 				} else {
 					i++
 					if i == len(args) {
 						return dest, fmt.Errorf("flag %s requires value", arg)
 					}
 
-					flags[flagName] = append(flags[flagName], args[i])
+					flags[j] = append(flags[j], args[i])
 				}
 			}
 		default: // argument
@@ -120,9 +124,11 @@ LOOP:
 			continue
 		}
 
+		id := fieldID(i)
+
 		var meta flagMeta
 		for _, m := range flagsMeta {
-			if m.idx == i {
+			if m.idx == id {
 				meta = m
 			}
 		}
@@ -131,8 +137,17 @@ LOOP:
 		case meta.isRest:
 			field.Set(reflect.ValueOf(base.args))
 		case fieldStruct.Type.Kind() == reflect.Bool:
-			_, ok := base.boolFlags[meta.long]
+			_, ok := base.boolFlags[id]
 			field.Set(reflect.ValueOf(ok))
+		case fieldStruct.Type.Kind() == reflect.String:
+			switch vals := base.flags[id]; len(vals) {
+			case 0:
+				return dest, fmt.Errorf("flag %s requires value", meta.long)
+			case 1:
+				field.Set(reflect.ValueOf(vals[0]))
+			default:
+				return dest, fmt.Errorf("flag --%s requires exactly one value", meta.long)
+			}
 		}
 	}
 
