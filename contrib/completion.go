@@ -176,14 +176,12 @@ func (c *completion) complete(args []string) []Completion {
 	c.parser.fillParseState(s)
 
 	var opt *Option
-
 	for len(s.args) > 1 {
 		arg := s.pop()
 
-		if (c.parser.Options&PassDoubleDash) != None && arg == "--" {
+		if c.parser.Options&PassDoubleDash != 0 && arg == "--" {
 			opt = nil
 			c.skipPositional(s, len(s.args)-1)
-
 			break
 		}
 
