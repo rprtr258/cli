@@ -240,7 +240,7 @@ func TestCommandEstimate(t *testing.T) {
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs([]string{})
 
-	assertError(t, err, ErrCommandRequired, "Please specify one command of: add or remove")
+	assertError(t, err, ErrCommandRequired, "Please specify one command of: remove or add")
 }
 
 func TestCommandEstimate2(t *testing.T) {
@@ -452,7 +452,7 @@ func TestAfterNonCommand(t *testing.T) {
 		} `command:"add"`
 	}{}
 
-	assertParseFail(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: add or remove", &opts, "nocmd", "remove")
+	assertParseFail(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: remove or add", &opts, "nocmd", "remove")
 }
 
 func TestSubcommandsOptional(t *testing.T) {
