@@ -37,8 +37,8 @@ type Parser struct {
 	// or an error to indicate a parse failure.
 	UnknownOptionHandler func(option string, arg SplitArgument, args []string) ([]string, error)
 
-	// CompletionHandler is a function gets called to handle the completion of
-	// items. By default, the items are printed and the application is exited.
+	// CompletionHandler is a function gets called to handle the completion of items.
+	// By default, the items are printed and the application is exited.
 	// You can override this default behavior by specifying a custom CompletionHandler.
 	CompletionHandler func(items []Completion)
 
@@ -213,17 +213,17 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	if compval := os.Getenv("GO_FLAGS_COMPLETION"); len(compval) != 0 {
+	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		comp := &completion{parser: p}
 		items := comp.complete(args)
 
-		if p.CompletionHandler != nil {
-			p.CompletionHandler(items)
-		} else {
-			comp.print(items, compval == "verbose")
-			os.Exit(0)
+		if p.CompletionHandler == nil {
+			p.CompletionHandler = func(items []Completion) {
+				comp.print(os.Stdout, items)
+			}
 		}
 
+		p.CompletionHandler(items)
 		return nil, nil
 	}
 

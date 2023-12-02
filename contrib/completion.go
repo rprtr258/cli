@@ -2,6 +2,7 @@ package flags
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -11,20 +12,16 @@ import (
 
 // Completion is a type containing information of a completion.
 type Completion struct {
-	// The completed item
-	Item string
-
-	// A description of the completed item (optional)
-	Description string
+	Item        string // The completed item
+	Description string // Description of the completed item (optional)
 }
 
 // Completer is an interface which can be implemented by types
 // to provide custom command line argument completion.
 type Completer interface {
 	// Complete receives a prefix representing a (partial) value
-	// for its type and should provide a list of possible valid
-	// completions.
-	Complete(match string) []Completion
+	// for its type and should provide a list of possible valid completions.
+	Complete(prefix string) []Completion
 }
 
 type completion struct {
@@ -74,8 +71,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 	}
 
 	var results []Completion
-	repeats := map[string]bool{}
-
+	repeats := map[string]struct{}{}
 	for name, opt := range s.lookup.longNames {
 		if strings.HasPrefix(name, match) && !opt.Hidden {
 			results = append(results, Completion{
@@ -84,14 +80,13 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 			})
 
 			if short {
-				repeats[string(opt.ShortName)] = true
+				repeats[string(opt.ShortName)] = struct{}{}
 			}
 		}
 	}
-
 	if short {
 		for name, opt := range s.lookup.shortNames {
-			if _, exist := repeats[name]; !exist && strings.HasPrefix(name, match) && !opt.Hidden {
+			if _, ok := repeats[name]; !ok && strings.HasPrefix(name, match) && !opt.Hidden {
 				results = append(results, Completion{
 					Item:        string(defaultShortOptDelimiter) + name,
 					Description: opt.Description,
@@ -99,7 +94,6 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 			}
 		}
 	}
-
 	return results
 }
 
@@ -264,28 +258,17 @@ func (c *completion) complete(args []string) []Completion {
 	return ret
 }
 
-func (c *completion) print(items []Completion, showDescriptions bool) {
-	if showDescriptions && len(items) > 1 {
-		maxl := 0
+func (c *completion) print(w io.Writer, items []Completion) {
+	maxl := 0
+	for _, v := range items {
+		maxl = max(maxl, len(v.Item))
+	}
 
-		for _, v := range items {
-			if len(v.Item) > maxl {
-				maxl = len(v.Item)
-			}
+	for _, v := range items {
+		fmt.Fprintf(w, v.Item)
+		if v.Description != "" {
+			fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
 		}
-
-		for _, v := range items {
-			fmt.Printf("%s", v.Item)
-
-			if len(v.Description) > 0 {
-				fmt.Printf("%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
-			}
-
-			fmt.Printf("\n")
-		}
-	} else {
-		for _, v := range items {
-			fmt.Println(v.Item)
-		}
+		fmt.Fprintln(w)
 	}
 }

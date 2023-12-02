@@ -2,15 +2,14 @@ package flags
 
 import (
 	"bytes"
-	"io"
-	"os"
 	"path"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strings"
 	"testing"
 
-	"github.com/samber/lo"
+	"github.com/rprtr258/cli/internal"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -76,12 +75,11 @@ var completionTestOptions struct {
 }
 
 type completionTest struct {
-	Args             []string
-	Completed        []string
-	ShowDescriptions bool
+	Args      []string
+	Completed []string
 }
 
-var completionTests = func() []completionTest {
+var completionTests = func() map[string]completionTest {
 	_, sourcefile, _, _ := runtime.Caller(0)
 	completionTestSourcedir := filepath.Join(filepath.SplitList(path.Dir(sourcefile))...)
 
@@ -94,33 +92,26 @@ var completionTests = func() []completionTest {
 		filepath.Join(completionTestSourcedir, "examples/rm.go"),
 	}
 
-	return []completionTest{
-		{
-			// Short names
+	return map[string]completionTest{
+		"Short names": {
 			[]string{"-"},
-			[]string{"--debug", "--required", "--verbose", "--version", "-i"},
-			false,
+			[]string{
+				"--debug     # Enable debug",
+				"--required  # This is required",
+				"--verbose   # Verbose messages",
+				"--version   # Show version",
+				"-i          # Display info",
+			},
 		},
-		{
-			// Short names full
+		"Short names full": {
 			[]string{"-i"},
 			[]string{"-i"},
-			false,
 		},
-		{
-			// Short names concatenated
+		"Short names concatenated": {
 			[]string{"-dv"},
 			[]string{"-dv"},
-			false,
 		},
-		{
-			// Long names
-			[]string{"--"},
-			[]string{"--debug", "--required", "--verbose", "--version"},
-			false,
-		},
-		{
-			// Long names with descriptions
+		"Long names with descriptions": {
 			[]string{"--"},
 			[]string{
 				"--debug     # Enable debug",
@@ -128,22 +119,15 @@ var completionTests = func() []completionTest {
 				"--verbose   # Verbose messages",
 				"--version   # Show version",
 			},
-			true,
 		},
-		{
-			// Long names partial
+		"Long names partial": {
 			[]string{"--ver"},
-			[]string{"--verbose", "--version"},
-			false,
+			[]string{
+				"--verbose  # Verbose messages",
+				"--version  # Show version",
+			},
 		},
-		{
-			// Commands
-			[]string{""},
-			[]string{"add", "add-multi", "add-multi-flag", "rename", "rm"},
-			false,
-		},
-		{
-			// Commands with descriptions
+		"Commands with descriptions": {
 			[]string{""},
 			[]string{
 				"add             # add an item",
@@ -152,97 +136,69 @@ var completionTests = func() []completionTest {
 				"rename          # rename an item",
 				"rm              # remove an item",
 			},
-			true,
 		},
-		{
-			// Commands partial
+		"Commands partial": {
 			[]string{"r"},
-			[]string{"rename", "rm"},
-			false,
+			[]string{
+				"rename  # rename an item",
+				"rm      # remove an item",
+			},
 		},
-		{
-			// Positional filename
+		"Positional filename": {
 			[]string{"add", filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Multiple positional filename (1 arg)
+		"Multiple positional filename (1 arg)": {
 			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Multiple positional filename (2 args)
+		"Multiple positional filename (2 args)": {
 			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Multiple positional filename (3 args)
+		"Multiple positional filename (3 args)": {
 			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Flag filename
+		"Flag filename": {
 			[]string{"rm", "-f", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Flag short concat last filename
+		"Flag short concat last filename": {
 			[]string{"rm", "-of", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// Flag concat filename
+		"Flag concat filename": {
 			[]string{"rm", "-f" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"-f" + completionTestFilename[0], "-f" + completionTestFilename[1]},
-			false,
 		},
-		{
-			// Flag equal concat filename
+		"Flag equal concat filename": {
 			[]string{"rm", "-f=" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"-f=" + completionTestFilename[0], "-f=" + completionTestFilename[1]},
-			false,
 		},
-		{
-			// Flag concat long filename
+		"Flag concat long filename": {
 			[]string{"rm", "--filename=" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"--filename=" + completionTestFilename[0], "--filename=" + completionTestFilename[1]},
-			false,
 		},
-		{
-			// Flag long filename
+		"Flag long filename": {
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
-		{
-			// To subdir
+		"To subdir": {
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "examples/bash-")},
 			[]string{path.Join(completionTestSourcedir, "examples/bash-completion/")},
-			false,
 		},
-		{
-			// Subdirectory
+		"Subdirectory": {
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "examples") + "/"},
 			completionTestSubdir,
-			false,
 		},
-		{
-			// Custom completed
+		"Custom completed": {
 			[]string{"rename", "-c", "hello un"},
 			[]string{"hello universe"},
-			false,
 		},
-		{
-			// Multiple flag filename
+		"Multiple flag filename": {
 			[]string{"add-multi-flag", "-f", filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
-			false,
 		},
 	}
 }()
@@ -251,59 +207,39 @@ func TestCompletion(t *testing.T) {
 	p := NewParser(&completionTestOptions, Default)
 	c := &completion{parser: p}
 
-	for _, test := range completionTests {
-		if test.ShowDescriptions {
-			continue
-		}
+	for name, test := range completionTests {
+		t.Run(name, func(t *testing.T) {
+			items := internal.Map(func(v Completion) string {
+				return v.Item
+			}, c.complete(test.Args)...)
 
-		ret := c.complete(test.Args)
-
-		items := make([]string, len(ret))
-		for i, v := range ret {
-			items[i] = v.Item
-		}
-
-		assert.ElementsMatch(t, items, test.Completed)
+			assert.Equal(t, len(test.Completed), len(items))
+			sort.Strings(items)
+			sort.Strings(test.Completed) // TODO: remove cringe
+			for i, v := range items {
+				assert.True(t, strings.HasPrefix(test.Completed[i], v), "%q %q", test.Completed[i], v)
+			}
+		})
 	}
 }
 
 func TestParserCompletion(t *testing.T) {
-	for _, test := range completionTests {
-		t.Setenv("GO_FLAGS_COMPLETION", lo.Ternary(test.ShowDescriptions, "verbose", "1"))
+	for name, test := range completionTests {
+		t.Run(name, func(t *testing.T) {
+			t.Setenv("GO_FLAGS_COMPLETION", "1")
 
-		tmp := os.Stdout
-
-		r, w, _ := os.Pipe()
-		os.Stdout = w
-
-		out := make(chan string)
-
-		go func() {
 			var buf bytes.Buffer
+			p := NewParser(&completionTestOptions, None)
+			p.CompletionHandler = func(items []Completion) {
+				comp := &completion{parser: p}
+				comp.print(&buf, items)
+			}
 
-			io.Copy(&buf, r)
+			_, err := p.ParseArgs(test.Args...)
+			assert.NoError(t, err)
 
-			out <- buf.String()
-		}()
-
-		p := NewParser(&completionTestOptions, None)
-
-		p.CompletionHandler = func(items []Completion) {
-			comp := &completion{parser: p}
-			comp.print(items, test.ShowDescriptions)
-		}
-
-		_, err := p.ParseArgs(test.Args...)
-
-		w.Close()
-
-		os.Stdout = tmp
-
-		if err != nil {
-			t.Fatalf("Unexpected error: %s", err)
-		}
-
-		got := strings.Split(strings.Trim(<-out, "\n"), "\n")
-		assert.ElementsMatch(t, test.Completed, got)
+			got := strings.Split(buf.String(), "\n")
+			assert.ElementsMatch(t, test.Completed, got[:len(got)-1])
+		})
 	}
 }
