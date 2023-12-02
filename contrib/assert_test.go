@@ -51,28 +51,14 @@ func assertFatalf(t *testing.T, format string, args ...interface{}) {
 	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertString(t *testing.T, a string, b string) {
+func assertString(t *testing.T, expected, actual string) {
 	t.Helper()
-
-	if a != b {
-		assertErrorf(t, "Expected %#v, but got %#v", b, a)
-	}
+	assert.Equal(t, expected, actual)
 }
 
-func assertStringArray(t *testing.T, a []string, b []string) {
+func assertStringArray(t *testing.T, expected, actual []string) {
 	t.Helper()
-
-	if len(a) != len(b) {
-		assertErrorf(t, "Expected %#v, but got %#v", b, a)
-		return
-	}
-
-	for i, v := range a {
-		if b[i] != v {
-			assertErrorf(t, "Expected %#v, but got %#v", b, a)
-			return
-		}
-	}
+	assert.Equal(t, expected, actual)
 }
 
 func assertBoolArray(t *testing.T, a []bool, b []bool) {

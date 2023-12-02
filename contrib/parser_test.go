@@ -411,6 +411,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-o'",
+			rest:        []string{},
 		},
 		{
 			// long option must not be accepted as argument
@@ -418,6 +419,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `--other-option'",
+			rest:        []string{},
 		},
 		{
 			// long option must not be accepted as argument
@@ -425,14 +427,17 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got double dash `--'",
+			rest:        []string{},
 		},
 		{
 			// quoted and appended option should be accepted as argument (even if it looks like an option)
 			args: []string{"--string-slice", "foobar", "--string-slice=\"--other-option\""},
+			rest: []string{},
 		},
 		{
 			// Accept any single character arguments including '-'
 			args: []string{"--string-slice", "-"},
+			rest: []string{},
 		},
 		{
 			// Do not accept arguments which start with '-' even if the next character is a digit
@@ -440,6 +445,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-3.14'",
+			rest:        []string{},
 		},
 		{
 			// Do not accept arguments which start with '-' if the next character is not a digit
@@ -447,6 +453,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-character'",
+			rest:        []string{},
 		},
 		{
 			args: []string{"-o", "-", "-"},
@@ -455,26 +462,32 @@ func TestOptionAsArgument(t *testing.T) {
 		{
 			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--int-slice", "-3"},
+			rest: []string{},
 		},
 		{
 			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--int16", "-3"},
+			rest: []string{},
 		},
 		{
 			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--float32", "-3.2"},
+			rest: []string{},
 		},
 		{
 			// Accept arguments which start with '-' if the next character is a digit
 			args: []string{"--float32ptr", "-3.2"},
+			rest: []string{},
 		},
 		{
 			// Accept arguments for values that pass the IsValidValue fuction for value validators
 			args: []string{"--custom-flag", "-foo"},
+			rest: []string{},
 		},
 		{
 			// Accept arguments for values that pass the IsValidValue fuction for value validators
 			args: []string{"--custom-flag", "-1"},
+			rest: []string{},
 		},
 		{
 			// Rejects arguments for values that fail the IsValidValue fuction for value validators
@@ -482,6 +495,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errType:     ErrExpectedArgument,
 			errMsg:      "invalid flag value",
+			rest:        []string{},
 		},
 	}
 
@@ -499,9 +513,7 @@ func TestOptionAsArgument(t *testing.T) {
 		if test.expectError {
 			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
 		} else {
-			args := assertParseSuccess(t, &opts, test.args...)
-
-			assertStringArray(t, args, test.rest)
+			assertStringArray(t, test.rest, assertParseSuccess(t, &opts, test.args...))
 		}
 	}
 }
