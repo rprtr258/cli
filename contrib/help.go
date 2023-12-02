@@ -393,9 +393,8 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 		c.eachGroup(func(grp *Group) {
 			first := true
 
-			// Skip built-in help group for all commands except the top-level
-			// parser
-			if grp.Hidden || (grp.isBuiltinHelp && c != p.Command) {
+			// Skip built-in help group for all commands except the top-level parser
+			if grp.Hidden || grp.isBuiltinHelp && c != p.Command {
 				return
 			}
 
