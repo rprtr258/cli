@@ -240,13 +240,13 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
-		if (p.Options&PassDoubleDash) != None && arg == "--" {
-			s.addArgs(s.args...)
+		if p.Options&PassDoubleDash != 0 && arg == "--" {
+			_ = s.addArgs(s.args...)
 			break
 		}
 
 		if !argumentIsOption(arg) {
-			if (p.Options&PassAfterNonOption) != None && s.lookup.commands[arg] == nil {
+			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
 				// are considered positional
 				if err = s.addArgs(s.arg); err != nil {
@@ -693,15 +693,8 @@ func (p *Parser) showBuiltinHelp() error {
 }
 
 func (p *Parser) printError(err error) error {
-	if err != nil && (p.Options&PrintErrors) != None {
-		flagsErr, ok := err.(*Error)
-
-		if ok && flagsErr.Kind == ErrHelp {
-			fmt.Fprintln(os.Stdout, err)
-		} else {
-			fmt.Fprintln(os.Stderr, err)
-		}
+	if err != nil && p.Options&PrintErrors != 0 {
+		fmt.Fprintln(os.Stderr, err)
 	}
-
 	return err
 }
