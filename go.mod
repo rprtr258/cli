@@ -4,6 +4,7 @@ go 1.21
 
 require (
 	github.com/davecgh/go-spew v1.1.1
+	github.com/rprtr258/fun v0.0.10
 	github.com/samber/lo v1.38.1
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.14.0

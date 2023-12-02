@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rprtr258/fun/iter"
 )
 
 func manQuoteLines(s string) string {
@@ -112,18 +114,19 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 }
 
 func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, commands []*Command) {
-	for _, c := range commands {
-		if c.Hidden {
-			continue
-		}
+	iter.
+		FromMany(commands...).
+		Filter(func(c *Command) bool {
+			return !c.Hidden
+		}).
+		ForEach(func(c *Command) {
+			nn := c.Name
+			if len(name) != 0 {
+				nn = name + " " + c.Name
+			}
 
-		nn := c.Name
-		if len(name) != 0 {
-			nn = name + " " + c.Name
-		}
-
-		writeManPageCommand(wr, nn, usagePrefix, c)
-	}
+			writeManPageCommand(wr, nn, usagePrefix, c)
+		})
 }
 
 func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command *Command) {
