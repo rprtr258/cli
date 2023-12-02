@@ -581,11 +581,8 @@ func (p *Parser) expectedType(option *Option) string {
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	if option := s.lookup.longNames[name]; option != nil {
-		// Only long options that are required can consume an argument
-		// from the argument list
-		canarg := !option.OptionalArgument
-
-		return p.parseOption(s, name, option, canarg, argument)
+		// Only long options that are required can consume an argument from the argument list
+		return p.parseOption(s, name, option, !option.OptionalArgument, argument)
 	}
 
 	return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
