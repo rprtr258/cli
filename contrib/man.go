@@ -201,7 +201,7 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
 
 	formatForMan(wr, p.LongDescription)
-	fmt.Fprintln(wr, "")
+	fmt.Fprintln(wr)
 
 	fmt.Fprintln(wr, ".SH OPTIONS")
 
