@@ -372,10 +372,6 @@ func (c *Command) fillLookup(ret *lookup, onlyOptions bool) {
 	}
 }
 
-func (c *Command) sortedVisibleCommands() []*Command {
-	return []*Command(c.visibleCommands())
-}
-
 func (c *Command) visibleCommands() []*Command {
 	return internal.Filter(func(cmd *Command) bool {
 		return !cmd.Hidden

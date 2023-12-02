@@ -337,7 +337,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				if len(visibleCommands) > 3 {
 					fmt.Fprintf(bw, " %scommand%s", co, cc)
 				} else {
-					subcommands := allcmd.sortedVisibleCommands()
+					subcommands := allcmd.visibleCommands()
 					names := make([]string, len(subcommands))
 
 					for i, subc := range subcommands {
@@ -441,7 +441,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		c = c.Active
 	}
 
-	if scommands := cmd.sortedVisibleCommands(); len(scommands) > 0 {
+	if scommands := cmd.visibleCommands(); len(scommands) > 0 {
 		maxnamelen := maxCommandLength(scommands)
 
 		fmt.Fprintln(bw)

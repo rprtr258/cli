@@ -112,19 +112,16 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 }
 
 func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, root *Command) {
-	commands := root.sortedVisibleCommands()
+	commands := root.visibleCommands()
 
 	for _, c := range commands {
-		var nn string
-
 		if c.Hidden {
 			continue
 		}
 
+		nn := c.Name
 		if len(name) != 0 {
 			nn = name + " " + c.Name
-		} else {
-			nn = c.Name
 		}
 
 		writeManPageCommand(wr, nn, usagePrefix, c)
