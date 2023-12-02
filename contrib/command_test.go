@@ -568,9 +568,7 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 	if opt == nil {
 		t.Errorf("Expected option, but found none")
 	}
-	if opt.ShortName != 't' {
-		t.Errorf("Expected 'o', but got %v", opt.ShortName)
-	}
+	assert.Equal(t, 't', opt.ShortName)
 }
 
 type fooCmd struct {
