@@ -142,7 +142,7 @@ LOOP:
 		case fieldStruct.Type.Kind() == reflect.String:
 			switch vals := base.flags[id]; len(vals) {
 			case 0:
-				return dest, fmt.Errorf("flag %s requires value", meta.long)
+				return dest, fmt.Errorf("flag --%s requires value", meta.long)
 			case 1:
 				field.Set(reflect.ValueOf(vals[0]))
 			default:
