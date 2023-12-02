@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun/iter"
 )
 
@@ -173,10 +174,8 @@ func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command 
 }
 
 // WriteManPage writes a basic man page in groff format to the specified writer.
-func (p *Parser) WriteManPage(wr io.Writer) {
-	t := time.Now()
-	source_date_epoch := os.Getenv("SOURCE_DATE_EPOCH")
-	if source_date_epoch != "" {
+func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
+	if source_date_epoch := os.Getenv("SOURCE_DATE_EPOCH"); source_date_epoch != "" {
 		sde, err := strconv.ParseInt(source_date_epoch, 10, 64)
 		if err != nil {
 			panic(fmt.Sprintf("Invalid SOURCE_DATE_EPOCH: %s", err))
@@ -189,10 +188,7 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.ShortDescription))
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
 
-	usage := p.Usage
-	if len(usage) == 0 {
-		usage = "[OPTIONS]"
-	}
+	usage := internal.Or(p.Usage, "[OPTIONS]")
 
 	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
 	fmt.Fprintln(wr, ".SH DESCRIPTION")

@@ -211,12 +211,12 @@ func TestMan(t *testing.T) {
 		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
+	tt := time.Now()
+
 	var buf bytes.Buffer
-	p.WriteManPage(&buf)
+	p.WriteManPage(&buf, tt)
 
 	got := buf.String()
-
-	tt := time.Now()
 
 	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
 .SH NAME
