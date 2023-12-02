@@ -43,11 +43,11 @@ type Option struct {
 	// This is only valid for non-boolean options.
 	OptionalArgument bool
 
-	// The optional value of the option. The optional value is used when
-	// the option flag is marked as having an OptionalArgument. This means
-	// that when the flag is specified, but no option argument is given,
-	// the value of the field this option represents will be set to
-	// OptionalValue. This is only valid for non-boolean options.
+	// The optional value of the option.
+	// The optional value is used when the option flag is marked as having an OptionalArgument.
+	// This means that when the flag is specified, but no option argument is given,
+	// the value of the field this option represents will be set to OptionalValue.
+	// This is only valid for non-boolean options.
 	OptionalValue []string
 
 	// If true, the option _must_ be specified on the command line.
