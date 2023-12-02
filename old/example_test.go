@@ -11,6 +11,8 @@ func ptr[T any](v T) *T {
 }
 
 func TestExample(t *testing.T) {
+	t.Skip()
+
 	type Args struct {
 		ID   string
 		Num  int

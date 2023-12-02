@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/rprtr258/cli"
+	cli "github.com/rprtr258/cli/old"
 )
 
 type CommandAdd struct {
