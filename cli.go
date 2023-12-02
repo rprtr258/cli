@@ -126,7 +126,6 @@ LOOP:
 				meta = m
 			}
 		}
-		fmt.Println(i, meta)
 
 		switch {
 		case meta.isRest:
