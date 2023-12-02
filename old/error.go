@@ -1,63 +1,26 @@
 package cli
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // ErrorType represents the type of error.
-type ErrorType uint
+type ErrorType int
 
 const (
-	// ErrUnknown indicates a generic error.
-	ErrUnknown ErrorType = iota
-
-	// ErrExpectedArgument indicates that an argument was expected.
-	ErrExpectedArgument
-
-	// ErrUnknownFlag indicates an unknown flag.
-	ErrUnknownFlag
-
-	// ErrUnknownGroup indicates an unknown group.
-	ErrUnknownGroup
-
-	// ErrMarshal indicates a marshalling error while converting values.
-	ErrMarshal
-
-	// ErrHelp indicates that the built-in help was shown (the error
-	// contains the help message).
-	ErrHelp
-
-	// ErrNoArgumentForBool indicates that an argument was given for a
-	// boolean flag (which don't not take any arguments).
-	ErrNoArgumentForBool
-
-	// ErrRequired indicates that a required flag was not provided.
-	ErrRequired
-
-	// ErrShortNameTooLong indicates that a short flag name was specified,
-	// longer than one character.
-	ErrShortNameTooLong
-
-	// ErrDuplicatedFlag indicates that a short or long flag has been
-	// defined more than once
-	ErrDuplicatedFlag
-
-	// ErrTag indicates an error while parsing flag tags.
-	ErrTag
-
-	// ErrCommandRequired indicates that a command was required but not
-	// specified
-	ErrCommandRequired
-
-	// ErrUnknownCommand indicates that an unknown command was specified.
-	ErrUnknownCommand
-
-	// ErrInvalidChoice indicates an invalid option value which only allows
-	// a certain number of choices.
-	ErrInvalidChoice
-
-	// ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
-	ErrInvalidTag
+	ErrUnknown           ErrorType = iota // ErrUnknown indicates a generic error.
+	ErrExpectedArgument                   // ErrExpectedArgument indicates that an argument was expected.
+	ErrUnknownFlag                        // ErrUnknownFlag indicates an unknown flag.
+	ErrUnknownGroup                       // ErrUnknownGroup indicates an unknown group.
+	ErrMarshal                            // ErrMarshal indicates a marshalling error while converting values.
+	ErrHelp                               // ErrHelp indicates that the built-in help was shown (the error contains the help message).
+	ErrNoArgumentForBool                  // ErrNoArgumentForBool indicates that an argument was given for a boolean flag (which don't not take any arguments).
+	ErrRequired                           // ErrRequired indicates that a required flag was not provided.
+	ErrShortNameTooLong                   // ErrShortNameTooLong indicates that a short flag name was specified, longer than one character.
+	ErrDuplicatedFlag                     // ErrDuplicatedFlag indicates that a short or long flag has been defined more than once
+	ErrTag                                // ErrTag indicates an error while parsing flag tags.
+	ErrCommandRequired                    // ErrCommandRequired indicates that a command was required but not specified
+	ErrUnknownCommand                     // ErrUnknownCommand indicates that an unknown command was specified.
+	ErrInvalidChoice                      // ErrInvalidChoice indicates an invalid option value which only allows a certain number of choices.
+	ErrInvalidTag                         // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 )
 
 func (e ErrorType) String() string {
