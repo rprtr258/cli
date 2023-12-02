@@ -54,11 +54,8 @@ func (e ErrorKind) Error() string {
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.
 type Error struct {
-	// The type of error
-	Kind ErrorKind
-
-	// The error message
-	Message string
+	Kind    ErrorKind // The kind of error
+	Message string    // The error message
 }
 
 // Error returns the error's message
@@ -78,11 +75,9 @@ func newErrorf(tp ErrorKind, format string, args ...interface{}) *Error {
 }
 
 func wrapError(err error) *Error {
-	ret, ok := err.(*Error)
-
-	if !ok {
-		return newError(ErrUnknown, err.Error())
+	if ret, ok := err.(*Error); ok {
+		return ret
 	}
 
-	return ret
+	return newError(ErrUnknown, err.Error())
 }

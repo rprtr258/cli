@@ -209,13 +209,11 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	})
 
 	// Add built-in help group to all commands if necessary
-	if (p.Options & HelpFlag) != None {
+	if p.Options&HelpFlag != 0 {
 		p.addHelpGroups(p.showBuiltinHelp)
 	}
 
-	compval := os.Getenv("GO_FLAGS_COMPLETION")
-
-	if len(compval) != 0 {
+	if compval := os.Getenv("GO_FLAGS_COMPLETION"); len(compval) != 0 {
 		comp := &completion{parser: p}
 		items := comp.complete(args)
 
