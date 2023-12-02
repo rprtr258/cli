@@ -111,9 +111,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 	})
 }
 
-func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, root *Command) {
-	commands := root.visibleCommands()
-
+func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, commands []*Command) {
 	for _, c := range commands {
 		if c.Hidden {
 			continue
@@ -168,7 +166,7 @@ func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command 
 	}
 
 	writeManPageOptions(wr, command.Group)
-	writeManPageSubcommands(wr, name, nextPrefix, command)
+	writeManPageSubcommands(wr, name, nextPrefix, command.visibleCommands())
 }
 
 // WriteManPage writes a basic man page in groff format to the specified
@@ -206,6 +204,6 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 
 	if len(p.visibleCommands()) > 0 {
 		fmt.Fprintln(wr, ".SH COMMANDS")
-		writeManPageSubcommands(wr, "", p.Name+" "+usage, p.Command)
+		writeManPageSubcommands(wr, "", p.Name+" "+usage, p.Command.visibleCommands())
 	}
 }
