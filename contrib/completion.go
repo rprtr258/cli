@@ -210,10 +210,9 @@ func (c *completion) complete(args []string) []Completion {
 					}
 				}
 
-				if o == nil && (c.parser.Options&PassAfterNonOption) != None {
+				if o == nil && c.parser.Options&PassAfterNonOption != 0 {
 					opt = nil
 					c.skipPositional(s, len(s.args)-1)
-
 					break
 				} else if o != nil && o.canArgument() && !o.OptionalArgument && canarg {
 					if len(s.args) > 1 {
