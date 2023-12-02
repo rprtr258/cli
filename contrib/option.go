@@ -15,18 +15,17 @@ import (
 // long name as well as a default value and whether an argument for this
 // flag is optional.
 type Option struct {
-	// The description of the option flag. This description is shown
-	// automatically in the built-in help.
+	// The description of the option flag. This description is shown automatically in the built-in help.
 	Description string
 
-	// The short name of the option (a single character). If not 0, the
-	// option flag can be 'activated' using -<ShortName>. Either ShortName
-	// or LongName needs to be non-empty.
+	// The short name of the option (a single character).
+	// If not 0, the option flag can be 'activated' using -<ShortName>.
+	// Either ShortName or LongName needs to be non-empty.
 	ShortName rune
 
-	// The long name of the option. If not "", the option flag can be
-	// activated using --<LongName>. Either ShortName or LongName needs
-	// to be non-empty.
+	// The long name of the option.
+	// If not "", the option flag can be activated using --<LongName>.
+	// Either ShortName or LongName needs to be non-empty.
 	LongName string
 
 	// The default value of the option.
@@ -51,17 +50,15 @@ type Option struct {
 	// OptionalValue. This is only valid for non-boolean options.
 	OptionalValue []string
 
-	// If true, the option _must_ be specified on the command line. If the
-	// option is not specified, the parser will generate an ErrRequired type
-	// error.
+	// If true, the option _must_ be specified on the command line.
+	// If the option is not specified, the parser will generate an ErrRequired type error.
 	Required bool
 
 	// A name for the value of an option shown in the Help as --flag [ValueName]
 	ValueName string
 
-	// A mask value to show in the help instead of the default value. This
-	// is useful for hiding sensitive information in the help, such as
-	// passwords.
+	// A mask value to show in the help instead of the default value.
+	// This is useful for hiding sensitive information in the help, such as passwords.
 	DefaultMask string
 
 	// If non empty, only a certain set of values is allowed for an option.
