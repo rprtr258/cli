@@ -1,6 +1,6 @@
 package flags
 
-func levenshtein(s string, t string) int {
+func dist(s, t string) int {
 	if len(s) == 0 {
 		return len(t)
 	}
@@ -38,22 +38,16 @@ func levenshtein(s string, t string) int {
 	return dists[len(s)][len(t)]
 }
 
-func closestChoice(cmd string, choices []string) (string, int) {
+func getClosest(cmd string, choices []string) (string, int) {
 	if len(choices) == 0 {
 		return "", 0
 	}
 
-	mincmd := -1
-	mindist := -1
-
-	for i, c := range choices {
-		l := levenshtein(cmd, c)
-
-		if mincmd < 0 || l < mindist {
-			mindist = l
-			mincmd = i
+	closest, distMin := "", -1
+	for _, c := range choices {
+		if distCur := dist(cmd, c); distMin == -1 || distCur < distMin {
+			closest, distMin = c, distCur
 		}
 	}
-
-	return choices[mincmd], mindist
+	return closest, distMin
 }
