@@ -1,8 +1,6 @@
 package flags
 
-import (
-	"reflect"
-)
+import "reflect"
 
 // Arg represents a positional argument on the command line.
 type Arg struct {

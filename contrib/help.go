@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"runtime"
 	"strings"
 	"unicode/utf8"
 
@@ -225,23 +224,9 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			def = option.defaultLiteral
 		}
 
-		var envDef string
-		if option.EnvKeyWithNamespace() != "" {
-			var envPrintable string
-			if runtime.GOOS == "windows" {
-				envPrintable = "%" + option.EnvKeyWithNamespace() + "%"
-			} else {
-				envPrintable = "$" + option.EnvKeyWithNamespace()
-			}
-			envDef = fmt.Sprintf(" [%s]", envPrintable)
-		}
-
-		var desc string
-
+		desc := option.Description
 		if def != "" {
-			desc = fmt.Sprintf("%s (default: %v)%s", option.Description, def, envDef)
-		} else {
-			desc = option.Description + envDef
+			desc = fmt.Sprintf("%s (default: %v)", option.Description, def)
 		}
 
 		writer.WriteString(wrapText(desc,

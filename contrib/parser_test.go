@@ -3,7 +3,6 @@ package flags
 import (
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"runtime"
 	"strconv"
@@ -216,171 +215,6 @@ func TestUnquoting(t *testing.T) {
 	}
 }
 
-// EnvRestorer keeps a copy of a set of env variables and can restore the env from them
-type EnvRestorer struct {
-	env map[string]string
-}
-
-func (r *EnvRestorer) Restore() {
-	os.Clearenv()
-
-	for k, v := range r.env {
-		os.Setenv(k, v)
-	}
-}
-
-// EnvSnapshot returns a snapshot of the currently set env variables
-func EnvSnapshot() *EnvRestorer {
-	r := EnvRestorer{make(map[string]string)}
-
-	for _, kv := range os.Environ() {
-		parts := strings.SplitN(kv, "=", 2)
-
-		if len(parts) != 2 {
-			panic("got a weird env variable: " + kv)
-		}
-
-		r.env[parts[0]] = parts[1]
-	}
-
-	return &r
-}
-
-type envNestedOptions struct {
-	Foo string `long:"foo" default:"z" env:"FOO"`
-}
-
-type envDefaultOptions struct {
-	Int    int              `long:"i" default:"1" env:"TEST_I"`
-	Time   time.Duration    `long:"t" default:"1m" env:"TEST_T"`
-	Map    map[string]int   `long:"m" default:"a:1" env:"TEST_M" env-delim:";"`
-	Slice  []int            `long:"s" default:"1" default:"2" env:"TEST_S"  env-delim:","`
-	Nested envNestedOptions `group:"nested" namespace:"nested" env-namespace:"NESTED"`
-}
-
-func TestEnvDefaults(t *testing.T) {
-	var tests = []struct {
-		msg         string
-		args        []string
-		expected    envDefaultOptions
-		expectedErr string
-		env         map[string]string
-	}{
-		{
-			msg:  "no arguments, no env, expecting default values",
-			args: []string{},
-			expected: envDefaultOptions{
-				Int:   1,
-				Time:  time.Minute,
-				Map:   map[string]int{"a": 1},
-				Slice: []int{1, 2},
-				Nested: envNestedOptions{
-					Foo: "z",
-				},
-			},
-		},
-		{
-			msg:  "no arguments, env defaults, expecting env default values",
-			args: []string{},
-			expected: envDefaultOptions{
-				Int:   2,
-				Time:  2 * time.Minute,
-				Map:   map[string]int{"a": 2, "b": 3},
-				Slice: []int{4, 5, 6},
-				Nested: envNestedOptions{
-					Foo: "a",
-				},
-			},
-			env: map[string]string{
-				"TEST_I":     "2",
-				"TEST_T":     "2m",
-				"TEST_M":     "a:2;b:3",
-				"TEST_S":     "4,5,6",
-				"NESTED_FOO": "a",
-			},
-		},
-		{
-			msg:         "no arguments, malformed env defaults, expecting parse error",
-			args:        []string{},
-			expectedErr: `parsing "two": invalid syntax`,
-			env: map[string]string{
-				"TEST_I": "two",
-			},
-		},
-		{
-			msg:  "non-zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=3", "--t=3ms", "--m=c:3", "--s=3", "--nested.foo=\"p\""},
-			expected: envDefaultOptions{
-				Int:   3,
-				Time:  3 * time.Millisecond,
-				Map:   map[string]int{"c": 3},
-				Slice: []int{3},
-				Nested: envNestedOptions{
-					Foo: "p",
-				},
-			},
-			env: map[string]string{
-				"TEST_I":     "2",
-				"TEST_T":     "2m",
-				"TEST_M":     "a:2;b:3",
-				"TEST_S":     "4,5,6",
-				"NESTED_FOO": "a",
-			},
-		},
-		{
-			msg:  "zero value arguments, expecting overwritten arguments",
-			args: []string{"--i=0", "--t=0ms", "--m=:0", "--s=0", "--nested.foo=\"\""},
-			expected: envDefaultOptions{
-				Int:   0,
-				Time:  0,
-				Map:   map[string]int{"": 0},
-				Slice: []int{0},
-				Nested: envNestedOptions{
-					Foo: "",
-				},
-			},
-			env: map[string]string{
-				"TEST_I":     "2",
-				"TEST_T":     "2m",
-				"TEST_M":     "a:2;b:3",
-				"TEST_S":     "4,5,6",
-				"NESTED_FOO": "a",
-			},
-		},
-	}
-
-	oldEnv := EnvSnapshot()
-	defer oldEnv.Restore()
-
-	for _, test := range tests {
-		var opts envDefaultOptions
-		oldEnv.Restore()
-		for envKey, envValue := range test.env {
-			os.Setenv(envKey, envValue)
-		}
-		_, err := NewParser(&opts, None).ParseArgs(test.args...)
-		if test.expectedErr != "" {
-			if err == nil {
-				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
-			} else if !strings.Contains(err.Error(), test.expectedErr) {
-				t.Errorf("%s:\nExpected error %q to contain substring %q", test.msg, err, test.expectedErr)
-			}
-		} else {
-			if err != nil {
-				t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
-			}
-
-			if opts.Slice == nil {
-				opts.Slice = []int{}
-			}
-
-			if !reflect.DeepEqual(opts, test.expected) {
-				t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
-			}
-		}
-	}
-}
-
 type CustomFlag struct {
 	Value string
 }
@@ -391,7 +225,7 @@ func (c *CustomFlag) UnmarshalFlag(s string) error {
 }
 
 func (c *CustomFlag) IsValidValue(s string) error {
-	if !(s == "-1" || s == "-foo") {
+	if s != "-1" && s != "-foo" {
 		return errors.New("invalid flag value")
 	}
 	return nil

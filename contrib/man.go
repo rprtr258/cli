@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -96,12 +95,6 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 
 			if len(opt.Default) != 0 {
 				fmt.Fprintf(wr, " <default: \\fI%s\\fR>", manQuote(strings.Join(quoteV(opt.Default), ", ")))
-			} else if len(opt.EnvKeyWithNamespace()) != 0 {
-				if runtime.GOOS == "windows" {
-					fmt.Fprintf(wr, " <default: \\fI%%%s%%\\fR>", manQuote(opt.EnvKeyWithNamespace()))
-				} else {
-					fmt.Fprintf(wr, " <default: \\fI$%s\\fR>", manQuote(opt.EnvKeyWithNamespace()))
-				}
 			}
 
 			if opt.Required {
@@ -200,7 +193,6 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
 
 	usage := p.Usage
-
 	if len(usage) == 0 {
 		usage = "[OPTIONS]"
 	}
@@ -217,7 +209,6 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 
 	if len(p.visibleCommands()) > 0 {
 		fmt.Fprintln(wr, ".SH COMMANDS")
-
 		writeManPageSubcommands(wr, "", p.Name+" "+usage, p.Command)
 	}
 }

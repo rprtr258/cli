@@ -5,11 +5,12 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
 	"runtime"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type helpOptions struct {
@@ -21,8 +22,8 @@ type helpOptions struct {
 	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
 	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
 	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
-	EnvDefault1       string            `long:"env-default1" default:"Some value" env:"ENV_DEFAULT" description:"Test env-default1 value"`
-	EnvDefault2       string            `long:"env-default2" env:"ENV_DEFAULT" description:"Test env-default2 value"`
+	EnvDefault1       string            `long:"env-default1" default:"Some value" description:"Test env-default1 value"`
+	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
 	Hidden            string            `long:"hidden" description:"Hidden option" hidden:"yes"`
@@ -80,10 +81,6 @@ type helpOptions struct {
 }
 
 func TestHelp(t *testing.T) {
-	oldEnv := EnvSnapshot()
-	defer oldEnv.Restore()
-	os.Setenv("ENV_DEFAULT", "env-def")
-
 	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
@@ -119,9 +116,8 @@ Application Options:
       /default-map:                         Testdefault map value (default:
                                             some:value, another:value)
       /env-default1:                        Test env-default1 value (default:
-                                            Some value) [%ENV_DEFAULT%]
+                                            Some value)
       /env-default2:                        Test env-default2 value
-                                            [%ENV_DEFAULT%]
       /opt-with-arg-name:something          Option with named argument
       /opt-with-choices:choice[dog|cat]     Option with choices
 
@@ -168,9 +164,8 @@ Application Options:
       --default-map=                        Testdefault map value (default:
                                             some:value, another:value)
       --env-default1=                       Test env-default1 value (default:
-                                            Some value) [$ENV_DEFAULT]
+                                            Some value)
       --env-default2=                       Test env-default2 value
-                                            [$ENV_DEFAULT]
       --opt-with-arg-name=something         Option with named argument
       --opt-with-choices=choice[dog|cat]    Option with choices
 
@@ -207,15 +202,10 @@ Available commands:
 }
 
 func TestMan(t *testing.T) {
-	oldEnv := EnvSnapshot()
-	defer oldEnv.Restore()
-	os.Setenv("ENV_DEFAULT", "env-def")
-
-	var opts helpOptions
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
 	p.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
-	p.AddGroup("Application Options", "The application options", &opts)
+	p.AddGroup("Application Options", "The application options", &helpOptions{})
 
 	for _, cmd := range p.Commands() {
 		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
@@ -227,14 +217,6 @@ func TestMan(t *testing.T) {
 	got := buf.String()
 
 	tt := time.Now()
-
-	var envDefaultName string
-
-	if runtime.GOOS == "windows" {
-		envDefaultName = "%ENV_DEFAULT%"
-	} else {
-		envDefaultName = "$ENV_DEFAULT"
-	}
 
 	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
 .SH NAME
@@ -271,7 +253,7 @@ Testdefault map value
 \fB\fB\-\-env-default1\fR <default: \fI"Some value"\fR>\fP
 Test env-default1 value
 .TP
-\fB\fB\-\-env-default2\fR <default: \fI%s\fR>\fP
+\fB\fB\-\-env-default2\fR\fP
 Test env-default2 value
 .TP
 \fB\fB\-\-opt-with-arg-name\fR \fIsomething\fR\fP
@@ -333,9 +315,8 @@ A sub command
 .TP
 \fB\fB\-\-opt\fR\fP
 This is a sub command option
-`, tt.Format("2 January 2006"), envDefaultName)
-
-	assertDiff(t, got, expected, "man page")
+`, tt.Format("2 January 2006"))
+	assert.Equal(t, expected, got)
 }
 
 type helpCommandNoOptions struct {
@@ -344,10 +325,6 @@ type helpCommandNoOptions struct {
 }
 
 func TestHelpCommand(t *testing.T) {
-	oldEnv := EnvSnapshot()
-	defer oldEnv.Restore()
-	os.Setenv("ENV_DEFAULT", "env-def")
-
 	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
@@ -389,10 +366,6 @@ Help Options:
 }
 
 func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
-	oldEnv := EnvSnapshot()
-	defer oldEnv.Restore()
-	os.Setenv("ENV_DEFAULT", "env-def")
-
 	// no auto added help group
 	p := NewNamedParser("TestHelpCommand", 0)
 	// and no usage information either
