@@ -1,12 +1,16 @@
 package cli
 
-import "fmt"
+import (
+	"fmt"
 
-// ErrorType represents the type of error.
-type ErrorType int
+	"github.com/samber/lo"
+)
+
+// ErrorKind represents the type of error.
+type ErrorKind int
 
 const (
-	ErrUnknown           ErrorType = iota // ErrUnknown indicates a generic error.
+	ErrUnknown           ErrorKind = iota // ErrUnknown indicates a generic error.
 	ErrExpectedArgument                   // ErrExpectedArgument indicates that an argument was expected.
 	ErrUnknownFlag                        // ErrUnknownFlag indicates an unknown flag.
 	ErrUnknownGroup                       // ErrUnknownGroup indicates an unknown group.
@@ -23,55 +27,35 @@ const (
 	ErrInvalidTag                         // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 )
 
-func (e ErrorType) String() string {
-	switch e {
-	case ErrUnknown:
-		return "unknown"
-	case ErrExpectedArgument:
-		return "expected argument"
-	case ErrUnknownFlag:
-		return "unknown flag"
-	case ErrUnknownGroup:
-		return "unknown group"
-	case ErrMarshal:
-		return "marshal"
-	case ErrHelp:
-		return "help"
-	case ErrNoArgumentForBool:
-		return "no argument for bool"
-	case ErrRequired:
-		return "required"
-	case ErrShortNameTooLong:
-		return "short name too long"
-	case ErrDuplicatedFlag:
-		return "duplicated flag"
-	case ErrTag:
-		return "tag"
-	case ErrCommandRequired:
-		return "command required"
-	case ErrUnknownCommand:
-		return "unknown command"
-	case ErrInvalidChoice:
-		return "invalid choice"
-	case ErrInvalidTag:
-		return "invalid tag"
-	}
-
-	return "unrecognized error type"
+func (e ErrorKind) String() string {
+	return lo.Switch[ErrorKind, string](e).
+		Case(ErrUnknown, "unknown").
+		Case(ErrExpectedArgument, "expected argument").
+		Case(ErrUnknownFlag, "unknown flag").
+		Case(ErrUnknownGroup, "unknown group").
+		Case(ErrMarshal, "marshal").
+		Case(ErrHelp, "help").
+		Case(ErrNoArgumentForBool, "no argument for bool").
+		Case(ErrRequired, "required").
+		Case(ErrShortNameTooLong, "short name too long").
+		Case(ErrDuplicatedFlag, "duplicated flag").
+		Case(ErrTag, "tag").
+		Case(ErrCommandRequired, "command required").
+		Case(ErrUnknownCommand, "unknown command").
+		Case(ErrInvalidChoice, "invalid choice").
+		Case(ErrInvalidTag, "invalid tag").
+		Default("unrecognized error type")
 }
 
-func (e ErrorType) Error() string {
+func (e ErrorKind) Error() string {
 	return e.String()
 }
 
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.
 type Error struct {
-	// The type of error
-	Type ErrorType
-
-	// The error message
-	Message string
+	Kind    ErrorKind // The type of error
+	Message string    // The error message
 }
 
 // Error returns the error's message
@@ -79,14 +63,14 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func newError(tp ErrorType, message string) *Error {
+func newError(tp ErrorKind, message string) *Error {
 	return &Error{
-		Type:    tp,
+		Kind:    tp,
 		Message: message,
 	}
 }
 
-func newErrorf(tp ErrorType, format string, args ...any) *Error {
+func newErrorf(tp ErrorKind, format string, args ...any) *Error {
 	return newError(tp, fmt.Sprintf(format, args...))
 }
 

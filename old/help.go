@@ -460,5 +460,5 @@ func WroteHelp(err error) bool {
 	}
 
 	flagError, ok := err.(*Error)
-	return ok && flagError.Type == ErrHelp
+	return ok && flagError.Kind == ErrHelp
 }

@@ -270,7 +270,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
 			parseErr := wrapError(err)
 
-			if parseErr.Type != ErrUnknownFlag || (!ignoreUnknown && p.UnknownOptionHandler == nil) {
+			if parseErr.Kind != ErrUnknownFlag || (!ignoreUnknown && p.UnknownOptionHandler == nil) {
 				s.err = parseErr
 				break
 			}
@@ -322,7 +322,7 @@ func (p *Parser) ParseArgs(args []string) ([]string, error) {
 	if reterr != nil {
 		var retargs []string
 
-		if ourErr, ok := reterr.(*Error); !ok || ourErr.Type != ErrHelp {
+		if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
 			retargs = append([]string{s.arg}, s.args...)
 		} else {
 			retargs = s.args
@@ -458,7 +458,7 @@ func (p *parseState) estimateCommand() error {
 	}
 
 	var msg string
-	var errtype ErrorType
+	var errtype ErrorKind
 
 	if len(p.retargs) != 0 {
 		c, l := closestChoice(p.retargs[0], cmdnames)
@@ -678,7 +678,7 @@ func (p *Parser) printError(err error) error {
 	if err != nil && (p.Options&PrintErrors) != None {
 		flagsErr, ok := err.(*Error)
 
-		if ok && flagsErr.Type == ErrHelp {
+		if ok && flagsErr.Kind == ErrHelp {
 			fmt.Fprintln(os.Stdout, err)
 		} else {
 			fmt.Fprintln(os.Stderr, err)

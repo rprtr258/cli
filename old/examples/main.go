@@ -83,7 +83,7 @@ func main() {
 	)
 
 	if _, err := parser.ParseArgs(os.Args[1:]); err != nil {
-		if flagsErr, ok := err.(cli.ErrorType); ok && flagsErr != cli.ErrHelp {
+		if flagsErr, ok := err.(cli.ErrorKind); ok && flagsErr != cli.ErrHelp {
 			log.Fatal(flagsErr.Error())
 		}
 		return

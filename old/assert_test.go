@@ -18,12 +18,12 @@ func useParsedArgs(t *testing.T, data any, args ...string) []string {
 	return ret
 }
 
-func assertParseFailed(t *testing.T, typ ErrorType, msg string, data any, args ...string) []string {
+func assertParseFailed(t *testing.T, typ ErrorKind, msg string, data any, args ...string) []string {
 	t.Helper()
 
 	ret, err := NewParser(data, Default&^PrintErrors).ParseArgs(args)
 	assert.Equal(t, err, &Error{
-		Type:    typ,
+		Kind:    typ,
 		Message: msg,
 	})
 	return ret

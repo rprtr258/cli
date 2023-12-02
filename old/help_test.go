@@ -96,7 +96,7 @@ func TestHelp(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected cli.Error, but got %T", err)
 	} else {
-		assert.Equal(t, ErrHelp, e.Type)
+		assert.Equal(t, ErrHelp, e.Kind)
 
 		var expected string
 
@@ -351,7 +351,7 @@ func TestHelpCommand(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected cli.Error, but got %T", err)
 	} else {
-		assert.Equal(t, ErrHelp, e.Type)
+		assert.Equal(t, ErrHelp, e.Kind)
 
 		var expected string
 
@@ -389,7 +389,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		ShowHelp func() error `short:"h" long:"help"`
 	}
 	help.ShowHelp = func() error {
-		return &Error{Type: ErrHelp}
+		return &Error{Kind: ErrHelp}
 	}
 	hlpgrp, err := p.AddGroup("Help Options", "", &help)
 	assert.NoError(t, err)
@@ -417,7 +417,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected cli.Error, but got %T", err)
 	} else {
-		assert.Equal(t, ErrHelp, e.Type)
+		assert.Equal(t, ErrHelp, e.Kind)
 
 		h := &bytes.Buffer{}
 		p.WriteHelp(h)
@@ -499,7 +499,7 @@ Help Options:
 		if e, ok := err.(*Error); !ok {
 			t.Fatalf("Expected cli.Error, but got %T", err)
 		} else {
-			assert.Equal(t, ErrHelp, e.Type)
+			assert.Equal(t, ErrHelp, e.Kind)
 
 			assert.Equal(t, e.Message, test.Output, "help message")
 		}
@@ -607,7 +607,7 @@ func TestHelpDefaultMask(t *testing.T) {
 	for _, test := range tests {
 		p := NewParser(test.opts, HelpFlag)
 		_, err := p.ParseArgs([]string{"-h"})
-		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
+		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil
 		}
 		assert.NoError(t, err)

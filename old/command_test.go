@@ -193,7 +193,7 @@ func TestCommandEstimate(t *testing.T) {
 
 	_, err := NewParser(&opts, None).ParseArgs([]string{})
 	assert.Equal(t, err, &Error{
-		Type:    ErrCommandRequired,
+		Kind:    ErrCommandRequired,
 		Message: "Please specify one command of: add or remove",
 	})
 }
@@ -207,7 +207,7 @@ func TestCommandEstimate2(t *testing.T) {
 
 	_, err := NewParser(&opts, None).ParseArgs([]string{"rmive"})
 	assert.Equal(t, err, &Error{
-		Type:    ErrUnknownCommand,
+		Kind:    ErrUnknownCommand,
 		Message: "Unknown command `rmive', did you mean `remove'?",
 	})
 }

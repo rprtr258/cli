@@ -346,7 +346,7 @@ func TestOptionAsArgument(t *testing.T) {
 	tests := []struct {
 		args        []string
 		expectError bool
-		errType     ErrorType
+		errType     ErrorKind
 		errMsg      string
 		rest        []string
 	}{

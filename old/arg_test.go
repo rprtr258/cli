@@ -38,7 +38,7 @@ func TestPositionalRequired(t *testing.T) {
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs([]string{"10"})
 	assert.Error(t, err, &Error{
-		Type:    ErrRequired,
+		Kind:    ErrRequired,
 		Message: "the required argument `Filename` was not provided",
 	})
 }
@@ -112,7 +112,7 @@ func TestPositionalRequiredRestRangeFail(t *testing.T) {
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs([]string{"rest1", "rest2", "rest3"})
 	assert.Error(t, err, &Error{
-		Type:    ErrRequired,
+		Kind:    ErrRequired,
 		Message: "the required argument `Rest (at most 2 arguments, but got 3)` was not provided",
 	})
 }

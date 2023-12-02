@@ -124,7 +124,7 @@ func TestDuplicateShortFlags(t *testing.T) {
 
 	assert.Error(t, err)
 	err2 := err.(*Error)
-	assert.Equal(t, ErrDuplicatedFlag, err2.Type)
+	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
 }
 
 func TestDuplicateLongFlags(t *testing.T) {
@@ -140,7 +140,7 @@ func TestDuplicateLongFlags(t *testing.T) {
 	_, err := ParseArgs(&opts, args)
 	assert.Error(t, err)
 	err2 := err.(*Error)
-	assert.Equal(t, ErrDuplicatedFlag, err2.Type)
+	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
 }
 
 func TestFindOptionByLongFlag(t *testing.T) {

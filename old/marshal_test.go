@@ -97,7 +97,7 @@ func TestMarshalError(t *testing.T) {
 
 	_, err := convertToString(o.value, o.tag)
 	assert.Equal(t, err, &Error{
-		Type:    ErrMarshal,
+		Kind:    ErrMarshal,
 		Message: "Failed to marshal",
 	})
 }

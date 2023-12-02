@@ -97,7 +97,7 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 	}
 
 	assert.Equal(t, err, &Error{
-		Type:    ErrMarshal,
+		Kind:    ErrMarshal,
 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 	})
 }
@@ -119,7 +119,7 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 	}
 
 	assert.Equal(t, err, &Error{
-		Type:    ErrMarshal,
+		Kind:    ErrMarshal,
 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 	})
 }
