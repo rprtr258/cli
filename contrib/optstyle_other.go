@@ -35,9 +35,9 @@ func stripFlagPrefix(arg string) (prefix, name string, islong bool) {
 	}
 }
 
-// splitOption attempts to split the passed option into a name and an argument.
+// splitFlag attempts to split the passed option into a name and an argument.
 // When there is no argument specified, nil will be returned for it.
-func splitOption(prefix string, option string, islong bool) (string, *string) {
+func splitFlag(prefix string, option string, islong bool) (string, *string) {
 	if pos := strings.Index(option, "="); islong && pos >= 0 || !islong && pos == 1 {
 		rest := option[pos+1:]
 		return option[:pos], &rest

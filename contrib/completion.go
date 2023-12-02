@@ -189,12 +189,11 @@ func (c *completion) complete(args []string) []Completion {
 
 		if isFlag(arg) {
 			prefix, optname, islong := stripFlagPrefix(arg)
-			optname, argument := splitOption(prefix, optname, islong)
+			optname, argument := splitFlag(prefix, optname, islong)
 
 			if argument == nil {
 				var o *Option
 				canarg := true
-
 				if islong {
 					o = s.lookup.longNames[optname]
 				} else {
@@ -249,7 +248,7 @@ func (c *completion) complete(args []string) []Completion {
 	} else if doesLookLikeFlag(lastarg) {
 		// Complete the option
 		prefix, optname, islong := stripFlagPrefix(lastarg)
-		optname, argument := splitOption(prefix, optname, islong)
+		optname, argument := splitFlag(prefix, optname, islong)
 
 		if argument == nil && !islong {
 			rname, n := utf8.DecodeRuneInString(optname)
