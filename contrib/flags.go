@@ -110,10 +110,6 @@ The following is a list of tags for struct fields supported by go-flags:
 	base: a base (radix) used to convert strings to integer values, the
 	      default base is 10 (i.e. decimal) (optional)
 
-	ini-name:       the explicit ini option name (optional)
-	no-ini:         if non-empty this field is ignored as an ini option
-	                (optional)
-
 	group:                when specified on a struct field, makes the struct
 	                      field a separate group with the given name (optional)
 	namespace:            when specified on a group struct field, the namespace

@@ -13,8 +13,8 @@ import (
 )
 
 type helpOptions struct {
-	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information" ini-name:"verbose"`
-	Call             func(string) `short:"c" description:"Call phone number" ini-name:"call"`
+	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information"`
+	Call             func(string) `short:"c" description:"Call phone number"`
 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
 	EmptyDescription bool         `long:"empty-description"`
 
@@ -29,11 +29,9 @@ type helpOptions struct {
 
 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name" hidden:"yes"`
 
-	OnlyIni string `ini-name:"only-ini" description:"Option only available in ini"`
-
 	Other struct {
 		StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
-		IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int" ini-name:"int-map"`
+		IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
 	} `group:"Other Options"`
 
 	HiddenGroup struct {
