@@ -318,7 +318,7 @@ func TestParserCompletion(t *testing.T) {
 			comp.print(items, test.ShowDescriptions)
 		}
 
-		_, err := p.ParseArgs(test.Args)
+		_, err := p.ParseArgs(test.Args...)
 
 		w.Close()
 

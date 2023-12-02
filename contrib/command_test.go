@@ -238,7 +238,7 @@ func TestCommandEstimate(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.ParseArgs([]string{})
+	_, err := p.ParseArgs()
 
 	assertError(t, err, ErrCommandRequired, "Please specify one command of: remove or add")
 }
@@ -255,7 +255,7 @@ func TestCommandEstimate2(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.ParseArgs([]string{"rmive"})
+	_, err := p.ParseArgs("rmive")
 
 	assertError(t, err, ErrUnknownCommand, "Unknown command `rmive', did you mean `remove'?")
 }
@@ -330,7 +330,7 @@ func TestCommandAdd(t *testing.T) {
 		return
 	}
 
-	ret, err := p.ParseArgs([]string{"-v", "cmd", "-g", "rest"})
+	ret, err := p.ParseArgs("-v", "cmd", "-g", "rest")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -469,7 +469,7 @@ func TestSubcommandsOptional(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.SubcommandsOptional = true
 
-	_, err := p.ParseArgs([]string{"-v"})
+	_, err := p.ParseArgs("-v")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -495,7 +495,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.SubcommandsOptional = true
 
-	retargs, err := p.ParseArgs([]string{"nocmd", "remove"})
+	retargs, err := p.ParseArgs("nocmd", "remove")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -597,7 +597,7 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		Foo   fooCmd `command:"foo"`
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs([]string{"-v", "foo", "-f", "bar", "-v", "-g"})
+	ret, err := p.ParseArgs("-v", "foo", "-f", "bar", "-v", "-g")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -629,7 +629,7 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		Bar   barCmd `command:"bar"`
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs([]string{"-v", "bar", "-f", "baz", "-v", "-g"})
+	ret, err := p.ParseArgs("-v", "bar", "-f", "baz", "-v", "-g")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)

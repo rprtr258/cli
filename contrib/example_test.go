@@ -56,8 +56,11 @@ func Example() {
 		cmd.Process.Release()
 	}
 
-	// Make some fake arguments to parse.
-	args := []string{
+	// Parse flags from `args'. Note that here we use flags.ParseArgs for
+	// the sake of making a working example. Normally, you would simply use
+	// flags.Parse(&opts) which uses os.Args
+	_, err := ParseArgs(&opts,
+		// some fake arguments to parse
 		"-vv",
 		"--offset=5",
 		"-n", "Me",
@@ -73,12 +76,7 @@ func Example() {
 		"10",
 		"remaining1",
 		"remaining2",
-	}
-
-	// Parse flags from `args'. Note that here we use flags.ParseArgs for
-	// the sake of making a working example. Normally, you would simply use
-	// flags.Parse(&opts) which uses os.Args
-	_, err := ParseArgs(&opts, args)
+	)
 
 	if err != nil {
 		panic(err)

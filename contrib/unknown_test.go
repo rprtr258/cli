@@ -9,13 +9,10 @@ func TestUnknownFlags(t *testing.T) {
 		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	}{}
 
-	args := []string{
-		"-f",
-	}
-
 	p := NewParser(&opts, 0)
-	args, err := p.ParseArgs(args)
-
+	_, err := p.ParseArgs(
+		"-f",
+	)
 	if err == nil {
 		t.Fatal("Expected error for unknown argument")
 	}
@@ -26,17 +23,15 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	}{}
 
-	args := []string{
+	p := NewParser(&opts, IgnoreUnknown)
+	args, err := p.ParseArgs(
 		"hello",
 		"world",
 		"-v",
 		"--foo=bar",
 		"--verbose",
 		"-f",
-	}
-
-	p := NewParser(&opts, IgnoreUnknown)
-	args, err := p.ParseArgs(args)
+	)
 
 	if err != nil {
 		t.Fatal(err)

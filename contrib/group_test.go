@@ -47,7 +47,7 @@ func TestGroupAdd(t *testing.T) {
 		return
 	}
 
-	ret, err := p.ParseArgs([]string{"-v", "-g", "rest"})
+	ret, err := p.ParseArgs("-v", "-g", "rest")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -146,13 +146,11 @@ func TestDuplicateShortFlags(t *testing.T) {
 		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
 	}
 
-	args := []string{
+	_, err := ParseArgs(&opts,
 		"--verbose",
 		"-v", "123",
 		"-v", "456",
-	}
-
-	_, err := ParseArgs(&opts, args)
+	)
 
 	if err == nil {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
@@ -170,11 +168,7 @@ func TestDuplicateLongFlags(t *testing.T) {
 		Test2 []string `short:"b" long:"testing" description:"Test 2."`
 	}
 
-	args := []string{
-		"--testing",
-	}
-
-	_, err := ParseArgs(&opts, args)
+	_, err := ParseArgs(&opts, "--testing")
 
 	if err == nil {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
@@ -262,7 +256,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 	p.AddOption(&Option{
 		LongName: "test",
 	}, &opts.Test)
-	_, err := p.ParseArgs([]string{"--test"})
+	_, err := p.ParseArgs("--test")
 	if err != nil {
 		t.Errorf("unexpected error: %s", err)
 	} else if !opts.Test {

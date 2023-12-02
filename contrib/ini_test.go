@@ -286,7 +286,7 @@ Opt = s
 		p := NewNamedParser("TestIni", Default)
 		p.AddGroup("Application Options", "The application options", &opts)
 
-		_, err := p.ParseArgs(test.args)
+		_, err := p.ParseArgs(test.args...)
 
 		if err != nil {
 			t.Fatalf("Unexpected error: %v", err)
@@ -844,7 +844,7 @@ func TestIniCliOverrides(t *testing.T) {
 		t.Fatalf("Could not parse ini: %s", err)
 	}
 
-	_, err = p.ParseArgs([]string{"--values", "111", "--values", "222"})
+	_, err = p.ParseArgs("--values", "111", "--values", "222")
 
 	if err != nil {
 		t.Fatalf("Failed to parse arguments: %s", err)
@@ -893,7 +893,7 @@ func TestIniOverrides(t *testing.T) {
 		t.Fatalf("Could not parse ini: %s", err)
 	}
 
-	_, err = p.ParseArgs([]string{"--value-with-default-override-cli", "cli-value"})
+	_, err = p.ParseArgs("--value-with-default-override-cli", "cli-value")
 
 	if err != nil {
 		t.Fatalf("Failed to parse arguments: %s", err)
@@ -938,7 +938,7 @@ func TestIniOverridesFromConfigFlag(t *testing.T) {
 		parser.ParseFile(filename)
 	}
 
-	_, err = p.ParseArgs([]string{"--value-with-default-override-cli", "cli-value"})
+	_, err = p.ParseArgs("--value-with-default-override-cli", "cli-value")
 
 	if err != nil {
 		t.Fatalf("Failed to parse arguments: %s", err)
@@ -962,7 +962,7 @@ func TestIniRequired(t *testing.T) {
 		return inip.Parse(strings.NewReader("Required = ini-value\n"))
 	}
 
-	_, err := p.ParseArgs([]string{"-r", "cli-value"})
+	_, err := p.ParseArgs("-r", "cli-value")
 
 	if err != nil {
 		t.Fatalf("Failed to parse arguments: %s", err)
@@ -979,14 +979,13 @@ func TestIniRequiredSlice_ShouldNotNeedToBeSpecifiedOnCli(t *testing.T) {
 	ini := `
 [Application Options]
 item=abc`
-	args := []string{}
 
 	parser := NewParser(&opts, Default)
 	inip := NewIniParser(parser)
 
 	inip.Parse(strings.NewReader(ini))
 
-	_, err := parser.ParseArgs(args)
+	_, err := parser.ParseArgs()
 
 	if err != nil {
 		t.Fatalf("Unexpected failure: %v", err)
@@ -1083,7 +1082,7 @@ func TestOverwriteRequiredOptions(t *testing.T) {
 			return ini.Parse(bytes.NewBufferString("value = from INI\ndefault = from INI"))
 		}
 
-		_, err := p.ParseArgs(test.args)
+		_, err := p.ParseArgs(test.args...)
 		if err != nil {
 			t.Fatalf("Unexpected error %s with args %+v", err, test.args)
 		}
@@ -1143,7 +1142,7 @@ func TestIniOverwriteOptions(t *testing.T) {
 
 		p := NewParser(&opts, Default)
 
-		_, err := p.ParseArgs(test.args)
+		_, err := p.ParseArgs(test.args...)
 		if err != nil {
 			t.Fatalf("Unexpected error %s with args %+v", err, test.args)
 		}

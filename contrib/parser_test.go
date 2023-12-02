@@ -119,7 +119,7 @@ func TestDefaults(t *testing.T) {
 	for _, test := range tests {
 		var opts defaultOptions
 
-		_, err := ParseArgs(&opts, test.args)
+		_, err := ParseArgs(&opts, test.args...)
 		if err != nil {
 			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
 		}
@@ -187,9 +187,9 @@ func TestUnquoting(t *testing.T) {
 
 			var err error
 			if delimiter {
-				_, err = p.ParseArgs([]string{"--str=" + test.arg, "--strnot=" + test.arg})
+				_, err = p.ParseArgs("--str="+test.arg, "--strnot="+test.arg)
 			} else {
-				_, err = p.ParseArgs([]string{"--str", test.arg, "--strnot", test.arg})
+				_, err = p.ParseArgs("--str", test.arg, "--strnot", test.arg)
 			}
 
 			if test.err == nil {
@@ -358,7 +358,7 @@ func TestEnvDefaults(t *testing.T) {
 		for envKey, envValue := range test.env {
 			os.Setenv(envKey, envValue)
 		}
-		_, err := NewParser(&opts, None).ParseArgs(test.args)
+		_, err := NewParser(&opts, None).ParseArgs(test.args...)
 		if test.expectedErr != "" {
 			if err == nil {
 				t.Errorf("%s:\nExpected error containing substring %q", test.msg, test.expectedErr)
@@ -548,7 +548,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them
-	_, err := p.ParseArgs([]string{"--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo"})
+	_, err := p.ParseArgs("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
 
 	if err != nil {
 		assertErrorf(t, "Parser returned unexpected error %v", err)
@@ -564,7 +564,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	}
 
 	// Parse args with unknown flags that callback doesn't handle, verify it returns error
-	_, err = p.ParseArgs([]string{"--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo"})
+	_, err = p.ParseArgs("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
 
 	if err == nil {
 		assertErrorf(t, "Parser should have returned error, but returned nil")
@@ -624,7 +624,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.ParseArgs([]string{"arg1", "arg2"})
+	_, err := parser.ParseArgs("arg1", "arg2")
 
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)
@@ -664,7 +664,7 @@ func TestCommandHandler(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.ParseArgs([]string{"cmd", "arg1", "arg2"})
+	_, err := parser.ParseArgs("cmd", "arg1", "arg2")
 
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)

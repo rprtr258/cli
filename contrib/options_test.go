@@ -11,7 +11,7 @@ func TestPassDoubleDash(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, PassDoubleDash)
-	ret, err := p.ParseArgs([]string{"-v", "--", "-v", "-g"})
+	ret, err := p.ParseArgs("-v", "--", "-v", "-g")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -31,7 +31,7 @@ func TestPassAfterNonOption(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs([]string{"-v", "arg", "-v", "-g"})
+	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -55,7 +55,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs([]string{"-v", "arg", "-v", "-g"})
+	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -80,7 +80,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs([]string{"-v", "1", "2", "3"})
+	ret, err := p.ParseArgs("-v", "1", "2", "3")
 
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
@@ -127,7 +127,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 
 	for _, test := range tests {
 		p := NewParser(&opts, PassAfterNonOption)
-		ret, err := p.ParseArgs(test.opts)
+		ret, err := p.ParseArgs(test.opts...)
 
 		if err == nil {
 			assertErrorf(t, "Expected error")

@@ -90,7 +90,7 @@ func TestHelp(t *testing.T) {
 	p := NewNamedParser("TestHelp", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs([]string{"--help"})
+	_, err := p.ParseArgs("--help")
 
 	if err == nil {
 		t.Fatalf("Expected help error")
@@ -354,7 +354,7 @@ func TestHelpCommand(t *testing.T) {
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs([]string{"command", "--help"})
+	_, err := p.ParseArgs("command", "--help")
 
 	if err == nil {
 		t.Fatalf("Expected help error")
@@ -435,7 +435,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		t.Fatalf("unexpected options count")
 	}
 	// which help we ask for explicitly
-	_, err = p.ParseArgs([]string{"hidden", "--help"})
+	_, err = p.ParseArgs("hidden", "--help")
 
 	if err == nil {
 		t.Fatalf("Expected help error")
@@ -533,7 +533,7 @@ Help Options:
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
 		p.AddGroup("Application Options", "The application options", &opts)
 
-		_, err := p.ParseArgs(test.Args)
+		_, err := p.ParseArgs(test.Args...)
 
 		if err == nil {
 			t.Fatalf("Expected help error")
@@ -559,7 +559,7 @@ func TestHelpRestArgs(t *testing.T) {
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
 	p.AddGroup("Application Options", "The application options", &opts)
 
-	retargs, err := p.ParseArgs([]string{"-h", "-v", "rest"})
+	retargs, err := p.ParseArgs("-h", "-v", "rest")
 
 	if err == nil {
 		t.Fatalf("Expected help error")
@@ -653,7 +653,7 @@ func TestHelpDefaultMask(t *testing.T) {
 
 	for _, test := range tests {
 		p := NewParser(test.opts, HelpFlag)
-		_, err := p.ParseArgs([]string{"-h"})
+		_, err := p.ParseArgs("-h")
 		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
 			err = nil
 		}
