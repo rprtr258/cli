@@ -489,7 +489,7 @@ func (option *Option) call(value *string) error {
 		retval = option.value.Call([]reflect.Value{val})
 	}
 
-	if len(retval) == 1 && retval[0].Type() == reflect.TypeOf((*error)(nil)).Elem() {
+	if len(retval) == 1 && retval[0].Type() == typeof[error]() {
 		if retval[0].Interface() == nil {
 			return nil
 		}

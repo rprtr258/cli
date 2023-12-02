@@ -59,6 +59,10 @@ func convertMarshal(val reflect.Value) (bool, string, error) {
 	return false, "", nil
 }
 
+func typeof[T any]() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem()
+}
+
 func convertToString(val reflect.Value, options multiTag) (string, error) {
 	if ok, ret, err := convertMarshal(val); ok {
 		return ret, err
@@ -71,7 +75,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	tp := val.Type()
 
 	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+	if tp == typeof[time.Duration]() {
 		stringer := val.Interface().(fmt.Stringer)
 		return stringer.String(), nil
 	}
@@ -188,7 +192,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	tp := retval.Type()
 
 	// Support for time.Duration
-	if tp == reflect.TypeOf((*time.Duration)(nil)).Elem() {
+	if tp == typeof[time.Duration]() {
 		parsed, err := time.ParseDuration(val)
 		if err != nil {
 			return err
