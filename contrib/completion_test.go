@@ -79,9 +79,7 @@ type completionTest struct {
 	ShowDescriptions bool
 }
 
-var completionTests []completionTest
-
-func init() {
+var completionTests = func() []completionTest {
 	_, sourcefile, _, _ := runtime.Caller(0)
 	completionTestSourcedir := filepath.Join(filepath.SplitList(path.Dir(sourcefile))...)
 
@@ -94,35 +92,31 @@ func init() {
 		filepath.Join(completionTestSourcedir, "examples/rm.go"),
 	}
 
-	completionTests = []completionTest{
+	return []completionTest{
 		{
 			// Short names
 			[]string{"-"},
 			[]string{"--debug", "--required", "--verbose", "--version", "-i"},
 			false,
 		},
-
 		{
 			// Short names full
 			[]string{"-i"},
 			[]string{"-i"},
 			false,
 		},
-
 		{
 			// Short names concatenated
 			[]string{"-dv"},
 			[]string{"-dv"},
 			false,
 		},
-
 		{
 			// Long names
 			[]string{"--"},
 			[]string{"--debug", "--required", "--verbose", "--version"},
 			false,
 		},
-
 		{
 			// Long names with descriptions
 			[]string{"--"},
@@ -134,21 +128,18 @@ func init() {
 			},
 			true,
 		},
-
 		{
 			// Long names partial
 			[]string{"--ver"},
 			[]string{"--verbose", "--version"},
 			false,
 		},
-
 		{
 			// Commands
 			[]string{""},
 			[]string{"add", "add-multi", "add-multi-flag", "rename", "rm"},
 			false,
 		},
-
 		{
 			// Commands with descriptions
 			[]string{""},
@@ -161,21 +152,18 @@ func init() {
 			},
 			true,
 		},
-
 		{
 			// Commands partial
 			[]string{"r"},
 			[]string{"rename", "rm"},
 			false,
 		},
-
 		{
 			// Positional filename
 			[]string{"add", filepath.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
 			false,
 		},
-
 		{
 			// Multiple positional filename (1 arg)
 			[]string{"add-multi", filepath.Join(completionTestSourcedir, "completion")},
@@ -194,63 +182,54 @@ func init() {
 			completionTestFilename,
 			false,
 		},
-
 		{
 			// Flag filename
 			[]string{"rm", "-f", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
 			false,
 		},
-
 		{
 			// Flag short concat last filename
 			[]string{"rm", "-of", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
 			false,
 		},
-
 		{
 			// Flag concat filename
 			[]string{"rm", "-f" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"-f" + completionTestFilename[0], "-f" + completionTestFilename[1]},
 			false,
 		},
-
 		{
 			// Flag equal concat filename
 			[]string{"rm", "-f=" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"-f=" + completionTestFilename[0], "-f=" + completionTestFilename[1]},
 			false,
 		},
-
 		{
 			// Flag concat long filename
 			[]string{"rm", "--filename=" + path.Join(completionTestSourcedir, "completion")},
 			[]string{"--filename=" + completionTestFilename[0], "--filename=" + completionTestFilename[1]},
 			false,
 		},
-
 		{
 			// Flag long filename
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "completion")},
 			completionTestFilename,
 			false,
 		},
-
 		{
 			// To subdir
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "examples/bash-")},
 			[]string{path.Join(completionTestSourcedir, "examples/bash-completion/")},
 			false,
 		},
-
 		{
 			// Subdirectory
 			[]string{"rm", "--filename", path.Join(completionTestSourcedir, "examples") + "/"},
 			completionTestSubdir,
 			false,
 		},
-
 		{
 			// Custom completed
 			[]string{"rename", "-c", "hello un"},
@@ -264,7 +243,7 @@ func init() {
 			false,
 		},
 	}
-}
+}()
 
 func TestCompletion(t *testing.T) {
 	p := NewParser(&completionTestOptions, Default)
