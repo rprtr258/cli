@@ -51,10 +51,9 @@ func (c *Command) addHelpGroup(showHelp func() error) *Group {
 	var help struct {
 		ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
 	}
-
 	help.ShowHelp = showHelp
+
 	ret, _ := c.AddGroup("Help Options", "", &help)
 	ret.isBuiltinHelp = true
-
 	return ret
 }
