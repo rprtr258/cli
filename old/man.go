@@ -9,8 +9,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rprtr258/cli/utils"
 	"github.com/samber/lo"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 func manQuote(s string) string {
@@ -48,7 +49,7 @@ func formatForMan(w io.Writer, s string, quoter func(s string) string) {
 }
 
 func quoteV(s []string) []string {
-	return utils.Map(strconv.Quote, s...)
+	return internal.Map(strconv.Quote, s...)
 }
 
 func writeManPageOptions(w io.Writer, grp *Group) {
@@ -193,7 +194,7 @@ func (p *Parser) WriteManPage(w io.Writer) {
 	fmt.Fprintf(w, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.ShortDescription))
 	fmt.Fprintln(w, ".SH SYNOPSIS")
 
-	usage := utils.Or(p.Usage, "[OPTIONS]")
+	usage := internal.Or(p.Usage, "[OPTIONS]")
 
 	fmt.Fprintf(w, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
 	fmt.Fprintln(w, ".SH DESCRIPTION")

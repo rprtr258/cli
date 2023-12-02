@@ -9,8 +9,9 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/utils"
 	"golang.org/x/sys/unix"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 type alignmentInfo struct {
@@ -331,7 +332,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					fmt.Fprintf(wr, " %scommand%s", co, cc)
 				} else {
 					subcommands := allcmd.sortedVisibleCommands()
-					names := utils.Map(func(subc *Command) string {
+					names := internal.Map(func(subc *Command) string {
 						return subc.Name
 					}, subcommands...)
 
@@ -386,7 +387,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 		})
 
-		args := utils.Filter(func(arg Arg) bool {
+		args := internal.Filter(func(arg Arg) bool {
 			return arg.Description != ""
 		}, c.Args...)
 		if len(args) > 0 {

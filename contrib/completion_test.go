@@ -255,8 +255,8 @@ func TestCompletion(t *testing.T) {
 		}
 
 		ret := c.complete(test.Args)
-		items := make([]string, len(ret))
 
+		items := make([]string, len(ret))
 		for i, v := range ret {
 			items[i] = v.Item
 		}

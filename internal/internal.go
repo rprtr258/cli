@@ -1,4 +1,4 @@
-package utils
+package internal
 
 func OneOf[T comparable](x T, ys ...T) bool {
 	for _, y := range ys {

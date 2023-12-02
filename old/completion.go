@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/utils"
+	"github.com/rprtr258/cli/internal"
 )
 
 // Completion is a type containing information of a completion.
@@ -46,7 +46,7 @@ func (f *Filename) Complete(match string) []Completion {
 		}
 	}
 
-	return utils.Map(func(v string) Completion {
+	return internal.Map(func(v string) Completion {
 		return Completion{
 			Item: v,
 		}
@@ -108,7 +108,7 @@ func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match st
 }
 
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
-	return utils.FilterMap(func(cmd *Command) (Completion, bool) {
+	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
 		return Completion{
 			Item:        cmd.Name,
 			Description: cmd.ShortDescription,

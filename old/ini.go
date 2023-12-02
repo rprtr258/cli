@@ -12,7 +12,7 @@ import (
 
 	"github.com/samber/lo"
 
-	"github.com/rprtr258/cli/utils"
+	"github.com/rprtr258/cli/internal"
 )
 
 // IniError contains location information on where an error occurred.
@@ -346,7 +346,7 @@ func readIni(r io.Reader, filename string) (*ini, error) {
 		line = strings.TrimSpace(line)
 
 		// Skip empty lines and lines starting with ; (comments)
-		if line == "" || utils.OneOf(line[0], ';', '#') {
+		if line == "" || internal.OneOf(line[0], ';', '#') {
 			continue
 		}
 

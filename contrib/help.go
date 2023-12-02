@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/utils"
+	"github.com/rprtr258/cli/internal"
 )
 
 type alignmentInfo struct {
@@ -418,7 +418,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			}
 		})
 
-		if args := utils.Filter(func(arg *Arg) bool {
+		if args := internal.Filter(func(arg *Arg) bool {
 			// TODO: separate Hidden field
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
