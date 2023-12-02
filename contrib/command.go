@@ -372,26 +372,6 @@ func (c *Command) fillLookup(ret *lookup, onlyOptions bool) {
 	}
 }
 
-func (c *Command) groupByName(name string) *Group {
-	if grp := c.Group.groupByName(name); grp != nil {
-		return grp
-	}
-
-	for _, subc := range c.commands {
-		prefix := subc.Name + "."
-
-		if strings.HasPrefix(name, prefix) {
-			if grp := subc.groupByName(name[len(prefix):]); grp != nil {
-				return grp
-			}
-		} else if name == subc.Name {
-			return subc.Group
-		}
-	}
-
-	return nil
-}
-
 func (c *Command) sortedVisibleCommands() []*Command {
 	return []*Command(c.visibleCommands())
 }
