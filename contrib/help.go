@@ -265,12 +265,14 @@ func maxCommandLength(s []*Command) int {
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) WriteHelp(writer io.Writer) {
-	if writer == nil {
+func (p *Parser) WriteHelp(w io.Writer) {
+	if w == nil {
 		return
 	}
 
-	wr := bufio.NewWriter(writer)
+	bw := bufio.NewWriter(w)
+	defer bw.Flush()
+
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
@@ -280,8 +282,8 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	}
 
 	if p.Name != "" {
-		wr.WriteString("Usage:\n")
-		wr.WriteString(" ")
+		bw.WriteString("Usage:\n")
+		bw.WriteString(" ")
 
 		allcmd := p.Command
 
@@ -301,18 +303,18 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 
 			if len(usage) != 0 {
-				fmt.Fprintf(wr, " %s %s", allcmd.Name, usage)
+				fmt.Fprintf(bw, " %s %s", allcmd.Name, usage)
 			} else {
-				fmt.Fprintf(wr, " %s", allcmd.Name)
+				fmt.Fprintf(bw, " %s", allcmd.Name)
 			}
 
 			if len(allcmd.args) > 0 {
-				fmt.Fprintf(wr, " ")
+				fmt.Fprintf(bw, " ")
 			}
 
 			for i, arg := range allcmd.args {
 				if i != 0 {
-					fmt.Fprintf(wr, " ")
+					fmt.Fprintf(bw, " ")
 				}
 
 				name := arg.Name
@@ -323,12 +325,12 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 
 				if !allcmd.ArgsRequired {
 					if arg.Required > 0 {
-						fmt.Fprintf(wr, "%s", name)
+						fmt.Fprintf(bw, "%s", name)
 					} else {
-						fmt.Fprintf(wr, "[%s]", name)
+						fmt.Fprintf(bw, "[%s]", name)
 					}
 				} else {
-					fmt.Fprintf(wr, "%s", name)
+					fmt.Fprintf(bw, "%s", name)
 				}
 			}
 
@@ -344,7 +346,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				visibleCommands := allcmd.visibleCommands()
 
 				if len(visibleCommands) > 3 {
-					fmt.Fprintf(wr, " %scommand%s", co, cc)
+					fmt.Fprintf(bw, " %scommand%s", co, cc)
 				} else {
 					subcommands := allcmd.sortedVisibleCommands()
 					names := make([]string, len(subcommands))
@@ -353,23 +355,23 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 						names[i] = subc.Name
 					}
 
-					fmt.Fprintf(wr, " %s%s%s", co, strings.Join(names, " | "), cc)
+					fmt.Fprintf(bw, " %s%s%s", co, strings.Join(names, " | "), cc)
 				}
 			}
 
 			allcmd = allcmd.Active
 		}
 
-		fmt.Fprintln(wr)
+		fmt.Fprintln(bw)
 
 		if len(cmd.LongDescription) != 0 {
-			fmt.Fprintln(wr)
+			fmt.Fprintln(bw)
 
 			t := wrapText(cmd.LongDescription,
 				aligninfo.terminalColumns,
 				"")
 
-			fmt.Fprintln(wr, t)
+			fmt.Fprintln(bw, t)
 		}
 	}
 
@@ -392,23 +394,23 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				}
 
 				if printcmd {
-					fmt.Fprintf(wr, "\n[%s command options]\n", c.Name)
+					fmt.Fprintf(bw, "\n[%s command options]\n", c.Name)
 					aligninfo.indent = true
 					printcmd = false
 				}
 
 				if first && cmd.Group != grp {
-					fmt.Fprintln(wr)
+					fmt.Fprintln(bw)
 
 					if aligninfo.indent {
-						wr.WriteString("    ")
+						bw.WriteString("    ")
 					}
 
-					fmt.Fprintf(wr, "%s:\n", grp.ShortDescription)
+					fmt.Fprintf(bw, "%s:\n", grp.ShortDescription)
 					first = false
 				}
 
-				p.writeHelpOption(wr, info, aligninfo)
+				p.writeHelpOption(bw, info, aligninfo)
 			}
 		})
 
@@ -417,9 +419,9 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
 			if c == p.Command {
-				fmt.Fprintf(wr, "\nArguments:\n")
+				fmt.Fprintf(bw, "\nArguments:\n")
 			} else {
-				fmt.Fprintf(wr, "\n[%s command arguments]\n", c.Name)
+				fmt.Fprintf(bw, "\n[%s command arguments]\n", c.Name)
 			}
 
 			descStart := aligninfo.descriptionStart() + paddingBeforeOption
@@ -428,11 +430,11 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 				argPrefix := strings.Repeat(" ", paddingBeforeOption) + arg.Name
 				if len(arg.Description) > 0 {
 					argPrefix += ":"
-					wr.WriteString(argPrefix)
+					bw.WriteString(argPrefix)
 
 					// Space between "arg:" and the description start
-					wr.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
-					wr.WriteString(wrapText(
+					bw.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
+					bw.WriteString(wrapText(
 						arg.Description,
 						// How much space the description gets before wrapping
 						aligninfo.terminalColumns-1-descStart,
@@ -440,10 +442,10 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 						strings.Repeat(" ", descStart),
 					))
 				} else {
-					wr.WriteString(argPrefix)
+					bw.WriteString(argPrefix)
 				}
 
-				fmt.Fprintln(wr)
+				fmt.Fprintln(bw)
 			}
 		}
 
@@ -453,25 +455,23 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 	if scommands := cmd.sortedVisibleCommands(); len(scommands) > 0 {
 		maxnamelen := maxCommandLength(scommands)
 
-		fmt.Fprintln(wr)
-		fmt.Fprintln(wr, "Available commands:")
+		fmt.Fprintln(bw)
+		fmt.Fprintln(bw, "Available commands:")
 
 		for _, c := range scommands {
-			fmt.Fprintf(wr, "  %s", c.Name)
+			fmt.Fprintf(bw, "  %s", c.Name)
 
 			if len(c.ShortDescription) > 0 {
 				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
-				fmt.Fprintf(wr, "%s  %s", pad, c.ShortDescription)
+				fmt.Fprintf(bw, "%s  %s", pad, c.ShortDescription)
 				if len(c.Aliases) > 0 {
-					fmt.Fprintf(wr, " (aliases: %s)", strings.Join(c.Aliases, ", "))
+					fmt.Fprintf(bw, " (aliases: %s)", strings.Join(c.Aliases, ", "))
 				}
 			}
 
-			fmt.Fprintln(wr)
+			fmt.Fprintln(bw)
 		}
 	}
-
-	wr.Flush()
 }
 
 // WroteHelp is a helper to test the error from ParseArgs() to
