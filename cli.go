@@ -6,8 +6,11 @@ import (
 	"regexp"
 )
 
-type tags struct {
-	isPositional bool
+type flagMeta struct {
+	isRest bool
+	isBool bool
+
+	idx int
 
 	short       byte
 	long        string
@@ -27,7 +30,9 @@ func Parse[T any](args ...string) (T, error) {
 		return dest, fmt.Errorf("%s is not a struct", typ.String())
 	}
 
-	isBoolFlag := map[string]bool{}
+	flagsMeta := map[int]flagMeta{}
+	shorts := map[byte]int{}
+	longs := map[string]int{}
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		if !field.IsExported() {
@@ -35,13 +40,16 @@ func Parse[T any](args ...string) (T, error) {
 		}
 
 		rawTags := string(field.Tag)
-		tagsMatches := regexp.MustCompile(`(short|long|description):"([^"]*)"|positional`).FindAllStringSubmatch(rawTags, -1)
+		tagsMatches := regexp.MustCompile(`(short|long|description):"([^"]*)"|rest`).FindAllStringSubmatch(rawTags, -1)
 
-		var tags tags
+		tags := flagMeta{
+			isBool: field.Type.Kind() == reflect.Bool,
+			idx:    i,
+		}
 		for _, tagMatch := range tagsMatches {
 			switch {
-			case tagMatch[0] == "positional":
-				tags.isPositional = true
+			case tagMatch[0] == "rest":
+				tags.isRest = true
 			case tagMatch[1] == "short":
 				tags.short = tagMatch[2][0]
 			case tagMatch[1] == "long":
@@ -51,7 +59,14 @@ func Parse[T any](args ...string) (T, error) {
 			}
 		}
 
-		isBoolFlag[field.Name] = field.Type.Kind() == reflect.Bool
+		flagsMeta[i] = tags
+
+		if tags.short != 0 {
+			shorts[tags.short] = i
+		}
+		if tags.long != "" {
+			longs[tags.long] = i
+		}
 	}
 
 	argss := []string{}
@@ -75,7 +90,7 @@ LOOP:
 				argss = append(argss, arg)
 			default: // long flag
 				flagName := arg[2:]
-				if isBoolFlag[flagName] {
+				if flagsMeta[longs[flagName]].isBool {
 					boolFlags[flagName] = struct{}{}
 				} else {
 					i++
@@ -97,14 +112,29 @@ LOOP:
 	}
 
 	fmt.Println(base)
+	val := reflect.ValueOf(&dest)
 	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
-		if !field.IsExported() {
+		field := val.Elem().Field(i)
+		fieldStruct := typ.Field(i)
+		if !fieldStruct.IsExported() {
 			continue
 		}
 
-		// TODO: instead of field.Name we should use field.Tag
-		isBoolFlag[field.Name] = field.Type.Kind() == reflect.Bool
+		var meta flagMeta
+		for _, m := range flagsMeta {
+			if m.idx == i {
+				meta = m
+			}
+		}
+		fmt.Println(i, meta)
+
+		switch {
+		case meta.isRest:
+			field.Set(reflect.ValueOf(base.args))
+		case fieldStruct.Type.Kind() == reflect.Bool:
+			_, ok := base.boolFlags[meta.long]
+			field.Set(reflect.ValueOf(ok))
+		}
 	}
 
 	return dest, nil

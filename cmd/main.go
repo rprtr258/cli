@@ -22,10 +22,10 @@ func main() {
 		PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
 		IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
 		Filename    Filename       `long:"filename" description:"A filename"`
-		Args        []string       `positional`
+		Args        []string       `rest`
 	}
 	got, err := cli.Parse[Opts](os.Args...)
-	spew.Dump("got", got)
+	spew.Dump(got)
 	if err != nil {
 		fmt.Println("err:", err.Error())
 	}
