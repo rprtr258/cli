@@ -441,17 +441,14 @@ func (option *Option) isBool() bool {
 
 func (option *Option) isSignedNumber() bool {
 	tp := option.value.Type()
-
-	for {
-		switch tp.Kind() {
-		case reflect.Slice, reflect.Ptr:
-			tp = tp.Elem()
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Float32, reflect.Float64:
-			return true
-		default:
-			return false
-		}
+	for internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+		tp = tp.Elem()
 	}
+
+	return internal.OneOf(tp.Kind(),
+		reflect.Int,
+		reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Float32, reflect.Float64)
 }
 
 func (option *Option) isFunc() bool {
