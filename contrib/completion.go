@@ -5,7 +5,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"sort"
 	"strings"
 	"unicode/utf8"
 )
@@ -17,20 +16,6 @@ type Completion struct {
 
 	// A description of the completed item (optional)
 	Description string
-}
-
-type completions []Completion
-
-func (c completions) Len() int {
-	return len(c)
-}
-
-func (c completions) Less(i, j int) bool {
-	return c[i].Item < c[j].Item
-}
-
-func (c completions) Swap(i, j int) {
-	c[i], c[j] = c[j], c[i]
 }
 
 // Completer is an interface which can be implemented by types
@@ -239,11 +224,10 @@ func (c *completion) complete(args []string) []Completion {
 
 	lastarg := s.args[len(s.args)-1]
 	var ret []Completion
-	if opt != nil {
-		// Completion for the argument of 'opt'
+	switch {
+	case opt != nil: // Completion for the argument of 'opt'
 		ret = c.completeValue(opt.value, "", lastarg)
-	} else if doesLookLikeFlag(lastarg) {
-		// Complete the option
+	case doesLookLikeFlag(lastarg): // Complete the option
 		prefix, optname, islong := stripFlagPrefix(lastarg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
@@ -271,15 +255,12 @@ func (c *completion) complete(args []string) []Completion {
 		} else {
 			ret = c.completeNamesForShortPrefix(s, prefix, optname)
 		}
-	} else if len(s.positional) > 0 {
-		// Complete for positional argument
+	case len(s.positional) > 0: // Complete for positional argument
 		ret = c.completeValue(s.positional[0].value, "", lastarg)
-	} else if len(s.command.commands) > 0 {
-		// Complete for command
+	case len(s.command.commands) > 0: // Complete for command
 		ret = c.completeCommands(s, lastarg)
 	}
 
-	sort.Sort(completions(ret))
 	return ret
 }
 

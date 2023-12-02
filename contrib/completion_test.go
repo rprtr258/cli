@@ -6,10 +6,12 @@ import (
 	"os"
 	"path"
 	"path/filepath"
-	"reflect"
 	"runtime"
 	"strings"
 	"testing"
+
+	"github.com/samber/lo"
+	"github.com/stretchr/testify/assert"
 )
 
 type TestComplete struct {
@@ -261,19 +263,13 @@ func TestCompletion(t *testing.T) {
 			items[i] = v.Item
 		}
 
-		if !reflect.DeepEqual(items, test.Completed) {
-			t.Errorf("Args: %#v, %#v\n  Expected: %#v\n  Got:     %#v", test.Args, test.ShowDescriptions, test.Completed, items)
-		}
+		assert.ElementsMatch(t, items, test.Completed)
 	}
 }
 
 func TestParserCompletion(t *testing.T) {
 	for _, test := range completionTests {
-		if test.ShowDescriptions {
-			os.Setenv("GO_FLAGS_COMPLETION", "verbose")
-		} else {
-			os.Setenv("GO_FLAGS_COMPLETION", "1")
-		}
+		t.Setenv("GO_FLAGS_COMPLETION", lo.Ternary(test.ShowDescriptions, "verbose", "1"))
 
 		tmp := os.Stdout
 
@@ -308,11 +304,6 @@ func TestParserCompletion(t *testing.T) {
 		}
 
 		got := strings.Split(strings.Trim(<-out, "\n"), "\n")
-
-		if !reflect.DeepEqual(got, test.Completed) {
-			t.Errorf("Expected: %#v\nGot: %#v", test.Completed, got)
-		}
+		assert.ElementsMatch(t, test.Completed, got)
 	}
-
-	os.Setenv("GO_FLAGS_COMPLETION", "")
 }
