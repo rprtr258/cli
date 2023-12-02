@@ -492,7 +492,7 @@ func WroteHelp(err error) bool {
 		return false
 	}
 
-	if flagError.Type != ErrHelp { // Did not print the help message
+	if flagError.Kind != ErrHelp { // Did not print the help message
 		return false
 	}
 

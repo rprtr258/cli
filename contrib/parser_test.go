@@ -401,7 +401,7 @@ func TestOptionAsArgument(t *testing.T) {
 	var tests = []struct {
 		args        []string
 		expectError bool
-		errType     ErrorType
+		errType     ErrorKind
 		errMsg      string
 		rest        []string
 	}{

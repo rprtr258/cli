@@ -68,7 +68,7 @@ func main() {
 	parser := flags.NewParser(&Options{}, flags.Default)
 	if _, err := parser.Parse(); err != nil {
 		switch flagsErr := err.(type) {
-		case flags.ErrorType:
+		case flags.ErrorKind:
 			if flagsErr == flags.ErrHelp {
 				return
 			}

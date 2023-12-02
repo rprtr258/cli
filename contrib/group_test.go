@@ -156,7 +156,7 @@ func TestDuplicateShortFlags(t *testing.T) {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
 	} else {
 		err2 := err.(*Error)
-		if err2.Type != ErrDuplicatedFlag {
+		if err2.Kind != ErrDuplicatedFlag {
 			t.Errorf("Expected an error with type ErrDuplicatedFlag")
 		}
 	}
@@ -174,7 +174,7 @@ func TestDuplicateLongFlags(t *testing.T) {
 		t.Errorf("Expected an error with type ErrDuplicatedFlag")
 	} else {
 		err2 := err.(*Error)
-		if err2.Type != ErrDuplicatedFlag {
+		if err2.Kind != ErrDuplicatedFlag {
 			t.Errorf("Expected an error with type ErrDuplicatedFlag")
 		}
 	}

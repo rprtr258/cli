@@ -2,102 +2,52 @@ package flags
 
 import (
 	"fmt"
+
+	"github.com/samber/lo"
 )
 
-// ErrorType represents the type of error.
-type ErrorType uint
+// ErrorKind represents the type of error.
+type ErrorKind int
 
 const (
-	// ErrUnknown indicates a generic error.
-	ErrUnknown ErrorType = iota
-
-	// ErrExpectedArgument indicates that an argument was expected.
-	ErrExpectedArgument
-
-	// ErrUnknownFlag indicates an unknown flag.
-	ErrUnknownFlag
-
-	// ErrUnknownGroup indicates an unknown group.
-	ErrUnknownGroup
-
-	// ErrMarshal indicates a marshalling error while converting values.
-	ErrMarshal
-
-	// ErrHelp indicates that the built-in help was shown (the error
-	// contains the help message).
-	ErrHelp
-
-	// ErrNoArgumentForBool indicates that an argument was given for a
-	// boolean flag (which don't not take any arguments).
-	ErrNoArgumentForBool
-
-	// ErrRequired indicates that a required flag was not provided.
-	ErrRequired
-
-	// ErrShortNameTooLong indicates that a short flag name was specified,
-	// longer than one character.
-	ErrShortNameTooLong
-
-	// ErrDuplicatedFlag indicates that a short or long flag has been
-	// defined more than once
-	ErrDuplicatedFlag
-
-	// ErrTag indicates an error while parsing flag tags.
-	ErrTag
-
-	// ErrCommandRequired indicates that a command was required but not
-	// specified
-	ErrCommandRequired
-
-	// ErrUnknownCommand indicates that an unknown command was specified.
-	ErrUnknownCommand
-
-	// ErrInvalidChoice indicates an invalid option value which only allows
-	// a certain number of choices.
-	ErrInvalidChoice
-
-	// ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
-	ErrInvalidTag
+	ErrUnknown           ErrorKind = iota // ErrUnknown indicates a generic error.
+	ErrExpectedArgument                   // ErrExpectedArgument indicates that an argument was expected.
+	ErrUnknownFlag                        // ErrUnknownFlag indicates an unknown flag.
+	ErrUnknownGroup                       // ErrUnknownGroup indicates an unknown group.
+	ErrMarshal                            // ErrMarshal indicates a marshalling error while converting values.
+	ErrHelp                               // ErrHelp indicates that the built-in help was shown (the error contains the help message).
+	ErrNoArgumentForBool                  // ErrNoArgumentForBool indicates that an argument was given for a boolean flag (which don't not take any arguments).
+	ErrRequired                           // ErrRequired indicates that a required flag was not provided.
+	ErrShortNameTooLong                   // ErrShortNameTooLong indicates that a short flag name was specified, longer than one character.
+	ErrDuplicatedFlag                     // ErrDuplicatedFlag indicates that a short or long flag has been defined more than once
+	ErrTag                                // ErrTag indicates an error while parsing flag tags.
+	ErrCommandRequired                    // ErrCommandRequired indicates that a command was required but not specified
+	ErrUnknownCommand                     // ErrUnknownCommand indicates that an unknown command was specified.
+	ErrInvalidChoice                      // ErrInvalidChoice indicates an invalid option value which only allows a certain number of choices.
+	ErrInvalidTag                         // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 )
 
-func (e ErrorType) String() string {
-	switch e {
-	case ErrUnknown:
-		return "unknown"
-	case ErrExpectedArgument:
-		return "expected argument"
-	case ErrUnknownFlag:
-		return "unknown flag"
-	case ErrUnknownGroup:
-		return "unknown group"
-	case ErrMarshal:
-		return "marshal"
-	case ErrHelp:
-		return "help"
-	case ErrNoArgumentForBool:
-		return "no argument for bool"
-	case ErrRequired:
-		return "required"
-	case ErrShortNameTooLong:
-		return "short name too long"
-	case ErrDuplicatedFlag:
-		return "duplicated flag"
-	case ErrTag:
-		return "tag"
-	case ErrCommandRequired:
-		return "command required"
-	case ErrUnknownCommand:
-		return "unknown command"
-	case ErrInvalidChoice:
-		return "invalid choice"
-	case ErrInvalidTag:
-		return "invalid tag"
-	}
-
-	return "unrecognized error type"
+func (e ErrorKind) String() string {
+	return lo.Switch[ErrorKind, string](e).
+		Case(ErrUnknown, "unknown").
+		Case(ErrExpectedArgument, "expected argument").
+		Case(ErrUnknownFlag, "unknown flag").
+		Case(ErrUnknownGroup, "unknown group").
+		Case(ErrMarshal, "marshal").
+		Case(ErrHelp, "help").
+		Case(ErrNoArgumentForBool, "no argument for bool").
+		Case(ErrRequired, "required").
+		Case(ErrShortNameTooLong, "short name too long").
+		Case(ErrDuplicatedFlag, "duplicated flag").
+		Case(ErrTag, "tag").
+		Case(ErrCommandRequired, "command required").
+		Case(ErrUnknownCommand, "unknown command").
+		Case(ErrInvalidChoice, "invalid choice").
+		Case(ErrInvalidTag, "invalid tag").
+		Default("unrecognized error type")
 }
 
-func (e ErrorType) Error() string {
+func (e ErrorKind) Error() string {
 	return e.String()
 }
 
@@ -105,7 +55,7 @@ func (e ErrorType) Error() string {
 // type. The error contains both a Type and Message.
 type Error struct {
 	// The type of error
-	Type ErrorType
+	Kind ErrorKind
 
 	// The error message
 	Message string
@@ -116,14 +66,14 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func newError(tp ErrorType, message string) *Error {
+func newError(tp ErrorKind, message string) *Error {
 	return &Error{
-		Type:    tp,
+		Kind:    tp,
 		Message: message,
 	}
 }
 
-func newErrorf(tp ErrorType, format string, args ...interface{}) *Error {
+func newErrorf(tp ErrorKind, format string, args ...interface{}) *Error {
 	return newError(tp, fmt.Sprintf(format, args...))
 }
 

@@ -97,8 +97,8 @@ func TestHelp(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Type != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+		if e.Kind != ErrHelp {
+			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
 		}
 
 		var expected string
@@ -361,8 +361,8 @@ func TestHelpCommand(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Type != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+		if e.Kind != ErrHelp {
+			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
 		}
 
 		var expected string
@@ -403,7 +403,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		ShowHelp func() error `short:"h" long:"help"`
 	}
 	help.ShowHelp = func() error {
-		return &Error{Type: ErrHelp}
+		return &Error{Kind: ErrHelp}
 	}
 	hlpgrp, err := p.AddGroup("Help Options", "", &help)
 	if err != nil {
@@ -441,8 +441,8 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Type != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+		if e.Kind != ErrHelp {
+			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
 		}
 
 		var expected string
@@ -540,8 +540,8 @@ Help Options:
 		if e, ok := err.(*Error); !ok {
 			t.Fatalf("Expected flags.Error, but got %T", err)
 		} else {
-			if e.Type != ErrHelp {
-				t.Errorf("Expected flags.ErrHelp type, but got %s", e.Type)
+			if e.Kind != ErrHelp {
+				t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
 			}
 
 			assertDiff(t, e.Message, test.Output, "help message")
@@ -652,7 +652,7 @@ func TestHelpDefaultMask(t *testing.T) {
 	for _, test := range tests {
 		p := NewParser(test.opts, HelpFlag)
 		_, err := p.ParseArgs("-h")
-		if flagsErr, ok := err.(*Error); ok && flagsErr.Type == ErrHelp {
+		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil
 		}
 		if err != nil {
