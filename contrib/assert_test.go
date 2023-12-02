@@ -3,7 +3,6 @@ package flags
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"os/exec"
 	"path"
@@ -126,13 +125,13 @@ func assertParseFail(t *testing.T, typ ErrorType, msg string, data interface{}, 
 }
 
 func diff(a, b string) (string, error) {
-	atmp, err := ioutil.TempFile("", "help-diff")
+	atmp, err := os.CreateTemp("", "help-diff")
 
 	if err != nil {
 		return "", err
 	}
 
-	btmp, err := ioutil.TempFile("", "help-diff")
+	btmp, err := os.CreateTemp("", "help-diff")
 
 	if err != nil {
 		return "", err

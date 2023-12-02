@@ -198,9 +198,9 @@ Arguments:
   num:                                      A number
 
 Available commands:
-  bommand  A command with only hidden options
-  command  A command (aliases: cm, cmd)
-  parent   A parent command
+  bommand         A command with only hidden options
+  command,cm,cmd  A command
+  parent          A parent command
 `
 		}
 

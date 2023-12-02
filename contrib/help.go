@@ -255,7 +255,11 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 func maxCommandLength(s []*Command) int {
 	ret := 0
 	for _, v := range s {
-		ret = max(ret, len(v.Name))
+		aliasesTotalLen := 0
+		for _, alias := range v.Aliases {
+			aliasesTotalLen += len(alias)
+		}
+		ret = max(ret, len(v.Name)+len(v.Aliases)+aliasesTotalLen)
 	}
 	return ret
 }
@@ -459,14 +463,15 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		fmt.Fprintln(bw, "Available commands:")
 
 		for _, c := range scommands {
-			fmt.Fprintf(bw, "  %s", c.Name)
+			fullNameRepresentation := c.Name
+			if len(c.Aliases) > 0 {
+				fullNameRepresentation += "," + strings.Join(c.Aliases, ",")
+			}
+			fmt.Fprint(bw, "  "+fullNameRepresentation)
 
 			if len(c.ShortDescription) > 0 {
-				pad := strings.Repeat(" ", maxnamelen-len(c.Name))
+				pad := strings.Repeat(" ", maxnamelen-len(fullNameRepresentation))
 				fmt.Fprintf(bw, "%s  %s", pad, c.ShortDescription)
-				if len(c.Aliases) > 0 {
-					fmt.Fprintf(bw, " (aliases: %s)", strings.Join(c.Aliases, ", "))
-				}
 			}
 
 			fmt.Fprintln(bw)
