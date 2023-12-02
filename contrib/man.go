@@ -24,26 +24,26 @@ func manQuote(s string) string {
 	return strings.Replace(s, "\\", "\\\\", -1)
 }
 
-func formatForMan(wr io.Writer, s string, quoter func(s string) string) {
+func formatForMan(wr io.Writer, s string) {
 	for {
 		idx := strings.IndexRune(s, '`')
 
 		if idx < 0 {
-			fmt.Fprintf(wr, "%s", quoter(s))
+			fmt.Fprintf(wr, "%s", manQuoteLines(s))
 			break
 		}
 
-		fmt.Fprintf(wr, "%s", quoter(s[:idx]))
+		fmt.Fprintf(wr, "%s", manQuoteLines(s[:idx]))
 
 		s = s[idx+1:]
 		idx = strings.IndexRune(s, '\'')
 
 		if idx < 0 {
-			fmt.Fprintf(wr, "%s", quoter(s))
+			fmt.Fprintf(wr, "%s", manQuoteLines(s))
 			break
 		}
 
-		fmt.Fprintf(wr, "\\fB%s\\fP", quoter(s[:idx]))
+		fmt.Fprintf(wr, "\\fB%s\\fP", manQuoteLines(s[:idx]))
 		s = s[idx+1:]
 	}
 }
@@ -60,7 +60,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 			fmt.Fprintf(wr, ".SS %s\n", group.ShortDescription)
 
 			if group.LongDescription != "" {
-				formatForMan(wr, group.LongDescription, manQuoteLines)
+				formatForMan(wr, group.LongDescription)
 				fmt.Fprintln(wr, "")
 			}
 		}
@@ -104,7 +104,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 			fmt.Fprintln(wr, "\\fP")
 
 			if len(opt.Description) != 0 {
-				formatForMan(wr, opt.Description, manQuoteLines)
+				formatForMan(wr, opt.Description)
 				fmt.Fprintln(wr, "")
 			}
 		}
@@ -143,10 +143,10 @@ func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command 
 		if strings.HasPrefix(command.LongDescription, cmdstart) {
 			fmt.Fprintf(wr, "The \\fI%s\\fP command", manQuote(command.Name))
 
-			formatForMan(wr, command.LongDescription[len(cmdstart):], manQuoteLines)
+			formatForMan(wr, command.LongDescription[len(cmdstart):])
 			fmt.Fprintln(wr, "")
 		} else {
-			formatForMan(wr, command.LongDescription, manQuoteLines)
+			formatForMan(wr, command.LongDescription)
 			fmt.Fprintln(wr, "")
 		}
 	}
@@ -200,7 +200,7 @@ func (p *Parser) WriteManPage(wr io.Writer) {
 	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
 
-	formatForMan(wr, p.LongDescription, manQuoteLines)
+	formatForMan(wr, p.LongDescription)
 	fmt.Fprintln(wr, "")
 
 	fmt.Fprintln(wr, ".SH OPTIONS")
