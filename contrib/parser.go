@@ -558,21 +558,11 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 func (p *Parser) marshalError(option *Option, err error) *Error {
 	s := "invalid argument for flag `%s'"
-	if expected := p.expectedType(option); expected != "" {
-		s = s + " (expected " + expected + ")"
+	if valueType := option.value.Type(); valueType.Kind() != reflect.Func {
+		s = s + " (expected " + valueType.String() + ")"
 	}
 
 	return newErrorf(ErrMarshal, s+": %s", option, err.Error())
-}
-
-func (p *Parser) expectedType(option *Option) string {
-	valueType := option.value.Type()
-
-	if valueType.Kind() != reflect.Func {
-		return valueType.String()
-	}
-
-	return ""
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
