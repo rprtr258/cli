@@ -484,11 +484,10 @@ func (p *parseState) estimateCommand() error {
 	var errtype ErrorType
 
 	if len(p.retargs) != 0 {
-		c, l := getClosest(p.retargs[0], cmdnames)
 		msg = fmt.Sprintf("Unknown command `%s'", p.retargs[0])
 		errtype = ErrUnknownCommand
 
-		if float32(l)/float32(len(c)) < 0.5 {
+		if c, l := getClosest(p.retargs[0], cmdnames); l*2 < len(c) {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 		} else if len(cmdnames) == 1 {
 			msg = fmt.Sprintf("%s. You should use the %s command",
