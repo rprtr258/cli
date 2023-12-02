@@ -188,8 +188,8 @@ func (c *completion) complete(args []string) []Completion {
 		}
 
 		if isFlag(arg) {
-			prefix, optname, islong := stripOptionPrefix(arg)
-			optname, _, argument := splitOption(prefix, optname, islong)
+			prefix, optname, islong := stripFlagPrefix(arg)
+			optname, argument := splitOption(prefix, optname, islong)
 
 			if argument == nil {
 				var o *Option
@@ -248,8 +248,8 @@ func (c *completion) complete(args []string) []Completion {
 		ret = c.completeValue(opt.value, "", lastarg)
 	} else if doesLookLikeFlag(lastarg) {
 		// Complete the option
-		prefix, optname, islong := stripOptionPrefix(lastarg)
-		optname, split, argument := splitOption(prefix, optname, islong)
+		prefix, optname, islong := stripFlagPrefix(lastarg)
+		optname, argument := splitOption(prefix, optname, islong)
 
 		if argument == nil && !islong {
 			rname, n := utf8.DecodeRuneInString(optname)
@@ -268,7 +268,7 @@ func (c *completion) complete(args []string) []Completion {
 			}
 
 			if opt != nil {
-				ret = c.completeValue(opt.value, prefix+optname+split, *argument)
+				ret = c.completeValue(opt.value, prefix+optname+"=", *argument)
 			}
 		} else if islong {
 			ret = c.completeNamesForLongPrefix(s, prefix, optname)

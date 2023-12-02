@@ -22,29 +22,28 @@ func isFlag(arg string) bool {
 		len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-'
 }
 
-// stripOptionPrefix returns the option without the prefix and whether or
+// stripFlagPrefix returns the option without the prefix and whether or
 // not the option is a long option or not.
-func stripOptionPrefix(optname string) (prefix string, name string, islong bool) {
-	if strings.HasPrefix(optname, "--") {
-		return "--", optname[2:], true
-	} else if strings.HasPrefix(optname, "-") {
-		return "-", optname[1:], false
+func stripFlagPrefix(arg string) (prefix, name string, islong bool) {
+	switch {
+	case strings.HasPrefix(arg, "--"):
+		return "--", arg[2:], true
+	case strings.HasPrefix(arg, "-"):
+		return "-", arg[1:], false
+	default:
+		return "", arg, false
 	}
-
-	return "", optname, false
 }
 
 // splitOption attempts to split the passed option into a name and an argument.
 // When there is no argument specified, nil will be returned for it.
-func splitOption(prefix string, option string, islong bool) (string, string, *string) {
-	pos := strings.Index(option, "=")
-
-	if (islong && pos >= 0) || (!islong && pos == 1) {
+func splitOption(prefix string, option string, islong bool) (string, *string) {
+	if pos := strings.Index(option, "="); islong && pos >= 0 || !islong && pos == 1 {
 		rest := option[pos+1:]
-		return option[:pos], "=", &rest
+		return option[:pos], &rest
 	}
 
-	return option, "", nil
+	return option, nil
 }
 
 // addHelpGroup adds a new group that contains default help parameters.
