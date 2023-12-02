@@ -187,7 +187,7 @@ func (c *completion) complete(args []string) []Completion {
 			break
 		}
 
-		if argumentIsOption(arg) {
+		if isFlag(arg) {
 			prefix, optname, islong := stripOptionPrefix(arg)
 			optname, _, argument := splitOption(prefix, optname, islong)
 
@@ -243,11 +243,10 @@ func (c *completion) complete(args []string) []Completion {
 
 	lastarg := s.args[len(s.args)-1]
 	var ret []Completion
-
 	if opt != nil {
 		// Completion for the argument of 'opt'
 		ret = c.completeValue(opt.value, "", lastarg)
-	} else if argumentStartsOption(lastarg) {
+	} else if doesLookLikeFlag(lastarg) {
 		// Complete the option
 		prefix, optname, islong := stripOptionPrefix(lastarg)
 		optname, split, argument := splitOption(prefix, optname, islong)

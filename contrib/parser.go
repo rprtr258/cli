@@ -245,7 +245,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			break
 		}
 
-		if !argumentIsOption(arg) {
+		if !isFlag(arg) {
 			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
 				// are considered positional
@@ -366,7 +366,6 @@ func (p *parseState) checkRequired(parser *Parser) error {
 	c := parser.Command
 
 	var required []*Option
-
 	for c != nil {
 		c.eachGroup(func(g *Group) {
 			for _, option := range g.options {

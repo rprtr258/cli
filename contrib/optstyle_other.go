@@ -1,3 +1,4 @@
+//go:build !windows || forceposix
 // +build !windows forceposix
 
 package flags
@@ -12,20 +13,13 @@ const (
 	defaultNameArgDelimiter  = '='
 )
 
-func argumentStartsOption(arg string) bool {
+func doesLookLikeFlag(arg string) bool {
 	return len(arg) > 0 && arg[0] == '-'
 }
 
-func argumentIsOption(arg string) bool {
-	if len(arg) > 1 && arg[0] == '-' && arg[1] != '-' {
-		return true
-	}
-
-	if len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-' {
-		return true
-	}
-
-	return false
+func isFlag(arg string) bool {
+	return len(arg) > 1 && arg[0] == '-' && arg[1] != '-' ||
+		len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-'
 }
 
 // stripOptionPrefix returns the option without the prefix and whether or
