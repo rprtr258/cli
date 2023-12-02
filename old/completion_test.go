@@ -12,13 +12,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/cli/utils"
 )
 
 type TestComplete struct{}
 
 func (t *TestComplete) Complete(match string) []Completion {
-	return internal.FilterMap(func(o string) (Completion, bool) {
+	return utils.FilterMap(func(o string) (Completion, bool) {
 		return Completion{
 			Item: o,
 		}, strings.HasPrefix(o, match)
@@ -81,7 +81,7 @@ var completionTests = func() map[string]completionTest {
 		filepath.Join(completionTestSourcedir, "completion_test.go"),
 	}
 
-	completionTestSubdir := internal.Map(
+	completionTestSubdir := utils.Map(
 		func(s string) string { return filepath.Join(completionTestSourcedir, "examples", s) },
 		"bash-completion",
 		"main.go",
@@ -227,7 +227,7 @@ func TestCompletion(t *testing.T) {
 		}
 
 		ret := c.complete(test.Args)
-		items := internal.Map(func(v Completion) string {
+		items := utils.Map(func(v Completion) string {
 			return v.Item
 		}, ret...)
 

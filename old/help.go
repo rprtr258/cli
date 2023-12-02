@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/cli/utils"
 	"golang.org/x/sys/unix"
 )
 
@@ -331,7 +331,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 					fmt.Fprintf(wr, " %scommand%s", co, cc)
 				} else {
 					subcommands := allcmd.sortedVisibleCommands()
-					names := internal.Map(func(subc *Command) string {
+					names := utils.Map(func(subc *Command) string {
 						return subc.Name
 					}, subcommands...)
 
@@ -386,7 +386,7 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 		})
 
-		args := internal.Filter(func(arg Arg) bool {
+		args := utils.Filter(func(arg Arg) bool {
 			return arg.Description != ""
 		}, c.Args...)
 		if len(args) > 0 {

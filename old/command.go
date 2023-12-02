@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/cli/utils"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -163,7 +163,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := internal.Or(m.Get("positional-arg-name"), field.Name)
+				name := utils.Or(m.Get("positional-arg-name"), field.Name)
 
 				required := -1
 				requiredMaximum := -1
@@ -366,7 +366,7 @@ func (c *Command) sortedVisibleCommands() []*Command {
 }
 
 func (c *Command) visibleCommands() []*Command {
-	return internal.Filter(func(cmd *Command) bool {
+	return utils.Filter(func(cmd *Command) bool {
 		return !cmd.Hidden
 	}, c.commands...)
 }

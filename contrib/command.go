@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/cli/utils"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -397,13 +397,13 @@ func (c *Command) sortedVisibleCommands() []*Command {
 }
 
 func (c *Command) visibleCommands() []*Command {
-	return internal.Filter(func(cmd *Command) bool {
+	return utils.Filter(func(cmd *Command) bool {
 		return !cmd.Hidden
 	}, c.commands...)
 }
 
 func (c *Command) match(name string) bool {
-	return c.Name == name || internal.OneOf(name, c.Aliases...)
+	return c.Name == name || utils.OneOf(name, c.Aliases...)
 }
 
 func (c *Command) hasHelpOptions() bool {

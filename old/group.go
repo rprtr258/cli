@@ -6,7 +6,7 @@ import (
 	"strings"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/cli/utils"
 )
 
 // ErrNotPointerToStruct indicates that a provided data container is not
@@ -179,7 +179,7 @@ func (g *Group) eachGroup(f func(*Group)) {
 }
 
 func isStringFalsy(s string) bool {
-	return internal.OneOf(s, "", "false", "no", "0")
+	return utils.OneOf(s, "", "false", "no", "0")
 }
 
 func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler scanHandler) error {
