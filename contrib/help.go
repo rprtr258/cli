@@ -12,6 +12,8 @@ import (
 	"runtime"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 type alignmentInfo struct {
@@ -414,14 +416,10 @@ func (p *Parser) WriteHelp(writer io.Writer) {
 			}
 		})
 
-		var args []*Arg
-		for _, arg := range c.args {
-			if arg.Description != "" {
-				args = append(args, arg)
-			}
-		}
-
-		if len(args) > 0 {
+		if args := internal.Filter(func(arg *Arg) bool {
+			// TODO: separate Hidden field
+			return arg.Description != ""
+		}, c.args...); len(args) > 0 {
 			if c == p.Command {
 				fmt.Fprintf(wr, "\nArguments:\n")
 			} else {
