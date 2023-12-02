@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -395,29 +397,13 @@ func (c *Command) sortedVisibleCommands() []*Command {
 }
 
 func (c *Command) visibleCommands() []*Command {
-	ret := make([]*Command, 0, len(c.commands))
-
-	for _, cmd := range c.commands {
-		if !cmd.Hidden {
-			ret = append(ret, cmd)
-		}
-	}
-
-	return ret
+	return internal.Filter(func(cmd *Command) bool {
+		return !cmd.Hidden
+	}, c.commands...)
 }
 
 func (c *Command) match(name string) bool {
-	if c.Name == name {
-		return true
-	}
-
-	for _, v := range c.Aliases {
-		if v == name {
-			return true
-		}
-	}
-
-	return false
+	return c.Name == name || internal.OneOf(name, c.Aliases...)
 }
 
 func (c *Command) hasHelpOptions() bool {
