@@ -235,7 +235,6 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	p.fillParseState(s)
 
 	for !s.eof() {
-		var err error
 		arg := s.pop()
 
 		// When PassDoubleDash is set and we encounter a --, then
@@ -245,6 +244,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			break
 		}
 
+		var err error
 		if !isFlag(arg) {
 			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
@@ -277,7 +277,6 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		} else {
 			err = p.parseShort(s, optname, argument)
 		}
-
 		if err != nil {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
 			parseErr := wrapError(err)
@@ -288,7 +287,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			}
 
 			if ignoreUnknown {
-				s.addArgs(arg)
+				_ = s.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
 				modifiedArgs, err := p.UnknownOptionHandler(optname, strArgument{argument}, s.args)
 
