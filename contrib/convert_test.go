@@ -44,8 +44,8 @@ func TestConvertToString(t *testing.T) {
 		IntSlice    []int           `long:"int-slice"`
 		IntFloatMap map[int]float64 `long:"int-float-map"`
 
-		PtrBool   *bool       `long:"ptr-bool"`
-		Interface interface{} `long:"interface"`
+		PtrBool   *bool `long:"ptr-bool"`
+		Interface any   `long:"interface"`
 
 		Int32Base  int32  `long:"int32-base" base:"16"`
 		Uint32Base uint32 `long:"uint32-base" base:"16"`

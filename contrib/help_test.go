@@ -581,7 +581,7 @@ func TestWrapParagraph(t *testing.T) {
 
 func TestHelpDefaultMask(t *testing.T) {
 	var tests = []struct {
-		opts    interface{}
+		opts    any
 		present string
 	}{
 		{

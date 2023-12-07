@@ -35,7 +35,7 @@ func assertCallerInfo() (string, int) {
 	return mefile, meline
 }
 
-func assertErrorf(t *testing.T, format string, args ...interface{}) {
+func assertErrorf(t *testing.T, format string, args ...any) {
 	t.Helper()
 
 	msg := fmt.Sprintf(format, args...)
@@ -43,7 +43,7 @@ func assertErrorf(t *testing.T, format string, args ...interface{}) {
 	t.Errorf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertFatalf(t *testing.T, format string, args ...interface{}) {
+func assertFatalf(t *testing.T, format string, args ...any) {
 	t.Helper()
 
 	msg := fmt.Sprintf(format, args...)
@@ -75,7 +75,7 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 	}
 }
 
-func assertParserSuccess(t *testing.T, data interface{}, args ...string) (*Parser, []string) {
+func assertParserSuccess(t *testing.T, data any, args ...string) (*Parser, []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
 
@@ -87,7 +87,7 @@ func assertParserSuccess(t *testing.T, data interface{}, args ...string) (*Parse
 	return parser, ret
 }
 
-func assertParseSuccess(t *testing.T, data interface{}, args ...string) []string {
+func assertParseSuccess(t *testing.T, data any, args ...string) []string {
 	_, ret := assertParserSuccess(t, data, args...)
 	return ret
 }
@@ -101,7 +101,7 @@ func assertError(t *testing.T, err error, typ ErrorKind, msg string) {
 	}, err)
 }
 
-func assertParseFail(t *testing.T, typ ErrorKind, msg string, data interface{}, args ...string) []string {
+func assertParseFail(t *testing.T, typ ErrorKind, msg string, data any, args ...string) []string {
 	t.Helper()
 
 	parser := NewParser(data, Default&^PrintErrors)

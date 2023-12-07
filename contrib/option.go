@@ -154,8 +154,8 @@ func (option *Option) String() string {
 	return s
 }
 
-// Value returns the option value as an interface{}.
-func (option *Option) Value() interface{} {
+// Value returns the option value as an any.
+func (option *Option) Value() any {
 	return option.value.Interface()
 }
 

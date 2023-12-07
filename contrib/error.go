@@ -70,7 +70,7 @@ func newError(tp ErrorKind, message string) *Error {
 	}
 }
 
-func newErrorf(tp ErrorKind, format string, args ...interface{}) *Error {
+func newErrorf(tp ErrorKind, format string, args ...any) *Error {
 	return newError(tp, fmt.Sprintf(format, args...))
 }
 
