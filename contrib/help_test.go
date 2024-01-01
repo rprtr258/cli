@@ -463,12 +463,6 @@ Help Options:
 			Kind:    ErrHelp,
 			Message: test.Output,
 		}, err)
-		if e, ok := err.(*Error); !ok {
-			t.Fatalf("Expected flags.Error, but got %T", err)
-		} else {
-			assert.Equal(t, ErrHelp, e.Kind)
-			assertDiff(t, e.Message, test.Output, "help message")
-		}
 	}
 }
 
