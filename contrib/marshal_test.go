@@ -92,7 +92,7 @@ func TestMarshalError(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, Default)
-	o := p.Command.Groups()[0].options[0]
+	o := p.Command.groups[0].options[0]
 
 	_, err := convertToString(o.value, o.tag)
 	assert.Equal(t, &Error{

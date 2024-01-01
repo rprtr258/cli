@@ -42,7 +42,7 @@ func TestGroupAdd(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, grp.G)
 	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
-	assert.Equal(t, g, p.Groups()[1])
+	assert.Equal(t, g, p.groups[1])
 	assert.Equal(t, 'g', g.options[0].ShortName)
 }
 

@@ -82,11 +82,6 @@ func (g *Group) AddOption(option *Option, data any) {
 	g.options = append(g.options, option)
 }
 
-// Groups returns the list of groups embedded in this group.
-func (g *Group) Groups() []*Group {
-	return g.groups
-}
-
 // Find locates the subgroup with the given short description and returns it.
 // If no such group can be found Find will return nil.
 // Note that the description is matched case insensitively.
