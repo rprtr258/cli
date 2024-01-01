@@ -232,20 +232,15 @@ func (p *Parser) WriteHelp(w io.Writer) {
 					fmt.Fprintf(bw, " ")
 				}
 
-				name := arg.Name
-
-				if isRemainingArg(arg.value) {
-					name += "..."
-				}
-
+				name := arg.Name + internal.Iverson(isRemainingArg(arg.value), "...")
 				if !allcmd.ArgsRequired {
 					if arg.Required > 0 {
-						fmt.Fprintf(bw, "%s", name)
+						fmt.Fprint(bw, name)
 					} else {
 						fmt.Fprintf(bw, "[%s]", name)
 					}
 				} else {
-					fmt.Fprintf(bw, "%s", name)
+					fmt.Fprint(bw, name)
 				}
 			}
 
@@ -281,13 +276,12 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		printcmd := c != p.Command
 
 		c.eachGroup(func(grp *Group) {
-			first := true
-
 			// Skip built-in help group for all commands except the top-level parser
 			if grp.Hidden || grp.isBuiltinHelp && c != p.Command {
 				return
 			}
 
+			first := true
 			for _, info := range grp.options {
 				if !info.showInHelp() {
 					continue
