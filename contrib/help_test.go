@@ -579,18 +579,15 @@ func TestHelpDefaultMask(t *testing.T) {
 }
 
 func TestWroteHelp(t *testing.T) {
-	type testInfo struct {
+	for name, test := range map[string]struct {
 		value  error
 		isHelp bool
-	}
-	tests := map[string]testInfo{
+	}{
 		"No error":    {value: nil, isHelp: false},
 		"Plain error": {value: errors.New("an error"), isHelp: false},
 		"ErrUnknown":  {value: newError(ErrUnknown, "an error"), isHelp: false},
 		"ErrHelp":     {value: newError(ErrHelp, "an error"), isHelp: true},
-	}
-
-	for name, test := range tests {
+	} {
 		t.Run(name, func(t *testing.T) {
 			res := WroteHelp(test.value)
 			assert.Equal(t, test.isHelp, res)
