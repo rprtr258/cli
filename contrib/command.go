@@ -119,7 +119,7 @@ func (c *Command) Find(name string) *Command {
 // namespace).
 func (c *Command) FindOptionByLongName(longName string) (option *Option) {
 	for option == nil && c != nil {
-		option = c.Group.FindOptionByLongName(longName)
+		option = c.Group.findOptionByLongName(longName)
 
 		c, _ = c.parent.(*Command)
 	}
@@ -132,7 +132,7 @@ func (c *Command) FindOptionByLongName(longName string) (option *Option) {
 // namespace).
 func (c *Command) FindOptionByShortName(shortName rune) (option *Option) {
 	for option == nil && c != nil {
-		option = c.Group.FindOptionByShortName(shortName)
+		option = c.Group.findOptionByShortName(shortName)
 
 		c, _ = c.parent.(*Command)
 	}
