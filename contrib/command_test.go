@@ -97,14 +97,8 @@ func TestCommandFlagOrder2(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "cmd", "-v", "-g")
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Command.G {
-		t.Errorf("Expected Command.G to be true")
-	}
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Command.G)
 }
 
 func TestCommandFlagOrderSub(t *testing.T) {
