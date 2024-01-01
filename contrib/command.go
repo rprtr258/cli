@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -269,8 +270,8 @@ func (c *Command) scan() error {
 }
 
 func (c *Command) eachOption(yield func(*Command, *Group, *Option)) {
-	c.eachCommand(func(c *Command) {
-		c.eachGroup(func(g *Group) bool {
+	c.eachCommand(func(c *Command) bool {
+		return c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				yield(c, g, option)
 			}
@@ -279,12 +280,10 @@ func (c *Command) eachOption(yield func(*Command, *Group, *Option)) {
 	})
 }
 
-func (c *Command) eachCommand(yield func(*Command)) {
-	yield(c)
-
-	for _, cc := range c.commands {
-		cc.eachCommand(yield)
-	}
+func (c *Command) eachCommand(yield func(*Command) bool) bool {
+	return yield(c) && fun.All(c.commands, func(c *Command) bool {
+		return c.eachCommand(yield)
+	})
 }
 
 func (c *Command) eachActiveGroup(yield func(cc *Command, g *Group)) {
