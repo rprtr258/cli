@@ -224,14 +224,8 @@ func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	opt := p.FindOptionByShortName('t')
-
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
-
-	if opt.ShortName != 't' {
-		t.Errorf("Expected 't', but got %v", opt.ShortName)
-	}
+	assert.NotNil(t, opt)
+	assert.Equal(t, 't', opt.ShortName)
 }
 
 func TestAddOptionNonOptional(t *testing.T) {
