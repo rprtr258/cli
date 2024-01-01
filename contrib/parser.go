@@ -381,11 +381,9 @@ func (p *parseState) checkRequired(parser *Parser) {
 
 				if isRemainingArg(arg.value) {
 					if arg.value.Len() < arg.Required {
-						var arguments string
+						arguments := "argument"
 						if arg.Required > 1 {
-							arguments = "arguments, but got only " + fmt.Sprint(arg.value.Len())
-						} else {
-							arguments = "argument"
+							arguments += "s, but got only " + fmt.Sprint(arg.value.Len())
 						}
 
 						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprintf("%d", arg.Required)+" "+arguments+")`")
