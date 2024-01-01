@@ -31,10 +31,6 @@ func (a *alignmentInfo) descriptionStart() int {
 		internal.Iverson(a.hasValueName)*3
 }
 
-func (a *alignmentInfo) updateLen(name string, indent bool) {
-	a.maxLongLen = max(a.maxLongLen, utf8.RuneCountInString(name)+internal.Iverson(indent)*4)
-}
-
 func (p *Parser) getAlignmentInfo() alignmentInfo {
 	ret := alignmentInfo{
 		maxLongLen:      0,
@@ -48,7 +44,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		if c != prevcmd {
 			for _, arg := range c.args {
-				ret.updateLen(arg.Name, c != p.Command)
+				ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(arg.Name)+internal.Iverson(c != p.Command)*4)
 			}
 			prevcmd = c
 		}
@@ -73,7 +69,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				l += "[" + strings.Join(info.Choices, "|") + "]"
 			}
 
-			ret.updateLen(l, c != p.Command)
+			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command)*4)
 		}
 	})
 
