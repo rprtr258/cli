@@ -50,15 +50,12 @@ func assertParseSuccess(t *testing.T, data any, args ...string) []string {
 	return ret
 }
 
-func assertParseFail(t *testing.T, typ ErrorKind, msg string, data any, args ...string) []string {
+func assertParseFail(t *testing.T, errWant *Error, data any, args ...string) []string {
 	t.Helper()
 
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
-	assert.Equal(t, &Error{
-		Kind:    typ,
-		Message: msg,
-	}, err)
+	assert.Equal(t, errWant, err)
 	return ret
 }
 

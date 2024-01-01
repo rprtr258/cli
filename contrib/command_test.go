@@ -52,7 +52,10 @@ func TestCommandFlagOrder1(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrUnknownFlag, "unknown flag `g'", &opts, "-v", "-g", "cmd")
+	assertParseFail(t, &Error{
+		Kind:    ErrUnknownFlag,
+		Message: "unknown flag `g'",
+	}, &opts, "-v", "-g", "cmd")
 }
 
 func TestCommandFlagOrder2(t *testing.T) {
@@ -206,7 +209,10 @@ func TestCommandClosest(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
+	args := assertParseFail(t, &Error{
+		Kind:    ErrUnknownCommand,
+		Message: "Unknown command `addd', did you mean `add'?",
+	}, &opts, "-v", "addd")
 	assert.Equal(t, []string{"addd"}, args)
 }
 
@@ -269,7 +275,10 @@ func TestRequiredOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts, "cmd")
+	assertParseFail(t, &Error{
+		Kind:    ErrRequired,
+		Message: fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter),
+	}, &opts, "cmd")
 }
 
 func TestRequiredAllOnCommand(t *testing.T) {
@@ -281,7 +290,10 @@ func TestRequiredAllOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter), &opts, "cmd")
+	assertParseFail(t, &Error{
+		Kind:    ErrRequired,
+		Message: fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter),
+	}, &opts, "cmd")
 }
 
 func TestDefaultOnCommand(t *testing.T) {
@@ -302,7 +314,10 @@ func TestAfterNonCommand(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	assertParseFail(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: remove or add", &opts, "nocmd", "remove")
+	assertParseFail(t, &Error{
+		Kind:    ErrUnknownCommand,
+		Message: "Unknown command `nocmd'. Please specify one command of: remove or add",
+	}, &opts, "nocmd", "remove")
 }
 
 func TestSubcommandsOptional(t *testing.T) {

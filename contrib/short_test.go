@@ -22,7 +22,10 @@ func TestShortTooLong(t *testing.T) {
 		Value bool `short:"vv"`
 	}{}
 
-	assertParseFail(t, ErrShortNameTooLong, "short names can only be 1 character long, not `vv'", &opts)
+	assertParseFail(t, &Error{
+		Kind:    ErrShortNameTooLong,
+		Message: "short names can only be 1 character long, not `vv'",
+	}, &opts)
 }
 
 func TestShortRequired(t *testing.T) {
@@ -30,7 +33,10 @@ func TestShortRequired(t *testing.T) {
 		Value bool `short:"v" required:"true"`
 	}{}
 
-	assertParseFail(t, ErrRequired, fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter), &opts)
+	assertParseFail(t, &Error{
+		Kind:    ErrRequired,
+		Message: fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter),
+	}, &opts)
 }
 
 func TestShortRequiredFalsy1(t *testing.T) {
@@ -133,7 +139,10 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffv=value")
+	assertParseFail(t, &Error{
+		Kind:    ErrExpectedArgument,
+		Message: fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter),
+	}, &opts, "-ffv=value")
 }
 
 func TestShortMultiArg(t *testing.T) {
@@ -154,7 +163,10 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrExpectedArgument, fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter), &opts, "-ffvvalue")
+	assertParseFail(t, &Error{
+		Kind:    ErrExpectedArgument,
+		Message: fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter),
+	}, &opts, "-ffvvalue")
 }
 
 func TestShortMultiArgConcat(t *testing.T) {

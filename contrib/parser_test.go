@@ -140,11 +140,16 @@ func TestNoDefaultsForBools(t *testing.T) {
 		DefaultBool bool `short:"d" default:"true"`
 	}
 
+	var errMessage string
 	if runtime.GOOS == "windows" {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `/d' may not have default values, they always default to `false' and can only be turned on", &opts)
+		errMessage = "boolean flag `/d' may not have default values, they always default to `false' and can only be turned on"
 	} else {
-		assertParseFail(t, ErrInvalidTag, "boolean flag `-d' may not have default values, they always default to `false' and can only be turned on", &opts)
+		errMessage = "boolean flag `-d' may not have default values, they always default to `false' and can only be turned on"
 	}
+	assertParseFail(t, &Error{
+		Kind:    ErrInvalidTag,
+		Message: errMessage,
+	}, &opts)
 }
 
 func TestUnquoting(t *testing.T) {
@@ -234,36 +239,51 @@ func (c *CustomFlag) IsValidValue(s string) error {
 }
 
 func TestOptionAsArgument(t *testing.T) {
-	tests := []struct {
+	var opts struct {
+		StringSlice []string   `long:"string-slice"`
+		IntSlice    []int      `long:"int-slice"`
+		Int16       int16      `long:"int16"`
+		Float32     float32    `long:"float32"`
+		Float32Ptr  *float32   `long:"float32ptr"`
+		OtherOption bool       `long:"other-option" short:"o"`
+		Custom      CustomFlag `long:"custom-flag" short:"c"`
+	}
+
+	for _, test := range []struct {
 		args        []string
 		expectError bool
-		errType     ErrorKind
-		errMsg      string
+		errWant     *Error
 		rest        []string
 	}{
 		{
 			// short option must not be accepted as argument
 			args:        []string{"--string-slice", "foobar", "--string-slice", "-o"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-o'",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-o'",
+			},
+			rest: []string{},
 		},
 		{
 			// long option must not be accepted as argument
 			args:        []string{"--string-slice", "foobar", "--string-slice", "--other-option"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `--other-option'",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `--other-option'",
+			},
+			rest: []string{},
 		},
 		{
 			// long option must not be accepted as argument
 			args:        []string{"--string-slice", "--"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got double dash `--'",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got double dash `--'",
+			},
+			rest: []string{},
 		},
 		{
 			// quoted and appended option should be accepted as argument (even if it looks like an option)
@@ -279,17 +299,21 @@ func TestOptionAsArgument(t *testing.T) {
 			// Do not accept arguments which start with '-' even if the next character is a digit
 			args:        []string{"--string-slice", "-3.14"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-3.14'",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-3.14'",
+			},
+			rest: []string{},
 		},
 		{
 			// Do not accept arguments which start with '-' if the next character is not a digit
 			args:        []string{"--string-slice", "-character"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-character'",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-character'",
+			},
+			rest: []string{},
 		},
 		{
 			args: []string{"-o", "-", "-"},
@@ -329,25 +353,15 @@ func TestOptionAsArgument(t *testing.T) {
 			// Rejects arguments for values that fail the IsValidValue fuction for value validators
 			args:        []string{"--custom-flag", "-2"},
 			expectError: true,
-			errType:     ErrExpectedArgument,
-			errMsg:      "invalid flag value",
-			rest:        []string{},
+			errWant: &Error{
+				Kind:    ErrExpectedArgument,
+				Message: "invalid flag value",
+			},
+			rest: []string{},
 		},
-	}
-
-	var opts struct {
-		StringSlice []string   `long:"string-slice"`
-		IntSlice    []int      `long:"int-slice"`
-		Int16       int16      `long:"int16"`
-		Float32     float32    `long:"float32"`
-		Float32Ptr  *float32   `long:"float32ptr"`
-		OtherOption bool       `long:"other-option" short:"o"`
-		Custom      CustomFlag `long:"custom-flag" short:"c"`
-	}
-
-	for _, test := range tests {
+	} {
 		if test.expectError {
-			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
+			assertParseFail(t, test.errWant, &opts, test.args...)
 		} else {
 			assert.Equal(t, test.rest, assertParseSuccess(t, &opts, test.args...))
 		}
@@ -423,7 +437,10 @@ func TestChoices(t *testing.T) {
 		Choice string `long:"choose" choice:"v1" choice:"v2"`
 	}
 
-	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
+	assertParseFail(t, &Error{
+		Kind:    ErrInvalidChoice,
+		Message: "Invalid value `invalid' for option `" + defaultLongOptDelimiter + "choose'. Allowed values are: v1 or v2",
+	}, &opts, "--choose", "invalid")
 	assertParseSuccess(t, &opts, "--choose", "v2")
 	assert.Equal(t, opts.Choice, "v2")
 }
@@ -437,10 +454,7 @@ func TestEmbedded(t *testing.T) {
 	}
 
 	assertParseSuccess(t, &opts, "-v")
-
-	if !opts.V {
-		t.Errorf("Expected V to be true")
-	}
+	assert.True(t, opts.V)
 }
 
 type command struct{}
