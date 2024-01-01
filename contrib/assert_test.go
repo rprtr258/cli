@@ -41,11 +41,7 @@ func assertErrorf(t *testing.T, format string, args ...any) {
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
-	if err != nil {
-		t.Fatalf("Unexpected parse error: %s", err)
-		return nil, nil
-	}
-
+	assert.NoError(t, err)
 	return parser, ret
 }
 
