@@ -260,9 +260,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 			return err
 		}
 
-		valuetp := tp.Elem()
-		valueval := reflect.New(valuetp)
-
+		valueval := reflect.New(tp.Elem())
 		if err := convert(value, valueval, multitag); err != nil {
 			return err
 		}
