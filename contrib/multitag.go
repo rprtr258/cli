@@ -2,9 +2,7 @@ package flags
 
 import "strconv"
 
-type multiTag struct {
-	cache map[string][]string
-}
+type multiTag map[string][]string
 
 func scanMultiTag(value string) (map[string][]string, error) {
 	ret := map[string][]string{}
@@ -70,27 +68,25 @@ func scanMultiTag(value string) (map[string][]string, error) {
 
 func ParseMultiTag(value string) (multiTag, error) {
 	vals, err := scanMultiTag(value)
-	return multiTag{
-		cache: vals,
-	}, err
+	return vals, err
 }
 
-func (x *multiTag) Get(key string) string {
-	if v, ok := x.cache[key]; ok {
+func (x multiTag) Get(key string) string {
+	if v, ok := x[key]; ok {
 		return v[len(v)-1]
 	}
 
 	return ""
 }
 
-func (x *multiTag) GetMany(key string) []string {
-	return x.cache[key]
+func (x multiTag) GetMany(key string) []string {
+	return x[key]
 }
 
-func (x *multiTag) Set(key, value string) {
-	x.cache[key] = []string{value}
+func (x multiTag) Set(key, value string) {
+	x[key] = []string{value}
 }
 
-func (x *multiTag) SetMany(key string, value []string) {
-	x.cache[key] = value
+func (x multiTag) SetMany(key string, value []string) {
+	x[key] = value
 }
