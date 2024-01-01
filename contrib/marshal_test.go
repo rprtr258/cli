@@ -116,6 +116,8 @@ func TestMarshalError(t *testing.T) {
 	o := p.Command.Groups()[0].Options()[0]
 
 	_, err := convertToString(o.value, o.tag)
-
-	assertError(t, err, ErrMarshal, "Failed to marshal")
+	assert.Equal(t, &Error{
+		Kind:    ErrMarshal,
+		Message: "Failed to marshal",
+	}, err)
 }
