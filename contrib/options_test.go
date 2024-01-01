@@ -85,7 +85,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	tests := []struct {
+	for _, test := range []struct {
 		opts        []string
 		errContains string
 		ret         []string
@@ -100,9 +100,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			"notint2",
 			[]string{"1", "notint2", "notint3"},
 		},
-	}
-
-	for _, test := range tests {
+	} {
 		p := NewParser(&opts, PassAfterNonOption)
 		ret, err := p.ParseArgs(test.opts...)
 		assert.Error(t, err)
