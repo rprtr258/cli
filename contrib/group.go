@@ -97,9 +97,14 @@ func (g *Group) Find(shortDescription string) *Group {
 }
 
 func (g *Group) findOption(matcher func(*Option) bool) *Option {
-	option, _ := iter.FlatMap(iter.Seq[*Group](g.eachGroup), func(gg *Group) iter.Seq[*Option] {
-		return iter.FromMany(gg.options...)
-	}).Filter(matcher).Head()
+	option, _ := iter.
+		FlatMap(iter.
+			Seq[*Group](g.eachGroup),
+			func(gg *Group) iter.Seq[*Option] {
+				return iter.FromMany(gg.options...)
+			}).
+		Filter(matcher).
+		Head()
 	return option
 }
 
