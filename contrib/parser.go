@@ -439,7 +439,6 @@ func (p *parseState) estimateCommand() error {
 
 	if len(p.retargs) != 0 {
 		msg := fmt.Sprintf("Unknown command `%s'", p.retargs[0])
-
 		if c, l := getClosest(p.retargs[0], cmdnames); l*2 < len(c) {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 		} else if len(cmdnames) == 1 {
