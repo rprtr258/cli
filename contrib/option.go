@@ -138,11 +138,11 @@ func (option *Option) String() string {
 				defaultLongOptDelimiter+option.LongNameWithNamespace())
 		}
 
-		return fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
+		return string(defaultShortOptDelimiter) + short
 	}
 
 	if option.LongName != "" {
-		return fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
+		return defaultLongOptDelimiter + option.LongNameWithNamespace()
 	}
 
 	return ""
