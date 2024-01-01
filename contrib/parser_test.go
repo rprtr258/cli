@@ -199,16 +199,9 @@ func TestUnquoting(t *testing.T) {
 			}
 
 			if test.err == nil {
-				if err != nil {
-					t.Fatalf("Expected no error but got: %v", err)
-				}
-
-				if test.value != opts.String {
-					t.Fatalf("Expected String to be %q but got %q", test.value, opts.String)
-				}
-				if q := strconv.Quote(test.value); q != opts.StringNotUnquoted {
-					t.Fatalf("Expected StringDefault to be %q but got %q", q, opts.StringNotUnquoted)
-				}
+				assert.NoError(t, err)
+				assert.Equal(t, test.value, opts.String)
+				assert.Equal(t, strconv.Quote(test.value), opts.StringNotUnquoted)
 			} else {
 				assert.Error(t, err)
 				if e, ok := err.(*Error); ok {
