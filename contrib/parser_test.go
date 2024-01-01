@@ -205,9 +205,7 @@ func TestUnquoting(t *testing.T) {
 			} else {
 				assert.Error(t, err)
 				if e, ok := err.(*Error); ok {
-					if strings.HasPrefix(e.Message, test.err.Error()) {
-						t.Fatalf("Expected error message to end with %q but got %v", test.err.Error(), e.Message)
-					}
+					assert.False(t, strings.HasPrefix(e.Message, test.err.Error()))
 				}
 			}
 		}
