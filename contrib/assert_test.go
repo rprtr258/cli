@@ -1,8 +1,6 @@
 package flags
 
 import (
-	"fmt"
-	"path"
 	"runtime"
 	"testing"
 
@@ -23,14 +21,6 @@ func assertCallerInfo() (file string, line int) {
 		}
 	}
 	return mefile, meline
-}
-
-func assertErrorf(t *testing.T, format string, args ...any) {
-	t.Helper()
-
-	msg := fmt.Sprintf(format, args...)
-	file, line := assertCallerInfo()
-	t.Errorf("%s:%d: %s", path.Base(file), line, msg)
 }
 
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
