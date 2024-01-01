@@ -245,7 +245,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 		subc.Hidden = mtag.Get("hidden") != ""
 
 		subcommandsOptional := mtag.Get("subcommands-optional")
-		if len(subcommandsOptional) > 0 {
+		if subcommandsOptional != "" {
 			subc.SubcommandsOptional = true
 		}
 

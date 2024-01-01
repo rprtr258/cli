@@ -12,7 +12,7 @@ const (
 )
 
 func doesLookLikeFlag(arg string) bool {
-	return len(arg) > 0 && arg[0] == '-'
+	return arg != "" && arg[0] == '-'
 }
 
 func isFlag(arg string) bool {

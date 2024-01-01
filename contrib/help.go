@@ -195,7 +195,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	if option.canArgument() {
 		line.WriteByte(defaultNameArgDelimiter)
 
-		if len(option.ValueName) > 0 {
+		if option.ValueName != "" {
 			line.WriteString(option.ValueName)
 		}
 
@@ -413,7 +413,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 			for _, arg := range args {
 				argPrefix := strings.Repeat(" ", paddingBeforeOption) + arg.Name
-				if len(arg.Description) > 0 {
+				if arg.Description != "" {
 					argPrefix += ":"
 					_, _ = bw.WriteString(argPrefix)
 
@@ -450,7 +450,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			}
 			fmt.Fprint(bw, "  "+fullNameRepresentation)
 
-			if len(c.ShortDescription) > 0 {
+			if c.ShortDescription != "" {
 				pad := strings.Repeat(" ", maxnamelen-len(fullNameRepresentation))
 				fmt.Fprintf(bw, "%s  %s", pad, c.ShortDescription)
 			}

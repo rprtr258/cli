@@ -134,7 +134,7 @@ func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Comman
 	fmt.Fprintf(wr, ".SS %s\n", name)
 	fmt.Fprintln(wr, command.ShortDescription)
 
-	if len(command.LongDescription) > 0 {
+	if command.LongDescription != "" {
 		fmt.Fprintln(wr, "")
 
 		cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
@@ -160,7 +160,7 @@ func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Comman
 	}
 
 	nextPrefix := pre
-	if len(usage) > 0 {
+	if usage != "" {
 		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
 		nextPrefix = pre + " " + usage
 	}
