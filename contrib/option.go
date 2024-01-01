@@ -108,8 +108,7 @@ func (option *Option) LongNameWithNamespace() string {
 
 	// concatenate long name with namespace
 	longName := option.LongName
-
-	for g = option.group; g != nil; g = func() *Group {
+	for g := option.group; g != nil; g = func() *Group {
 		switch i := g.parent.(type) {
 		case *Command:
 			return i.Group
@@ -122,7 +121,6 @@ func (option *Option) LongNameWithNamespace() string {
 			longName = g.Namespace + namespaceDelimiter + longName
 		}
 	}
-
 	return longName
 }
 
