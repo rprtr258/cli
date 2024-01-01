@@ -145,14 +145,8 @@ func TestCommandFlagOverride1(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "-v", "cmd")
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if opts.Command.Value {
-		t.Errorf("Expected Command.Value to be false")
-	}
+	assert.True(t, opts.Value)
+	assert.False(t, opts.Command.Value)
 }
 
 func TestCommandFlagOverride2(t *testing.T) {
