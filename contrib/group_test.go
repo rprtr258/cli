@@ -39,19 +39,9 @@ func TestGroupAdd(t *testing.T) {
 	assert.NoError(t, err)
 
 	assertStringArray(t, ret, []string{"rest"})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !grp.G {
-		t.Errorf("Expected Group.G to be true")
-	}
-
-	if p.Command.Group.Find("Grouped Options") != g {
-		t.Errorf("Expected to find group `Grouped Options'")
-	}
-
+	assert.True(t, opts.Value)
+	assert.True(t, grp.G)
+	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
 	if p.Groups()[1] != g {
 		t.Errorf("Expected group %#v, but got %#v", g, p.Groups()[0])
 	}
