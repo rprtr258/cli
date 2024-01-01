@@ -344,7 +344,7 @@ func (c *Command) fillLookup(ret *lookup) {
 				ret.shortNames[string(option.ShortName)] = option
 			}
 
-			if len(option.LongName) > 0 {
+			if option.LongName != "" {
 				ret.longNames[option.LongNameWithNamespace()] = option
 			}
 		}
