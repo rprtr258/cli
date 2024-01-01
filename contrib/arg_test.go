@@ -32,14 +32,13 @@ func TestPositional(t *testing.T) {
 		t.Fatalf("Expected opts.Positional.Filename to be \"arg_test.go\", but got %v", opts.Positional.Filename)
 	}
 
-	assert.Equal(t, opts.Positional.Rest, []string{"a", "b"})
-	assert.Equal(t, ret, []string{})
+	assert.Equal(t, []string{"a", "b"}, opts.Positional.Rest)
+	assert.Equal(t, []string{}, ret)
 }
 
 func TestPositionalRequired(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Command  int
 			Filename string
@@ -47,31 +46,25 @@ func TestPositionalRequired(t *testing.T) {
 		} `positional-args:"yes" required:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("10")
-
+	_, err := NewParser(&opts, None).ParseArgs("10")
 	assertError(t, err, ErrRequired, "the required argument `Filename` was not provided")
 }
 
 func TestPositionalRequiredRest1Fail(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Rest []string `required:"yes"`
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs()
-
+	_, err := NewParser(&opts, None).ParseArgs()
 	assertError(t, err, ErrRequired, "the required argument `Rest (at least 1 argument)` was not provided")
 }
 
 func TestPositionalRequiredRest1Pass(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Rest []string `required:"yes"`
 		} `positional-args:"yes"`
@@ -79,15 +72,8 @@ func TestPositionalRequiredRest1Pass(t *testing.T) {
 
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs("rest1")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if len(opts.Positional.Rest) != 1 {
-		t.Fatalf("Expected 1 positional rest argument")
-	}
-
+	assert.NoError(t, err)
+	assert.Len(t, opts.Positional.Rest, 1)
 	assert.Equal(t, opts.Positional.Rest[0], "rest1")
 }
 
