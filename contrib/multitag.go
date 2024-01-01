@@ -79,24 +79,8 @@ func ParseMultiTag(value string) (multiTag, error) {
 	}, err
 }
 
-func (x *multiTag) cached() map[string][]string {
-	if x.cache == nil {
-		cache, _ := scanMultiTag(x.value)
-
-		if cache == nil {
-			cache = make(map[string][]string)
-		}
-
-		x.cache = cache
-	}
-
-	return x.cache
-}
-
 func (x *multiTag) Get(key string) string {
-	c := x.cached()
-
-	if v, ok := c[key]; ok {
+	if v, ok := x.cache[key]; ok {
 		return v[len(v)-1]
 	}
 
@@ -104,16 +88,13 @@ func (x *multiTag) Get(key string) string {
 }
 
 func (x *multiTag) GetMany(key string) []string {
-	c := x.cached()
-	return c[key]
+	return x.cache[key]
 }
 
 func (x *multiTag) Set(key, value string) {
-	c := x.cached()
-	c[key] = []string{value}
+	x.cache[key] = []string{value}
 }
 
 func (x *multiTag) SetMany(key string, value []string) {
-	c := x.cached()
-	c[key] = value
+	x.cache[key] = value
 }
