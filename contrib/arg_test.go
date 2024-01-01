@@ -74,7 +74,7 @@ func TestPositionalRequiredRest1Pass(t *testing.T) {
 	_, err := p.ParseArgs("rest1")
 	assert.NoError(t, err)
 	assert.Len(t, opts.Positional.Rest, 1)
-	assert.Equal(t, opts.Positional.Rest[0], "rest1")
+	assert.Equal(t, "rest1", opts.Positional.Rest[0])
 }
 
 func TestPositionalRequiredRest2Fail(t *testing.T) {
