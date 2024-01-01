@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -107,10 +106,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 		p := NewParser(&opts, PassAfterNonOption)
 		ret, err := p.ParseArgs(test.opts...)
 		assert.Error(t, err)
-		if !strings.Contains(err.Error(), test.errContains) {
-			assertErrorf(t, "Expected the first illegal argument in the error")
-		}
-
+		assert.ErrorContains(t, err, test.errContains)
 		assert.Equal(t, ret, test.ret)
 	}
 }
