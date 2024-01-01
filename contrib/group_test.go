@@ -85,7 +85,6 @@ func TestGroupNestedInlineNamespace(t *testing.T) {
 	assert.Equal(t, opts.Opt, "a")
 	assert.Equal(t, opts.Group.Opt, "b")
 	assert.Equal(t, opts.Group.Group.Opt, "c")
-
 	for _, name := range []string{"Subgroup", "Subsubgroup"} {
 		assert.NotNil(t, p.Command.Group.Find(name))
 	}
