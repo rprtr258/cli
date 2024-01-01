@@ -69,9 +69,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 	}
 
 	assert.Equal(t, []string{}, ret)
-	for i, rest := range opts.Positional.Rest {
-		assert.Equal(t, i+1, rest)
-	}
+	assert.Equal(t, []int{1, 2, 3}, opts.Positional.Rest)
 }
 
 func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
