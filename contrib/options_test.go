@@ -68,11 +68,9 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 
-	assert.Equal(t, ret, []string{})
+	assert.Equal(t, []string{}, ret)
 	for i, rest := range opts.Positional.Rest {
-		if rest != i+1 {
-			assertErrorf(t, "Expected %v got %v", i+1, rest)
-		}
+		assert.Equal(t, i+1, rest)
 	}
 }
 
