@@ -517,15 +517,11 @@ func TestSubCommandFindOptionByLongFlag(t *testing.T) {
 	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByLongName("other")
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
+	assert.NotNil(t, opt)
 	assertString(t, "other", opt.LongName)
 
 	opt = c.FindOptionByLongName("testing")
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
+	assert.NotNil(t, opt)
 	assertString(t, "testing", opt.LongName)
 }
 
