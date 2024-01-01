@@ -419,7 +419,10 @@ func (option *Option) isValidValue(arg string) error {
 		return validator.IsValidValue(arg)
 	}
 
-	if isFlag(arg) && (!option.isSignedNumber() || len(arg) <= 1 || arg[0] != '-' || arg[1] < '0' || arg[1] > '9') {
+	if isFlag(arg) && (!option.isSignedNumber() ||
+		len(arg) <= 1 ||
+		arg[0] != '-' ||
+		arg[1] < '0' || arg[1] > '9') {
 		return fmt.Errorf("expected argument for flag `%s', but got option `%s'", option, arg)
 	}
 
