@@ -3,7 +3,6 @@ package flags
 import (
 	"errors"
 	"fmt"
-	"reflect"
 	"runtime"
 	"strconv"
 	"strings"
@@ -121,17 +120,13 @@ func TestDefaults(t *testing.T) {
 		var opts defaultOptions
 
 		_, err := ParseArgs(&opts, test.args...)
-		if err != nil {
-			t.Fatalf("%s:\nUnexpected error: %v", test.msg, err)
-		}
+		assert.NoError(t, err)
 
 		if opts.Slice == nil {
 			opts.Slice = []int{}
 		}
 
-		if !reflect.DeepEqual(opts, test.expected) {
-			t.Errorf("%s:\nUnexpected options with arguments %+v\nexpected\n%+v\nbut got\n%+v\n", test.msg, test.args, test.expected, opts)
-		}
+		assert.Equal(t, test.expected, opts)
 	}
 }
 
