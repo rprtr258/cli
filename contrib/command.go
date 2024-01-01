@@ -384,8 +384,9 @@ func (c *Command) hasHelpOptions() bool {
 	return ret
 }
 
-func (c *Command) fillParseState(s *parseState) {
-	s.positional = append([]*Arg(nil), c.args...)
-	s.lookup = c.makeLookup()
-	s.command = c
+func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
+	return append([]*Arg(nil), c.args...), c.makeLookup(), c
+	// s.positional =
+	// s.lookup =
+	// s.command =
 }

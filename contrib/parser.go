@@ -234,7 +234,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		retargs: make([]string, 0, len(args)),
 	}
 
-	p.fillParseState(s)
+	s.positional, s.lookup, s.command = fillParseState(p.Command)
 
 	for !s.eof() {
 		arg := s.pop()
@@ -612,7 +612,7 @@ func (p *Parser) parseNonOption(s *parseState) error {
 	if len(s.command.commands) > 0 && len(s.retargs) == 0 {
 		if cmd := s.lookup.commands[s.arg]; cmd != nil {
 			s.command.Active = cmd
-			cmd.fillParseState(s)
+			s.positional, s.lookup, s.command = fillParseState(cmd)
 			return nil
 		} else if !s.command.SubcommandsOptional {
 			_ = s.addArgs(s.arg)
