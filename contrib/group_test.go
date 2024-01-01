@@ -60,26 +60,12 @@ func TestGroupNestedInline(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
-
 	assertStringArray(t, ret, []string{"rest"})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Group.G {
-		t.Errorf("Expected Group.G to be true")
-	}
-
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Group.G)
 	assert.Equal(t, opts.Group.Nested.N, "n")
-
-	if p.Command.Group.Find("Grouped Options") == nil {
-		t.Errorf("Expected to find group `Grouped Options'")
-	}
-
-	if p.Command.Group.Find("Nested Options") == nil {
-		t.Errorf("Expected to find group `Nested Options'")
-	}
+	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
+	assert.NotNil(t, p.Command.Group.Find("Nested Options"))
 }
 
 func TestGroupNestedInlineNamespace(t *testing.T) {
