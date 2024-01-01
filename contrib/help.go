@@ -220,9 +220,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	}
 
 	if p.Name != "" {
-		_, _ = bw.WriteString("Usage:\n")
-		_, _ = bw.WriteString(" ")
-
+		_, _ = bw.WriteString("Usage:\n ")
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
