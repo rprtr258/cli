@@ -25,8 +25,7 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	}{}
 
-	p := NewParser(&opts, IgnoreUnknown)
-	args, err := p.ParseArgs(
+	args, err := NewParser(&opts, IgnoreUnknown).ParseArgs(
 		"hello",
 		"world",
 		"-v",
@@ -35,13 +34,10 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		"-f",
 	)
 	assert.NoError(t, err)
-
-	exargs := []string{
+	assert.Equal(t, []string{
 		"hello",
 		"world",
 		"--foo=bar",
 		"-f",
-	}
-
-	assert.Equal(t, exargs, args)
+	}, args)
 }
