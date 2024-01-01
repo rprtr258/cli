@@ -236,6 +236,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				if !allcmd.ArgsRequired && arg.Required <= 0 {
 					name = "[" + name + "]"
 				}
+
 				fmt.Fprint(bw, name)
 			}
 
