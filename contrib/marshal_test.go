@@ -8,14 +8,14 @@ import (
 type marshalled string
 
 func (m *marshalled) UnmarshalFlag(value string) error {
-	if value == "yes" {
+	switch value {
+	case "yes":
 		*m = "true"
-	} else if value == "no" {
+	case "no":
 		*m = "false"
-	} else {
+	default:
 		return fmt.Errorf("`%s' is not a valid value, please specify `yes' or `no'", value)
 	}
-
 	return nil
 }
 

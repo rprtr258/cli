@@ -2,7 +2,6 @@ package flags
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path"
@@ -12,7 +11,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertCallerInfo() (string, int) {
+func assertCallerInfo() (file string, line int) {
 	ptr := make([]uintptr, 15)
 	n := runtime.Callers(1, ptr)
 
@@ -61,7 +60,7 @@ func assertStringArray(t *testing.T, expected, actual []string) {
 	assert.Equal(t, expected, actual)
 }
 
-func assertBoolArray(t *testing.T, a []bool, b []bool) {
+func assertBoolArray(t *testing.T, a, b []bool) {
 	if len(a) != len(b) {
 		assertErrorf(t, "Expected %#v, but got %#v", b, a)
 		return
@@ -75,7 +74,7 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 	}
 }
 
-func assertParserSuccess(t *testing.T, data any, args ...string) (*Parser, []string) {
+func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
 	if err != nil {
@@ -120,11 +119,11 @@ func diff(a, b string) (string, error) {
 		return "", err
 	}
 
-	if _, err := io.WriteString(atmp, a); err != nil {
+	if _, err := atmp.WriteString(a); err != nil {
 		return "", err
 	}
 
-	if _, err := io.WriteString(btmp, b); err != nil {
+	if _, err := btmp.WriteString(b); err != nil {
 		return "", err
 	}
 

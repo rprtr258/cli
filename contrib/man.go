@@ -24,7 +24,7 @@ func manQuoteLines(s string) string {
 }
 
 func manQuote(s string) string {
-	return strings.Replace(s, "\\", "\\\\", -1)
+	return strings.ReplaceAll(s, "\\", "\\\\")
 }
 
 func formatForMan(wr io.Writer, s string) {
@@ -80,7 +80,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 				fmt.Fprintf(wr, "\\fB\\-%c\\fR", opt.ShortName)
 			}
 
-			if len(opt.LongName) != 0 {
+			if opt.LongName != "" {
 				if opt.ShortName != 0 {
 					fmt.Fprintf(wr, ", ")
 				}
@@ -88,7 +88,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 				fmt.Fprintf(wr, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
 			}
 
-			if len(opt.ValueName) != 0 || opt.OptionalArgument {
+			if opt.ValueName != "" || opt.OptionalArgument {
 				if opt.OptionalArgument {
 					fmt.Fprintf(wr, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(quoteV(opt.OptionalValue), ", ")))
 				} else {
@@ -106,7 +106,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 
 			fmt.Fprintln(wr, "\\fP")
 
-			if len(opt.Description) != 0 {
+			if opt.Description != "" {
 				formatForMan(wr, opt.Description)
 				fmt.Fprintln(wr, "")
 			}
@@ -114,7 +114,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 	})
 }
 
-func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, commands []*Command) {
+func writeManPageSubcommands(wr io.Writer, name, usagePrefix string, commands []*Command) {
 	iter.
 		FromMany(commands...).
 		Filter(func(c *Command) bool {
@@ -122,7 +122,7 @@ func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, comm
 		}).
 		ForEach(func(c *Command) {
 			nn := c.Name
-			if len(name) != 0 {
+			if name != "" {
 				nn = name + " " + c.Name
 			}
 
@@ -130,7 +130,7 @@ func writeManPageSubcommands(wr io.Writer, name string, usagePrefix string, comm
 		})
 }
 
-func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command *Command) {
+func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Command) {
 	fmt.Fprintf(wr, ".SS %s\n", name)
 	fmt.Fprintln(wr, command.ShortDescription)
 

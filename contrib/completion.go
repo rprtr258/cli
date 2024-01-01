@@ -47,7 +47,7 @@ func (f *Filename) Complete(match string) []Completion {
 	ret, _ := filepath.Glob(match + "*")
 	if len(ret) == 1 {
 		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
-			ret[0] = ret[0] + "/"
+			ret[0] += "/"
 		}
 	}
 	return completionsWithoutDescriptions(ret)
@@ -61,8 +61,8 @@ func (c *completion) skipPositional(s *parseState, n int) {
 	}
 }
 
-func (c *completion) completeOptionNames(s *parseState, prefix string, match string, short bool) []Completion {
-	if short && len(match) != 0 {
+func (c *completion) completeOptionNames(s *parseState, prefix, match string, short bool) []Completion {
+	if short && match != "" {
 		return []Completion{
 			{
 				Item: prefix + match,
@@ -97,11 +97,11 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 	return results
 }
 
-func (c *completion) completeNamesForLongPrefix(s *parseState, prefix string, match string) []Completion {
+func (c *completion) completeNamesForLongPrefix(s *parseState, prefix, match string) []Completion {
 	return c.completeOptionNames(s, prefix, match, false)
 }
 
-func (c *completion) completeNamesForShortPrefix(s *parseState, prefix string, match string) []Completion {
+func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match string) []Completion {
 	return c.completeOptionNames(s, prefix, match, true)
 }
 
@@ -120,14 +120,14 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	return n
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
+func (c *completion) completeValue(value reflect.Value, prefix, match string) []Completion {
 	if value.Kind() == reflect.Slice {
 		value = reflect.New(value.Type().Elem())
 	}
+
 	i := value.Interface()
 
 	var ret []Completion
-
 	if cmp, ok := i.(Completer); ok {
 		ret = cmp.Complete(match)
 	} else if value.CanAddr() {
@@ -225,7 +225,8 @@ func (c *completion) complete(args []string) []Completion {
 		prefix, optname, islong := stripFlagPrefix(lastarg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
-		if argument == nil && !islong {
+		switch {
+		case argument == nil && !islong:
 			rname, n := utf8.DecodeRuneInString(optname)
 			sname := string(rname)
 
@@ -234,7 +235,7 @@ func (c *completion) complete(args []string) []Completion {
 			} else {
 				ret = c.completeNamesForShortPrefix(s, prefix, optname)
 			}
-		} else if argument != nil {
+		case argument != nil:
 			if islong {
 				opt = s.lookup.longNames[optname]
 			} else {
@@ -244,9 +245,9 @@ func (c *completion) complete(args []string) []Completion {
 			if opt != nil {
 				ret = c.completeValue(opt.value, prefix+optname+"=", *argument)
 			}
-		} else if islong {
+		case islong:
 			ret = c.completeNamesForLongPrefix(s, prefix, optname)
-		} else {
+		default:
 			ret = c.completeNamesForShortPrefix(s, prefix, optname)
 		}
 	case len(s.positional) > 0: // Complete for positional argument

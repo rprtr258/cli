@@ -1,11 +1,11 @@
 package flags
 
 func dist(s, t string) int {
-	if len(s) == 0 {
+	if s == "" {
 		return len(t)
 	}
 
-	if len(t) == 0 {
+	if t == "" {
 		return len(s)
 	}
 
@@ -38,7 +38,7 @@ func dist(s, t string) int {
 	return dists[len(s)][len(t)]
 }
 
-func getClosest(cmd string, choices []string) (string, int) {
+func getClosest(cmd string, choices []string) (closest_ string, distMin_ int) {
 	if len(choices) == 0 {
 		return "", 0
 	}

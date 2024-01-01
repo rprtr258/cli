@@ -417,30 +417,17 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
 		}
 
-		var expected string
-
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
-  TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
-
-Long hidden command description
-
-[hidden command arguments]
-  <positional-foo>:         positional foo
-`
-		} else {
-			expected = `Usage:
-  TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
-
-Long hidden command description
-
-[hidden command arguments]
-  <positional-foo>:         positional foo
-`
-		}
 		h := &bytes.Buffer{}
 		p.WriteHelp(h)
 
+		expected := `Usage:
+  TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
+
+Long hidden command description
+
+[hidden command arguments]
+  <positional-foo>:         positional foo
+`
 		assertDiff(t, h.String(), expected, "help message")
 	}
 }

@@ -47,7 +47,7 @@ func getBase(options multiTag, base int) (int, error) {
 	return base, err
 }
 
-func convertMarshal(val reflect.Value) (bool, string, error) {
+func convertMarshal(val reflect.Value) (val_ bool, ret_ string, err_ error) {
 	// Check first for the Marshaler interface
 	if val.IsValid() && val.Type().NumMethod() > 0 && val.CanInterface() {
 		if marshaler, ok := val.Interface().(Marshaler); ok {
@@ -337,7 +337,7 @@ func quoteV(s []string) []string {
 }
 
 func unquoteIfPossible(s string) (string, error) {
-	if len(s) == 0 || s[0] != '"' {
+	if s == "" || s[0] != '"' {
 		return s, nil
 	}
 

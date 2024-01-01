@@ -66,7 +66,7 @@ type lookup struct {
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the command. The provided data can implement the Command and
 // Usage interfaces.
-func (c *Command) AddCommand(command string, shortDescription string, longDescription string, data any) (*Command, error) {
+func (c *Command) AddCommand(command, shortDescription, longDescription string, data any) (*Command, error) {
 	cmd := newCommand(command, shortDescription, longDescription, data)
 
 	cmd.parent = c
@@ -82,7 +82,7 @@ func (c *Command) AddCommand(command string, shortDescription string, longDescri
 // AddGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (c *Command) AddGroup(shortDescription string, longDescription string, data any) (*Group, error) {
+func (c *Command) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
 	group := newGroup(shortDescription, longDescription, data)
 
 	group.parent = c
@@ -146,7 +146,7 @@ func (c *Command) Args() []*Arg {
 	return ret
 }
 
-func newCommand(name string, shortDescription string, longDescription string, data any) *Command {
+func newCommand(name, shortDescription, longDescription string, data any) *Command {
 	return &Command{
 		Group: newGroup(shortDescription, longDescription, data),
 		Name:  name,
@@ -163,7 +163,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 		positional := mtag.Get("positional-args")
 
-		if len(positional) != 0 {
+		if positional != "" {
 			stype := realval.Type()
 
 			for i := 0; i < stype.NumField(); i++ {
@@ -175,23 +175,15 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := m.Get("positional-arg-name")
-
-				if len(name) == 0 {
-					name = field.Name
-				}
+				name := internal.Or(m.Get("positional-arg-name"), field.Name)
 
 				required := -1
 				requiredMaximum := -1
 
-				sreq := m.Get("required")
-
-				if sreq != "" {
+				if sreq := m.Get("required"); sreq != "" {
 					required = 1
 
-					rng := strings.SplitN(sreq, "-", 2)
-
-					if len(rng) > 1 {
+					if rng := strings.SplitN(sreq, "-", 2); len(rng) > 1 {
 						if preq, err := strconv.ParseInt(rng[0], 10, 32); err == nil {
 							required = int(preq)
 						}
@@ -218,7 +210,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				c.args = append(c.args, arg)
 
-				if len(mtag.Get("required")) != 0 {
+				if mtag.Get("required") != "" {
 					c.ArgsRequired = true
 				}
 			}
@@ -227,44 +219,42 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 		}
 
 		subcommand := mtag.Get("command")
-
-		if len(subcommand) != 0 {
-			var ptrval reflect.Value
-
-			if realval.Kind() == reflect.Ptr {
-				ptrval = realval
-
-				if ptrval.IsNil() {
-					ptrval.Set(reflect.New(ptrval.Type().Elem()))
-				}
-			} else {
-				ptrval = realval.Addr()
-			}
-
-			shortDescription := mtag.Get("description")
-			longDescription := mtag.Get("long-description")
-			subcommandsOptional := mtag.Get("subcommands-optional")
-			aliases := mtag.GetMany("alias")
-
-			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
-			if err != nil {
-				return true, err
-			}
-
-			subc.Hidden = mtag.Get("hidden") != ""
-
-			if len(subcommandsOptional) > 0 {
-				subc.SubcommandsOptional = true
-			}
-
-			if len(aliases) > 0 {
-				subc.Aliases = aliases
-			}
-
-			return true, nil
+		if subcommand == "" {
+			return parentg.scanSubGroupHandler(realval, sfield)
 		}
 
-		return parentg.scanSubGroupHandler(realval, sfield)
+		var ptrval reflect.Value
+
+		if realval.Kind() == reflect.Ptr {
+			ptrval = realval
+
+			if ptrval.IsNil() {
+				ptrval.Set(reflect.New(ptrval.Type().Elem()))
+			}
+		} else {
+			ptrval = realval.Addr()
+		}
+
+		shortDescription := mtag.Get("description")
+		longDescription := mtag.Get("long-description")
+		subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
+		if err != nil {
+			return true, err
+		}
+
+		subc.Hidden = mtag.Get("hidden") != ""
+
+		subcommandsOptional := mtag.Get("subcommands-optional")
+		if len(subcommandsOptional) > 0 {
+			subc.SubcommandsOptional = true
+		}
+
+		aliases := mtag.GetMany("alias")
+		if len(aliases) > 0 {
+			subc.Aliases = aliases
+		}
+
+		return true, nil
 	}
 
 	return f

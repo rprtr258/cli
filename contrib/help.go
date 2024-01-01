@@ -46,7 +46,7 @@ func (a *alignmentInfo) updateLen(name string, indent bool) {
 	l := utf8.RuneCountInString(name)
 
 	if indent {
-		l = l + 4
+		l += 4
 	}
 
 	if l > a.maxLongLen {
@@ -130,7 +130,7 @@ func wrapText(s string, l int, prefix string) string {
 				suffix = "-\n"
 			}
 
-			if len(retline) != 0 {
+			if retline != "" {
 				retline += "\n" + prefix
 			}
 
@@ -138,15 +138,15 @@ func wrapText(s string, l int, prefix string) string {
 			line = strings.TrimSpace(line[pos:])
 		}
 
-		if len(line) > 0 {
-			if len(retline) != 0 {
+		if line != "" {
+			if retline != "" {
 				retline += "\n" + prefix
 			}
 
 			retline += line
 		}
 
-		if len(ret) > 0 {
+		if ret != "" {
 			ret += "\n"
 
 			if len(retline) > 0 {
@@ -176,7 +176,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	line.WriteString(strings.Repeat(" ", prefix))
 
 	if option.ShortName != 0 {
-		line.WriteRune(defaultShortOptDelimiter)
+		line.WriteByte(defaultShortOptDelimiter)
 		line.WriteRune(option.ShortName)
 	} else if info.hasShort {
 		line.WriteString("  ")
@@ -196,7 +196,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	}
 
 	if option.canArgument() {
-		line.WriteRune(defaultNameArgDelimiter)
+		line.WriteByte(defaultNameArgDelimiter)
 
 		if len(option.ValueName) > 0 {
 			line.WriteString(option.ValueName)
@@ -208,15 +208,15 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	}
 
 	written := line.Len()
-	line.WriteTo(writer)
+	_, _ = line.WriteTo(writer)
 
 	if option.Description != "" {
 		dw := descstart - written
-		writer.WriteString(strings.Repeat(" ", dw))
+		_, _ = writer.WriteString(strings.Repeat(" ", dw))
 
 		var def string
 
-		if len(option.DefaultMask) != 0 {
+		if option.DefaultMask != "" {
 			if option.DefaultMask != "-" {
 				def = option.DefaultMask
 			}
@@ -280,7 +280,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			var usage string
 
 			if allcmd == p.Command {
-				if len(p.Usage) != 0 {
+				if p.Usage != "" {
 					usage = p.Usage
 				} else if p.Options&HelpFlag != 0 {
 					usage = "[OPTIONS]"
@@ -291,10 +291,9 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
-			if len(usage) != 0 {
-				fmt.Fprintf(bw, " %s %s", allcmd.Name, usage)
-			} else {
-				fmt.Fprintf(bw, " %s", allcmd.Name)
+			fmt.Fprintf(bw, " %s", allcmd.Name)
+			if usage != "" {
+				fmt.Fprintf(bw, " %s", usage)
 			}
 
 			if len(allcmd.args) > 0 {
@@ -309,7 +308,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				name := arg.Name
 
 				if arg.isRemaining() {
-					name = name + "..."
+					name += "..."
 				}
 
 				if !allcmd.ArgsRequired {
@@ -353,7 +352,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 		fmt.Fprintln(bw)
 
-		if len(cmd.LongDescription) != 0 {
+		if cmd.LongDescription != "" {
 			fmt.Fprintln(bw)
 
 			t := wrapText(cmd.LongDescription,

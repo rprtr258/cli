@@ -128,7 +128,7 @@ func (x *multiTag) GetMany(key string) []string {
 	return c[key]
 }
 
-func (x *multiTag) Set(key string, value string) {
+func (x *multiTag) Set(key, value string) {
 	c := x.cached()
 	c[key] = []string{value}
 }

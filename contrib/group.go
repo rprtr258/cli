@@ -56,7 +56,7 @@ type scanHandler func(reflect.Value, *reflect.StructField) (bool, error)
 // AddGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (g *Group) AddGroup(shortDescription string, longDescription string, data any) (*Group, error) {
+func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
 	group := newGroup(shortDescription, longDescription, data)
 
 	group.parent = g
@@ -95,7 +95,7 @@ func (g *Group) Find(shortDescription string) *Group {
 	var ret *Group
 
 	g.eachGroup(func(gg *Group) {
-		if gg != g && strings.ToLower(gg.ShortDescription) == lshortDescription {
+		if gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription) {
 			ret = gg
 		}
 	})
@@ -131,44 +131,13 @@ func (g *Group) FindOptionByShortName(shortName rune) *Option {
 	})
 }
 
-func newGroup(shortDescription string, longDescription string, data any) *Group {
+func newGroup(shortDescription, longDescription string, data any) *Group {
 	return &Group{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
 
 		data: data,
 	}
-}
-
-func (g *Group) optionByName(name string, namematch func(*Option, string) bool) *Option {
-	prio := 0
-	var retopt *Option
-
-	g.eachGroup(func(g *Group) {
-		for _, opt := range g.options {
-			if namematch != nil && namematch(opt, name) && prio < 4 {
-				retopt = opt
-				prio = 4
-			}
-
-			if name == opt.field.Name && prio < 3 {
-				retopt = opt
-				prio = 3
-			}
-
-			if name == opt.LongNameWithNamespace() && prio < 2 {
-				retopt = opt
-				prio = 2
-			}
-
-			if opt.ShortName != 0 && name == string(opt.ShortName) && prio < 1 {
-				retopt = opt
-				prio = 1
-			}
-		}
-	})
-
-	return retopt
 }
 
 func (g *Group) showInHelp() bool {
@@ -349,35 +318,32 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 	}
 
 	subgroup := mtag.Get("group")
-
-	if len(subgroup) != 0 {
-		var ptrval reflect.Value
-
-		if realval.Kind() == reflect.Ptr {
-			ptrval = realval
-
-			if ptrval.IsNil() {
-				ptrval.Set(reflect.New(ptrval.Type()))
-			}
-		} else {
-			ptrval = realval.Addr()
-		}
-
-		description := mtag.Get("description")
-
-		group, err := g.AddGroup(subgroup, description, ptrval.Interface())
-		if err != nil {
-			return true, err
-		}
-
-		group.Namespace = mtag.Get("namespace")
-		group.EnvNamespace = mtag.Get("env-namespace")
-		group.Hidden = mtag.Get("hidden") != ""
-
-		return true, nil
+	if subgroup == "" {
+		return false, nil
 	}
 
-	return false, nil
+	var ptrval reflect.Value
+	if realval.Kind() == reflect.Ptr {
+		ptrval = realval
+
+		if ptrval.IsNil() {
+			ptrval.Set(reflect.New(ptrval.Type()))
+		}
+	} else {
+		ptrval = realval.Addr()
+	}
+
+	description := mtag.Get("description")
+	group, err := g.AddGroup(subgroup, description, ptrval.Interface())
+	if err != nil {
+		return true, err
+	}
+
+	group.Namespace = mtag.Get("namespace")
+	group.EnvNamespace = mtag.Get("env-namespace")
+	group.Hidden = mtag.Get("hidden") != ""
+
+	return true, nil
 }
 
 func (g *Group) scanType(handler scanHandler) error {
@@ -409,12 +375,4 @@ func (g *Group) scanType(handler scanHandler) error {
 
 func (g *Group) scan() error {
 	return g.scanType(g.scanSubGroupHandler)
-}
-
-func (g *Group) groupByName(name string) *Group {
-	if len(name) == 0 {
-		return g
-	}
-
-	return g.Find(name)
 }

@@ -84,10 +84,10 @@ var completionTests = func() map[string]completionTest {
 	completionTestFilename := []string{filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion_test.go")}
 
 	completionTestSubdir := []string{
-		filepath.Join(completionTestSourcedir, "examples/add.go"),
-		filepath.Join(completionTestSourcedir, "examples/bash-completion"),
-		filepath.Join(completionTestSourcedir, "examples/main.go"),
-		filepath.Join(completionTestSourcedir, "examples/rm.go"),
+		filepath.Join(completionTestSourcedir, "examples", "add.go"),
+		filepath.Join(completionTestSourcedir, "examples", "bash-completion"),
+		filepath.Join(completionTestSourcedir, "examples", "main.go"),
+		filepath.Join(completionTestSourcedir, "examples", "rm.go"),
 	}
 
 	return map[string]completionTest{

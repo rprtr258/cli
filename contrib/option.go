@@ -83,7 +83,7 @@ type Option struct {
 // itself are separated by the parser's namespace delimiter. If the long name is
 // empty an empty string is returned.
 func (option *Option) LongNameWithNamespace() string {
-	if len(option.LongName) == 0 {
+	if option.LongName == "" {
 		return ""
 	}
 
@@ -140,14 +140,14 @@ func (option *Option) String() string {
 		utf8.EncodeRune(data, option.ShortName)
 		short = string(data)
 
-		if len(option.LongName) != 0 {
+		if option.LongName != "" {
 			s = fmt.Sprintf("%s%s, %s%s",
 				string(defaultShortOptDelimiter), short,
 				defaultLongOptDelimiter, option.LongNameWithNamespace())
 		} else {
 			s = fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
-	} else if len(option.LongName) != 0 {
+	} else if option.LongName != "" {
 		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
 	}
 
@@ -236,15 +236,11 @@ func (option *Option) setDefault(value *string) error {
 }
 
 func (option *Option) showInHelp() bool {
-	return !option.Hidden && (option.ShortName != 0 || len(option.LongName) != 0)
+	return !option.Hidden && (option.ShortName != 0 || option.LongName != "")
 }
 
 func (option *Option) canArgument() bool {
-	if u := option.isUnmarshaler(); u != nil {
-		return true
-	}
-
-	return !option.isBool()
+	return option.isUnmarshaler() != nil || !option.isBool()
 }
 
 func (option *Option) emptyValue() reflect.Value {
@@ -429,13 +425,13 @@ func (option *Option) shortAndLongName() string {
 	ret := &bytes.Buffer{}
 
 	if option.ShortName != 0 {
-		ret.WriteRune(defaultShortOptDelimiter)
+		ret.WriteByte(defaultShortOptDelimiter)
 		ret.WriteRune(option.ShortName)
 	}
 
-	if len(option.LongName) != 0 {
+	if option.LongName != "" {
 		if option.ShortName != 0 {
-			ret.WriteRune('/')
+			ret.WriteByte('/')
 		}
 
 		ret.WriteString(option.LongName)

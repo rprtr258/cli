@@ -572,9 +572,8 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
 }
 
-func (p *Parser) splitShortConcatArg(s *parseState, optname string) (string, *string) {
+func (p *Parser) splitShortConcatArg(s *parseState, optname string) (optname_ string, arg_ *string) {
 	c, n := utf8.DecodeRuneInString(optname)
-
 	if n == len(optname) {
 		return optname, nil
 	}
