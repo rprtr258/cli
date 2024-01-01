@@ -9,32 +9,18 @@ import (
 
 func TestCommandInline(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
 			G bool `short:"g"`
 		} `command:"cmd"`
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
-
-	assert.Equal(t, ret, []string{})
-
-	if p.Active == nil {
-		t.Errorf("Expected active command")
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Command.G {
-		t.Errorf("Expected Command.G to be true")
-	}
-
-	if p.Command.Find("cmd") != p.Active {
-		t.Errorf("Expected to find command `cmd' to be active")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.NotNil(t, p.Active)
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Command.G)
+	assert.Equal(t, p.Command.Find("cmd"), p.Active)
 }
 
 func TestCommandInlineMulti(t *testing.T) {
