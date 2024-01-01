@@ -262,7 +262,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
-
 	for cmd.Active != nil {
 		cmd = cmd.Active
 	}
@@ -360,9 +359,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		}
 	}
 
-	c := p.Command
-
-	for c != nil {
+	for c := p.Command; c != nil; c = c.Active {
 		printcmd := c != p.Command
 
 		c.eachGroup(func(grp *Group) {
@@ -433,8 +430,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				fmt.Fprintln(bw)
 			}
 		}
-
-		c = c.Active
 	}
 
 	if scommands := cmd.visibleCommands(); len(scommands) > 0 {
