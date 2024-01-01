@@ -223,9 +223,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		_, _ = bw.WriteString("Usage:\n")
 		_, _ = bw.WriteString(" ")
 
-		allcmd := p.Command
-
-		for allcmd != nil {
+		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
 				if p.Usage != "" {
@@ -288,8 +286,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 					}, allcmd.visibleCommands()...), " | ")+cc)
 				}
 			}
-
-			allcmd = allcmd.Active
 		}
 
 		fmt.Fprintln(bw)
