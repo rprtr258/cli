@@ -9,11 +9,7 @@ import (
 
 func expectConvert(t *testing.T, o *Option, expected string) {
 	s, err := convertToString(o.value, o.tag)
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-		return
-	}
-
+	assert.NoError(t, err)
 	assert.Equal(t, s, expected)
 }
 
