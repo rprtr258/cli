@@ -94,17 +94,8 @@ func TestUnmarshalPositionalError(t *testing.T) {
 
 	parser := NewParser(&opts, Default&^PrintErrors)
 	_, err := parser.ParseArgs("invalid")
-
-	msg := "`invalid' is not a valid value, please specify `yes' or `no'"
-
-	if err == nil {
-		assertFatalf(t, "Expected error: %s", msg)
-		return
-	}
-
-	if err.Error() != msg {
-		assertErrorf(t, "Expected error message %#v, but got %#v", msg, err.Error())
-	}
+	assert.Error(t, err)
+	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }
 
 func TestMarshalError(t *testing.T) {
