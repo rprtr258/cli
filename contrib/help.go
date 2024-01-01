@@ -183,15 +183,13 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 }
 
 func maxCommandLength(s []*Command) int {
-	ret := 0
-	for _, v := range s {
+	return internal.MaxBy(func(v *Command) int {
 		aliasesTotalLen := 0
 		for _, alias := range v.Aliases {
 			aliasesTotalLen += len(alias)
 		}
-		ret = max(ret, len(v.Name)+len(v.Aliases)+aliasesTotalLen)
-	}
-	return ret
+		return len(v.Name) + len(v.Aliases) + aliasesTotalLen
+	}, s...)
 }
 
 // WriteHelp writes a help message containing all the possible options and
