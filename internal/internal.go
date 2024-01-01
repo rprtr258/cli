@@ -1,5 +1,7 @@
 package internal
 
+import "cmp"
+
 func OneOf[T comparable](x T, ys ...T) bool {
 	for _, y := range ys {
 		if x == y {
@@ -24,6 +26,19 @@ func Map[T, R any](f func(T) R, xs ...T) []R {
 	ret := make([]R, len(xs))
 	for i, v := range xs {
 		ret[i] = f(v)
+	}
+	return ret
+}
+
+func MaxBy[T any, R cmp.Ordered](f func(T) R, xs ...T) R {
+	if len(xs) == 0 {
+		var zero R
+		return zero
+	}
+
+	ret := f(xs[0])
+	for _, v := range xs[1:] {
+		ret = max(ret, f(v))
 	}
 	return ret
 }

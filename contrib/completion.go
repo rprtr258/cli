@@ -256,10 +256,9 @@ func (c *completion) complete(args []string) []Completion {
 }
 
 func (c *completion) print(w io.Writer, items []Completion) {
-	maxl := 0
-	for _, v := range items {
-		maxl = max(maxl, len(v.Item))
-	}
+	maxl := internal.MaxBy(func(v Completion) int {
+		return len(v.Item)
+	}, items...)
 
 	for _, v := range items {
 		fmt.Fprintf(w, v.Item)
