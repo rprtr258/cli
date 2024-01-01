@@ -306,8 +306,7 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 
 func (option *Option) isValueValidator() ValueValidator {
 	for v := option.value; v.CanInterface(); v = v.Addr() {
-		i := v.Interface()
-		if u, ok := i.(ValueValidator); ok {
+		if u, ok := v.Interface().(ValueValidator); ok {
 			return u
 		}
 
