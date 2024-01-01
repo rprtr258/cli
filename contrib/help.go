@@ -62,10 +62,6 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		terminalColumns: getTerminalColumns(),
 	}
 
-	if ret.terminalColumns <= 0 {
-		ret.terminalColumns = 80
-	}
-
 	var prevcmd *Command
 
 	p.eachActiveGroup(func(c *Command, grp *Group) {
