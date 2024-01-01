@@ -336,13 +336,7 @@ func (option *Option) updateDefaultLiteral() {
 			def, _ = convertToString(option.value, option.tag)
 		}
 	} else if len(defs) != 0 {
-		l := len(defs) - 1
-
-		for i := 0; i < l; i++ {
-			def += quoteIfNeeded(defs[i]) + ", "
-		}
-
-		def += quoteIfNeeded(defs[l])
+		def = internal.Join(quoteIfNeeded, ", ", defs...)
 	}
 
 	option.defaultLiteral = def

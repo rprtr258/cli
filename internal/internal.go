@@ -73,3 +73,14 @@ func Iverson[T any](b bool, value T) T {
 	var zero T
 	return zero
 }
+
+func Join[T any](f func(T) string, sep string, xs ...T) string {
+	ret := ""
+	for i, v := range xs {
+		if i != 0 {
+			ret += sep
+		}
+		ret += f(v)
+	}
+	return ret
+}
