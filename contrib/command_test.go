@@ -268,32 +268,20 @@ type testCommand struct {
 func (c *testCommand) Execute(args []string) error {
 	c.Executed = true
 	c.EArgs = args
-
 	return nil
 }
 
 func TestCommandExecute(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool        `short:"v"`
 		Command testCommand `command:"cmd"`
 	}{}
 
 	assertParseSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Command.Executed {
-		t.Errorf("Did not execute command")
-	}
-
-	if !opts.Command.G {
-		t.Errorf("Expected Command.C to be true")
-	}
-
-	assert.Equal(t, opts.Command.EArgs, []string{"a", "b"})
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Command.Executed)
+	assert.True(t, opts.Command.G)
+	assert.Equal(t, []string{"a", "b"}, opts.Command.EArgs)
 }
 
 func TestCommandClosest(t *testing.T) {
