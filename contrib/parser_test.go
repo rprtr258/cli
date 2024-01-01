@@ -477,27 +477,16 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 
 	parser.CommandHandler = func(command Commander, args []string) error {
 		executed = true
-
 		executedCommand = command
 		executedArgs = args
-
 		return nil
 	}
 
 	_, err := parser.ParseArgs("arg1", "arg2")
-	if err != nil {
-		t.Fatalf("Unexpected parse error: %s", err)
-	}
-
-	if !executed {
-		t.Errorf("Expected command handler to be executed")
-	}
-
-	if executedCommand != nil {
-		t.Errorf("Did not exect an executed command")
-	}
-
-	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
+	assert.NoError(t, err)
+	assert.True(t, executed)
+	assert.Nil(t, executedCommand)
+	assert.Equal(t, []string{"arg1", "arg2"}, executedArgs)
 }
 
 func TestCommandHandler(t *testing.T) {
