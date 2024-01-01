@@ -210,9 +210,8 @@ func TestUnquoting(t *testing.T) {
 					t.Fatalf("Expected StringDefault to be %q but got %q", q, opts.StringNotUnquoted)
 				}
 			} else {
-				if err == nil {
-					t.Fatalf("Expected error")
-				} else if e, ok := err.(*Error); ok {
+				assert.Error(t, err)
+				if e, ok := err.(*Error); ok {
 					if strings.HasPrefix(e.Message, test.err.Error()) {
 						t.Fatalf("Expected error message to end with %q but got %v", test.err.Error(), e.Message)
 					}
