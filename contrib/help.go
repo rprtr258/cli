@@ -227,7 +227,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 		for allcmd != nil {
 			var usage string
-
 			if allcmd == p.Command {
 				if p.Usage != "" {
 					usage = p.Usage
@@ -273,7 +272,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
 				var co, cc string
-
 				if allcmd.SubcommandsOptional {
 					co, cc = "[", "]"
 				} else {
