@@ -249,15 +249,8 @@ func (option *Option) clearDefault() error {
 			}
 		}
 	} else {
-		switch option.value.Type().Kind() {
-		case reflect.Map:
-			if option.value.IsNil() {
-				option.empty()
-			}
-		case reflect.Slice:
-			if option.value.IsNil() {
-				option.empty()
-			}
+		if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
+			option.empty()
 		}
 	}
 
