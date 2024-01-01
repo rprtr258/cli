@@ -56,3 +56,12 @@ func Iverson(b bool) int {
 	}
 	return 0
 }
+
+func Iverson1[T any](b bool, value T) T {
+	if b {
+		return value
+	}
+
+	var zero T
+	return zero
+}

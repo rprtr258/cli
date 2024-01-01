@@ -63,10 +63,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasValueName = true
 			}
 
-			l := info.LongNameWithNamespace() + info.ValueName
-			if len(info.Choices) != 0 {
-				l += "[" + strings.Join(info.Choices, "|") + "]"
-			}
+			l := info.LongNameWithNamespace() + info.ValueName +
+				internal.Iverson1(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
 
 			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command)*4)
 		}
