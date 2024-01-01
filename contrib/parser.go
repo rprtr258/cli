@@ -644,10 +644,9 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		if cmd := s.lookup.commands[s.arg]; cmd != nil {
 			s.command.Active = cmd
 			cmd.fillParseState(s)
-
 			return nil
 		} else if !s.command.SubcommandsOptional {
-			s.addArgs(s.arg)
+			_ = s.addArgs(s.arg)
 			return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
 		}
 	}
