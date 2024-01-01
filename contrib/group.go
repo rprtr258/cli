@@ -96,16 +96,10 @@ func (g *Group) Find(shortDescription string) *Group {
 	return ret
 }
 
-func (g *Group) findOption(matcher func(*Option) bool) (option *Option) {
-	g.eachGroup(func(g *Group) bool {
-		for _, opt := range g.options {
-			if option == nil && matcher(opt) {
-				option = opt
-			}
-		}
-		return true
-	})
-
+func (g *Group) findOption(matcher func(*Option) bool) *Option {
+	option, _ := iter.FlatMap(iter.Seq[*Group](g.eachGroup), func(gg *Group) iter.Seq[*Option] {
+		return iter.FromMany(gg.options...)
+	}).Filter(matcher).Head()
 	return option
 }
 
