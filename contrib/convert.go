@@ -72,8 +72,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 	// Support for time.Duration
 	if tp == typeof[time.Duration]() {
-		stringer := val.Interface().(fmt.Stringer)
-		return stringer.String(), nil
+		return val.Interface().(fmt.Stringer).String(), nil
 	}
 
 	switch tp.Kind() {
