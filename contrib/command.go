@@ -276,18 +276,14 @@ func (c *Command) eachOption(yield func(*Command, *Group, *Option)) {
 			}
 			return true
 		})
-	}, true)
+	})
 }
 
-func (c *Command) eachCommand(yield func(*Command), recurse bool) {
+func (c *Command) eachCommand(yield func(*Command)) {
 	yield(c)
 
 	for _, cc := range c.commands {
-		if recurse {
-			cc.eachCommand(yield, true)
-		} else {
-			yield(cc)
-		}
+		cc.eachCommand(yield)
 	}
 }
 
