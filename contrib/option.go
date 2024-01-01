@@ -248,10 +248,8 @@ func (option *Option) clearDefault() error {
 				return err
 			}
 		}
-	} else {
-		if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
-			option.empty()
-		}
+	} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
+		option.empty()
 	}
 
 	return nil
