@@ -510,20 +510,10 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "bar", "-f", "baz", "-v", "-g")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Bar.Flag {
-		t.Errorf("Expected Bar.Flag to be true")
-	}
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Bar.args, []string{})
-	assert.Equal(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Bar.Flag)
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []string{}, opts.Bar.args)
+	assert.Equal(t, []string{"baz", "-v", "-g"}, opts.Bar.Positional.Args)
 }
