@@ -12,18 +12,10 @@ func TestPassDoubleDash(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	p := NewParser(&opts, PassDoubleDash)
-	ret, err := p.ParseArgs("-v", "--", "-v", "-g")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assert.Equal(t, ret, []string{"-v", "-g"})
+	ret, err := NewParser(&opts, PassDoubleDash).ParseArgs("-v", "--", "-v", "-g")
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{"-v", "-g"}, ret)
 }
 
 func TestPassAfterNonOption(t *testing.T) {
@@ -33,11 +25,7 @@ func TestPassAfterNonOption(t *testing.T) {
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
+	assert.NoError(t, err)
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
 	}
@@ -56,11 +44,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
+	assert.NoError(t, err)
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
 	}
@@ -80,11 +64,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "1", "2", "3")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
+	assert.NoError(t, err)
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
 	}
@@ -126,12 +106,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 	for _, test := range tests {
 		p := NewParser(&opts, PassAfterNonOption)
 		ret, err := p.ParseArgs(test.opts...)
-
-		if err == nil {
-			assertErrorf(t, "Expected error")
-			return
-		}
-
+		assert.Error(t, err)
 		if !strings.Contains(err.Error(), test.errContains) {
 			assertErrorf(t, "Expected the first illegal argument in the error")
 		}
