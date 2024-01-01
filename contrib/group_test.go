@@ -113,15 +113,9 @@ func TestDuplicateLongFlags(t *testing.T) {
 	}
 
 	_, err := ParseArgs(&opts, "--testing")
-
-	if err == nil {
-		t.Errorf("Expected an error with type ErrDuplicatedFlag")
-	} else {
-		err2 := err.(*Error)
-		if err2.Kind != ErrDuplicatedFlag {
-			t.Errorf("Expected an error with type ErrDuplicatedFlag")
-		}
-	}
+	assert.Error(t, err)
+	err2 := err.(*Error)
+	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
 }
 
 func TestFindOptionByLongFlag(t *testing.T) {
