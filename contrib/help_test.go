@@ -85,14 +85,9 @@ func TestHelp(t *testing.T) {
 	_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("--help")
-	assert.Error(t, err)
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		assert.Equal(t, ErrHelp, e.Kind)
-		var expected string
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
+	var expected string
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
@@ -139,8 +134,8 @@ Available commands:
   command  A command (aliases: cm, cmd)
   parent   A command with a sub command
 `
-		} else {
-			expected = `Usage:
+	} else {
+		expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
@@ -186,9 +181,11 @@ Available commands:
   command,cm,cmd  A command
   parent          A parent command
 `
-		}
-		assertDiff(t, e.Message, expected, "help message")
 	}
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: expected,
+	}, err)
 }
 
 func TestMan(t *testing.T) {
