@@ -217,10 +217,9 @@ func (c *completion) complete(args []string) []Completion {
 	}
 
 	lastarg := s.args[len(s.args)-1]
-	var ret []Completion
 	switch {
 	case opt != nil: // Completion for the argument of 'opt'
-		ret = c.completeValue(opt.value, "", lastarg)
+		return c.completeValue(opt.value, "", lastarg)
 	case doesLookLikeFlag(lastarg): // Complete the option
 		prefix, optname, islong := stripFlagPrefix(lastarg)
 		optname, argument := splitFlag(prefix, optname, islong)
@@ -231,9 +230,9 @@ func (c *completion) complete(args []string) []Completion {
 			sname := string(rname)
 
 			if opt := s.lookup.shortNames[sname]; opt != nil && opt.canArgument() {
-				ret = c.completeValue(opt.value, prefix+sname, optname[n:])
+				return c.completeValue(opt.value, prefix+sname, optname[n:])
 			} else {
-				ret = c.completeNamesForShortPrefix(s, prefix, optname)
+				return c.completeNamesForShortPrefix(s, prefix, optname)
 			}
 		case argument != nil:
 			if islong {
@@ -243,20 +242,22 @@ func (c *completion) complete(args []string) []Completion {
 			}
 
 			if opt != nil {
-				ret = c.completeValue(opt.value, prefix+optname+"=", *argument)
+				return c.completeValue(opt.value, prefix+optname+"=", *argument)
 			}
+
+			return nil
 		case islong:
-			ret = c.completeNamesForLongPrefix(s, prefix, optname)
+			return c.completeNamesForLongPrefix(s, prefix, optname)
 		default:
-			ret = c.completeNamesForShortPrefix(s, prefix, optname)
+			return c.completeNamesForShortPrefix(s, prefix, optname)
 		}
 	case len(s.positional) > 0: // Complete for positional argument
-		ret = c.completeValue(s.positional[0].value, "", lastarg)
+		return c.completeValue(s.positional[0].value, "", lastarg)
 	case len(s.command.commands) > 0: // Complete for command
-		ret = c.completeCommands(s, lastarg)
+		return c.completeCommands(s, lastarg)
+	default:
+		return nil
 	}
-
-	return ret
 }
 
 func (c *completion) print(w io.Writer, items []Completion) {
