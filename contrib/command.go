@@ -325,13 +325,19 @@ func (c *Command) makeLookup() lookup {
 		commands:   make(map[string]*Command),
 	}
 	for i := len(parents) - 1; i >= 0; i-- {
-		parents[i].fillLookup(&ret, true)
+		parents[i].fillLookup(&ret)
 	}
-	c.fillLookup(&ret, false)
+	c.fillLookup(&ret)
+	for _, subcommand := range c.commands {
+		ret.commands[subcommand.Name] = subcommand
+		for _, a := range subcommand.Aliases {
+			ret.commands[a] = subcommand
+		}
+	}
 	return ret
 }
 
-func (c *Command) fillLookup(ret *lookup, onlyOptions bool) {
+func (c *Command) fillLookup(ret *lookup) {
 	c.eachGroup(func(g *Group) {
 		for _, option := range g.options {
 			if option.ShortName != 0 {
@@ -343,18 +349,6 @@ func (c *Command) fillLookup(ret *lookup, onlyOptions bool) {
 			}
 		}
 	})
-
-	if onlyOptions {
-		return
-	}
-
-	for _, subcommand := range c.commands {
-		ret.commands[subcommand.Name] = subcommand
-
-		for _, a := range subcommand.Aliases {
-			ret.commands[a] = subcommand
-		}
-	}
 }
 
 func (c *Command) visibleCommands() []*Command {
