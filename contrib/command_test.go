@@ -18,7 +18,7 @@ func TestCommandInline(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if p.Active == nil {
 		t.Errorf("Expected active command")
@@ -50,7 +50,7 @@ func TestCommandInlineMulti(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if p.Active == nil {
 		t.Errorf("Expected active command")
@@ -291,7 +291,7 @@ func TestCommandExecute(t *testing.T) {
 		t.Errorf("Expected Command.C to be true")
 	}
 
-	assertStringArray(t, opts.Command.EArgs, []string{"a", "b"})
+	assert.Equal(t, opts.Command.EArgs, []string{"a", "b"})
 }
 
 func TestCommandClosest(t *testing.T) {
@@ -305,7 +305,7 @@ func TestCommandClosest(t *testing.T) {
 
 	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
 
-	assertStringArray(t, args, []string{"addd"})
+	assert.Equal(t, args, []string{"addd"})
 }
 
 func TestCommandAdd(t *testing.T) {
@@ -330,7 +330,7 @@ func TestCommandAdd(t *testing.T) {
 		return
 	}
 
-	assertStringArray(t, ret, []string{"rest"})
+	assert.Equal(t, ret, []string{"rest"})
 
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
@@ -368,7 +368,7 @@ func TestCommandNestedInline(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
 
-	assertStringArray(t, ret, []string{"rest"})
+	assert.Equal(t, ret, []string{"rest"})
 
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
@@ -487,7 +487,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 		return
 	}
 
-	assertStringArray(t, retargs, []string{"nocmd", "remove"})
+	assert.Equal(t, retargs, []string{"nocmd", "remove"})
 }
 
 func TestCommandAlias(t *testing.T) {
@@ -576,8 +576,8 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		t.Errorf("Expected Foo.Flag to be true")
 	}
 
-	assertStringArray(t, ret, []string{"bar", "-v", "-g"})
-	assertStringArray(t, opts.Foo.args, []string{"bar", "-v", "-g"})
+	assert.Equal(t, ret, []string{"bar", "-v", "-g"})
+	assert.Equal(t, opts.Foo.args, []string{"bar", "-v", "-g"})
 }
 
 type barCmd struct {
@@ -607,7 +607,7 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		t.Errorf("Expected Bar.Flag to be true")
 	}
 
-	assertStringArray(t, ret, []string{})
-	assertStringArray(t, opts.Bar.args, []string{})
-	assertStringArray(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
+	assert.Equal(t, ret, []string{})
+	assert.Equal(t, opts.Bar.args, []string{})
+	assert.Equal(t, opts.Bar.Positional.Args, []string{"baz", "-v", "-g"})
 }

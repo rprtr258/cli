@@ -349,7 +349,7 @@ func TestOptionAsArgument(t *testing.T) {
 		if test.expectError {
 			assertParseFail(t, test.errType, test.errMsg, &opts, test.args...)
 		} else {
-			assertStringArray(t, test.rest, assertParseSuccess(t, &opts, test.args...))
+			assert.Equal(t, test.rest, assertParseSuccess(t, &opts, test.args...))
 		}
 	}
 }
@@ -483,7 +483,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		t.Errorf("Did not exect an executed command")
 	}
 
-	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
+	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
 }
 
 func TestCommandHandler(t *testing.T) {
@@ -522,5 +522,5 @@ func TestCommandHandler(t *testing.T) {
 		t.Errorf("Expected command handler to be executed")
 	}
 
-	assertStringArray(t, executedArgs, []string{"arg1", "arg2"})
+	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
 }

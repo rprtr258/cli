@@ -32,8 +32,8 @@ func TestPositional(t *testing.T) {
 		t.Fatalf("Expected opts.Positional.Filename to be \"arg_test.go\", but got %v", opts.Positional.Filename)
 	}
 
-	assertStringArray(t, opts.Positional.Rest, []string{"a", "b"})
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, opts.Positional.Rest, []string{"a", "b"})
+	assert.Equal(t, ret, []string{})
 }
 
 func TestPositionalRequired(t *testing.T) {

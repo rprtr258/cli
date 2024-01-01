@@ -3,6 +3,8 @@ package flags
 import (
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPassDoubleDash(t *testing.T) {
@@ -21,7 +23,7 @@ func TestPassDoubleDash(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 
-	assertStringArray(t, ret, []string{"-v", "-g"})
+	assert.Equal(t, ret, []string{"-v", "-g"})
 }
 
 func TestPassAfterNonOption(t *testing.T) {
@@ -40,7 +42,7 @@ func TestPassAfterNonOption(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 
-	assertStringArray(t, ret, []string{"arg", "-v", "-g"})
+	assert.Equal(t, ret, []string{"arg", "-v", "-g"})
 }
 
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
@@ -63,8 +65,8 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 
-	assertStringArray(t, ret, []string{})
-	assertStringArray(t, opts.Positional.Rest, []string{"arg", "-v", "-g"})
+	assert.Equal(t, ret, []string{})
+	assert.Equal(t, opts.Positional.Rest, []string{"arg", "-v", "-g"})
 }
 
 func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
@@ -87,7 +89,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		t.Errorf("Expected Value to be true")
 	}
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	for i, rest := range opts.Positional.Rest {
 		if rest != i+1 {
 			assertErrorf(t, "Expected %v got %v", i+1, rest)
@@ -134,6 +136,6 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			assertErrorf(t, "Expected the first illegal argument in the error")
 		}
 
-		assertStringArray(t, ret, test.ret)
+		assert.Equal(t, ret, test.ret)
 	}
 }

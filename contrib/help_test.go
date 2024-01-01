@@ -481,7 +481,7 @@ func TestHelpRestArgs(t *testing.T) {
 
 	retargs, err := p.ParseArgs("-h", "-v", "rest")
 	assert.Error(t, err)
-	assertStringArray(t, retargs, []string{"-v", "rest"})
+	assert.Equal(t, retargs, []string{"-v", "rest"})
 }
 
 func TestWrapText(t *testing.T) {

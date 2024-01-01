@@ -14,7 +14,7 @@ func TestShort(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if !opts.Value {
 		t.Errorf("Expected Value to be true")
@@ -62,7 +62,7 @@ func TestShortMultiConcat(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-vo", "-f")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if !opts.V {
 		t.Errorf("Expected V to be true")
@@ -86,7 +86,7 @@ func TestShortMultiRequiredConcat(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-vo", "-f")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if !opts.V {
 		t.Errorf("Expected V to be true")
@@ -108,7 +108,7 @@ func TestShortMultiSlice(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "-v")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assertBoolArray(t, opts.Values, []bool{true, true})
 }
 
@@ -119,7 +119,7 @@ func TestShortMultiSliceConcat(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-vvv")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assertBoolArray(t, opts.Values, []bool{true, true, true})
 }
 
@@ -130,7 +130,7 @@ func TestShortWithEqualArg(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v=value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
 
@@ -141,7 +141,7 @@ func TestShortWithArg(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-vvalue")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
 
@@ -152,7 +152,7 @@ func TestShortArg(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "value")
 }
 
@@ -173,7 +173,7 @@ func TestShortMultiArg(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-ffv", "value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assertBoolArray(t, opts.F, []bool{true, true})
 	assert.Equal(t, opts.Value, "value")
 }
@@ -195,7 +195,7 @@ func TestShortMultiArgConcat(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-vff")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "ff")
 }
 
@@ -207,7 +207,7 @@ func TestShortOptional(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
-	assertStringArray(t, ret, []string{"f"})
+	assert.Equal(t, ret, []string{"f"})
 	assert.Equal(t, opts.Value, "value")
 }
 
@@ -219,7 +219,7 @@ func TestShortOptionalFalsy1(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "f")
 }
 
@@ -231,6 +231,6 @@ func TestShortOptionalFalsy2(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, opts.Value, "f")
 }

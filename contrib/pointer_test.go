@@ -13,7 +13,7 @@ func TestPointerBool(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if !*opts.Value {
 		t.Errorf("Expected Value to be true")
@@ -27,7 +27,7 @@ func TestPointerString(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.Equal(t, *opts.Value, "value")
 }
 
@@ -38,8 +38,8 @@ func TestPointerSlice(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "value1", "-v", "value2")
 
-	assertStringArray(t, ret, []string{})
-	assertStringArray(t, *opts.Value, []string{"value1", "value2"})
+	assert.Equal(t, ret, []string{})
+	assert.Equal(t, *opts.Value, []string{"value1", "value2"})
 }
 
 func TestPointerMap(t *testing.T) {
@@ -49,7 +49,7 @@ func TestPointerMap(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if v, ok := (*opts.Value)["k1"]; !ok {
 		t.Errorf("Expected key \"k1\" to exist")
@@ -82,7 +82,7 @@ func TestPointerStringMarshalled(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.Value == nil {
 		t.Error("Expected value not to be nil")
@@ -112,7 +112,7 @@ func TestPointerStructMarshalled(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.Value == nil {
 		t.Error("Expected value not to be nil")
@@ -133,7 +133,7 @@ func TestPointerGroup(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if !opts.Group.Value {
 		t.Errorf("Expected Group.Value to be true")
@@ -152,7 +152,7 @@ func TestDoNotChangeNonTaggedFields(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts)
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.A.Pointer != nil {
 		t.Error("Expected A.Pointer to be nil")

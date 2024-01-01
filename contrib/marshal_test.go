@@ -3,6 +3,8 @@ package flags
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type marshalled string
@@ -40,7 +42,7 @@ func TestUnmarshal(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v=yes")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.Value != "true" {
 		t.Errorf("Expected Value to be \"true\"")
@@ -54,7 +56,7 @@ func TestUnmarshalDefault(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts)
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.Value != "true" {
 		t.Errorf("Expected Value to be \"true\"")
@@ -68,7 +70,7 @@ func TestUnmarshalOptional(t *testing.T) {
 
 	ret := assertParseSuccess(t, &opts, "-v")
 
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 
 	if opts.Value != "true" {
 		t.Errorf("Expected Value to be \"true\"")

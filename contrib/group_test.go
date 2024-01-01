@@ -16,7 +16,7 @@ func TestGroupInline(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "-g")
-	assertStringArray(t, ret, []string{})
+	assert.Equal(t, ret, []string{})
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Group.G)
 	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
@@ -38,7 +38,7 @@ func TestGroupAdd(t *testing.T) {
 	ret, err := p.ParseArgs("-v", "-g", "rest")
 	assert.NoError(t, err)
 
-	assertStringArray(t, ret, []string{"rest"})
+	assert.Equal(t, ret, []string{"rest"})
 	assert.True(t, opts.Value)
 	assert.True(t, grp.G)
 	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
@@ -60,7 +60,7 @@ func TestGroupNestedInline(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
-	assertStringArray(t, ret, []string{"rest"})
+	assert.Equal(t, ret, []string{"rest"})
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Group.G)
 	assert.Equal(t, opts.Group.Nested.N, "n")
@@ -81,7 +81,7 @@ func TestGroupNestedInlineNamespace(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
-	assertStringArray(t, ret, []string{"rest"})
+	assert.Equal(t, ret, []string{"rest"})
 	assert.Equal(t, opts.Opt, "a")
 	assert.Equal(t, opts.Group.Opt, "b")
 	assert.Equal(t, opts.Group.Group.Opt, "c")

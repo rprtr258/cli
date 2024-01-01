@@ -50,11 +50,6 @@ func assertFatalf(t *testing.T, format string, args ...any) {
 	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertStringArray(t *testing.T, expected, actual []string) {
-	t.Helper()
-	assert.Equal(t, expected, actual)
-}
-
 func assertBoolArray(t *testing.T, a, b []bool) {
 	if len(a) != len(b) {
 		assertErrorf(t, "Expected %#v, but got %#v", b, a)
