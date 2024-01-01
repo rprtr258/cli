@@ -262,9 +262,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 		if cmd.LongDescription != "" {
 			fmt.Fprintln(bw)
-			fmt.Fprintln(bw, wrapText(cmd.LongDescription,
-				aligninfo.terminalColumns,
-				""))
+			fmt.Fprintln(bw, wrapText(cmd.LongDescription, aligninfo.terminalColumns, ""))
 		}
 	}
 
