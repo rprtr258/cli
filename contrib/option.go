@@ -292,26 +292,19 @@ func (option *Option) clearDefault() error {
 }
 
 func (option *Option) isUnmarshaler() Unmarshaler {
-	v := option.value
-
-	for {
+	for v := option.value; ; v = v.Addr() {
 		if !v.CanInterface() {
 			break
 		}
 
-		i := v.Interface()
-
-		if u, ok := i.(Unmarshaler); ok {
+		if u, ok := v.Interface().(Unmarshaler); ok {
 			return u
 		}
 
 		if !v.CanAddr() {
 			break
 		}
-
-		v = v.Addr()
 	}
-
 	return nil
 }
 
