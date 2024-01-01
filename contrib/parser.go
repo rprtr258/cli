@@ -207,7 +207,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 
 	p.eachOption(func(c *Command, g *Group, option *Option) {
 		option.clearReferenceBeforeSet = true
-		option.updateDefaultLiteral()
+		option.defaultLiteral = option.updateDefaultLiteral()
 	})
 
 	// Add built-in help group to all commands if necessary

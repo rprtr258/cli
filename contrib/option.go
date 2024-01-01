@@ -323,23 +323,26 @@ func (option *Option) call(value *string) error {
 	return nil
 }
 
-func (option *Option) updateDefaultLiteral() {
+func (option *Option) updateDefaultLiteral() string {
 	defs := option.Default
-	def := ""
-	if len(defs) == 0 && option.canArgument() {
+	switch {
+	case len(defs) == 0 && option.canArgument():
 		kind := option.field.Type.Kind()
 		showdef := internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
 			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array) && option.value.Len() > 0 ||
 			internal.OneOf(kind, reflect.Map) && !option.value.IsNil() && option.value.Len() > 0 ||
 			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface())
 		if showdef {
-			def, _ = convertToString(option.value, option.tag)
+			def, _ := convertToString(option.value, option.tag)
+			return def
 		}
-	} else if len(defs) != 0 {
-		def = internal.Join(quoteIfNeeded, ", ", defs...)
-	}
 
-	option.defaultLiteral = def
+		return ""
+	case len(defs) != 0:
+		return internal.Join(quoteIfNeeded, ", ", defs...)
+	default:
+		return ""
+	}
 }
 
 func shortAndLongName(shortName rune, longName string) string {
