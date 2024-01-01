@@ -147,7 +147,6 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
 	}
-
 	assert.Equal(t, &Error{
 		Kind:    ErrMarshal,
 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
