@@ -395,20 +395,20 @@ func (option *Option) updateDefaultLiteral() {
 	option.defaultLiteral = def
 }
 
-func (option *Option) shortAndLongName() string {
+func shortAndLongName(shortName rune, longName string) string {
 	ret := &bytes.Buffer{}
 
-	if option.ShortName != 0 {
+	if shortName != 0 {
 		ret.WriteByte(defaultShortOptDelimiter)
-		ret.WriteRune(option.ShortName)
+		ret.WriteRune(shortName)
 	}
 
-	if option.LongName != "" {
-		if option.ShortName != 0 {
+	if longName != "" {
+		if shortName != 0 {
 			ret.WriteByte('/')
 		}
 
-		ret.WriteString(option.LongName)
+		ret.WriteString(longName)
 	}
 
 	return ret.String()
