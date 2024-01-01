@@ -18,15 +18,8 @@ func TestGroupInline(t *testing.T) {
 	p, ret := assertParserSuccess(t, &opts, "-v", "-g")
 
 	assertStringArray(t, ret, []string{})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Group.G {
-		t.Errorf("Expected Group.G to be true")
-	}
-
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Group.G)
 	if p.Command.Group.Find("Grouped Options") == nil {
 		t.Errorf("Expected to find group `Grouped Options'")
 	}
