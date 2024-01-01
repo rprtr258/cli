@@ -15,18 +15,16 @@ type Marshaler interface {
 	MarshalFlag() (string, error)
 }
 
-// Unmarshaler is the interface implemented by types that can unmarshal a flag
-// argument to themselves. The provided value is directly passed from the
-// command line.
+// Unmarshaler is the interface implemented by types that can unmarshal a flag argument to themselves.
+// The provided value is directly passed from the command line.
 type Unmarshaler interface {
 	// UnmarshalFlag unmarshals a string value representation to the flag
 	// value (which therefore needs to be a pointer receiver).
 	UnmarshalFlag(value string) error
 }
 
-// ValueValidator is the interface implemented by types that can validate a
-// flag argument themselves. The provided value is directly passed from the
-// command line.
+// ValueValidator is the interface implemented by types that can validate a flag argument themselves.
+// The provided value is directly passed from the command line.
 type ValueValidator interface {
 	// IsValidValue returns an error if the provided string value is valid for
 	// the flag.
