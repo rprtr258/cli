@@ -174,6 +174,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 	p.AddOption(&Option{
 		LongName: "test",
 	}, &opts.Test)
+
 	_, err := p.ParseArgs("--test")
 	assert.NoError(t, err)
 	assert.True(t, opts.Test)

@@ -229,12 +229,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			desc = fmt.Sprintf("%s (default: %v)", option.Description, def)
 		}
 
-		writer.WriteString(wrapText(desc,
+		_, _ = writer.WriteString(wrapText(desc,
 			info.terminalColumns-descstart,
 			strings.Repeat(" ", descstart)))
 	}
 
-	writer.WriteString("\n")
+	_, _ = writer.WriteString("\n")
 }
 
 func maxCommandLength(s []*Command) int {
@@ -271,8 +271,8 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	}
 
 	if p.Name != "" {
-		bw.WriteString("Usage:\n")
-		bw.WriteString(" ")
+		_, _ = bw.WriteString("Usage:\n")
+		_, _ = bw.WriteString(" ")
 
 		allcmd := p.Command
 
@@ -391,7 +391,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 					fmt.Fprintln(bw)
 
 					if aligninfo.indent {
-						bw.WriteString("    ")
+						_, _ = bw.WriteString("    ")
 					}
 
 					fmt.Fprintf(bw, "%s:\n", grp.ShortDescription)
@@ -418,11 +418,11 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				argPrefix := strings.Repeat(" ", paddingBeforeOption) + arg.Name
 				if len(arg.Description) > 0 {
 					argPrefix += ":"
-					bw.WriteString(argPrefix)
+					_, _ = bw.WriteString(argPrefix)
 
 					// Space between "arg:" and the description start
-					bw.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
-					bw.WriteString(wrapText(
+					_, _ = bw.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
+					_, _ = bw.WriteString(wrapText(
 						arg.Description,
 						// How much space the description gets before wrapping
 						aligninfo.terminalColumns-1-descStart,
@@ -430,7 +430,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 						strings.Repeat(" ", descStart),
 					))
 				} else {
-					bw.WriteString(argPrefix)
+					_, _ = bw.WriteString(argPrefix)
 				}
 
 				fmt.Fprintln(bw)

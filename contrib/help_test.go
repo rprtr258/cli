@@ -83,23 +83,15 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("--help")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-
+	assert.Error(t, err)
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
+		assert.Equal(t, ErrHelp, e.Kind)
 		var expected string
-
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
@@ -196,7 +188,6 @@ Available commands:
   parent          A parent command
 `
 		}
-
 		assertDiff(t, e.Message, expected, "help message")
 	}
 }
@@ -205,7 +196,7 @@ func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.ShortDescription = "Test manpage generation"
 	p.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
-	p.AddGroup("Application Options", "The application options", &helpOptions{})
+	_, _ = p.AddGroup("Application Options", "The application options", &helpOptions{})
 
 	for _, cmd := range p.Commands() {
 		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
@@ -326,23 +317,15 @@ type helpCommandNoOptions struct {
 func TestHelpCommand(t *testing.T) {
 	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("command", "--help")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-
+	assert.Error(t, err)
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
+		assert.Equal(t, ErrHelp, e.Kind)
 		var expected string
-
 		if runtime.GOOS == "windows" {
 			expected = `Usage:
   TestHelpCommand [OPTIONS] command
@@ -359,7 +342,6 @@ Help Options:
   -h, --help      Show this help message
 `
 		}
-
 		assertDiff(t, e.Message, expected, "help message")
 	}
 }
