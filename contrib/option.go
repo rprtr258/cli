@@ -328,11 +328,10 @@ func (option *Option) updateDefaultLiteral() string {
 	switch {
 	case len(defs) == 0 && option.canArgument():
 		kind := option.field.Type.Kind()
-		showdef := internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
+		if internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
 			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array) && option.value.Len() > 0 ||
 			internal.OneOf(kind, reflect.Map) && !option.value.IsNil() && option.value.Len() > 0 ||
-			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface())
-		if showdef {
+			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface()) {
 			def, _ := convertToString(option.value, option.tag)
 			return def
 		}
