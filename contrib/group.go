@@ -7,6 +7,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/iter"
 )
 
 // ErrNotPointerToStruct indicates that a provided data container is not
@@ -97,13 +98,9 @@ func (g *Group) Options() []*Option {
 func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
 
-	var ret *Group
-	g.eachGroup(func(gg *Group) bool {
-		if gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription) {
-			ret = gg
-		}
-		return true
-	})
+	ret, _ := iter.Seq[*Group](g.eachGroup).Filter(func(gg *Group) bool {
+		return gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription)
+	}).Head()
 	return ret
 }
 
