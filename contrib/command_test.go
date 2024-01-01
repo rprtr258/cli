@@ -538,15 +538,11 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByShortName('o')
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
+	assert.NotNil(t, opt)
 	assert.Equal(t, 'o', opt.ShortName)
 
 	opt = c.FindOptionByShortName('t')
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
+	assert.NotNil(t, opt)
 	assert.Equal(t, 't', opt.ShortName)
 }
 
