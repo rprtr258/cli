@@ -304,8 +304,8 @@ func (option *Option) isUnmarshaler() Unmarshaler {
 	return nil
 }
 
-func (option *Option) isValueValidator() ValueValidator {
-	for v := option.value; v.CanInterface(); v = v.Addr() {
+func isValueValidator(value reflect.Value) ValueValidator {
+	for v := value; v.CanInterface(); v = v.Addr() {
 		if u, ok := v.Interface().(ValueValidator); ok {
 			return u
 		}
@@ -427,7 +427,7 @@ func (option *Option) shortAndLongName() string {
 }
 
 func (option *Option) isValidValue(arg string) error {
-	if validator := option.isValueValidator(); validator != nil {
+	if validator := isValueValidator(option.value); validator != nil {
 		return validator.IsValidValue(arg)
 	}
 	if isFlag(arg) && !(option.isSignedNumber() && len(arg) > 1 && arg[0] == '-' && arg[1] >= '0' && arg[1] <= '9') {
