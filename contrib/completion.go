@@ -121,10 +121,8 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 		value = reflect.New(value.Type().Elem())
 	}
 
-	i := value.Interface()
-
 	var ret []Completion
-	if cmp, ok := i.(Completer); ok {
+	if cmp, ok := value.Interface().(Completer); ok {
 		ret = cmp.Complete(match)
 	} else if value.CanAddr() {
 		if cmp, ok = value.Addr().Interface().(Completer); ok {
@@ -132,11 +130,12 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 		}
 	}
 
-	for i, v := range ret {
-		ret[i].Item = prefix + v.Item
-	}
-
-	return ret
+	return internal.Map(func(v Completion) Completion {
+		return Completion{
+			Item:        prefix + v.Item,
+			Description: v.Description,
+		}
+	}, ret...)
 }
 
 func (c *completion) complete(args []string) []Completion {
