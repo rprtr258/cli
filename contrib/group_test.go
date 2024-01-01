@@ -20,9 +20,7 @@ func TestGroupInline(t *testing.T) {
 	assertStringArray(t, ret, []string{})
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Group.G)
-	if p.Command.Group.Find("Grouped Options") == nil {
-		t.Errorf("Expected to find group `Grouped Options'")
-	}
+	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
 }
 
 func TestGroupAdd(t *testing.T) {
