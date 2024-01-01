@@ -48,28 +48,13 @@ func TestCommandInlineMulti(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
 	assert.Equal(t, []string{}, ret)
-
-	if p.Active == nil {
-		t.Errorf("Expected active command")
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.C2.G {
-		t.Errorf("Expected C2.G to be true")
-	}
-
-	if p.Command.Find("c1") == nil {
-		t.Errorf("Expected to find command `c1'")
-	}
-
-	if c2 := p.Command.Find("c2"); c2 == nil {
-		t.Errorf("Expected to find command `c2'")
-	} else if c2 != p.Active {
-		t.Errorf("Expected to find command `c2' to be active")
-	}
+	assert.NotNil(t, p.Active)
+	assert.True(t, opts.Value)
+	assert.True(t, opts.C2.G)
+	assert.NotNil(t, p.Command.Find("c1"))
+	c2 := p.Command.Find("c2")
+	assert.NotNil(t, c2)
+	assert.Equal(t, c2, p.Active)
 }
 
 func TestCommandFlagOrder1(t *testing.T) {
