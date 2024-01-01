@@ -433,11 +433,10 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	}
 
 	if scommands := cmd.visibleCommands(); len(scommands) > 0 {
-		maxnamelen := maxCommandLength(scommands)
-
 		fmt.Fprintln(bw)
 		fmt.Fprintln(bw, "Available commands:")
 
+		maxnamelen := maxCommandLength(scommands)
 		for _, c := range scommands {
 			fullNameRepresentation := c.Name
 			if len(c.Aliases) > 0 {
