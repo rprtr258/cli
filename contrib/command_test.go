@@ -52,6 +52,7 @@ func TestCommandInlineMulti(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, opts.C2.G)
 	assert.NotNil(t, p.Command.Find("c1"))
+
 	c2 := p.Command.Find("c2")
 	assert.NotNil(t, c2)
 	assert.Equal(t, c2, p.Active)
