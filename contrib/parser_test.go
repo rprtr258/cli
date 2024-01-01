@@ -472,9 +472,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 
 	var executedCommand Commander
 	var executedArgs []string
-
 	executed := false
-
 	parser.CommandHandler = func(command Commander, args []string) error {
 		executed = true
 		executedCommand = command
@@ -491,8 +489,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 
 func TestCommandHandler(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool    `short:"v"`
 		Command command `command:"cmd"`
 	}{}
 
@@ -500,30 +497,17 @@ func TestCommandHandler(t *testing.T) {
 
 	var executedCommand Commander
 	var executedArgs []string
-
 	executed := false
-
 	parser.CommandHandler = func(command Commander, args []string) error {
 		executed = true
-
 		executedCommand = command
 		executedArgs = args
-
 		return nil
 	}
 
 	_, err := parser.ParseArgs("cmd", "arg1", "arg2")
-	if err != nil {
-		t.Fatalf("Unexpected parse error: %s", err)
-	}
-
-	if !executed {
-		t.Errorf("Expected command handler to be executed")
-	}
-
-	if executedCommand == nil {
-		t.Errorf("Expected command handler to be executed")
-	}
-
-	assert.Equal(t, executedArgs, []string{"arg1", "arg2"})
+	assert.NoError(t, err)
+	assert.True(t, executed)
+	assert.NotNil(t, executedCommand)
+	assert.Equal(t, []string{"arg1", "arg2"}, executedArgs)
 }
