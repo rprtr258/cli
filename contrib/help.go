@@ -249,9 +249,9 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				}
 
 				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) > 3 {
-					fmt.Fprintf(bw, " %scommand%s", co, cc)
+					fmt.Fprint(bw, " "+co+"command"+cc)
 				} else {
-					fmt.Fprintf(bw, " "+co+strings.Join(internal.Map(func(subc *Command) string {
+					fmt.Fprint(bw, " "+co+strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
 					}, visibleCommands(allcmd.commands)...), " | ")+cc)
 				}
