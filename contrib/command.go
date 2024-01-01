@@ -7,6 +7,7 @@ import (
 
 	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/iter"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -326,9 +327,9 @@ func (c *Command) makeLookup() lookup {
 		commands:   make(map[string]*Command),
 	}
 	for i := len(parents) - 1; i >= 0; i-- {
-		parents[i].fillLookup(ret)
+		fillLookup(parents[i].eachGroup, ret)
 	}
-	c.fillLookup(ret)
+	fillLookup(c.eachGroup, ret)
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
 		for _, a := range subcommand.Aliases {
@@ -338,8 +339,8 @@ func (c *Command) makeLookup() lookup {
 	return ret
 }
 
-func (c *Command) fillLookup(ret lookup) {
-	c.eachGroup(func(g *Group) bool {
+func fillLookup(seq iter.Seq[*Group], ret lookup) {
+	seq(func(g *Group) bool {
 		for _, option := range g.options {
 			if option.ShortName != 0 {
 				ret.shortNames[string(option.ShortName)] = option
