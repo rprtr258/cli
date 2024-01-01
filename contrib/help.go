@@ -86,14 +86,11 @@ func wrapText(s string, l int, prefix string) string {
 	for _, line := range lines {
 		var retline string
 
-		line = strings.TrimSpace(line)
-
-		for len(line) > l {
+		for line = strings.TrimSpace(line); len(line) > l; {
 			// Try to split on space
 			suffix := ""
 
 			pos := strings.LastIndex(line[:l], " ")
-
 			if pos < 0 {
 				pos = l - 1
 				suffix = "-\n"
