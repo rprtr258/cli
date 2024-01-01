@@ -25,10 +25,10 @@ func dist(s, t string) int {
 				dists[i+1][j+1] = dists[i][j]
 			} else {
 				dists[i+1][j+1] = min(
-					dists[i][j]+1,
-					dists[i+1][j]+1,
-					dists[i][j+1]+1,
-				)
+					dists[i][j],
+					dists[i+1][j],
+					dists[i][j+1],
+				) + 1
 			}
 		}
 	}
