@@ -315,7 +315,6 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	}
 
 	var reterr error
-
 	if s.err != nil {
 		reterr = s.err
 	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
