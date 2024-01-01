@@ -9,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -310,7 +312,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			}
 		})
 
-		_ = s.checkRequired(p)
+		s.checkRequired(p)
 	}
 
 	var reterr error
@@ -356,7 +358,7 @@ func (p *parseState) pop() string {
 	return p.arg
 }
 
-func (p *parseState) checkRequired(parser *Parser) error {
+func (p *parseState) checkRequired(parser *Parser) {
 	c := parser.Command
 
 	var required []*Option
@@ -415,7 +417,7 @@ func (p *parseState) checkRequired(parser *Parser) error {
 			}
 
 			if len(reqnames) == 0 {
-				return nil
+				return
 			}
 
 			var msg string
@@ -431,18 +433,15 @@ func (p *parseState) checkRequired(parser *Parser) error {
 				Kind:    ErrRequired,
 				Message: msg,
 			}
-			return p.err
+			return
 		}
 
-		return nil
+		return
 	}
 
-	names := make([]string, 0, len(required))
-
-	for _, k := range required {
-		names = append(names, "`"+k.String()+"'")
-	}
-
+	names := internal.Map(func(k *Option) string {
+		return "`" + k.String() + "'"
+	}, required...)
 	sort.Strings(names)
 
 	var msg string
@@ -458,7 +457,6 @@ func (p *parseState) checkRequired(parser *Parser) error {
 		Kind:    ErrRequired,
 		Message: msg,
 	}
-	return p.err
 }
 
 func (p *parseState) estimateCommand() error {
