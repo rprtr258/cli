@@ -231,9 +231,9 @@ func (c *completion) complete(args []string) []Completion {
 
 			if opt := s.lookup.shortNames[sname]; opt != nil && opt.canArgument() {
 				return c.completeValue(opt.value, prefix+sname, optname[n:])
-			} else {
-				return c.completeNamesForShortPrefix(s, prefix, optname)
 			}
+
+			return c.completeNamesForShortPrefix(s, prefix, optname)
 		case argument != nil:
 			if islong {
 				opt = s.lookup.longNames[optname]
@@ -241,11 +241,11 @@ func (c *completion) complete(args []string) []Completion {
 				opt = s.lookup.shortNames[optname]
 			}
 
-			if opt != nil {
-				return c.completeValue(opt.value, prefix+optname+"=", *argument)
+			if opt == nil {
+				return nil
 			}
 
-			return nil
+			return c.completeValue(opt.value, prefix+optname+"=", *argument)
 		case islong:
 			return c.completeNamesForLongPrefix(s, prefix, optname)
 		default:
