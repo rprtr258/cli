@@ -393,10 +393,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them
 	_, err := p.ParseArgs("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
-	if err != nil {
-		assertErrorf(t, "Parser returned unexpected error %v", err)
-	}
-
+	assert.NoError(t, err)
 	assert.Equal(t, opts.Flag1, "stuff")
 	assert.Equal(t, opts.Flag2, "foo")
 	assert.Equal(t, unknownFlag1, "blah")
