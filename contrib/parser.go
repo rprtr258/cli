@@ -279,9 +279,8 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		}
 		if err != nil {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
-			parseErr := wrapError(err)
 
-			if parseErr.Kind != ErrUnknownFlag || (!ignoreUnknown && p.UnknownOptionHandler == nil) {
+			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag || !ignoreUnknown && p.UnknownOptionHandler == nil {
 				s.err = parseErr
 				break
 			}
@@ -331,13 +330,11 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 
 	if reterr != nil {
 		var retargs []string
-
 		if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
 			retargs = append([]string{s.arg}, s.args...)
 		} else {
 			retargs = s.args
 		}
-
 		return retargs, p.printError(reterr)
 	}
 
