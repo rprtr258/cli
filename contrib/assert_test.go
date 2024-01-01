@@ -2,8 +2,6 @@ package flags
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
 	"path"
 	"runtime"
 	"testing"
@@ -54,35 +52,4 @@ func assertParseFail(t *testing.T, errWant *Error, data any, args ...string) []s
 	ret, err := parser.ParseArgs(args...)
 	assert.Equal(t, errWant, err)
 	return ret
-}
-
-func diff(a, b string) (string, error) {
-	atmp, err := os.CreateTemp("", "help-diff")
-	if err != nil {
-		return "", err
-	}
-
-	btmp, err := os.CreateTemp("", "help-diff")
-	if err != nil {
-		return "", err
-	}
-
-	if _, err := atmp.WriteString(a); err != nil {
-		return "", err
-	}
-
-	if _, err := btmp.WriteString(b); err != nil {
-		return "", err
-	}
-
-	ret, err := exec.Command("diff", "-u", "-d", "--label", "got", atmp.Name(), "--label", "expected", btmp.Name()).Output()
-
-	os.Remove(atmp.Name())
-	os.Remove(btmp.Name())
-
-	if err.Error() == "exit status 1" {
-		return string(ret), nil
-	}
-
-	return string(ret), err
 }
