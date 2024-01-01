@@ -351,10 +351,10 @@ func (c *Command) fillLookup(ret *lookup) {
 	})
 }
 
-func (c *Command) visibleCommands() []*Command {
+func visibleCommands(commands []*Command) []*Command {
 	return internal.Filter(func(cmd *Command) bool {
 		return !cmd.Hidden
-	}, c.commands...)
+	}, commands...)
 }
 
 func (c *Command) match(name string) bool {

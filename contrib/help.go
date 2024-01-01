@@ -274,14 +274,12 @@ func (p *Parser) WriteHelp(w io.Writer) {
 					co, cc = "<", ">"
 				}
 
-				visibleCommands := allcmd.visibleCommands()
-
-				if len(visibleCommands) > 3 {
+				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) > 3 {
 					fmt.Fprintf(bw, " %scommand%s", co, cc)
 				} else {
 					fmt.Fprintf(bw, " "+co+strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
-					}, allcmd.visibleCommands()...), " | ")+cc)
+					}, visibleCommands(allcmd.commands)...), " | ")+cc)
 				}
 			}
 		}
@@ -369,7 +367,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		}
 	}
 
-	if scommands := cmd.visibleCommands(); len(scommands) > 0 {
+	if scommands := visibleCommands(cmd.commands); len(scommands) > 0 {
 		fmt.Fprintln(bw)
 		fmt.Fprintln(bw, "Available commands:")
 
