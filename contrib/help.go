@@ -25,21 +25,10 @@ const (
 )
 
 func (a *alignmentInfo) descriptionStart() int {
-	ret := a.maxLongLen + distanceBetweenOptionAndDescription
-
-	if a.hasShort {
-		ret += 2
-	}
-
-	if a.maxLongLen > 0 {
-		ret += 4
-	}
-
-	if a.hasValueName {
-		ret += 3
-	}
-
-	return ret
+	return a.maxLongLen + distanceBetweenOptionAndDescription +
+		internal.Iverson(a.hasShort)*2 +
+		internal.Iverson(a.maxLongLen > 0)*4 +
+		internal.Iverson(a.hasValueName)*3
 }
 
 func (a *alignmentInfo) updateLen(name string, indent bool) {
