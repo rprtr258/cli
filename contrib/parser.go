@@ -382,9 +382,8 @@ func (p *parseState) checkRequired(parser *Parser) {
 				if isRemainingArg(arg.value) {
 					if arg.value.Len() < arg.Required {
 						var arguments string
-
 						if arg.Required > 1 {
-							arguments = "arguments, but got only " + fmt.Sprintf("%d", arg.value.Len())
+							arguments = "arguments, but got only " + fmt.Sprint(arg.value.Len())
 						} else {
 							arguments = "argument"
 						}
