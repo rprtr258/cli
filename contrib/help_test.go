@@ -385,14 +385,10 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		Kind:    ErrHelp,
 		Message: "",
 	}, err)
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		assert.Equal(t, ErrHelp, e.Kind)
-		h := &bytes.Buffer{}
-		p.WriteHelp(h)
+	h := &bytes.Buffer{}
+	p.WriteHelp(h)
 
-		expected := `Usage:
+	expected := `Usage:
   TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
 
 Long hidden command description
@@ -400,8 +396,7 @@ Long hidden command description
 [hidden command arguments]
   <positional-foo>:         positional foo
 `
-		assertDiff(t, h.String(), expected, "help message")
-	}
+	assert.Equal(t, expected, h.String())
 }
 
 func TestHelpDefaults(t *testing.T) {
