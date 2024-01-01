@@ -568,8 +568,14 @@ func TestWroteHelp(t *testing.T) {
 	}{
 		"No error":    {value: nil, isHelp: false},
 		"Plain error": {value: errors.New("an error"), isHelp: false},
-		"ErrUnknown":  {value: newError(ErrUnknown, "an error"), isHelp: false},
-		"ErrHelp":     {value: newError(ErrHelp, "an error"), isHelp: true},
+		"ErrUnknown": {value: &Error{
+			Kind:    ErrUnknown,
+			Message: "an error",
+		}, isHelp: false},
+		"ErrHelp": {value: &Error{
+			Kind:    ErrHelp,
+			Message: "an error",
+		}, isHelp: true},
 	} {
 		t.Run(name, func(t *testing.T) {
 			res := WroteHelp(test.value)

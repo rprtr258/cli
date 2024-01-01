@@ -63,15 +63,11 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func newError(tp ErrorKind, message string) *Error {
+func newErrorf(tp ErrorKind, format string, args ...any) *Error {
 	return &Error{
 		Kind:    tp,
-		Message: message,
+		Message: fmt.Sprintf(format, args...),
 	}
-}
-
-func newErrorf(tp ErrorKind, format string, args ...any) *Error {
-	return newError(tp, fmt.Sprintf(format, args...))
 }
 
 func wrapError(err error) *Error {
@@ -79,5 +75,8 @@ func wrapError(err error) *Error {
 		return ret
 	}
 
-	return newError(ErrUnknown, err.Error())
+	return &Error{
+		Kind:    ErrUnknown,
+		Message: err.Error(),
+	}
 }

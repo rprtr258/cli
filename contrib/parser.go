@@ -430,7 +430,10 @@ func (p *parseState) checkRequired(parser *Parser) error {
 					strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
 			}
 
-			p.err = newError(ErrRequired, msg)
+			p.err = &Error{
+				Kind:    ErrRequired,
+				Message: msg,
+			}
 			return p.err
 		}
 
@@ -454,7 +457,10 @@ func (p *parseState) checkRequired(parser *Parser) error {
 			strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
 	}
 
-	p.err = newError(ErrRequired, msg)
+	p.err = &Error{
+		Kind:    ErrRequired,
+		Message: msg,
+	}
 	return p.err
 }
 
@@ -466,11 +472,8 @@ func (p *parseState) estimateCommand() error {
 		cmdnames[i] = v.Name
 	}
 
-	var msg string
-	var errtype ErrorKind
 	if len(p.retargs) != 0 {
-		msg = fmt.Sprintf("Unknown command `%s'", p.retargs[0])
-		errtype = ErrUnknownCommand
+		msg := fmt.Sprintf("Unknown command `%s'", p.retargs[0])
 
 		if c, l := getClosest(p.retargs[0], cmdnames); l*2 < len(c) {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
@@ -484,19 +487,25 @@ func (p *parseState) estimateCommand() error {
 				strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 				cmdnames[len(cmdnames)-1])
 		}
-	} else {
-		errtype = ErrCommandRequired
-
-		if len(cmdnames) == 1 {
-			msg = fmt.Sprintf("Please specify the %s command", cmdnames[0])
-		} else if len(cmdnames) > 1 {
-			msg = fmt.Sprintf("Please specify one command of: %s or %s",
-				strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-				cmdnames[len(cmdnames)-1])
+		return &Error{
+			Kind:    ErrUnknownCommand,
+			Message: msg,
 		}
 	}
 
-	return newError(errtype, msg)
+	var msg string
+	if len(cmdnames) == 1 {
+		msg = fmt.Sprintf("Please specify the %s command", cmdnames[0])
+	} else if len(cmdnames) > 1 {
+		msg = fmt.Sprintf("Please specify one command of: %s or %s",
+			strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+			cmdnames[len(cmdnames)-1])
+	}
+
+	return &Error{
+		Kind:    ErrCommandRequired,
+		Message: msg,
+	}
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
@@ -656,7 +665,10 @@ func (p *Parser) parseNonOption(s *parseState) error {
 func (p *Parser) showBuiltinHelp() error {
 	var b bytes.Buffer
 	p.WriteHelp(&b)
-	return newError(ErrHelp, b.String())
+	return &Error{
+		Kind:    ErrHelp,
+		Message: b.String(),
+	}
 }
 
 func (p *Parser) printError(err error) error {
