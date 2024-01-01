@@ -433,12 +433,9 @@ func (p *parseState) checkRequired(parser *Parser) {
 }
 
 func (p *parseState) estimateCommand() error {
-	commands := visibleCommands(p.command.commands)
-	cmdnames := make([]string, len(commands))
-
-	for i, v := range commands {
-		cmdnames[i] = v.Name
-	}
+	cmdnames := internal.Map(func(v *Command) string {
+		return v.Name
+	}, visibleCommands(p.command.commands)...)
 
 	if len(p.retargs) != 0 {
 		msg := fmt.Sprintf("Unknown command `%s'", p.retargs[0])
@@ -446,9 +443,7 @@ func (p *parseState) estimateCommand() error {
 		if c, l := getClosest(p.retargs[0], cmdnames); l*2 < len(c) {
 			msg = fmt.Sprintf("%s, did you mean `%s'?", msg, c)
 		} else if len(cmdnames) == 1 {
-			msg = fmt.Sprintf("%s. You should use the %s command",
-				msg,
-				cmdnames[0])
+			msg = fmt.Sprintf("%s. You should use the %s command", msg, cmdnames[0])
 		} else if len(cmdnames) > 1 {
 			msg = fmt.Sprintf("%s. Please specify one command of: %s or %s",
 				msg,
