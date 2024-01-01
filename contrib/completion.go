@@ -204,8 +204,8 @@ func (c *completion) complete(args []string) []Completion {
 		} else {
 			if len(s.positional) > 0 {
 				if !isRemainingArg(s.positional[0].value) {
-					// Don't advance beyond a remaining positional arg (because
-					// it consumes all subsequent args).
+					// Don't advance beyond a remaining positional arg
+					// (because it consumes all subsequent args)
 					s.positional = s.positional[1:]
 				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
