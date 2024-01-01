@@ -249,16 +249,14 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	case reflect.Map:
 		parts := strings.SplitN(val, ":", 2)
 
-		key := parts[0]
 		var value string
 
 		if len(parts) == 2 {
 			value = parts[1]
 		}
 
-		keytp := tp.Key()
-		keyval := reflect.New(keytp)
-
+		keyval := reflect.New(tp.Key())
+		key := parts[0]
 		if err := convert(key, keyval, options); err != nil {
 			return err
 		}
