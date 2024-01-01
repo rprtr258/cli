@@ -7,6 +7,8 @@ import (
 )
 
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
+	t.Helper()
+
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
 	assert.NoError(t, err)
@@ -14,6 +16,8 @@ func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parse
 }
 
 func assertParseSuccess(t *testing.T, data any, args ...string) []string {
+	t.Helper()
+
 	_, ret := assertParserSuccess(t, data, args...)
 	return ret
 }
