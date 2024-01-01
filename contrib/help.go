@@ -20,12 +20,12 @@ type alignmentInfo struct {
 }
 
 const (
-	paddingBeforeOption                 = 2
-	distanceBetweenOptionAndDescription = 2
+	_paddingBeforeOption                 = 2
+	_distanceBetweenOptionAndDescription = 2
 )
 
 func (a *alignmentInfo) descriptionStart() int {
-	return a.maxLongLen + distanceBetweenOptionAndDescription +
+	return a.maxLongLen + _distanceBetweenOptionAndDescription +
 		internal.Iverson(a.hasShort)*2 +
 		internal.Iverson(a.maxLongLen > 0)*4 +
 		internal.Iverson(a.hasValueName)*3
@@ -38,9 +38,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		hasValueName:    false,
 		terminalColumns: getTerminalColumns(),
 	}
-
 	var prevcmd *Command
-
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		if c != prevcmd {
 			for _, arg := range c.args {
@@ -72,7 +70,6 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command)*4)
 		}
 	})
-
 	return ret
 }
 
@@ -128,7 +125,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 	line := &bytes.Buffer{}
 
-	prefixLen := paddingBeforeOption + internal.Iverson(info.indent)*4
+	prefixLen := _paddingBeforeOption + internal.Iverson(info.indent)*4
 	line.WriteString(strings.Repeat(" ", prefixLen))
 
 	if option.ShortName != 0 {
@@ -138,7 +135,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		line.WriteString("  ")
 	}
 
-	descstart := info.descriptionStart() + paddingBeforeOption
+	descstart := info.descriptionStart() + _paddingBeforeOption
 
 	if len(option.LongName) > 0 {
 		if option.ShortName != 0 {
@@ -171,7 +168,6 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 		_, _ = writer.WriteString(strings.Repeat(" ", dw))
 
 		var def string
-
 		if option.DefaultMask != "" {
 			if option.DefaultMask != "-" {
 				def = option.DefaultMask
@@ -365,10 +361,10 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				fmt.Fprintf(bw, "\n[%s command arguments]\n", c.Name)
 			}
 
-			descStart := aligninfo.descriptionStart() + paddingBeforeOption
+			descStart := aligninfo.descriptionStart() + _paddingBeforeOption
 
 			for _, arg := range args {
-				argPrefix := strings.Repeat(" ", paddingBeforeOption) + arg.Name
+				argPrefix := strings.Repeat(" ", _paddingBeforeOption) + arg.Name
 				if arg.Description != "" {
 					argPrefix += ":"
 					_, _ = bw.WriteString(argPrefix)
