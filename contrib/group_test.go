@@ -237,9 +237,6 @@ func TestAddOptionNonOptional(t *testing.T) {
 		LongName: "test",
 	}, &opts.Test)
 	_, err := p.ParseArgs("--test")
-	if err != nil {
-		t.Errorf("unexpected error: %s", err)
-	} else if !opts.Test {
-		t.Errorf("option not set")
-	}
+	assert.NoError(t, err)
+	assert.True(t, opts.Test)
 }
