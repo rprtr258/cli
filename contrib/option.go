@@ -127,26 +127,23 @@ func (option *Option) LongNameWithNamespace() string {
 // String converts an option to a human friendly readable string describing the
 // option.
 func (option *Option) String() string {
-	var s string
-	var short string
-
 	if option.ShortName != 0 {
 		data := make([]byte, utf8.RuneLen(option.ShortName))
 		utf8.EncodeRune(data, option.ShortName)
-		short = string(data)
+		short := string(data)
 
 		if option.LongName != "" {
-			s = fmt.Sprintf("%s%s, %s%s",
+			return fmt.Sprintf("%s%s, %s%s",
 				string(defaultShortOptDelimiter), short,
 				defaultLongOptDelimiter, option.LongNameWithNamespace())
 		} else {
-			s = fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
+			return fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
 	} else if option.LongName != "" {
-		s = fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
+		return fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
 	}
 
-	return s
+	return ""
 }
 
 // Value returns the option value as an any.
