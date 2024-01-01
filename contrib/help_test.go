@@ -387,8 +387,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	}, err)
 	h := &bytes.Buffer{}
 	p.WriteHelp(h)
-
-	expected := `Usage:
+	const _expected = `Usage:
   TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
 
 Long hidden command description
@@ -396,7 +395,7 @@ Long hidden command description
 [hidden command arguments]
   <positional-foo>:         positional foo
 `
-	assert.Equal(t, expected, h.String())
+	assert.Equal(t, _expected, h.String())
 }
 
 func TestHelpDefaults(t *testing.T) {
