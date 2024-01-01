@@ -98,9 +98,12 @@ func (g *Group) Options() []*Option {
 func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
 
-	ret, _ := iter.Seq[*Group](g.eachGroup).Filter(func(gg *Group) bool {
-		return gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription)
-	}).Head()
+	ret, _ := iter.
+		Seq[*Group](g.eachGroup).
+		Filter(func(gg *Group) bool {
+			return gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription)
+		}).
+		Head()
 	return ret
 }
 
