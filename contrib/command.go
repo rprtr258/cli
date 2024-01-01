@@ -310,12 +310,13 @@ func (c *Command) addHelpGroups(showHelp func() error) {
 func (c *Command) makeLookup() lookup {
 	var parents []*Command
 	for parent := c.parent; parent != nil; {
-		if cmd, ok := parent.(*Command); ok {
-			parents = append(parents, cmd)
-			parent = cmd.parent
-		} else {
+		cmd, ok := parent.(*Command)
+		if !ok {
 			break
 		}
+
+		parents = append(parents, cmd)
+		parent = cmd.parent
 	}
 
 	ret := lookup{
