@@ -31,13 +31,13 @@ type ValueValidator interface {
 	IsValidValue(value string) error
 }
 
-func getBase(multitag multiTag, base int) (int, error) {
-	if sbase := multitag.Get("base"); sbase != "" {
+func getBase(base string, defaultBase int) (int, error) {
+	if sbase := base; sbase != "" {
 		ivbase, err := strconv.ParseInt(sbase, 10, 32)
 		return int(ivbase), err
 	}
 
-	return base, nil
+	return defaultBase, nil
 }
 
 func convertMarshal(val reflect.Value) (val_ bool, ret_ string, err_ error) {
@@ -78,14 +78,14 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		return "false", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options, 10)
+		base, err := getBase(options.Get("base"), 10)
 		if err != nil {
 			return "", err
 		}
 
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(options, 10)
+		base, err := getBase(options.Get("base"), 10)
 		if err != nil {
 			return "", err
 		}
@@ -205,7 +205,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 			retval.SetBool(b)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(multitag, 10)
+		base, err := getBase(multitag.Get("base"), 10)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(multitag, 10)
+		base, err := getBase(multitag.Get("base"), 10)
 		if err != nil {
 			return err
 		}
