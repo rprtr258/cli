@@ -109,11 +109,9 @@ func TestCommandFlagOrder2(t *testing.T) {
 
 func TestCommandFlagOrderSub(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
-			G bool `short:"g"`
-
+			G          bool `short:"g"`
 			SubCommand struct {
 				B bool `short:"b"`
 			} `command:"sub"`
@@ -121,24 +119,14 @@ func TestCommandFlagOrderSub(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Command.G {
-		t.Errorf("Expected Command.G to be true")
-	}
-
-	if !opts.Command.SubCommand.B {
-		t.Errorf("Expected Command.SubCommand.B to be true")
-	}
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Command.G)
+	assert.True(t, opts.Command.SubCommand.B)
 }
 
 func TestCommandFlagOverride1(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
 			Value bool `short:"v"`
 		} `command:"cmd"`
