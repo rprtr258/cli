@@ -64,15 +64,9 @@ func TestPointerStringMarshalled(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assert.Equal(t, ret, []string{})
-
-	if opts.Value == nil {
-		t.Error("Expected value not to be nil")
-		return
-	}
-
-	assert.Equal(t, string(*opts.Value), "value")
+	assert.Equal(t, []string{}, ret)
+	assert.NotNil(t, opts.Value)
+	assert.Equal(t, "value", string(*opts.Value))
 }
 
 type marshalledStruct struct {
@@ -94,15 +88,9 @@ func TestPointerStructMarshalled(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assert.Equal(t, ret, []string{})
-
-	if opts.Value == nil {
-		t.Error("Expected value not to be nil")
-		return
-	}
-
-	assert.Equal(t, opts.Value.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.NotNil(t, opts.Value)
+	assert.Equal(t, "value", opts.Value.Value)
 }
 
 type PointerGroup struct {
