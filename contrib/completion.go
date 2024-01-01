@@ -8,6 +8,8 @@ import (
 	"reflect"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Completion is a type containing information of a completion.
@@ -106,18 +108,12 @@ func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match st
 }
 
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
-	n := make([]Completion, 0, len(s.command.commands))
-
-	for _, cmd := range s.command.commands {
-		if cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match) {
-			n = append(n, Completion{
-				Item:        cmd.Name,
-				Description: cmd.ShortDescription,
-			})
-		}
-	}
-
-	return n
+	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
+		return Completion{
+			Item:        cmd.Name,
+			Description: cmd.ShortDescription,
+		}, cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match)
+	}, s.command.commands...)
 }
 
 func (c *completion) completeValue(value reflect.Value, prefix, match string) []Completion {
