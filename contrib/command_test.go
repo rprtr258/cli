@@ -339,11 +339,9 @@ func TestCommandNestedInline(t *testing.T) {
 	c := p.Command.Find("cmd")
 	assert.NotNil(t, c)
 	assert.Equal(t, c, p.Active)
-	if nested := c.Find("nested"); nested == nil {
-		t.Errorf("Expected to find command `nested'")
-	} else if nested != c.Active {
-		t.Errorf("Expected to find command `nested' to be the active `cmd' command")
-	}
+	nested := c.Find("nested")
+	assert.NotNil(t, nested)
+	assert.Equal(t, nested, c.Active)
 }
 
 func TestRequiredOnCommand(t *testing.T) {
