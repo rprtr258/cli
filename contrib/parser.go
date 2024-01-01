@@ -373,7 +373,6 @@ func (p *parseState) checkRequired(parser *Parser) {
 	if len(required) == 0 {
 		if len(p.positional) > 0 {
 			var reqnames []string
-
 			for _, arg := range p.positional {
 				if argRequired := !isRemainingArg(arg.value) && p.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
 					continue
@@ -393,13 +392,11 @@ func (p *parseState) checkRequired(parser *Parser) {
 					reqnames = append(reqnames, "`"+arg.Name+"`")
 				}
 			}
-
 			if len(reqnames) == 0 {
 				return
 			}
 
 			var msg string
-
 			if len(reqnames) == 1 {
 				msg = fmt.Sprintf("the required argument %s was not provided", reqnames[0])
 			} else {
@@ -411,7 +408,6 @@ func (p *parseState) checkRequired(parser *Parser) {
 				Kind:    ErrRequired,
 				Message: msg,
 			}
-			return
 		}
 
 		return
