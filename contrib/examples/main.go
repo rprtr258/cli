@@ -65,11 +65,8 @@ type Options struct {
 func main() {
 	parser := flags.NewParser(&Options{}, flags.Default)
 	if _, err := parser.Parse(); err != nil {
-		switch flagsErr := err.(type) {
-		case flags.ErrorKind:
-			if flagsErr == flags.ErrHelp {
-				return
-			}
+		if err == flags.ErrHelp {
+			return
 		}
 		os.Exit(1)
 	}
