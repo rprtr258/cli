@@ -13,12 +13,8 @@ func TestShort(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assert.Equal(t, ret, []string{})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.Value)
 }
 
 func TestShortTooLong(t *testing.T) {
@@ -61,20 +57,10 @@ func TestShortMultiConcat(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-vo", "-f")
-
-	assert.Equal(t, ret, []string{})
-
-	if !opts.V {
-		t.Errorf("Expected V to be true")
-	}
-
-	if !opts.O {
-		t.Errorf("Expected O to be true")
-	}
-
-	if !opts.F {
-		t.Errorf("Expected F to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.V)
+	assert.True(t, opts.O)
+	assert.True(t, opts.F)
 }
 
 func TestShortMultiRequiredConcat(t *testing.T) {
