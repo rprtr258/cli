@@ -205,11 +205,9 @@ func TestCommandFlagOverrideSub(t *testing.T) {
 
 func TestCommandFlagOverrideSub2(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
-			Value bool `short:"v"`
-
+			Value      bool `short:"v"`
 			SubCommand struct {
 				G bool `short:"g"`
 			} `command:"sub"`
@@ -217,23 +215,15 @@ func TestCommandFlagOverrideSub2(t *testing.T) {
 	}{}
 
 	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
-
-	if opts.Value {
-		t.Errorf("Expected Value to be false")
-	}
-
-	if !opts.Command.Value {
-		t.Errorf("Expected Command.Value to be true")
-	}
+	assert.False(t, opts.Value)
+	assert.True(t, opts.Command.Value)
 }
 
 func TestCommandEstimate(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
-		Cmd1 struct{} `command:"remove"`
-
-		Cmd2 struct{} `command:"add"`
+		Value bool     `short:"v"`
+		Cmd1  struct{} `command:"remove"`
+		Cmd2  struct{} `command:"add"`
 	}{}
 
 	p := NewParser(&opts, None)
