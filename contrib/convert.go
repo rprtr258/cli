@@ -31,8 +31,8 @@ type ValueValidator interface {
 	IsValidValue(value string) error
 }
 
-func getBase(options multiTag, base int) (int, error) {
-	if sbase := options.Get("base"); sbase != "" {
+func getBase(multitag multiTag, base int) (int, error) {
+	if sbase := multitag.Get("base"); sbase != "" {
 		ivbase, err := strconv.ParseInt(sbase, 10, 32)
 		return int(ivbase), err
 	}
