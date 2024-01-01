@@ -82,11 +82,3 @@ func (x multiTag) Get(key string) string {
 func (x multiTag) GetMany(key string) []string {
 	return x[key]
 }
-
-func (x multiTag) Set(key, value string) {
-	x[key] = []string{value}
-}
-
-func (x multiTag) SetMany(key string, value []string) {
-	x[key] = value
-}
