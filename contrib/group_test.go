@@ -81,17 +81,13 @@ func TestGroupNestedInlineNamespace(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
-
 	assertStringArray(t, ret, []string{"rest"})
-
 	assert.Equal(t, opts.Opt, "a")
 	assert.Equal(t, opts.Group.Opt, "b")
 	assert.Equal(t, opts.Group.Group.Opt, "c")
 
 	for _, name := range []string{"Subgroup", "Subsubgroup"} {
-		if p.Command.Group.Find(name) == nil {
-			t.Errorf("Expected to find group '%s'", name)
-		}
+		assert.NotNil(t, p.Command.Group.Find(name))
 	}
 }
 
