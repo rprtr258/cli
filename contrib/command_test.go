@@ -332,31 +332,17 @@ func TestCommandNestedInline(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
-
-	assert.Equal(t, ret, []string{"rest"})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !opts.Command.G {
-		t.Errorf("Expected Command.G to be true")
-	}
-
-	assert.Equal(t, opts.Command.Nested.N, "n")
-
-	if c := p.Command.Find("cmd"); c == nil {
-		t.Errorf("Expected to find command `cmd'")
-	} else {
-		if c != p.Active {
-			t.Errorf("Expected `cmd' to be the active parser command")
-		}
-
-		if nested := c.Find("nested"); nested == nil {
-			t.Errorf("Expected to find command `nested'")
-		} else if nested != c.Active {
-			t.Errorf("Expected to find command `nested' to be the active `cmd' command")
-		}
+	assert.Equal(t, []string{"rest"}, ret)
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Command.G)
+	assert.Equal(t, "n", opts.Command.Nested.N)
+	c := p.Command.Find("cmd")
+	assert.NotNil(t, c)
+	assert.Equal(t, c, p.Active)
+	if nested := c.Find("nested"); nested == nil {
+		t.Errorf("Expected to find command `nested'")
+	} else if nested != c.Active {
+		t.Errorf("Expected to find command `nested' to be the active `cmd' command")
 	}
 }
 
