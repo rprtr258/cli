@@ -36,7 +36,7 @@ type defaultOptions struct {
 }
 
 func TestDefaults(t *testing.T) {
-	tests := []struct {
+	for _, test := range []struct {
 		msg      string
 		args     []string
 		expected defaultOptions
@@ -114,11 +114,8 @@ func TestDefaults(t *testing.T) {
 				SliceDefault: []int{0},
 			},
 		},
-	}
-
-	for _, test := range tests {
+	} {
 		var opts defaultOptions
-
 		_, err := ParseArgs(&opts, test.args...)
 		assert.NoError(t, err)
 
