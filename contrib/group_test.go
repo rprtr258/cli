@@ -33,16 +33,10 @@ func TestGroupAdd(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	g, err := p.AddGroup("Grouped Options", "", &grp)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	ret, err := p.ParseArgs("-v", "-g", "rest")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	assertStringArray(t, ret, []string{"rest"})
 
