@@ -472,13 +472,5 @@ func WroteHelp(err error) bool {
 	}
 
 	flagError, ok := err.(*Error)
-	if !ok { // Not a go-flag error
-		return false
-	}
-
-	if flagError.Kind != ErrHelp { // Did not print the help message
-		return false
-	}
-
-	return true
+	return ok && flagError.Kind == ErrHelp
 }
