@@ -7,12 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func expectConvert(t *testing.T, o *Option, expected string) {
-	s, err := convertToString(o.value, o.tag)
-	assert.NoError(t, err)
-	assert.Equal(t, s, expected)
-}
-
 func TestConvertToString(t *testing.T) {
 	d, _ := time.ParseDuration("1h2m4s")
 
@@ -111,7 +105,9 @@ func TestConvertToString(t *testing.T) {
 	}
 
 	for i, v := range grp.Options() {
-		expectConvert(t, v, expects[i])
+		s, err := convertToString(v.value, v.tag)
+		assert.NoError(t, err)
+		assert.Equal(t, s, expects[i])
 	}
 }
 
