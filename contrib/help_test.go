@@ -432,7 +432,7 @@ Help Options:
 `
 	}
 
-	tests := []struct {
+	for _, test := range []struct {
 		Args   []string
 		Output string
 	}{
@@ -444,9 +444,7 @@ Help Options:
 			Args:   []string{"--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
 			Output: expected,
 		},
-	}
-
-	for _, test := range tests {
+	} {
 		var opts struct {
 			WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
 			WithoutDefault          string `long:"without-default" description:"Without default"`
