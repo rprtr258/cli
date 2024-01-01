@@ -43,9 +43,7 @@ func TestGroupAdd(t *testing.T) {
 	assert.True(t, grp.G)
 	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
 	assert.Equal(t, g, p.Groups()[1])
-	if g.Options()[0].ShortName != 'g' {
-		t.Errorf("Expected short name `g' but got %v", g.Options()[0].ShortName)
-	}
+	assert.Equal(t, 'g', g.Options()[0].ShortName)
 }
 
 func TestGroupNestedInline(t *testing.T) {
