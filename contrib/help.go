@@ -283,14 +283,9 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				if len(visibleCommands) > 3 {
 					fmt.Fprintf(bw, " %scommand%s", co, cc)
 				} else {
-					subcommands := allcmd.visibleCommands()
-					names := make([]string, len(subcommands))
-
-					for i, subc := range subcommands {
-						names[i] = subc.Name
-					}
-
-					fmt.Fprintf(bw, " %s%s%s", co, strings.Join(names, " | "), cc)
+					fmt.Fprintf(bw, " "+co+strings.Join(internal.Map(func(subc *Command) string {
+						return subc.Name
+					}, allcmd.visibleCommands()...), " | ")+cc)
 				}
 			}
 
