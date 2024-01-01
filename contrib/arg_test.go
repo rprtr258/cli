@@ -5,7 +5,7 @@ import (
 )
 
 func TestPositional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -17,7 +17,6 @@ func TestPositional(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	ret, err := p.ParseArgs("10", "arg_test.go", "a", "b")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -36,7 +35,7 @@ func TestPositional(t *testing.T) {
 }
 
 func TestPositionalRequired(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -53,7 +52,7 @@ func TestPositionalRequired(t *testing.T) {
 }
 
 func TestPositionalRequiredRest1Fail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -68,7 +67,7 @@ func TestPositionalRequiredRest1Fail(t *testing.T) {
 }
 
 func TestPositionalRequiredRest1Pass(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -78,7 +77,6 @@ func TestPositionalRequiredRest1Pass(t *testing.T) {
 
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs("rest1")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -92,7 +90,7 @@ func TestPositionalRequiredRest1Pass(t *testing.T) {
 }
 
 func TestPositionalRequiredRest2Fail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -107,7 +105,7 @@ func TestPositionalRequiredRest2Fail(t *testing.T) {
 }
 
 func TestPositionalRequiredRest2Pass(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -117,7 +115,6 @@ func TestPositionalRequiredRest2Pass(t *testing.T) {
 
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs("rest1", "rest2", "rest3")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -133,7 +130,7 @@ func TestPositionalRequiredRest2Pass(t *testing.T) {
 }
 
 func TestPositionalRequiredRestRangeFail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -148,7 +145,7 @@ func TestPositionalRequiredRestRangeFail(t *testing.T) {
 }
 
 func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {

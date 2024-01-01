@@ -8,7 +8,7 @@ import (
 )
 
 func TestCommandInline(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -38,11 +38,10 @@ func TestCommandInline(t *testing.T) {
 }
 
 func TestCommandInlineMulti(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		C1 struct {
-		} `command:"c1"`
+		C1 struct{} `command:"c1"`
 
 		C2 struct {
 			G bool `short:"g"`
@@ -77,7 +76,7 @@ func TestCommandInlineMulti(t *testing.T) {
 }
 
 func TestCommandFlagOrder1(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -89,7 +88,7 @@ func TestCommandFlagOrder1(t *testing.T) {
 }
 
 func TestCommandFlagOrder2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -109,7 +108,7 @@ func TestCommandFlagOrder2(t *testing.T) {
 }
 
 func TestCommandFlagOrderSub(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -137,7 +136,7 @@ func TestCommandFlagOrderSub(t *testing.T) {
 }
 
 func TestCommandFlagOverride1(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -157,7 +156,7 @@ func TestCommandFlagOverride1(t *testing.T) {
 }
 
 func TestCommandFlagOverride2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -177,7 +176,7 @@ func TestCommandFlagOverride2(t *testing.T) {
 }
 
 func TestCommandFlagOverrideSub(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -205,7 +204,7 @@ func TestCommandFlagOverrideSub(t *testing.T) {
 }
 
 func TestCommandFlagOverrideSub2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -229,14 +228,12 @@ func TestCommandFlagOverrideSub2(t *testing.T) {
 }
 
 func TestCommandEstimate(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	p := NewParser(&opts, None)
@@ -246,14 +243,12 @@ func TestCommandEstimate(t *testing.T) {
 }
 
 func TestCommandEstimate2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	p := NewParser(&opts, None)
@@ -276,7 +271,7 @@ func (c *testCommand) Execute(args []string) error {
 }
 
 func TestCommandExecute(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command testCommand `command:"cmd"`
@@ -300,14 +295,12 @@ func TestCommandExecute(t *testing.T) {
 }
 
 func TestCommandClosest(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
@@ -316,24 +309,22 @@ func TestCommandClosest(t *testing.T) {
 }
 
 func TestCommandAdd(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
-	var cmd = struct {
+	cmd := struct {
 		G bool `short:"g"`
 	}{}
 
 	p := NewParser(&opts, Default)
 	c, err := p.AddCommand("cmd", "", "", &cmd)
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
 	}
 
 	ret, err := p.ParseArgs("-v", "cmd", "-g", "rest")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -363,7 +354,7 @@ func TestCommandAdd(t *testing.T) {
 }
 
 func TestCommandNestedInline(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command struct {
@@ -405,7 +396,7 @@ func TestCommandNestedInline(t *testing.T) {
 }
 
 func TestRequiredOnCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v" required:"true"`
 
 		Command struct {
@@ -417,7 +408,7 @@ func TestRequiredOnCommand(t *testing.T) {
 }
 
 func TestRequiredAllOnCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value   bool `short:"v" required:"true"`
 		Missing bool `long:"missing" required:"true"`
 
@@ -430,7 +421,7 @@ func TestRequiredAllOnCommand(t *testing.T) {
 }
 
 func TestDefaultOnCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Command struct {
 			G string `short:"g" default:"value"`
 		} `command:"cmd"`
@@ -444,35 +435,30 @@ func TestDefaultOnCommand(t *testing.T) {
 }
 
 func TestAfterNonCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	assertParseFail(t, ErrUnknownCommand, "Unknown command `nocmd'. Please specify one command of: remove or add", &opts, "nocmd", "remove")
 }
 
 func TestSubcommandsOptional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	p := NewParser(&opts, None)
 	p.SubcommandsOptional = true
 
 	_, err := p.ParseArgs("-v")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -484,21 +470,18 @@ func TestSubcommandsOptional(t *testing.T) {
 }
 
 func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
-		Cmd1 struct {
-		} `command:"remove"`
+		Cmd1 struct{} `command:"remove"`
 
-		Cmd2 struct {
-		} `command:"add"`
+		Cmd2 struct{} `command:"add"`
 	}{}
 
 	p := NewParser(&opts, None)
 	p.SubcommandsOptional = true
 
 	retargs, err := p.ParseArgs("nocmd", "remove")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -508,7 +491,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 }
 
 func TestCommandAlias(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Command struct {
 			G string `short:"g" default:"value"`
 		} `command:"cmd" alias:"cm"`
@@ -582,13 +565,12 @@ func (foo *fooCmd) Execute(s []string) error {
 }
 
 func TestCommandPassAfterNonOption(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool   `short:"v"`
 		Foo   fooCmd `command:"foo"`
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "foo", "-f", "bar", "-v", "-g")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -614,13 +596,12 @@ type barCmd struct {
 }
 
 func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool   `short:"v"`
 		Bar   barCmd `command:"bar"`
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "bar", "-f", "baz", "-v", "-g")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return

@@ -275,7 +275,6 @@ func (option *Option) clearDefault() error {
 
 		for _, d := range option.Default {
 			err := option.setDefault(&d)
-
 			if err != nil {
 				return err
 			}

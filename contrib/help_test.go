@@ -320,8 +320,7 @@ This is a sub command option
 }
 
 type helpCommandNoOptions struct {
-	Command struct {
-	} `command:"command" description:"A command"`
+	Command struct{} `command:"command" description:"A command"`
 }
 
 func TestHelpCommand(t *testing.T) {
@@ -580,7 +579,7 @@ func TestWrapParagraph(t *testing.T) {
 }
 
 func TestHelpDefaultMask(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		opts    any
 		present string
 	}{

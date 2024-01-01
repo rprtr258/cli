@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type TestComplete struct {
-}
+type TestComplete struct{}
 
 func (t *TestComplete) Complete(match string) []Completion {
 	options := []string{
@@ -70,8 +69,7 @@ var completionTestOptions struct {
 		Completed TestComplete `short:"c" long:"completed"`
 	} `command:"rename" description:"rename an item"`
 
-	HiddenCommand struct {
-	} `command:"hidden" description:"hidden command" hidden:"true"`
+	HiddenCommand struct{} `command:"hidden" description:"hidden command" hidden:"true"`
 }
 
 type completionTest struct {

@@ -5,7 +5,7 @@ import (
 )
 
 func TestTagMissingColon(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		TestValue bool `short`
 	}{}
 
@@ -13,7 +13,7 @@ func TestTagMissingColon(t *testing.T) {
 }
 
 func TestTagMissingValue(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		TestValue bool `short:`
 	}{}
 
@@ -21,7 +21,7 @@ func TestTagMissingValue(t *testing.T) {
 }
 
 func TestTagMissingQuote(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		TestValue bool `short:"v`
 	}{}
 
@@ -29,7 +29,7 @@ func TestTagMissingQuote(t *testing.T) {
 }
 
 func TestTagNewline(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		TestValue bool `long:"verbose" description:"verbose
 something"`
 	}{}

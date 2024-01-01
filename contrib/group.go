@@ -263,7 +263,6 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			return newErrorf(ErrShortNameTooLong,
 				"short names can only be 1 character long, not `%s'",
 				shortname)
-
 		} else if rc == 1 {
 			short, _ = utf8.DecodeRuneInString(shortname)
 		}
@@ -367,7 +366,6 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		description := mtag.Get("description")
 
 		group, err := g.AddGroup(subgroup, description, ptrval.Interface())
-
 		if err != nil {
 			return true, err
 		}

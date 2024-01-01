@@ -6,13 +6,12 @@ import (
 )
 
 func TestPassDoubleDash(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
 	p := NewParser(&opts, PassDoubleDash)
 	ret, err := p.ParseArgs("-v", "--", "-v", "-g")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -26,13 +25,12 @@ func TestPassDoubleDash(t *testing.T) {
 }
 
 func TestPassAfterNonOption(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -46,7 +44,7 @@ func TestPassAfterNonOption(t *testing.T) {
 }
 
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -56,7 +54,6 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -71,7 +68,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 }
 
 func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -81,7 +78,6 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 
 	p := NewParser(&opts, PassAfterNonOption)
 	ret, err := p.ParseArgs("-v", "1", "2", "3")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -100,7 +96,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 }
 
 func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {

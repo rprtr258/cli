@@ -5,7 +5,7 @@ import (
 )
 
 func TestPointerBool(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *bool `short:"v"`
 	}{}
 
@@ -19,7 +19,7 @@ func TestPointerBool(t *testing.T) {
 }
 
 func TestPointerString(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *string `short:"v"`
 	}{}
 
@@ -30,7 +30,7 @@ func TestPointerString(t *testing.T) {
 }
 
 func TestPointerSlice(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *[]string `short:"v"`
 	}{}
 
@@ -41,7 +41,7 @@ func TestPointerSlice(t *testing.T) {
 }
 
 func TestPointerMap(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *map[string]int `short:"v"`
 	}{}
 
@@ -74,7 +74,7 @@ func (m marshalledString) MarshalFlag() (string, error) {
 }
 
 func TestPointerStringMarshalled(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *marshalledString `short:"v"`
 	}{}
 
@@ -104,7 +104,7 @@ func (m marshalledStruct) MarshalFlag() (string, error) {
 }
 
 func TestPointerStructMarshalled(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *marshalledStruct `short:"v"`
 	}{}
 
@@ -125,7 +125,7 @@ type PointerGroup struct {
 }
 
 func TestPointerGroup(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Group *PointerGroup `group:"Group Options"`
 	}{}
 

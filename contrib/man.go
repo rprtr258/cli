@@ -150,7 +150,7 @@ func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command 
 		}
 	}
 
-	var pre = usagePrefix + " " + command.Name
+	pre := usagePrefix + " " + command.Name
 
 	var usage string
 	if us, ok := command.data.(Usage); ok {
@@ -159,7 +159,7 @@ func writeManPageCommand(wr io.Writer, name string, usagePrefix string, command 
 		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
 	}
 
-	var nextPrefix = pre
+	nextPrefix := pre
 	if len(usage) > 0 {
 		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
 		nextPrefix = pre + " " + usage

@@ -78,7 +78,6 @@ func assertBoolArray(t *testing.T, a []bool, b []bool) {
 func assertParserSuccess(t *testing.T, data any, args ...string) (*Parser, []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
-
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)
 		return nil, nil
@@ -112,13 +111,11 @@ func assertParseFail(t *testing.T, typ ErrorKind, msg string, data any, args ...
 
 func diff(a, b string) (string, error) {
 	atmp, err := os.CreateTemp("", "help-diff")
-
 	if err != nil {
 		return "", err
 	}
 
 	btmp, err := os.CreateTemp("", "help-diff")
-
 	if err != nil {
 		return "", err
 	}

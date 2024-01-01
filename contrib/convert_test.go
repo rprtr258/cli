@@ -7,7 +7,6 @@ import (
 
 func expectConvert(t *testing.T, o *Option, expected string) {
 	s, err := convertToString(o.value, o.tag)
-
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 		return
@@ -19,7 +18,7 @@ func expectConvert(t *testing.T, o *Option, expected string) {
 func TestConvertToString(t *testing.T) {
 	d, _ := time.ParseDuration("1h2m4s")
 
-	var opts = struct {
+	opts := struct {
 		String string `long:"string"`
 
 		Int   int   `long:"int"`
@@ -119,7 +118,7 @@ func TestConvertToString(t *testing.T) {
 }
 
 func TestConvertToStringInvalidIntBase(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Int int `long:"int" base:"no"`
 	}{
 		2,
@@ -130,7 +129,6 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 	o := grp.Options()[0]
 
 	_, err := convertToString(o.value, o.tag)
-
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
 	}
@@ -139,7 +137,7 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 }
 
 func TestConvertToStringInvalidUintBase(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Uint uint `long:"uint" base:"no"`
 	}{
 		2,
@@ -150,7 +148,6 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 	o := grp.Options()[0]
 
 	_, err := convertToString(o.value, o.tag)
-
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
 	}

@@ -27,13 +27,11 @@ func (p *Point) UnmarshalFlag(value string) error {
 	}
 
 	x, err := strconv.ParseInt(parts[0], 10, 32)
-
 	if err != nil {
 		return err
 	}
 
 	y, err := strconv.ParseInt(parts[1], 10, 32)
-
 	if err != nil {
 		return err
 	}

@@ -34,7 +34,7 @@ func (m marshalledError) MarshalFlag() (string, error) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v"`
 	}{}
 
@@ -48,7 +48,7 @@ func TestUnmarshal(t *testing.T) {
 }
 
 func TestUnmarshalDefault(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v" default:"yes"`
 	}{}
 
@@ -62,7 +62,7 @@ func TestUnmarshalDefault(t *testing.T) {
 }
 
 func TestUnmarshalOptional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
 	}{}
 
@@ -76,7 +76,7 @@ func TestUnmarshalOptional(t *testing.T) {
 }
 
 func TestUnmarshalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v"`
 	}{}
 
@@ -84,7 +84,7 @@ func TestUnmarshalError(t *testing.T) {
 }
 
 func TestUnmarshalPositionalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Args struct {
 			Value marshalled
 		} `positional-args:"yes"`
@@ -106,7 +106,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 }
 
 func TestMarshalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalledError `short:"v"`
 	}{}
 

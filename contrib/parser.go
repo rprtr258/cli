@@ -290,7 +290,6 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 				_ = s.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
 				modifiedArgs, err := p.UnknownOptionHandler(optname, strArgument{argument}, s.args)
-
 				if err != nil {
 					s.err = err
 					break

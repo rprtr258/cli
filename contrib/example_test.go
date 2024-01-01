@@ -77,7 +77,6 @@ func Example() {
 		"remaining1",
 		"remaining2",
 	)
-
 	if err != nil {
 		panic(err)
 	}

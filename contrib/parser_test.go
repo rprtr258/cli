@@ -35,7 +35,7 @@ type defaultOptions struct {
 }
 
 func TestDefaults(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		msg      string
 		args     []string
 		expected defaultOptions
@@ -146,7 +146,7 @@ func TestNoDefaultsForBools(t *testing.T) {
 }
 
 func TestUnquoting(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		arg   string
 		err   error
 		value string
@@ -232,7 +232,7 @@ func (c *CustomFlag) IsValidValue(s string) error {
 }
 
 func TestOptionAsArgument(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		args        []string
 		expectError bool
 		errType     ErrorKind
@@ -353,7 +353,6 @@ func TestOptionAsArgument(t *testing.T) {
 }
 
 func TestUnknownFlagHandler(t *testing.T) {
-
 	var opts struct {
 		Flag1 string `long:"flag1"`
 		Flag2 string `long:"flag2"`
@@ -395,7 +394,6 @@ func TestUnknownFlagHandler(t *testing.T) {
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them
 	_, err := p.ParseArgs("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
-
 	if err != nil {
 		assertErrorf(t, "Parser returned unexpected error %v", err)
 	}
@@ -442,15 +440,14 @@ func TestEmbedded(t *testing.T) {
 	}
 }
 
-type command struct {
-}
+type command struct{}
 
 func (c *command) Execute(args []string) error {
 	return nil
 }
 
 func TestCommandHandlerNoCommand(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
@@ -471,7 +468,6 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 	}
 
 	_, err := parser.ParseArgs("arg1", "arg2")
-
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)
 	}
@@ -488,7 +484,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 }
 
 func TestCommandHandler(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Command command `command:"cmd"`
@@ -511,7 +507,6 @@ func TestCommandHandler(t *testing.T) {
 	}
 
 	_, err := parser.ParseArgs("cmd", "arg1", "arg2")
-
 	if err != nil {
 		t.Fatalf("Unexpected parse error: %s", err)
 	}

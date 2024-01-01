@@ -68,7 +68,7 @@ type Options struct {
 
 func main() {
 	var opts Options
-	var parser = cli.NewParser(&opts, cli.Default)
+	parser := cli.NewParser(&opts, cli.Default)
 	parser.AddCommand(
 		"add",
 		"Add a file",

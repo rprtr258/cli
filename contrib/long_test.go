@@ -5,7 +5,7 @@ import (
 )
 
 func TestLong(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `long:"value"`
 	}{}
 
@@ -19,7 +19,7 @@ func TestLong(t *testing.T) {
 }
 
 func TestLongArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value"`
 	}{}
 
@@ -30,7 +30,7 @@ func TestLongArg(t *testing.T) {
 }
 
 func TestLongArgEqual(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value"`
 	}{}
 
@@ -41,7 +41,7 @@ func TestLongArgEqual(t *testing.T) {
 }
 
 func TestLongDefault(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value" default:"value"`
 	}{}
 
@@ -52,7 +52,7 @@ func TestLongDefault(t *testing.T) {
 }
 
 func TestLongOptional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}{}
 
@@ -63,7 +63,7 @@ func TestLongOptional(t *testing.T) {
 }
 
 func TestLongOptionalArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}{}
 
@@ -74,7 +74,7 @@ func TestLongOptionalArg(t *testing.T) {
 }
 
 func TestLongOptionalArgEqual(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `long:"value" optional:"yes" optional-value:"value"`
 	}{}
 

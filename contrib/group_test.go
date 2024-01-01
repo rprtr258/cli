@@ -5,7 +5,7 @@ import (
 )
 
 func TestGroupInline(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Group struct {
@@ -31,24 +31,22 @@ func TestGroupInline(t *testing.T) {
 }
 
 func TestGroupAdd(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
-	var grp = struct {
+	grp := struct {
 		G bool `short:"g"`
 	}{}
 
 	p := NewParser(&opts, Default)
 	g, err := p.AddGroup("Grouped Options", "", &grp)
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
 	}
 
 	ret, err := p.ParseArgs("-v", "-g", "rest")
-
 	if err != nil {
 		t.Fatalf("Unexpected error: %v", err)
 		return
@@ -78,7 +76,7 @@ func TestGroupAdd(t *testing.T) {
 }
 
 func TestGroupNestedInline(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Group struct {
@@ -114,7 +112,7 @@ func TestGroupNestedInline(t *testing.T) {
 }
 
 func TestGroupNestedInlineNamespace(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Opt string `long:"opt"`
 
 		Group struct {

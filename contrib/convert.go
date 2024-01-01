@@ -87,7 +87,6 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		return "false", nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options, 10)
-
 		if err != nil {
 			return "", err
 		}
@@ -95,7 +94,6 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, err := getBase(options, 10)
-
 		if err != nil {
 			return "", err
 		}
@@ -116,7 +114,6 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 			}
 
 			item, err := convertToString(val.Index(i), options)
-
 			if err != nil {
 				return "", err
 			}
@@ -134,13 +131,11 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 			}
 
 			keyitem, err := convertToString(key, options)
-
 			if err != nil {
 				return "", err
 			}
 
 			item, err := convertToString(val.MapIndex(key), options)
-
 			if err != nil {
 				return "", err
 			}
@@ -195,7 +190,6 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 	// Support for time.Duration
 	if tp == typeof[time.Duration]() {
 		parsed, err := time.ParseDuration(val)
-
 		if err != nil {
 			return err
 		}
@@ -212,7 +206,6 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.SetBool(true)
 		} else {
 			b, err := strconv.ParseBool(val)
-
 			if err != nil {
 				return err
 			}
@@ -221,13 +214,11 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options, 10)
-
 		if err != nil {
 			return err
 		}
 
 		parsed, err := strconv.ParseInt(val, base, tp.Bits())
-
 		if err != nil {
 			return err
 		}
@@ -235,13 +226,11 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		base, err := getBase(options, 10)
-
 		if err != nil {
 			return err
 		}
 
 		parsed, err := strconv.ParseUint(val, base, tp.Bits())
-
 		if err != nil {
 			return err
 		}
@@ -249,7 +238,6 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		retval.SetUint(parsed)
 	case reflect.Float32, reflect.Float64:
 		parsed, err := strconv.ParseFloat(val, tp.Bits())
-
 		if err != nil {
 			return err
 		}

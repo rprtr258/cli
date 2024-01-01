@@ -5,7 +5,7 @@ import (
 )
 
 func TestUnknownFlags(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	}{}
 
@@ -19,7 +19,7 @@ func TestUnknownFlags(t *testing.T) {
 }
 
 func TestIgnoreUnknownFlags(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	}{}
 
@@ -32,7 +32,6 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		"--verbose",
 		"-f",
 	)
-
 	if err != nil {
 		t.Fatal(err)
 	}

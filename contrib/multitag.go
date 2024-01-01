@@ -80,7 +80,6 @@ func (x *multiTag) scan() (map[string][]string, error) {
 		}
 
 		val, err := strconv.Unquote(v[:i+1])
-
 		if err != nil {
 			return nil, newErrorf(ErrTag, "Malformed value of tag `%v:%v` => %v (in `%v`)", name, v[:i+1], err, x.value)
 		}

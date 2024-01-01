@@ -6,7 +6,7 @@ import (
 )
 
 func TestShort(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
@@ -20,7 +20,7 @@ func TestShort(t *testing.T) {
 }
 
 func TestShortTooLong(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"vv"`
 	}{}
 
@@ -28,7 +28,7 @@ func TestShortTooLong(t *testing.T) {
 }
 
 func TestShortRequired(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v" required:"true"`
 	}{}
 
@@ -36,7 +36,7 @@ func TestShortRequired(t *testing.T) {
 }
 
 func TestShortRequiredFalsy1(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v" required:"false"`
 	}{}
 
@@ -44,7 +44,7 @@ func TestShortRequiredFalsy1(t *testing.T) {
 }
 
 func TestShortRequiredFalsy2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v" required:"no"`
 	}{}
 
@@ -52,7 +52,7 @@ func TestShortRequiredFalsy2(t *testing.T) {
 }
 
 func TestShortMultiConcat(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		V bool `short:"v"`
 		O bool `short:"o"`
 		F bool `short:"f"`
@@ -76,7 +76,7 @@ func TestShortMultiConcat(t *testing.T) {
 }
 
 func TestShortMultiRequiredConcat(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		V bool `short:"v" required:"true"`
 		O bool `short:"o" required:"true"`
 		F bool `short:"f" required:"true"`
@@ -100,7 +100,7 @@ func TestShortMultiRequiredConcat(t *testing.T) {
 }
 
 func TestShortMultiSlice(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Values []bool `short:"v"`
 	}{}
 
@@ -111,7 +111,7 @@ func TestShortMultiSlice(t *testing.T) {
 }
 
 func TestShortMultiSliceConcat(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Values []bool `short:"v"`
 	}{}
 
@@ -122,7 +122,7 @@ func TestShortMultiSliceConcat(t *testing.T) {
 }
 
 func TestShortWithEqualArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `short:"v"`
 	}{}
 
@@ -133,7 +133,7 @@ func TestShortWithEqualArg(t *testing.T) {
 }
 
 func TestShortWithArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `short:"v"`
 	}{}
 
@@ -144,7 +144,7 @@ func TestShortWithArg(t *testing.T) {
 }
 
 func TestShortArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value string `short:"v"`
 	}{}
 
@@ -155,7 +155,7 @@ func TestShortArg(t *testing.T) {
 }
 
 func TestShortMultiWithEqualArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
@@ -164,7 +164,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 }
 
 func TestShortMultiArg(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
@@ -177,7 +177,7 @@ func TestShortMultiArg(t *testing.T) {
 }
 
 func TestShortMultiArgConcatFail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
@@ -186,7 +186,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 }
 
 func TestShortMultiArgConcat(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v"`
 	}{}
@@ -198,7 +198,7 @@ func TestShortMultiArgConcat(t *testing.T) {
 }
 
 func TestShortOptional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v" optional:"yes" optional-value:"value"`
 	}{}
@@ -210,7 +210,7 @@ func TestShortOptional(t *testing.T) {
 }
 
 func TestShortOptionalFalsy1(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v" optional:"false" optional-value:"value"`
 	}{}
@@ -222,7 +222,7 @@ func TestShortOptionalFalsy1(t *testing.T) {
 }
 
 func TestShortOptionalFalsy2(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		F     []bool `short:"f"`
 		Value string `short:"v" optional:"no" optional-value:"value"`
 	}{}

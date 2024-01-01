@@ -1,3 +1,4 @@
+//go:build windows
 // +build windows
 
 package flags
@@ -32,8 +33,10 @@ type (
 	}
 )
 
-var kernel32DLL = syscall.NewLazyDLL("kernel32.dll")
-var getConsoleScreenBufferInfoProc = kernel32DLL.NewProc("GetConsoleScreenBufferInfo")
+var (
+	kernel32DLL                    = syscall.NewLazyDLL("kernel32.dll")
+	getConsoleScreenBufferInfoProc = kernel32DLL.NewProc("GetConsoleScreenBufferInfo")
+)
 
 func getError(r1, r2 uintptr, lastErr error) error {
 	// If the function fails, the return value is zero.

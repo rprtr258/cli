@@ -247,7 +247,6 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			aliases := mtag.GetMany("alias")
 
 			subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
-
 			if err != nil {
 				return true, err
 			}
