@@ -49,6 +49,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		if !grp.showInHelp() {
 			return
 		}
+
 		for _, info := range grp.options {
 			if !info.showInHelp() {
 				continue
