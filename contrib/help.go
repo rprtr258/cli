@@ -122,19 +122,14 @@ func wrapText(s string, l int, prefix string) string {
 }
 
 func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
-	line := &bytes.Buffer{}
-
-	prefix := paddingBeforeOption
-
-	if info.indent {
-		prefix += 4
-	}
-
 	if option.Hidden {
 		return
 	}
 
-	line.WriteString(strings.Repeat(" ", prefix))
+	line := &bytes.Buffer{}
+
+	prefixLen := paddingBeforeOption + internal.Iverson(info.indent)*4
+	line.WriteString(strings.Repeat(" ", prefixLen))
 
 	if option.ShortName != 0 {
 		line.WriteByte(defaultShortOptDelimiter)
