@@ -125,15 +125,9 @@ func (g *Group) findOptionByShortName(shortName rune) *Option {
 }
 
 func (g *Group) showInHelp() bool {
-	if g.Hidden {
-		return false
-	}
-	for _, opt := range g.options {
-		if opt.showInHelp() {
-			return true
-		}
-	}
-	return false
+	return !g.Hidden && fun.Any(g.options, func(opt *Option) bool {
+		return opt.showInHelp()
+	})
 }
 
 func (g *Group) eachGroup(yield func(*Group) bool) bool {
