@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -570,16 +569,12 @@ func TestHelpDefaultMask(t *testing.T) {
 		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil
 		}
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
+		assert.NoError(t, err)
 		h := &bytes.Buffer{}
 		w := bufio.NewWriter(h)
 		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
 		w.Flush()
-		if strings.Index(h.String(), test.present) < 0 {
-			t.Errorf("Not present %q\n%s", test.present, h.String())
-		}
+		assert.Contains(t, h.String(), test.present)
 	}
 }
 
