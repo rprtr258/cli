@@ -58,8 +58,7 @@ type Usage interface {
 type lookup struct {
 	shortNames map[string]*Option
 	longNames  map[string]*Option
-
-	commands map[string]*Command
+	commands   map[string]*Command
 }
 
 // AddCommand adds a new command to the parser with the given name and data. The
