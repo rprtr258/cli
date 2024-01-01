@@ -20,10 +20,7 @@ func assertCallerInfo() (file string, line int) {
 
 	mefile, meline := runtime.FuncForPC(ptr[0]).FileLine(ptr[0])
 	for i := 2; i < n; i++ {
-		f := runtime.FuncForPC(ptr[i])
-		file, line := f.FileLine(ptr[i])
-
-		if file != mefile {
+		if file, line := runtime.FuncForPC(ptr[i]).FileLine(ptr[i]); file != mefile {
 			return file, line
 		}
 	}
