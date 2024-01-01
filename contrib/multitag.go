@@ -5,7 +5,6 @@ import (
 )
 
 type multiTag struct {
-	value string
 	cache map[string][]string
 }
 
@@ -74,7 +73,6 @@ func scanMultiTag(value string) (map[string][]string, error) {
 func ParseMultiTag(value string) (multiTag, error) {
 	vals, err := scanMultiTag(value)
 	return multiTag{
-		value: value,
 		cache: vals,
 	}, err
 }
