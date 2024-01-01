@@ -91,8 +91,7 @@ func TestPositionalRequiredRest2Fail(t *testing.T) {
 
 func TestPositionalRequiredRest2Pass(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Rest []string `required:"2"`
 		} `positional-args:"yes"`
@@ -106,8 +105,7 @@ func TestPositionalRequiredRest2Pass(t *testing.T) {
 
 func TestPositionalRequiredRestRangeFail(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Rest []string `required:"1-2"`
 		} `positional-args:"yes"`
@@ -115,14 +113,12 @@ func TestPositionalRequiredRestRangeFail(t *testing.T) {
 
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs("rest1", "rest2", "rest3")
-
 	assertError(t, err, ErrRequired, "the required argument `Rest (at most 2 arguments, but got 3)` was not provided")
 }
 
 func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Rest []string `required:"0-0"`
 		} `positional-args:"yes"`
@@ -130,6 +126,5 @@ func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
 
 	p := NewParser(&opts, None)
 	_, err := p.ParseArgs("some", "thing")
-
 	assertError(t, err, ErrRequired, "the required argument `Rest (zero arguments)` was not provided")
 }
