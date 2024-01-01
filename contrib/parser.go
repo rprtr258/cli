@@ -441,8 +441,7 @@ func (p *parseState) checkRequired(parser *Parser) {
 	sort.Strings(names)
 
 	var msg string
-
-	if len(names) == 1 {
+	if len(required) == 1 {
 		msg = fmt.Sprintf("the required flag %s was not specified", names[0])
 	} else {
 		msg = fmt.Sprintf("the required flags %s and %s were not specified",
