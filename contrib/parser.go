@@ -375,13 +375,11 @@ func (p *parseState) checkRequired(parser *Parser) {
 			var reqnames []string
 
 			for _, arg := range p.positional {
-				argRequired := (!arg.isRemaining() && p.command.ArgsRequired) || arg.Required != -1 || arg.RequiredMaximum != -1
-
-				if !argRequired {
+				if argRequired := !isRemainingArg(arg.value) && p.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
 					continue
 				}
 
-				if arg.isRemaining() {
+				if isRemainingArg(arg.value) {
 					if arg.value.Len() < arg.Required {
 						var arguments string
 
@@ -616,13 +614,12 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 func (p *parseState) addArgs(args ...string) error {
 	for len(p.positional) > 0 && len(args) > 0 {
 		arg := p.positional[0]
-
 		if err := convert(args[0], arg.value, arg.tag); err != nil {
 			p.err = err
 			return err
 		}
 
-		if !arg.isRemaining() {
+		if !isRemainingArg(arg.value) {
 			p.positional = p.positional[1:]
 		}
 

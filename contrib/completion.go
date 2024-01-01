@@ -203,7 +203,7 @@ func (c *completion) complete(args []string) []Completion {
 			}
 		} else {
 			if len(s.positional) > 0 {
-				if !s.positional[0].isRemaining() {
+				if !isRemainingArg(s.positional[0].value) {
 					// Don't advance beyond a remaining positional arg (because
 					// it consumes all subsequent args).
 					s.positional = s.positional[1:]

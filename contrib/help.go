@@ -251,7 +251,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 				name := arg.Name
 
-				if arg.isRemaining() {
+				if isRemainingArg(arg.value) {
 					name += "..."
 				}
 

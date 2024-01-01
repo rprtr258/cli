@@ -13,6 +13,6 @@ type Arg struct {
 	tag   multiTag
 }
 
-func (a *Arg) isRemaining() bool {
-	return a.value.Type().Kind() == reflect.Slice
+func isRemainingArg(value reflect.Value) bool {
+	return value.Type().Kind() == reflect.Slice
 }
