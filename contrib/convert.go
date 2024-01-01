@@ -172,7 +172,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	return false, nil
 }
 
-func convert(val string, retval reflect.Value, options multiTag) error {
+func convert(val string, retval reflect.Value, multitag multiTag) error {
 	if ok, err := convertUnmarshal(val, retval); ok {
 		return err
 	}
@@ -205,7 +205,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.SetBool(b)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options, 10)
+		base, err := getBase(multitag, 10)
 		if err != nil {
 			return err
 		}
@@ -217,7 +217,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(options, 10)
+		base, err := getBase(multitag, 10)
 		if err != nil {
 			return err
 		}
@@ -241,7 +241,7 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		elemvalptr := reflect.New(elemtp)
 		elemval := reflect.Indirect(elemvalptr)
 
-		if err := convert(val, elemval, options); err != nil {
+		if err := convert(val, elemval, multitag); err != nil {
 			return err
 		}
 
@@ -256,14 +256,14 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 
 		keyval := reflect.New(tp.Key())
 		key := parts[0]
-		if err := convert(key, keyval, options); err != nil {
+		if err := convert(key, keyval, multitag); err != nil {
 			return err
 		}
 
 		valuetp := tp.Elem()
 		valueval := reflect.New(valuetp)
 
-		if err := convert(value, valueval, options); err != nil {
+		if err := convert(value, valueval, multitag); err != nil {
 			return err
 		}
 
@@ -277,10 +277,10 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
 
-		return convert(val, reflect.Indirect(retval), options)
+		return convert(val, reflect.Indirect(retval), multitag)
 	case reflect.Interface:
 		if !retval.IsNil() {
-			return convert(val, retval.Elem(), options)
+			return convert(val, retval.Elem(), multitag)
 		}
 	}
 
