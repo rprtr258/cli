@@ -308,12 +308,6 @@ func (c *Command) addHelpGroups(showHelp func() error) {
 }
 
 func (c *Command) makeLookup() lookup {
-	ret := lookup{
-		shortNames: make(map[string]*Option),
-		longNames:  make(map[string]*Option),
-		commands:   make(map[string]*Command),
-	}
-
 	parent := c.parent
 
 	var parents []*Command
@@ -327,10 +321,14 @@ func (c *Command) makeLookup() lookup {
 		}
 	}
 
+	ret := lookup{
+		shortNames: make(map[string]*Option),
+		longNames:  make(map[string]*Option),
+		commands:   make(map[string]*Command),
+	}
 	for i := len(parents) - 1; i >= 0; i-- {
 		parents[i].fillLookup(&ret, true)
 	}
-
 	c.fillLookup(&ret, false)
 	return ret
 }
