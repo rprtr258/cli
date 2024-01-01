@@ -89,13 +89,11 @@ func (option *Option) LongNameWithNamespace() string {
 
 	// fetch the namespace delimiter from the parser which is always at the
 	// end of the group hierarchy
-	namespaceDelimiter := ""
+	var namespaceDelimiter string
 	g := option.group
-
 	for {
 		if p, ok := g.parent.(*Parser); ok {
 			namespaceDelimiter = p.NamespaceDelimiter
-
 			break
 		}
 
