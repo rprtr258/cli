@@ -363,10 +363,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		}, scommands...)
 
 		for _, c := range scommands {
-			fullNameRepresentation := c.Name
-			if len(c.Aliases) > 0 {
-				fullNameRepresentation += "," + strings.Join(c.Aliases, ",")
-			}
+			fullNameRepresentation := c.Name + internal.Iverson(len(c.Aliases) > 0, ","+strings.Join(c.Aliases, ","))
 			fmt.Fprint(bw, "  "+fullNameRepresentation)
 
 			if c.ShortDescription != "" {
