@@ -183,13 +183,14 @@ func (option *Option) Set(value *string) error {
 		}
 	}
 
-	if option.isFunc() {
+	switch {
+	case option.isFunc():
 		return option.call(value)
-	} else if value != nil {
+	case value != nil:
 		return convert(*value, option.value, option.tag)
+	default:
+		return convert("", option.value, option.tag)
 	}
-
-	return convert("", option.value, option.tag)
 }
 
 func (option *Option) setDefault(value *string) error {
