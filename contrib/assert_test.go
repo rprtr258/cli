@@ -1,27 +1,10 @@
 package flags
 
 import (
-	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func assertCallerInfo() (file string, line int) {
-	ptr := make([]uintptr, 15)
-	n := runtime.Callers(1, ptr)
-	if n == 0 {
-		return "", 0
-	}
-
-	mefile, meline := runtime.FuncForPC(ptr[0]).FileLine(ptr[0])
-	for i := 2; i < n; i++ {
-		if file, line := runtime.FuncForPC(ptr[i]).FileLine(ptr[i]); file != mefile {
-			return file, line
-		}
-	}
-	return mefile, meline
-}
 
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
 	parser := NewParser(data, Default&^PrintErrors)
