@@ -42,14 +42,6 @@ func assertErrorf(t *testing.T, format string, args ...any) {
 	t.Errorf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertFatalf(t *testing.T, format string, args ...any) {
-	t.Helper()
-
-	msg := fmt.Sprintf(format, args...)
-	file, line := assertCallerInfo()
-	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
-}
-
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
