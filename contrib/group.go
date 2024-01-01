@@ -295,6 +295,7 @@ func (g *Group) checkForDuplicateFlags() *Error {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
 					return
 				}
+
 				longNames[longName] = option
 			}
 			if option.ShortName != 0 {
@@ -302,6 +303,7 @@ func (g *Group) checkForDuplicateFlags() *Error {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same short name as option `%s'", option, otherOption)
 					return
 				}
+
 				shortNames[option.ShortName] = option
 			}
 		}
