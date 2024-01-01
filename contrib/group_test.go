@@ -187,12 +187,8 @@ func TestFindOptionByLongFlag(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	opt := p.FindOptionByLongName("testing")
-
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
-
-	assert.Equal(t, opt.LongName, "testing")
+	assert.NotNil(t, opt)
+	assert.Equal(t, "testing", opt.LongName)
 }
 
 func TestFindOptionByShortFlag(t *testing.T) {
@@ -202,14 +198,8 @@ func TestFindOptionByShortFlag(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	opt := p.FindOptionByShortName('t')
-
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
-
-	if opt.ShortName != 't' {
-		t.Errorf("Expected 't', but got %v", opt.ShortName)
-	}
+	assert.NotNil(t, opt)
+	assert.Equal(t, 't', opt.ShortName)
 }
 
 func TestFindOptionByLongFlagInSubGroup(t *testing.T) {
