@@ -162,9 +162,8 @@ func newCommand(name, shortDescription, longDescription string, data any) *Comma
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
-		mtag := newMultiTag(string(sfield.Tag))
-
-		if err := mtag.Parse(); err != nil {
+		mtag, err := ParseMultiTag(string(sfield.Tag))
+		if err != nil {
 			return true, err
 		}
 
@@ -176,9 +175,8 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			for i := 0; i < stype.NumField(); i++ {
 				field := stype.Field(i)
 
-				m := newMultiTag((string(field.Tag)))
-
-				if err := m.Parse(); err != nil {
+				m, err := ParseMultiTag(string(field.Tag))
+				if err != nil {
 					return true, err
 				}
 

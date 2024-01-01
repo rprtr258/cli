@@ -9,13 +9,7 @@ type multiTag struct {
 	cache map[string][]string
 }
 
-func newMultiTag(v string) multiTag {
-	return multiTag{
-		value: v,
-	}
-}
-
-func scan(value string) (map[string][]string, error) {
+func scanMultiTag(value string) (map[string][]string, error) {
 	ret := map[string][]string{}
 	for v := value; v != ""; {
 		i := 0
@@ -77,15 +71,17 @@ func scan(value string) (map[string][]string, error) {
 	return ret, nil
 }
 
-func (x *multiTag) Parse() error {
-	vals, err := scan(x.value)
-	x.cache = vals
-	return err
+func ParseMultiTag(value string) (multiTag, error) {
+	vals, err := scanMultiTag(value)
+	return multiTag{
+		value: value,
+		cache: vals,
+	}, err
 }
 
 func (x *multiTag) cached() map[string][]string {
 	if x.cache == nil {
-		cache, _ := scan(x.value)
+		cache, _ := scanMultiTag(x.value)
 
 		if cache == nil {
 			cache = make(map[string][]string)

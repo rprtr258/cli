@@ -176,9 +176,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			continue
 		}
 
-		mtag := newMultiTag(string(field.Tag))
-
-		if err := mtag.Parse(); err != nil {
+		mtag, err := ParseMultiTag(string(field.Tag))
+		if err != nil {
 			return err
 		}
 
@@ -303,9 +302,8 @@ func (g *Group) checkForDuplicateFlags() *Error {
 }
 
 func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
-	mtag := newMultiTag(string(sfield.Tag))
-
-	if err := mtag.Parse(); err != nil {
+	mtag, err := ParseMultiTag(string(sfield.Tag))
+	if err != nil {
 		return true, err
 	}
 
