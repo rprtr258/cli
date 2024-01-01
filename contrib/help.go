@@ -41,9 +41,9 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	var prevcmd *Command
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		if c != prevcmd {
-			for _, arg := range c.args {
-				ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(arg.Name)+internal.Iverson(c != p.Command, 4))
-			}
+			ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
+				return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
+			}, c.args...))
 			prevcmd = c
 		}
 		if !grp.showInHelp() {
