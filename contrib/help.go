@@ -269,10 +269,10 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	for c := p.Command; c != nil; c = c.Active {
 		printcmd := c != p.Command
 
-		c.eachGroup(func(grp *Group) {
+		c.eachGroup(func(grp *Group) bool {
 			// Skip built-in help group for all commands except the top-level parser
 			if grp.Hidden || grp.isBuiltinHelp && c != p.Command {
-				return
+				return true
 			}
 
 			first := true
@@ -300,6 +300,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 				p.writeHelpOption(bw, info, aligninfo)
 			}
+			return true
 		})
 
 		if args := internal.Filter(func(arg *Arg) bool {

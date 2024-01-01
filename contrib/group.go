@@ -5,6 +5,8 @@ import (
 	"reflect"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/fun"
 )
 
 // ErrNotPointerToStruct indicates that a provided data container is not
@@ -96,23 +98,23 @@ func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
 
 	var ret *Group
-
-	g.eachGroup(func(gg *Group) {
+	g.eachGroup(func(gg *Group) bool {
 		if gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription) {
 			ret = gg
 		}
+		return true
 	})
-
 	return ret
 }
 
 func (g *Group) findOption(matcher func(*Option) bool) (option *Option) {
-	g.eachGroup(func(g *Group) {
+	g.eachGroup(func(g *Group) bool {
 		for _, opt := range g.options {
 			if option == nil && matcher(opt) {
 				option = opt
 			}
 		}
+		return true
 	})
 
 	return option
@@ -146,11 +148,10 @@ func (g *Group) showInHelp() bool {
 	return false
 }
 
-func (g *Group) eachGroup(yield func(*Group)) {
-	yield(g)
-	for _, gg := range g.groups {
-		gg.eachGroup(yield)
-	}
+func (g *Group) eachGroup(yield func(*Group) bool) bool {
+	return yield(g) && fun.All(g.groups, func(gg *Group) bool {
+		return gg.eachGroup(yield)
+	})
 }
 
 func isStringFalsy(s string) bool {
@@ -276,14 +277,14 @@ func (g *Group) checkForDuplicateFlags() *Error {
 	shortNames := make(map[rune]*Option)
 	longNames := make(map[string]*Option)
 	var duplicateError *Error
-	g.eachGroup(func(g *Group) {
+	g.eachGroup(func(g *Group) bool {
 		for _, option := range g.options {
 			if option.LongName != "" {
 				longName := option.LongNameWithNamespace()
 
 				if otherOption, ok := longNames[longName]; ok {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
-					return
+					return true
 				}
 
 				longNames[longName] = option
@@ -291,12 +292,13 @@ func (g *Group) checkForDuplicateFlags() *Error {
 			if option.ShortName != 0 {
 				if otherOption, ok := shortNames[option.ShortName]; ok {
 					duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same short name as option `%s'", option, otherOption)
-					return
+					return true
 				}
 
 				shortNames[option.ShortName] = option
 			}
 		}
+		return true
 	})
 	return duplicateError
 }

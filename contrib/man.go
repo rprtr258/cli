@@ -52,9 +52,9 @@ func formatForMan(wr io.Writer, s string) {
 }
 
 func writeManPageOptions(wr io.Writer, grp *Group) {
-	grp.eachGroup(func(group *Group) {
+	grp.eachGroup(func(group *Group) bool {
 		if !group.showInHelp() {
-			return
+			return true
 		}
 
 		// If the parent (grp) has any subgroups, display their descriptions as
@@ -111,6 +111,7 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 				fmt.Fprintln(wr, "")
 			}
 		}
+		return true
 	})
 }
 

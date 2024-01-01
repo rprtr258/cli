@@ -270,10 +270,11 @@ func (c *Command) scan() error {
 
 func (c *Command) eachOption(f func(*Command, *Group, *Option)) {
 	c.eachCommand(func(c *Command) {
-		c.eachGroup(func(g *Group) {
+		c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				f(c, g, option)
 			}
+			return true
 		})
 	}, true)
 }
@@ -291,8 +292,9 @@ func (c *Command) eachCommand(f func(*Command), recurse bool) {
 }
 
 func (c *Command) eachActiveGroup(f func(cc *Command, g *Group)) {
-	c.eachGroup(func(g *Group) {
+	c.eachGroup(func(g *Group) bool {
 		f(c, g)
+		return true
 	})
 
 	if c.Active != nil {
@@ -342,7 +344,7 @@ func (c *Command) makeLookup() lookup {
 }
 
 func (c *Command) fillLookup(ret *lookup) {
-	c.eachGroup(func(g *Group) {
+	c.eachGroup(func(g *Group) bool {
 		for _, option := range g.options {
 			if option.ShortName != 0 {
 				ret.shortNames[string(option.ShortName)] = option
@@ -352,6 +354,7 @@ func (c *Command) fillLookup(ret *lookup) {
 				ret.longNames[option.LongNameWithNamespace()] = option
 			}
 		}
+		return true
 	})
 }
 
@@ -367,10 +370,9 @@ func (c *Command) match(name string) bool {
 
 func (c *Command) hasHelpOptions() bool {
 	ret := false
-
-	c.eachGroup(func(g *Group) {
+	c.eachGroup(func(g *Group) bool {
 		if g.isBuiltinHelp {
-			return
+			return true
 		}
 
 		for _, opt := range g.options {
@@ -378,8 +380,8 @@ func (c *Command) hasHelpOptions() bool {
 				ret = true
 			}
 		}
+		return true
 	})
-
 	return ret
 }
 

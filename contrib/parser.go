@@ -361,12 +361,13 @@ func (p *parseState) pop() string {
 func (p *parseState) checkRequired(parser *Parser) {
 	var required []*Option
 	for c := parser.Command; c != nil; c = c.Active {
-		c.eachGroup(func(g *Group) {
+		c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				if !option.isSet && option.Required {
 					required = append(required, option)
 				}
 			}
+			return true
 		})
 	}
 
