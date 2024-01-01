@@ -87,12 +87,11 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				ret.hasShort = true
 			}
 
-			if len(info.ValueName) > 0 {
+			if info.ValueName != "" {
 				ret.hasValueName = true
 			}
 
 			l := info.LongNameWithNamespace() + info.ValueName
-
 			if len(info.Choices) != 0 {
 				l += "[" + strings.Join(info.Choices, "|") + "]"
 			}
@@ -105,8 +104,6 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 }
 
 func wrapText(s string, l int, prefix string) string {
-	var ret string
-
 	if l < 10 {
 		l = 10
 	}
@@ -114,6 +111,7 @@ func wrapText(s string, l int, prefix string) string {
 	// Basic text wrapping of s at spaces to fit in l
 	lines := strings.Split(s, "\n")
 
+	var ret string
 	for _, line := range lines {
 		var retline string
 
@@ -149,14 +147,13 @@ func wrapText(s string, l int, prefix string) string {
 		if ret != "" {
 			ret += "\n"
 
-			if len(retline) > 0 {
+			if retline != "" {
 				ret += prefix
 			}
 		}
 
 		ret += retline
 	}
-
 	return ret
 }
 
