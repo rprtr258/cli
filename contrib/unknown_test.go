@@ -2,6 +2,8 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestUnknownFlags(t *testing.T) {
@@ -32,9 +34,7 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		"--verbose",
 		"-f",
 	)
-	if err != nil {
-		t.Fatal(err)
-	}
+	assert.NoError(t, err)
 
 	exargs := []string{
 		"hello",
