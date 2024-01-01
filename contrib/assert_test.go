@@ -97,9 +97,7 @@ func assertDiff(t *testing.T, actual, expected, msg string) {
 		return
 	}
 
-	ret, err := diff(actual, expected)
-
-	if err != nil {
+	if ret, err := diff(actual, expected); err != nil {
 		assertErrorf(t, "Unexpected diff error: %s", err)
 		assertErrorf(t, "Unexpected %s, expected:\n\n%s\n\nbut got\n\n%s", msg, expected, actual)
 	} else {
