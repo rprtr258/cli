@@ -22,14 +22,10 @@ func TestPassAfterNonOption(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assert.Equal(t, ret, []string{"arg", "-v", "-g"})
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{"arg", "-v", "-g"}, ret)
 }
 
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
@@ -41,15 +37,11 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Positional.Rest, []string{"arg", "-v", "-g"})
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []string{"arg", "-v", "-g"}, opts.Positional.Rest)
 }
 
 func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
@@ -61,13 +53,9 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "1", "2", "3")
+	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "1", "2", "3")
 	assert.NoError(t, err)
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
+	assert.True(t, opts.Value)
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []int{1, 2, 3}, opts.Positional.Rest)
 }
