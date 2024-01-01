@@ -268,37 +268,37 @@ func (c *Command) scan() error {
 	return c.scanType(c.scanSubcommandHandler(c.Group))
 }
 
-func (c *Command) eachOption(f func(*Command, *Group, *Option)) {
+func (c *Command) eachOption(yield func(*Command, *Group, *Option)) {
 	c.eachCommand(func(c *Command) {
 		c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
-				f(c, g, option)
+				yield(c, g, option)
 			}
 			return true
 		})
 	}, true)
 }
 
-func (c *Command) eachCommand(f func(*Command), recurse bool) {
-	f(c)
+func (c *Command) eachCommand(yield func(*Command), recurse bool) {
+	yield(c)
 
 	for _, cc := range c.commands {
 		if recurse {
-			cc.eachCommand(f, true)
+			cc.eachCommand(yield, true)
 		} else {
-			f(cc)
+			yield(cc)
 		}
 	}
 }
 
-func (c *Command) eachActiveGroup(f func(cc *Command, g *Group)) {
+func (c *Command) eachActiveGroup(yield func(cc *Command, g *Group)) {
 	c.eachGroup(func(g *Group) bool {
-		f(c, g)
+		yield(c, g)
 		return true
 	})
 
 	if c.Active != nil {
-		c.Active.eachActiveGroup(f)
+		c.Active.eachActiveGroup(yield)
 	}
 }
 
