@@ -1,5 +1,6 @@
 package flags
 
+// TODO: OPTIMIZE: less memory could be used
 func dist(s, t string) int {
 	if s == "" {
 		return len(t)
