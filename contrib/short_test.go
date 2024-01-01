@@ -71,20 +71,10 @@ func TestShortMultiRequiredConcat(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-vo", "-f")
-
-	assert.Equal(t, ret, []string{})
-
-	if !opts.V {
-		t.Errorf("Expected V to be true")
-	}
-
-	if !opts.O {
-		t.Errorf("Expected O to be true")
-	}
-
-	if !opts.F {
-		t.Errorf("Expected F to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.V)
+	assert.True(t, opts.O)
+	assert.True(t, opts.F)
 }
 
 func TestShortMultiSlice(t *testing.T) {
