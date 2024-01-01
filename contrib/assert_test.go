@@ -50,20 +50,6 @@ func assertFatalf(t *testing.T, format string, args ...any) {
 	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertBoolArray(t *testing.T, a, b []bool) {
-	if len(a) != len(b) {
-		assertErrorf(t, "Expected %#v, but got %#v", b, a)
-		return
-	}
-
-	for i, v := range a {
-		if b[i] != v {
-			assertErrorf(t, "Expected %#v, but got %#v", b, a)
-			return
-		}
-	}
-}
-
 func assertParserSuccess(t *testing.T, data any, args ...string) (parser_ *Parser, ret_ []string) {
 	parser := NewParser(data, Default&^PrintErrors)
 	ret, err := parser.ParseArgs(args...)
