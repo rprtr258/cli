@@ -459,7 +459,10 @@ Help Options:
 		_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 		_, err := p.ParseArgs(test.Args...)
-		assert.Error(t, err)
+		assert.Equal(t, &Error{
+			Kind:    ErrHelp,
+			Message: test.Output,
+		}, err)
 		if e, ok := err.(*Error); !ok {
 			t.Fatalf("Expected flags.Error, but got %T", err)
 		} else {
