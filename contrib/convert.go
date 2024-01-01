@@ -250,7 +250,6 @@ func convert(val string, retval reflect.Value, options multiTag) error {
 		parts := strings.SplitN(val, ":", 2)
 
 		var value string
-
 		if len(parts) == 2 {
 			value = parts[1]
 		}
