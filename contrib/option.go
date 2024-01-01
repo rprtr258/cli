@@ -329,7 +329,7 @@ func (option *Option) updateDefaultLiteral() string {
 	case len(defs) == 0 && option.canArgument():
 		kind := option.field.Type.Kind()
 		if internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
-			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array) && option.value.Len() > 0 ||
+			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array, reflect.Map) && option.value.Len() > 0 ||
 			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface()) {
 			def, _ := convertToString(option.value, option.tag)
 			return def
