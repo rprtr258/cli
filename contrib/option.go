@@ -216,19 +216,15 @@ func (option *Option) canArgument() bool {
 	return isInterface[Unmarshaler](option.value) != nil || !option.isBool()
 }
 
-func (option *Option) emptyValue() reflect.Value {
-	tp := option.value.Type()
-
-	if tp.Kind() == reflect.Map {
-		return reflect.MakeMap(tp)
-	}
-
-	return reflect.Zero(tp)
-}
-
 func (option *Option) empty() {
 	if !option.isFunc() {
-		option.value.Set(option.emptyValue())
+		tp := option.value.Type()
+		zeroValue := fun.
+			If(tp.Kind() != reflect.Map, reflect.Zero(tp)).
+			ElseF(func() reflect.Value {
+				return reflect.MakeMap(tp)
+			})
+		option.value.Set(zeroValue)
 	}
 }
 
