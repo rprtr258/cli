@@ -87,17 +87,11 @@ func (g *Group) Groups() []*Group {
 	return g.groups
 }
 
-// Options returns the list of options in this group.
-func (g *Group) Options() []*Option {
-	return g.options
-}
-
 // Find locates the subgroup with the given short description and returns it.
 // If no such group can be found Find will return nil.
 // Note that the description is matched case insensitively.
 func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
-
 	ret, _ := iter.
 		Seq[*Group](g.eachGroup).
 		Filter(func(gg *Group) bool {

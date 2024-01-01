@@ -370,7 +370,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	assert.NoError(t, err)
 	// make it hidden
 	cmdHidden.Hidden = true
-	assert.Len(t, cmdHidden.Options(), 2)
+	assert.Len(t, cmdHidden.options, 2)
 
 	// which help we ask for explicitly
 	_, err = p.ParseArgs("hidden", "--help")
