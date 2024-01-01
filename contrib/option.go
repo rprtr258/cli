@@ -8,6 +8,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 )
 
 // Option flag information. Contains a description of the option, short and
@@ -301,8 +302,8 @@ func isUnmarshaler[T any](value reflect.Value) T {
 			break
 		}
 	}
-	var t T
-	return t
+
+	return fun.Zero[T]()
 }
 
 func (option *Option) isBool() bool {
