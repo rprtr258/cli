@@ -360,9 +360,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		return &Error{Kind: ErrHelp}
 	}
 	hlpgrp, err := p.AddGroup("Help Options", "", &help)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-	}
+	assert.NoError(t, err)
 	hlpgrp.Hidden = true
 	hlp := p.FindOptionByLongName("help")
 	hlp.Description = "Show this help message"
@@ -378,9 +376,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		} `positional-args:"yes"`
 	}
 	cmdHidden, err := p.Command.AddCommand("hidden", "Hidden command description", "Long hidden command description", &hiddenCmdOpts)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-	}
+	assert.NoError(t, err)
 	// make it hidden
 	cmdHidden.Hidden = true
 	if len(cmdHidden.Options()) != 2 {
@@ -388,17 +384,11 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	}
 	// which help we ask for explicitly
 	_, err = p.ParseArgs("hidden", "--help")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
+	assert.Error(t, err)
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
+		assert.Equal(t, ErrHelp, e.Kind)
 		h := &bytes.Buffer{}
 		p.WriteHelp(h)
 
