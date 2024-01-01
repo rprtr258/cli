@@ -211,12 +211,8 @@ func TestFindOptionByLongFlagInSubGroup(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	opt := p.FindOptionByLongName("testing")
-
-	if opt == nil {
-		t.Errorf("Expected option, but found none")
-	}
-
-	assert.Equal(t, opt.LongName, "testing")
+	assert.NotNil(t, opt)
+	assert.Equal(t, "testing", opt.LongName)
 }
 
 func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
