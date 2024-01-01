@@ -656,7 +656,6 @@ func (p *Parser) parseNonOption(s *parseState) error {
 
 func (p *Parser) showBuiltinHelp() error {
 	var b bytes.Buffer
-
 	p.WriteHelp(&b)
 	return newError(ErrHelp, b.String())
 }
