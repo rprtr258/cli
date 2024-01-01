@@ -202,9 +202,7 @@ func TestMan(t *testing.T) {
 
 	var buf bytes.Buffer
 	p.WriteManPage(&buf, tt)
-
 	got := buf.String()
-
 	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
 .SH NAME
 TestMan \- Test manpage generation
