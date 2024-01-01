@@ -234,10 +234,10 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 				name := arg.Name + internal.Iverson(isRemainingArg(arg.value), "...")
 				if !allcmd.ArgsRequired {
-					if arg.Required > 0 {
-						fmt.Fprint(bw, name)
-					} else {
+					if arg.Required <= 0 {
 						fmt.Fprintf(bw, "[%s]", name)
+					} else {
+						fmt.Fprint(bw, name)
 					}
 				} else {
 					fmt.Fprint(bw, name)
