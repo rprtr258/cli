@@ -43,18 +43,5 @@ func TestIgnoreUnknownFlags(t *testing.T) {
 		"-f",
 	}
 
-	issame := (len(args) == len(exargs))
-
-	if issame {
-		for i := 0; i < len(args); i++ {
-			if args[i] != exargs[i] {
-				issame = false
-				break
-			}
-		}
-	}
-
-	if !issame {
-		t.Fatalf("Expected %v but got %v", exargs, args)
-	}
+	assert.Equal(t, exargs, args)
 }
