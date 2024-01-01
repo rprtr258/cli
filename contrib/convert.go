@@ -34,17 +34,12 @@ type ValueValidator interface {
 }
 
 func getBase(options multiTag, base int) (int, error) {
-	sbase := options.Get("base")
-
-	var err error
-	var ivbase int64
-
-	if sbase != "" {
-		ivbase, err = strconv.ParseInt(sbase, 10, 32)
-		base = int(ivbase)
+	if sbase := options.Get("base"); sbase != "" {
+		ivbase, err := strconv.ParseInt(sbase, 10, 32)
+		return int(ivbase), err
 	}
 
-	return base, err
+	return base, nil
 }
 
 func convertMarshal(val reflect.Value) (val_ bool, ret_ string, err_ error) {
