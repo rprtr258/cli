@@ -32,15 +32,7 @@ func (a *alignmentInfo) descriptionStart() int {
 }
 
 func (a *alignmentInfo) updateLen(name string, indent bool) {
-	l := utf8.RuneCountInString(name)
-
-	if indent {
-		l += 4
-	}
-
-	if l > a.maxLongLen {
-		a.maxLongLen = l
-	}
+	a.maxLongLen = max(a.maxLongLen, utf8.RuneCountInString(name)+internal.Iverson(indent)*4)
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
