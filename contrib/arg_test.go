@@ -19,19 +19,9 @@ func TestPositional(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	ret, err := p.ParseArgs("10", "arg_test.go", "a", "b")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if opts.Positional.Command != 10 {
-		t.Fatalf("Expected opts.Positional.Command to be 10, but got %v", opts.Positional.Command)
-	}
-
-	if opts.Positional.Filename != "arg_test.go" {
-		t.Fatalf("Expected opts.Positional.Filename to be \"arg_test.go\", but got %v", opts.Positional.Filename)
-	}
-
+	assert.NoError(t, err)
+	assert.Equal(t, 10, opts.Positional.Command)
+	assert.Equal(t, "arg_test.go", opts.Positional.Filename)
 	assert.Equal(t, []string{"a", "b"}, opts.Positional.Rest)
 	assert.Equal(t, []string{}, ret)
 }

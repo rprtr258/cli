@@ -378,9 +378,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	assert.NoError(t, err)
 	// make it hidden
 	cmdHidden.Hidden = true
-	if len(cmdHidden.Options()) != 2 {
-		t.Fatalf("unexpected options count")
-	}
+	assert.Len(t, cmdHidden.Options(), 2)
 	// which help we ask for explicitly
 	_, err = p.ParseArgs("hidden", "--help")
 	assert.Error(t, err)
