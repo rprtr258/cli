@@ -41,12 +41,8 @@ func TestUnmarshal(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v=yes")
-
-	assert.Equal(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, marshalled("true"), opts.Value)
 }
 
 func TestUnmarshalDefault(t *testing.T) {
@@ -55,12 +51,8 @@ func TestUnmarshalDefault(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts)
-
-	assert.Equal(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, marshalled("true"), opts.Value)
 }
 
 func TestUnmarshalOptional(t *testing.T) {
