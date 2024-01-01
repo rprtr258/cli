@@ -311,7 +311,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			}
 		})
 
-		s.checkRequired(p)
+		_ = s.checkRequired(p)
 	}
 
 	var reterr error
