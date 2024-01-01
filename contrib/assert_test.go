@@ -50,11 +50,6 @@ func assertFatalf(t *testing.T, format string, args ...any) {
 	t.Fatalf("%s:%d: %s", path.Base(file), line, msg)
 }
 
-func assertString(t *testing.T, expected, actual string) {
-	t.Helper()
-	assert.Equal(t, expected, actual)
-}
-
 func assertStringArray(t *testing.T, expected, actual []string) {
 	t.Helper()
 	assert.Equal(t, expected, actual)

@@ -2,6 +2,8 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPositional(t *testing.T) {
@@ -86,7 +88,7 @@ func TestPositionalRequiredRest1Pass(t *testing.T) {
 		t.Fatalf("Expected 1 positional rest argument")
 	}
 
-	assertString(t, opts.Positional.Rest[0], "rest1")
+	assert.Equal(t, opts.Positional.Rest[0], "rest1")
 }
 
 func TestPositionalRequiredRest2Fail(t *testing.T) {
@@ -124,9 +126,9 @@ func TestPositionalRequiredRest2Pass(t *testing.T) {
 		t.Fatalf("Expected 3 positional rest argument")
 	}
 
-	assertString(t, opts.Positional.Rest[0], "rest1")
-	assertString(t, opts.Positional.Rest[1], "rest2")
-	assertString(t, opts.Positional.Rest[2], "rest3")
+	assert.Equal(t, opts.Positional.Rest[0], "rest1")
+	assert.Equal(t, opts.Positional.Rest[1], "rest2")
+	assert.Equal(t, opts.Positional.Rest[2], "rest3")
 }
 
 func TestPositionalRequiredRestRangeFail(t *testing.T) {

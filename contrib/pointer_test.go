@@ -2,6 +2,8 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPointerBool(t *testing.T) {
@@ -26,7 +28,7 @@ func TestPointerString(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, *opts.Value, "value")
+	assert.Equal(t, *opts.Value, "value")
 }
 
 func TestPointerSlice(t *testing.T) {
@@ -87,7 +89,7 @@ func TestPointerStringMarshalled(t *testing.T) {
 		return
 	}
 
-	assertString(t, string(*opts.Value), "value")
+	assert.Equal(t, string(*opts.Value), "value")
 }
 
 type marshalledStruct struct {
@@ -117,7 +119,7 @@ func TestPointerStructMarshalled(t *testing.T) {
 		return
 	}
 
-	assertString(t, opts.Value.Value, "value")
+	assert.Equal(t, opts.Value.Value, "value")
 }
 
 type PointerGroup struct {

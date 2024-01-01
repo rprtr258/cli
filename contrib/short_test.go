@@ -3,6 +3,8 @@ package flags
 import (
 	"fmt"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestShort(t *testing.T) {
@@ -129,7 +131,7 @@ func TestShortWithEqualArg(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-v=value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestShortWithArg(t *testing.T) {
@@ -140,7 +142,7 @@ func TestShortWithArg(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-vvalue")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestShortArg(t *testing.T) {
@@ -151,7 +153,7 @@ func TestShortArg(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-v", "value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestShortMultiWithEqualArg(t *testing.T) {
@@ -173,7 +175,7 @@ func TestShortMultiArg(t *testing.T) {
 
 	assertStringArray(t, ret, []string{})
 	assertBoolArray(t, opts.F, []bool{true, true})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestShortMultiArgConcatFail(t *testing.T) {
@@ -194,7 +196,7 @@ func TestShortMultiArgConcat(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-vff")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "ff")
+	assert.Equal(t, opts.Value, "ff")
 }
 
 func TestShortOptional(t *testing.T) {
@@ -206,7 +208,7 @@ func TestShortOptional(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
 	assertStringArray(t, ret, []string{"f"})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestShortOptionalFalsy1(t *testing.T) {
@@ -218,7 +220,7 @@ func TestShortOptionalFalsy1(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "f")
+	assert.Equal(t, opts.Value, "f")
 }
 
 func TestShortOptionalFalsy2(t *testing.T) {
@@ -230,5 +232,5 @@ func TestShortOptionalFalsy2(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "-fv", "f")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "f")
+	assert.Equal(t, opts.Value, "f")
 }

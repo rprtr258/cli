@@ -3,6 +3,8 @@ package flags
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func expectConvert(t *testing.T, o *Option, expected string) {
@@ -12,7 +14,7 @@ func expectConvert(t *testing.T, o *Option, expected string) {
 		return
 	}
 
-	assertString(t, s, expected)
+	assert.Equal(t, s, expected)
 }
 
 func TestConvertToString(t *testing.T) {

@@ -2,6 +2,8 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestLong(t *testing.T) {
@@ -26,7 +28,7 @@ func TestLongArg(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "--value", "value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestLongArgEqual(t *testing.T) {
@@ -37,7 +39,7 @@ func TestLongArgEqual(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "--value=value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestLongDefault(t *testing.T) {
@@ -48,7 +50,7 @@ func TestLongDefault(t *testing.T) {
 	ret := assertParseSuccess(t, &opts)
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestLongOptional(t *testing.T) {
@@ -59,7 +61,7 @@ func TestLongOptional(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "--value")
 
 	assertStringArray(t, ret, []string{})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestLongOptionalArg(t *testing.T) {
@@ -70,7 +72,7 @@ func TestLongOptionalArg(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "--value", "no")
 
 	assertStringArray(t, ret, []string{"no"})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }
 
 func TestLongOptionalArgEqual(t *testing.T) {
@@ -81,5 +83,5 @@ func TestLongOptionalArgEqual(t *testing.T) {
 	ret := assertParseSuccess(t, &opts, "--value=value", "no")
 
 	assertStringArray(t, ret, []string{"no"})
-	assertString(t, opts.Value, "value")
+	assert.Equal(t, opts.Value, "value")
 }

@@ -9,6 +9,8 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type defaultOptions struct {
@@ -399,10 +401,10 @@ func TestUnknownFlagHandler(t *testing.T) {
 		assertErrorf(t, "Parser returned unexpected error %v", err)
 	}
 
-	assertString(t, opts.Flag1, "stuff")
-	assertString(t, opts.Flag2, "foo")
-	assertString(t, unknownFlag1, "blah")
-	assertString(t, unknownFlag3, "baz")
+	assert.Equal(t, opts.Flag1, "stuff")
+	assert.Equal(t, opts.Flag2, "foo")
+	assert.Equal(t, unknownFlag1, "blah")
+	assert.Equal(t, unknownFlag3, "baz")
 
 	if !unknownFlag2 {
 		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
@@ -423,7 +425,7 @@ func TestChoices(t *testing.T) {
 
 	assertParseFail(t, ErrInvalidChoice, "Invalid value `invalid' for option `"+defaultLongOptDelimiter+"choose'. Allowed values are: v1 or v2", &opts, "--choose", "invalid")
 	assertParseSuccess(t, &opts, "--choose", "v2")
-	assertString(t, opts.Choice, "v2")
+	assert.Equal(t, opts.Choice, "v2")
 }
 
 func TestEmbedded(t *testing.T) {

@@ -378,7 +378,7 @@ func TestCommandNestedInline(t *testing.T) {
 		t.Errorf("Expected Command.G to be true")
 	}
 
-	assertString(t, opts.Command.Nested.N, "n")
+	assert.Equal(t, opts.Command.Nested.N, "n")
 
 	if c := p.Command.Find("cmd"); c == nil {
 		t.Errorf("Expected to find command `cmd'")
@@ -518,11 +518,11 @@ func TestSubCommandFindOptionByLongFlag(t *testing.T) {
 
 	opt := c.FindOptionByLongName("other")
 	assert.NotNil(t, opt)
-	assertString(t, "other", opt.LongName)
+	assert.Equal(t, "other", opt.LongName)
 
 	opt = c.FindOptionByLongName("testing")
 	assert.NotNil(t, opt)
-	assertString(t, "testing", opt.LongName)
+	assert.Equal(t, "testing", opt.LongName)
 }
 
 func TestSubCommandFindOptionByShortFlag(t *testing.T) {

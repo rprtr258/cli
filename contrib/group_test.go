@@ -2,6 +2,8 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestGroupInline(t *testing.T) {
@@ -100,7 +102,7 @@ func TestGroupNestedInline(t *testing.T) {
 		t.Errorf("Expected Group.G to be true")
 	}
 
-	assertString(t, opts.Group.Nested.N, "n")
+	assert.Equal(t, opts.Group.Nested.N, "n")
 
 	if p.Command.Group.Find("Grouped Options") == nil {
 		t.Errorf("Expected to find group `Grouped Options'")
@@ -127,9 +129,9 @@ func TestGroupNestedInlineNamespace(t *testing.T) {
 
 	assertStringArray(t, ret, []string{"rest"})
 
-	assertString(t, opts.Opt, "a")
-	assertString(t, opts.Group.Opt, "b")
-	assertString(t, opts.Group.Group.Opt, "c")
+	assert.Equal(t, opts.Opt, "a")
+	assert.Equal(t, opts.Group.Opt, "b")
+	assert.Equal(t, opts.Group.Group.Opt, "c")
 
 	for _, name := range []string{"Subgroup", "Subsubgroup"} {
 		if p.Command.Group.Find(name) == nil {
@@ -190,7 +192,7 @@ func TestFindOptionByLongFlag(t *testing.T) {
 		t.Errorf("Expected option, but found none")
 	}
 
-	assertString(t, opt.LongName, "testing")
+	assert.Equal(t, opt.LongName, "testing")
 }
 
 func TestFindOptionByShortFlag(t *testing.T) {
@@ -224,7 +226,7 @@ func TestFindOptionByLongFlagInSubGroup(t *testing.T) {
 		t.Errorf("Expected option, but found none")
 	}
 
-	assertString(t, opt.LongName, "testing")
+	assert.Equal(t, opt.LongName, "testing")
 }
 
 func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
