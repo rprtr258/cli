@@ -12,12 +12,8 @@ func TestLong(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value")
-
-	assert.Equal(t, ret, []string{})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.Value)
 }
 
 func TestLongArg(t *testing.T) {
@@ -26,9 +22,8 @@ func TestLongArg(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value", "value")
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
 
 func TestLongArgEqual(t *testing.T) {
@@ -37,9 +32,8 @@ func TestLongArgEqual(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value=value")
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
 
 func TestLongDefault(t *testing.T) {
@@ -48,9 +42,8 @@ func TestLongDefault(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts)
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
 
 func TestLongOptional(t *testing.T) {
@@ -59,9 +52,8 @@ func TestLongOptional(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value")
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
 
 func TestLongOptionalArg(t *testing.T) {
@@ -70,9 +62,8 @@ func TestLongOptionalArg(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value", "no")
-
-	assert.Equal(t, ret, []string{"no"})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{"no"}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
 
 func TestLongOptionalArgEqual(t *testing.T) {
@@ -81,7 +72,6 @@ func TestLongOptionalArgEqual(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "--value=value", "no")
-
-	assert.Equal(t, ret, []string{"no"})
-	assert.Equal(t, opts.Value, "value")
+	assert.Equal(t, []string{"no"}, ret)
+	assert.Equal(t, "value", opts.Value)
 }
