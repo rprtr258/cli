@@ -14,14 +14,11 @@ import (
 func assertCallerInfo() (file string, line int) {
 	ptr := make([]uintptr, 15)
 	n := runtime.Callers(1, ptr)
-
 	if n == 0 {
 		return "", 0
 	}
 
-	mef := runtime.FuncForPC(ptr[0])
-	mefile, meline := mef.FileLine(ptr[0])
-
+	mefile, meline := runtime.FuncForPC(ptr[0]).FileLine(ptr[0])
 	for i := 2; i < n; i++ {
 		f := runtime.FuncForPC(ptr[i])
 		file, line := f.FileLine(ptr[i])
@@ -30,7 +27,6 @@ func assertCallerInfo() (file string, line int) {
 			return file, line
 		}
 	}
-
 	return mefile, meline
 }
 
