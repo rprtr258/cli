@@ -268,9 +268,9 @@ func (c *completion) print(w io.Writer, items []Completion) {
 		fmt.Fprintf(w, v.Item)
 		// TODO: problems with colored description
 		// TODO: description get into completion wtf
-		// if v.Description != "" {
-		// 	fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
-		// }
+		if v.Description != "" {
+			fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
+		}
 		fmt.Fprintln(w)
 	}
 }
