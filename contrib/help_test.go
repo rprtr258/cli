@@ -477,7 +477,7 @@ func TestHelpRestArgs(t *testing.T) {
 	}{}
 
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 	retargs, err := p.ParseArgs("-h", "-v", "rest")
 	assert.Error(t, err)
