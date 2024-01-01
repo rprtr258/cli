@@ -69,9 +69,7 @@ func TestUnmarshalOptional(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assert.Equal(t, ret, []string{})
-
+	assert.Equal(t, []string{}, ret)
 	if opts.Value != "true" {
 		t.Errorf("Expected Value to be \"true\"")
 	}
