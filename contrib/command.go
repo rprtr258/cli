@@ -380,9 +380,7 @@ func (c *Command) hasHelpOptions() bool {
 }
 
 func (c *Command) fillParseState(s *parseState) {
-	s.positional = make([]*Arg, len(c.args))
-	copy(s.positional, c.args)
-
+	s.positional = append([]*Arg(nil), c.args...)
 	s.lookup = c.makeLookup()
 	s.command = c
 }
