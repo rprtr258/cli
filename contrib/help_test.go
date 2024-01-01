@@ -316,30 +316,27 @@ func TestHelpCommand(t *testing.T) {
 	_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("command", "--help")
-	assert.Error(t, err)
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		assert.Equal(t, ErrHelp, e.Kind)
-		var expected string
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
+	var expected string
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
   TestHelpCommand [OPTIONS] command
 
 Help Options:
   /?              Show this help message
   /h, /help       Show this help message
 `
-		} else {
-			expected = `Usage:
+	} else {
+		expected = `Usage:
   TestHelpCommand [OPTIONS] command
 
 Help Options:
   -h, --help      Show this help message
 `
-		}
-		assertDiff(t, e.Message, expected, "help message")
 	}
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: expected,
+	}, err)
 }
 
 func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
