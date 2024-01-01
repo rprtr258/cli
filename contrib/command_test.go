@@ -286,16 +286,13 @@ func TestCommandExecute(t *testing.T) {
 
 func TestCommandClosest(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
-		Cmd1 struct{} `command:"remove"`
-
-		Cmd2 struct{} `command:"add"`
+		Value bool     `short:"v"`
+		Cmd1  struct{} `command:"remove"`
+		Cmd2  struct{} `command:"add"`
 	}{}
 
 	args := assertParseFail(t, ErrUnknownCommand, "Unknown command `addd', did you mean `add'?", &opts, "-v", "addd")
-
-	assert.Equal(t, args, []string{"addd"})
+	assert.Equal(t, []string{"addd"}, args)
 }
 
 func TestCommandAdd(t *testing.T) {
@@ -309,38 +306,16 @@ func TestCommandAdd(t *testing.T) {
 
 	p := NewParser(&opts, Default)
 	c, err := p.AddCommand("cmd", "", "", &cmd)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
+	assert.NoError(t, err)
 
 	ret, err := p.ParseArgs("-v", "cmd", "-g", "rest")
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	assert.Equal(t, ret, []string{"rest"})
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	if !cmd.G {
-		t.Errorf("Expected Command.G to be true")
-	}
-
-	if p.Command.Find("cmd") != c {
-		t.Errorf("Expected to find command `cmd'")
-	}
-
-	if p.Commands()[0] != c {
-		t.Errorf("Expected command %#v, but got %#v", c, p.Commands()[0])
-	}
-
-	if c.Options()[0].ShortName != 'g' {
-		t.Errorf("Expected short name `g' but got %v", c.Options()[0].ShortName)
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"rest"}, ret)
+	assert.True(t, opts.Value)
+	assert.True(t, cmd.G)
+	assert.Equal(t, c, p.Command.Find("cmd"))
+	assert.Equal(t, c, p.Commands()[0])
+	assert.Equal(t, 'g', c.Options()[0].ShortName)
 }
 
 func TestCommandNestedInline(t *testing.T) {
