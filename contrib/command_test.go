@@ -241,11 +241,9 @@ func TestCommandAdd(t *testing.T) {
 
 func TestCommandNestedInline(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
-			G bool `short:"g"`
-
+			G      bool `short:"g"`
 			Nested struct {
 				N string `long:"n"`
 			} `command:"nested"`

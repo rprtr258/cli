@@ -9,7 +9,6 @@ import (
 func TestGroupInline(t *testing.T) {
 	opts := struct {
 		Value bool `short:"v"`
-
 		Group struct {
 			G bool `short:"g"`
 		} `group:"Grouped Options"`
@@ -49,7 +48,6 @@ func TestGroupAdd(t *testing.T) {
 func TestGroupNestedInline(t *testing.T) {
 	opts := struct {
 		Value bool `short:"v"`
-
 		Group struct {
 			G bool `short:"g"`
 

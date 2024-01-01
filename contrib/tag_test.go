@@ -1,8 +1,6 @@
 package flags
 
-import (
-	"testing"
-)
+import "testing"
 
 func TestTagMissingColon(t *testing.T) {
 	opts := struct {
