@@ -381,7 +381,10 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	assert.Len(t, cmdHidden.Options(), 2)
 	// which help we ask for explicitly
 	_, err = p.ParseArgs("hidden", "--help")
-	assert.Error(t, err)
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: "",
+	}, err)
 	if e, ok := err.(*Error); !ok {
 		t.Fatalf("Expected flags.Error, but got %T", err)
 	} else {
