@@ -6,6 +6,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Marshaler is the interface implemented by types that can marshal themselves
@@ -317,11 +319,7 @@ func quoteIfNeeded(s string) string {
 }
 
 func quoteV(s []string) []string {
-	ret := make([]string, len(s))
-	for i, v := range s {
-		ret[i] = strconv.Quote(v)
-	}
-	return ret
+	return internal.Map(strconv.Quote, s...)
 }
 
 func unquoteIfPossible(s string) (string, error) {
