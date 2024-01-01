@@ -152,11 +152,10 @@ func (g *Group) showInHelp() bool {
 	return false
 }
 
-func (g *Group) eachGroup(f func(*Group)) {
-	f(g)
-
+func (g *Group) eachGroup(yield func(*Group)) {
+	yield(g)
 	for _, gg := range g.groups {
-		gg.eachGroup(f)
+		gg.eachGroup(yield)
 	}
 }
 
