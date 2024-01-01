@@ -249,9 +249,7 @@ func (option *Option) clearDefault() error {
 			}
 		}
 	} else {
-		tp := option.value.Type()
-
-		switch tp.Kind() {
+		switch option.value.Type().Kind() {
 		case reflect.Map:
 			if option.value.IsNil() {
 				option.empty()
