@@ -103,12 +103,8 @@ func TestPointerGroup(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assert.Equal(t, ret, []string{})
-
-	if !opts.Group.Value {
-		t.Errorf("Expected Group.Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.Group.Value)
 }
 
 func TestDoNotChangeNonTaggedFields(t *testing.T) {
@@ -122,16 +118,7 @@ func TestDoNotChangeNonTaggedFields(t *testing.T) {
 	}
 
 	ret := assertParseSuccess(t, &opts)
-
-	assert.Equal(t, ret, []string{})
-
-	if opts.A.Pointer != nil {
-		t.Error("Expected A.Pointer to be nil")
-	}
-	if opts.B != nil {
-		t.Error("Expected B to be nil")
-	}
-	if opts.B != nil && opts.B.Pointer != nil {
-		t.Error("Expected B.Pointer to be nil")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Nil(t, opts.A.Pointer)
+	assert.Nil(t, opts.B)
 }
