@@ -381,25 +381,12 @@ func (p *parseState) checkRequired(parser *Parser) {
 
 				if isRemainingArg(arg.value) {
 					if arg.value.Len() < arg.Required {
-						arguments := "argument"
-						if arg.Required > 1 {
-							arguments += "s, but got only " + fmt.Sprint(arg.value.Len())
-						}
-
-						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprintf("%d", arg.Required)+" "+arguments+")`")
+						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
 					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
 						if arg.RequiredMaximum == 0 {
 							reqnames = append(reqnames, "`"+arg.Name+" (zero arguments)`")
 						} else {
-							var arguments string
-
-							if arg.RequiredMaximum > 1 {
-								arguments = "arguments, but got " + fmt.Sprintf("%d", arg.value.Len())
-							} else {
-								arguments = "argument"
-							}
-
-							reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" "+arguments+")`")
+							reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" argument"+internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len()))+")`")
 						}
 					}
 				} else {
