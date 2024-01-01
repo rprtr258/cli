@@ -238,7 +238,7 @@ func (option *Option) showInHelp() bool {
 }
 
 func (option *Option) canArgument() bool {
-	return isUnmarshaler(option.value) != nil || !option.isBool()
+	return isUnmarshaler[Unmarshaler](option.value) != nil || !option.isBool()
 }
 
 func (option *Option) emptyValue() reflect.Value {
@@ -291,9 +291,9 @@ func (option *Option) clearDefault() error {
 	return nil
 }
 
-func isUnmarshaler(value reflect.Value) Unmarshaler {
+func isUnmarshaler[T any](value reflect.Value) T {
 	for v := value; v.CanInterface(); v = v.Addr() {
-		if u, ok := v.Interface().(Unmarshaler); ok {
+		if u, ok := v.Interface().(T); ok {
 			return u
 		}
 
@@ -301,21 +301,8 @@ func isUnmarshaler(value reflect.Value) Unmarshaler {
 			break
 		}
 	}
-	return nil
-}
-
-func isValueValidator(value reflect.Value) ValueValidator {
-	for v := value; v.CanInterface(); v = v.Addr() {
-		if u, ok := v.Interface().(ValueValidator); ok {
-			return u
-		}
-
-		if !v.CanAddr() {
-			break
-		}
-	}
-
-	return nil
+	var t T
+	return t
 }
 
 func (option *Option) isBool() bool {
@@ -427,7 +414,7 @@ func (option *Option) shortAndLongName() string {
 }
 
 func (option *Option) isValidValue(arg string) error {
-	if validator := isValueValidator(option.value); validator != nil {
+	if validator := isUnmarshaler[ValueValidator](option.value); validator != nil {
 		return validator.IsValidValue(arg)
 	}
 	if isFlag(arg) && !(option.isSignedNumber() && len(arg) > 1 && arg[0] == '-' && arg[1] >= '0' && arg[1] <= '9') {
