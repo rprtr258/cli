@@ -16,7 +16,6 @@ func TestGroupInline(t *testing.T) {
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "-g")
-
 	assertStringArray(t, ret, []string{})
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Group.G)
