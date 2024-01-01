@@ -86,18 +86,3 @@ func diff(a, b string) (string, error) {
 
 	return string(ret), err
 }
-
-func assertDiff(t *testing.T, actual, expected, msg string) {
-	t.Helper()
-
-	if actual == expected {
-		return
-	}
-
-	if ret, err := diff(actual, expected); err != nil {
-		assertErrorf(t, "Unexpected diff error: %s", err)
-		assertErrorf(t, "Unexpected %s, expected:\n\n%s\n\nbut got\n\n%s", msg, expected, actual)
-	} else {
-		assertErrorf(t, "Unexpected %s:\n\n%s", msg, ret)
-	}
-}

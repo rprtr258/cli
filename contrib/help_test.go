@@ -472,7 +472,7 @@ func TestHelpRestArgs(t *testing.T) {
 func TestWrapText(t *testing.T) {
 	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
 	got := wrapText(s, 60, "      ")
-	expected := `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
       sed do eiusmod tempor incididunt ut labore et dolore magna
       aliqua. Ut enim ad minim veniam, quis nostrud exercitation
       ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -480,7 +480,7 @@ func TestWrapText(t *testing.T) {
       esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
       occaecat cupidatat non proident, sunt in culpa qui officia
       deserunt mollit anim id est laborum.`
-	assertDiff(t, got, expected, "wrapped text")
+	assert.Equal(t, got, _expected)
 }
 
 func TestWrapParagraph(t *testing.T) {
@@ -489,7 +489,7 @@ func TestWrapParagraph(t *testing.T) {
 		"Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\n" +
 		"Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
 	got := wrapText(s, 60, "      ")
-	expected := `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
       sed do eiusmod tempor incididunt ut labore et dolore magna
       aliqua.
 
@@ -502,7 +502,7 @@ func TestWrapParagraph(t *testing.T) {
       Excepteur sint occaecat cupidatat non proident, sunt in
       culpa qui officia deserunt mollit anim id est laborum.
 `
-	assertDiff(t, got, expected, "wrapped paragraph")
+	assert.Equal(t, got, _expected)
 }
 
 func TestHelpDefaultMask(t *testing.T) {
