@@ -316,23 +316,11 @@ func quoteIfNeeded(s string) string {
 	return s
 }
 
-func quoteIfNeededV(s []string) []string {
-	ret := make([]string, len(s))
-
-	for i, v := range s {
-		ret[i] = quoteIfNeeded(v)
-	}
-
-	return ret
-}
-
 func quoteV(s []string) []string {
 	ret := make([]string, len(s))
-
 	for i, v := range s {
 		ret[i] = strconv.Quote(v)
 	}
-
 	return ret
 }
 
