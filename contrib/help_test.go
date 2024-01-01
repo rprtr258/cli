@@ -593,9 +593,7 @@ func TestWroteHelp(t *testing.T) {
 	for name, test := range tests {
 		t.Run(name, func(t *testing.T) {
 			res := WroteHelp(test.value)
-			if test.isHelp != res {
-				t.Errorf("Expected %t, got %t", test.isHelp, res)
-			}
+			assert.Equal(t, test.isHelp, res)
 		})
 	}
 }
