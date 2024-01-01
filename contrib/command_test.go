@@ -39,18 +39,15 @@ func TestCommandInline(t *testing.T) {
 
 func TestCommandInlineMulti(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
-		C1 struct{} `command:"c1"`
-
-		C2 struct {
+		Value bool     `short:"v"`
+		C1    struct{} `command:"c1"`
+		C2    struct {
 			G bool `short:"g"`
 		} `command:"c2"`
 	}{}
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
-
-	assert.Equal(t, ret, []string{})
+	assert.Equal(t, []string{}, ret)
 
 	if p.Active == nil {
 		t.Errorf("Expected active command")
@@ -77,8 +74,7 @@ func TestCommandInlineMulti(t *testing.T) {
 
 func TestCommandFlagOrder1(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
 			G bool `short:"g"`
 		} `command:"cmd"`
@@ -89,8 +85,7 @@ func TestCommandFlagOrder1(t *testing.T) {
 
 func TestCommandFlagOrder2(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value   bool `short:"v"`
 		Command struct {
 			G bool `short:"g"`
 		} `command:"cmd"`
