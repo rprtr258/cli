@@ -153,28 +153,13 @@ func (option *Option) Value() any {
 	return option.value.Interface()
 }
 
-// Field returns the reflect struct field of the option.
-func (option *Option) Field() reflect.StructField {
-	return option.field
-}
-
-// IsSet returns true if option has been set
-func (option *Option) IsSet() bool {
-	return option.isSet
-}
-
-// IsSetDefault returns true if option has been set via the default option tag
-func (option *Option) IsSetDefault() bool {
-	return option.isSetDefault
-}
-
 // Set the value of an option to the specified value. An error will be returned
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Option) Set(value *string) error {
 	kind := option.value.Type().Kind()
 
-	if (kind == reflect.Map || kind == reflect.Slice) && option.clearReferenceBeforeSet {
+	if internal.OneOf(kind, reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
 	}
 
