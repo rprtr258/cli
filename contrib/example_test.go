@@ -52,8 +52,8 @@ func Example() {
 	// Skype) but it shows the idea.
 	opts.Call = func(num string) {
 		cmd := exec.Command("open", "callto:"+num)
-		cmd.Start()
-		cmd.Process.Release()
+		_ = cmd.Start()
+		_ = cmd.Process.Release()
 	}
 
 	// Parse flags from `args'. Note that here we use flags.ParseArgs for
