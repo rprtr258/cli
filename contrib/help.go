@@ -55,13 +55,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				continue
 			}
 
-			if info.ShortName != 0 {
-				ret.hasShort = true
-			}
-
-			if info.ValueName != "" {
-				ret.hasValueName = true
-			}
+			ret.hasShort = ret.hasShort || info.ShortName != 0
+			ret.hasValueName = ret.hasValueName || info.ValueName != ""
 
 			l := info.LongNameWithNamespace() + info.ValueName +
 				internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
