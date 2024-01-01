@@ -266,13 +266,12 @@ func isInterface[I any](value reflect.Value) I {
 }
 
 func (option *Option) isBool() bool {
-	tp := option.value.Type()
-	for internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
-		tp = tp.Elem()
+	for tp := option.value.Type(); ; tp = tp.Elem() {
+		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+			return tp.Kind() == reflect.Bool ||
+				tp.Kind() == reflect.Func && tp.NumIn() == 0
+		}
 	}
-
-	return tp.Kind() == reflect.Bool ||
-		tp.Kind() == reflect.Func && tp.NumIn() == 0
 }
 
 func (option *Option) isSignedNumber() bool {
