@@ -90,14 +90,14 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 
 			if opt.ValueName != "" || opt.OptionalArgument {
 				if opt.OptionalArgument {
-					fmt.Fprintf(wr, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(quoteV(opt.OptionalValue), ", ")))
+					fmt.Fprintf(wr, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(internal.Map(strconv.Quote, opt.OptionalValue...), ", ")))
 				} else {
 					fmt.Fprintf(wr, " \\fI%s\\fR", manQuote(opt.ValueName))
 				}
 			}
 
 			if len(opt.Default) != 0 {
-				fmt.Fprintf(wr, " <default: \\fI%s\\fR>", manQuote(strings.Join(quoteV(opt.Default), ", ")))
+				fmt.Fprintf(wr, " <default: \\fI%s\\fR>", manQuote(strings.Join(internal.Map(strconv.Quote, opt.Default...), ", ")))
 			}
 
 			if opt.Required {
