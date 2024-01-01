@@ -336,9 +336,11 @@ func TestCommandNestedInline(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
 	assert.Equal(t, "n", opts.Command.Nested.N)
+
 	c := p.Command.Find("cmd")
 	assert.NotNil(t, c)
 	assert.Equal(t, c, p.Active)
+
 	nested := c.Find("nested")
 	assert.NotNil(t, nested)
 	assert.Equal(t, nested, c.Active)
