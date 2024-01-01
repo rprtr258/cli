@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,11 +23,7 @@ func (m *marshalled) UnmarshalFlag(value string) error {
 }
 
 func (m marshalled) MarshalFlag() (string, error) {
-	if m == "true" {
-		return "yes", nil
-	}
-
-	return "no", nil
+	return fun.IF(m == "true", "yes", "no"), nil
 }
 
 type marshalledError bool
