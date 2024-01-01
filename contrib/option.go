@@ -168,16 +168,9 @@ func (option *Option) Set(value *string) error {
 	option.clearReferenceBeforeSet = false
 
 	if len(option.Choices) != 0 {
-		found := false
-
-		for _, choice := range option.Choices {
-			if choice == *value {
-				found = true
-				break
-			}
-		}
-
-		if !found {
+		if fun.All(option.Choices, func(choice string) bool {
+			return choice != *value
+		}) {
 			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
 
 			if len(option.Choices) > 1 {
