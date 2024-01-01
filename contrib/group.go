@@ -92,8 +92,8 @@ func (g *Group) Options() []*Option {
 }
 
 // Find locates the subgroup with the given short description and returns it.
-// If no such group can be found Find will return nil. Note that the description
-// is matched case insensitively.
+// If no such group can be found Find will return nil.
+// Note that the description is matched case insensitively.
 func (g *Group) Find(shortDescription string) *Group {
 	lshortDescription := strings.ToLower(shortDescription)
 
