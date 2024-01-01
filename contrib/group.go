@@ -57,9 +57,12 @@ type scanHandler func(reflect.Value, *reflect.StructField) (bool, error)
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
 func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
-	group := newGroup(shortDescription, longDescription, data)
-
-	group.parent = g
+	group := &Group{
+		ShortDescription: shortDescription,
+		LongDescription:  longDescription,
+		data:             data,
+		parent:           g,
+	}
 
 	if err := group.scan(); err != nil {
 		return nil, err
@@ -129,15 +132,6 @@ func (g *Group) FindOptionByShortName(shortName rune) *Option {
 	return g.findOption(func(option *Option) bool {
 		return option.ShortName == shortName
 	})
-}
-
-func newGroup(shortDescription, longDescription string, data any) *Group {
-	return &Group{
-		ShortDescription: shortDescription,
-		LongDescription:  longDescription,
-
-		data: data,
-	}
 }
 
 func (g *Group) showInHelp() bool {

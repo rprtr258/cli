@@ -83,9 +83,12 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
 func (c *Command) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
-	group := newGroup(shortDescription, longDescription, data)
-
-	group.parent = c
+	group := &Group{
+		ShortDescription: shortDescription,
+		LongDescription:  longDescription,
+		data:             data,
+		parent:           c,
+	}
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
 		return nil, err
@@ -148,8 +151,12 @@ func (c *Command) Args() []*Arg {
 
 func newCommand(name, shortDescription, longDescription string, data any) *Command {
 	return &Command{
-		Group: newGroup(shortDescription, longDescription, data),
-		Name:  name,
+		Group: &Group{
+			ShortDescription: shortDescription,
+			LongDescription:  longDescription,
+			data:             data,
+		},
+		Name: name,
 	}
 }
 
