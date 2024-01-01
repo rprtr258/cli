@@ -328,22 +328,12 @@ func (option *Option) call(value *string) error {
 func (option *Option) updateDefaultLiteral() {
 	defs := option.Default
 	def := ""
-
 	if len(defs) == 0 && option.canArgument() {
-		var showdef bool
-
-		switch option.field.Type.Kind() {
-		case reflect.Func, reflect.Ptr:
-			showdef = !option.value.IsNil()
-		case reflect.Slice, reflect.String, reflect.Array:
-			showdef = option.value.Len() > 0
-		case reflect.Map:
-			showdef = !option.value.IsNil() && option.value.Len() > 0
-		default:
-			zeroval := reflect.Zero(option.field.Type)
-			showdef = !reflect.DeepEqual(zeroval.Interface(), option.value.Interface())
-		}
-
+		kind := option.field.Type.Kind()
+		showdef := internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
+			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array) && option.value.Len() > 0 ||
+			internal.OneOf(kind, reflect.Map) && !option.value.IsNil() && option.value.Len() > 0 ||
+			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface())
 		if showdef {
 			def, _ = convertToString(option.value, option.tag)
 		}
