@@ -12,12 +12,8 @@ func TestPointerBool(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assert.Equal(t, ret, []string{})
-
-	if !*opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, *opts.Value)
 }
 
 func TestPointerString(t *testing.T) {
@@ -26,9 +22,8 @@ func TestPointerString(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, *opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", *opts.Value)
 }
 
 func TestPointerSlice(t *testing.T) {
@@ -37,9 +32,8 @@ func TestPointerSlice(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value1", "-v", "value2")
-
-	assert.Equal(t, ret, []string{})
-	assert.Equal(t, *opts.Value, []string{"value1", "value2"})
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []string{"value1", "value2"}, *opts.Value)
 }
 
 func TestPointerMap(t *testing.T) {
@@ -48,20 +42,9 @@ func TestPointerMap(t *testing.T) {
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
-
-	assert.Equal(t, ret, []string{})
-
-	if v, ok := (*opts.Value)["k1"]; !ok {
-		t.Errorf("Expected key \"k1\" to exist")
-	} else if v != 2 {
-		t.Errorf("Expected \"k1\" to be 2, but got %#v", v)
-	}
-
-	if v, ok := (*opts.Value)["k2"]; !ok {
-		t.Errorf("Expected key \"k2\" to exist")
-	} else if v != -5 {
-		t.Errorf("Expected \"k2\" to be -5, but got %#v", v)
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, 2, (*opts.Value)["k1"])
+	assert.Equal(t, -5, (*opts.Value)["k2"])
 }
 
 type marshalledString string
