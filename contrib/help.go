@@ -78,12 +78,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 
 func wrapText(s string, l int, prefix string) string {
 	l = max(l, 10)
-
-	// Basic text wrapping of s at spaces to fit in l
-	lines := strings.Split(s, "\n")
-
 	var ret string
-	for _, line := range lines {
+	for _, line := range strings.Split(s, "\n") {
 		var retline string
 
 		for line = strings.TrimSpace(line); len(line) > l; {
