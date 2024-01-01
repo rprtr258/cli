@@ -136,10 +136,12 @@ func (option *Option) String() string {
 			return fmt.Sprintf("%s%s, %s%s",
 				string(defaultShortOptDelimiter), short,
 				defaultLongOptDelimiter, option.LongNameWithNamespace())
-		} else {
-			return fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
 		}
-	} else if option.LongName != "" {
+
+		return fmt.Sprintf("%s%s", string(defaultShortOptDelimiter), short)
+	}
+
+	if option.LongName != "" {
 		return fmt.Sprintf("%s%s", defaultLongOptDelimiter, option.LongNameWithNamespace())
 	}
 
