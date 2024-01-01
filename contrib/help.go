@@ -182,16 +182,6 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	_, _ = writer.WriteString("\n")
 }
 
-func maxCommandLength(s []*Command) int {
-	return internal.MaxBy(func(v *Command) int {
-		aliasesTotalLen := 0
-		for _, alias := range v.Aliases {
-			aliasesTotalLen += len(alias)
-		}
-		return len(v.Name) + len(v.Aliases) + aliasesTotalLen
-	}, s...)
-}
-
 // WriteHelp writes a help message containing all the possible options and
 // their descriptions to the provided writer. Note that the HelpFlag parser
 // option provides a convenient way to add a -h/--help option group to the
@@ -364,7 +354,14 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		fmt.Fprintln(bw)
 		fmt.Fprintln(bw, "Available commands:")
 
-		maxnamelen := maxCommandLength(scommands)
+		maxnamelen := internal.MaxBy(func(v *Command) int {
+			aliasesTotalLen := 0
+			for _, alias := range v.Aliases {
+				aliasesTotalLen += len(alias)
+			}
+			return len(v.Name) + len(v.Aliases) + aliasesTotalLen
+		}, scommands...)
+
 		for _, c := range scommands {
 			fullNameRepresentation := c.Name
 			if len(c.Aliases) > 0 {
