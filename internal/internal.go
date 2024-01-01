@@ -49,15 +49,8 @@ func FilterMap[T, R any](f func(T) (R, bool), xs ...T) []R {
 	return ret
 }
 
-// Iverson returns 1 if b is true and 0 if b is false
-func Iverson(b bool) int {
-	if b {
-		return 1
-	}
-	return 0
-}
-
-func Iverson1[T any](b bool, value T) T {
+// Iverson returns value if b is true and zero if b is false
+func Iverson[T any](b bool, value T) T {
 	if b {
 		return value
 	}

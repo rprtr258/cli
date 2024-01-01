@@ -26,9 +26,9 @@ const (
 
 func (a *alignmentInfo) descriptionStart() int {
 	return a.maxLongLen + _distanceBetweenOptionAndDescription +
-		internal.Iverson(a.hasShort)*2 +
-		internal.Iverson(a.maxLongLen > 0)*4 +
-		internal.Iverson(a.hasValueName)*3
+		internal.Iverson(a.hasShort, 2) +
+		internal.Iverson(a.maxLongLen > 0, 4) +
+		internal.Iverson(a.hasValueName, 3)
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
@@ -42,7 +42,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	p.eachActiveGroup(func(c *Command, grp *Group) {
 		if c != prevcmd {
 			for _, arg := range c.args {
-				ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(arg.Name)+internal.Iverson(c != p.Command)*4)
+				ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(arg.Name)+internal.Iverson(c != p.Command, 4))
 			}
 			prevcmd = c
 		}
@@ -64,9 +64,8 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			}
 
 			l := info.LongNameWithNamespace() + info.ValueName +
-				internal.Iverson1(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
-
-			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command)*4)
+				internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
+			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command, 4))
 		}
 	})
 	return ret
@@ -124,7 +123,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 	line := &bytes.Buffer{}
 
-	prefixLen := _paddingBeforeOption + internal.Iverson(info.indent)*4
+	prefixLen := _paddingBeforeOption + internal.Iverson(info.indent, 4)
 	line.WriteString(strings.Repeat(" ", prefixLen))
 
 	if option.ShortName != 0 {
