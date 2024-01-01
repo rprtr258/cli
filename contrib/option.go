@@ -238,7 +238,7 @@ func (option *Option) showInHelp() bool {
 }
 
 func (option *Option) canArgument() bool {
-	return option.isUnmarshaler() != nil || !option.isBool()
+	return isUnmarshaler(option.value) != nil || !option.isBool()
 }
 
 func (option *Option) emptyValue() reflect.Value {
@@ -291,8 +291,8 @@ func (option *Option) clearDefault() error {
 	return nil
 }
 
-func (option *Option) isUnmarshaler() Unmarshaler {
-	for v := option.value; v.CanInterface(); v = v.Addr() {
+func isUnmarshaler(value reflect.Value) Unmarshaler {
+	for v := value; v.CanInterface(); v = v.Addr() {
 		if u, ok := v.Interface().(Unmarshaler); ok {
 			return u
 		}
