@@ -2,8 +2,6 @@ package flags
 
 import "strconv"
 
-type multiTag map[string][]string
-
 func scanMultiTag(value string) (map[string][]string, error) {
 	ret := map[string][]string{}
 	for v := value; v != ""; {
@@ -65,6 +63,8 @@ func scanMultiTag(value string) (map[string][]string, error) {
 	}
 	return ret, nil
 }
+
+type multiTag map[string][]string
 
 func ParseMultiTag(value string) (multiTag, error) {
 	vals, err := scanMultiTag(value)
