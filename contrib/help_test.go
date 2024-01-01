@@ -406,7 +406,6 @@ Long hidden command description
 
 func TestHelpDefaults(t *testing.T) {
 	var expected string
-
 	if runtime.GOOS == "windows" {
 		expected = `Usage:
   TestHelpDefaults [OPTIONS]
@@ -460,21 +459,14 @@ Help Options:
 		opts.WithProgrammaticDefault = "default-value"
 
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
-		p.AddGroup("Application Options", "The application options", &opts)
+		_, _ = p.AddGroup("Application Options", "The application options", &opts)
 
 		_, err := p.ParseArgs(test.Args...)
-
-		if err == nil {
-			t.Fatalf("Expected help error")
-		}
-
+		assert.Error(t, err)
 		if e, ok := err.(*Error); !ok {
 			t.Fatalf("Expected flags.Error, but got %T", err)
 		} else {
-			if e.Kind != ErrHelp {
-				t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-			}
-
+			assert.Equal(t, ErrHelp, e.Kind)
 			assertDiff(t, e.Message, test.Output, "help message")
 		}
 	}
