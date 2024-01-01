@@ -419,17 +419,11 @@ func TestUnknownFlagHandler(t *testing.T) {
 	assert.Equal(t, opts.Flag2, "foo")
 	assert.Equal(t, unknownFlag1, "blah")
 	assert.Equal(t, unknownFlag3, "baz")
-
-	if !unknownFlag2 {
-		assertErrorf(t, "Flag should have been set by unknown handler, but had value: %v", unknownFlag2)
-	}
+	assert.True(t, unknownFlag2)
 
 	// Parse args with unknown flags that callback doesn't handle, verify it returns error
 	_, err = p.ParseArgs("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
-
-	if err == nil {
-		assertErrorf(t, "Parser should have returned error, but returned nil")
-	}
+	assert.Error(t, err)
 }
 
 func TestChoices(t *testing.T) {
