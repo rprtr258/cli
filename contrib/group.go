@@ -293,14 +293,6 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 	return nil
 }
 
-func quoteIfNeeded(s string) string {
-	if !fun.All([]rune(s), strconv.IsPrint) {
-		return strconv.Quote(s)
-	}
-
-	return s
-}
-
 func unquoteIfPossible(s string) (string, error) {
 	if s == "" || s[0] != '"' {
 		return s, nil
@@ -639,7 +631,13 @@ func (option *Option) updateDefaultLiteral() string {
 
 		return ""
 	case len(defs) != 0:
-		return internal.Join(quoteIfNeeded, ", ", defs...)
+		return internal.Join(func(s string) string {
+			if !fun.All([]rune(s), strconv.IsPrint) {
+				return strconv.Quote(s)
+			}
+
+			return s
+		}, ", ", defs...)
 	default:
 		return ""
 	}
