@@ -122,12 +122,7 @@ func writeManPageSubcommands(wr io.Writer, name, usagePrefix string, commands []
 			return !c.Group.Hidden
 		}).
 		ForEach(func(c *Command) {
-			nn := c.Name
-			if name != "" {
-				nn = name + " " + c.Name
-			}
-
-			writeManPageCommand(wr, nn, usagePrefix, c)
+			writeManPageCommand(wr, internal.Iverson(name != "", name+" ")+c.Name, usagePrefix, c)
 		})
 }
 
