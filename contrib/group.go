@@ -1850,11 +1850,6 @@ const (
 	// remaining command line arguments instead of generating an error.
 	IgnoreUnknown
 
-	// PrintErrors prints any errors which occurred during parsing to
-	// os.Stderr. In the special case of ErrHelp, the message will be printed
-	// to os.Stdout.
-	PrintErrors
-
 	// PassAfterNonOption passes all arguments after the first non option
 	// as remaining command line arguments. This is equivalent to strict
 	// POSIX processing.
@@ -1862,7 +1857,7 @@ const (
 
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
-	Default = HelpFlag | PrintErrors | PassDoubleDash
+	Default = HelpFlag | PassDoubleDash
 )
 
 type parseState struct {
@@ -2087,7 +2082,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			} else {
 				return s.args
 			}
-		}(), p.printError(reterr)
+		}(), reterr
 	}
 
 	return s.retargs, nil
@@ -2387,11 +2382,4 @@ func (p *Parser) showBuiltinHelp() error {
 		Kind:    ErrHelp,
 		Message: b.String(),
 	}
-}
-
-func (p *Parser) printError(err error) error {
-	if err != nil && p.Options&PrintErrors != 0 {
-		fmt.Fprintln(os.Stderr, err)
-	}
-	return err
 }

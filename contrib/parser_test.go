@@ -441,7 +441,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	parser := NewParser(&opts, Default&^PrintErrors)
+	parser := NewParser(&opts, Default)
 
 	var executedCommand Commander
 	var executedArgs []string
@@ -466,7 +466,7 @@ func TestCommandHandler(t *testing.T) {
 		Command command `command:"cmd"`
 	}{}
 
-	parser := NewParser(&opts, Default&^PrintErrors)
+	parser := NewParser(&opts, Default)
 
 	var executedCommand Commander
 	var executedArgs []string
