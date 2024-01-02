@@ -397,17 +397,16 @@ func (p *parseState) checkRequired(parser *Parser) {
 			return
 		}
 
-		var msg string
-		if len(reqnames) == 1 {
-			msg = fmt.Sprintf("the required argument %s was not provided", reqnames[0])
-		} else {
-			msg = fmt.Sprintf("the required arguments %s and %s were not provided",
-				strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
-		}
-
 		p.err = &Error{
-			Kind:    ErrRequired,
-			Message: msg,
+			Kind: ErrRequired,
+			Message: func() string {
+				if len(reqnames) == 1 {
+					return fmt.Sprintf("the required argument %s was not provided", reqnames[0])
+				} else {
+					return fmt.Sprintf("the required arguments %s and %s were not provided",
+						strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
+				}
+			}(),
 		}
 
 		return
@@ -418,17 +417,16 @@ func (p *parseState) checkRequired(parser *Parser) {
 	}, required...)
 	sort.Strings(names)
 
-	var msg string
-	if len(required) == 1 {
-		msg = fmt.Sprintf("the required flag %s was not specified", names[0])
-	} else {
-		msg = fmt.Sprintf("the required flags %s and %s were not specified",
-			strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
-	}
-
 	p.err = &Error{
-		Kind:    ErrRequired,
-		Message: msg,
+		Kind: ErrRequired,
+		Message: func() string {
+			if len(required) == 1 {
+				return fmt.Sprintf("the required flag %s was not specified", names[0])
+			} else {
+				return fmt.Sprintf("the required flags %s and %s were not specified",
+					strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+			}
+		}(),
 	}
 }
 
