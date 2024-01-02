@@ -742,14 +742,13 @@ func (c *Command) find(name string) *Command {
 // FindOptionByLongName finds an option that is part of the command, or any of
 // its parent commands, by matching its long name (including the option
 // namespace).
-func (c *Command) FindOptionByLongName(longName string) (option *Flag) {
-	for option == nil && c != nil {
-		option = c.Group.findOptionByLongName(longName)
-
-		c, _ = c.Group.parent.(*Command)
+func (c *Command) FindOptionByLongName(longName string) *Flag {
+	for ; c != nil; c, _ = c.Group.parent.(*Command) {
+		if option := c.Group.findOptionByLongName(longName); option != nil {
+			return option
+		}
 	}
-
-	return option
+	return nil
 }
 
 // FindOptionByShortName finds an option that is part of the command, or any of
