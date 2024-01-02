@@ -814,7 +814,7 @@ func (c *Command) Args() []*Arg {
 }
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
-	f := func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag, err := ParseMultiTag(string(sfield.Tag))
 		if err != nil {
 			return true, err
@@ -914,8 +914,6 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 		return true, nil
 	}
-
-	return f
 }
 
 func (c *Command) scan() error {
