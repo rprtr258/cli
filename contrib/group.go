@@ -2284,7 +2284,9 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		s.lookup = makeLookupTable(cmd)
 		s.command = cmd
 		return nil
-	} else if !s.command.SubcommandsOptional {
+	}
+
+	if !s.command.SubcommandsOptional {
 		_ = s.addArgs(s.arg)
 		return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
 	}
