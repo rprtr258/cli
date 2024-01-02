@@ -633,23 +633,12 @@ func isRemainingArg(value reflect.Value) bool {
 // is specified on the command line. The Command type embeds a Group and
 // therefore also carries a set of command specific options.
 type Command struct {
-	// Embedded, see Group for more information
-	Group *Group
-
-	// The name by which the command can be invoked
-	Name string
-
-	// The active sub command (set by parsing) or nil
-	Active *Command
-
-	// Whether subcommands are optional
-	SubcommandsOptional bool
-
-	// Aliases for the command
-	Aliases []string
-
-	// Whether positional arguments are required
-	ArgsRequired bool
+	Group               *Group
+	Name                string   // Name by which the command can be invoked
+	Active              *Command // Active sub command (set by parsing) or nil
+	SubcommandsOptional bool     // Whether subcommands are optional
+	Aliases             []string // Aliases for the command
+	ArgsRequired        bool     // Whether positional arguments are required
 
 	commands            []*Command
 	hasBuiltinHelpGroup bool
