@@ -2009,20 +2009,18 @@ func (s *parseState) checkRequired(p *Parser) {
 				reqnames = append(reqnames, "`"+arg.Name+"`")
 			}
 		}
-		if len(reqnames) == 0 {
-			return
-		}
-
-		s.err = &Error{
-			Kind: ErrRequired,
-			Message: func() string {
-				if len(reqnames) == 1 {
-					return fmt.Sprintf("the required argument %s was not provided", reqnames[0])
-				} else {
-					return fmt.Sprintf("the required arguments %s and %s were not provided",
-						strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
-				}
-			}(),
+		if len(reqnames) != 0 {
+			s.err = &Error{
+				Kind: ErrRequired,
+				Message: func() string {
+					if len(reqnames) == 1 {
+						return fmt.Sprintf("the required argument %s was not provided", reqnames[0])
+					} else {
+						return fmt.Sprintf("the required arguments %s and %s were not provided",
+							strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
+					}
+				}(),
+			}
 		}
 
 		return
