@@ -154,7 +154,7 @@ func (p *Parser) WriteManPage(w io.Writer, t time.Time) {
 	fmt.Fprintf(w, "%s \\- %s\n", manQuote(p.Command.Name), manQuoteLines(p.Command.Flags.ShortDescription))
 	fmt.Fprintln(w, ".SH SYNOPSIS")
 
-	usage := internal.Or(p.Usage, "[OPTIONS]")
+	usage := "[OPTIONS]"
 
 	fmt.Fprintf(w, "\\fB%s\\fP %s\n", manQuote(p.Command.Name), manQuote(usage))
 	fmt.Fprintln(w, ".SH DESCRIPTION")

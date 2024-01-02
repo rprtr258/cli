@@ -44,14 +44,14 @@ func splitFlag(prefix, option string, islong bool) (option_ string, rest_ *strin
 }
 
 // addHelpGroup adds a new group that contains default help parameters.
-func (c *Command) addHelpGroup(help func(string) string, usage string) *flagSet {
+func (c *Command) addHelpGroup(help func() string) *flagSet {
 	ret := c.addGroup("Help Options", "", &struct {
 		ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
 	}{
 		ShowHelp: func() error {
 			return &Error{
 				Kind:    ErrHelp,
-				Message: help(usage),
+				Message: help(),
 			}
 		},
 	})
