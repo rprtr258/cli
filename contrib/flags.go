@@ -773,10 +773,7 @@ func (c *Command) findFlagByShortName(shortName rune) *Flag {
 
 // Args returns a list of positional arguments associated with this command.
 func (c *Command) Args() []*PositionalArg {
-	ret := make([]*PositionalArg, len(c.args))
-	copy(ret, c.args)
-
-	return ret
+	return append([]*PositionalArg(nil), c.args...)
 }
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
