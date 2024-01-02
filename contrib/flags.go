@@ -62,7 +62,7 @@ func convertMarshal(val reflect.Value) (val_ bool, ret_ string, err_ error) {
 	return false, "", nil
 }
 
-func convertToString(val reflect.Value, options multiTag) (string, error) {
+func convertToString(val reflect.Value, mtags map[string][]string) (string, error) {
 	if ok, ret, err := convertMarshal(val); ok {
 		return ret, err
 	}
@@ -84,14 +84,14 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	case reflect.Bool:
 		return fun.IF(val.Bool(), "true", "false"), nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(options.Get("base"), 10)
+		base, err := getBase(Get(mtags, "base"), 10)
 		if err != nil {
 			return "", err
 		}
 
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(options.Get("base"), 10)
+		base, err := getBase(Get(mtags, "base"), 10)
 		if err != nil {
 			return "", err
 		}
@@ -106,7 +106,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 
 		ret := make([]string, val.Len())
 		for i := 0; i < val.Len(); i++ {
-			item, err := convertToString(val.Index(i), options)
+			item, err := convertToString(val.Index(i), mtags)
 			if err != nil {
 				return "", err
 			}
@@ -117,12 +117,12 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	case reflect.Map:
 		ret := make([]string, val.Len())
 		for i, key := range val.MapKeys() {
-			keyitem, err := convertToString(key, options)
+			keyitem, err := convertToString(key, mtags)
 			if err != nil {
 				return "", err
 			}
 
-			item, err := convertToString(val.MapIndex(key), options)
+			item, err := convertToString(val.MapIndex(key), mtags)
 			if err != nil {
 				return "", err
 			}
@@ -131,10 +131,10 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		}
 		return "{" + strings.Join(ret, ", ") + "}", nil
 	case reflect.Ptr:
-		return convertToString(reflect.Indirect(val), options)
+		return convertToString(reflect.Indirect(val), mtags)
 	case reflect.Interface:
 		if !val.IsNil() {
-			return convertToString(val.Elem(), options)
+			return convertToString(val.Elem(), mtags)
 		}
 	}
 
@@ -164,7 +164,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 	return false, nil
 }
 
-func convert(val string, retval reflect.Value, multitag multiTag) error {
+func convert(val string, retval reflect.Value, mtags map[string][]string) error {
 	if ok, err := convertUnmarshal(val, retval); ok {
 		return err
 	}
@@ -197,7 +197,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 			retval.SetBool(b)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(multitag.Get("base"), 10)
+		base, err := getBase(Get(mtags, "base"), 10)
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(multitag.Get("base"), 10)
+		base, err := getBase(Get(mtags, "base"), 10)
 		if err != nil {
 			return err
 		}
@@ -233,7 +233,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 		elemvalptr := reflect.New(elemtp)
 		elemval := reflect.Indirect(elemvalptr)
 
-		if err := convert(val, elemval, multitag); err != nil {
+		if err := convert(val, elemval, mtags); err != nil {
 			return err
 		}
 
@@ -248,12 +248,12 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 
 		keyval := reflect.New(tp.Key())
 		key := parts[0]
-		if err := convert(key, keyval, multitag); err != nil {
+		if err := convert(key, keyval, mtags); err != nil {
 			return err
 		}
 
 		valueval := reflect.New(tp.Elem())
-		if err := convert(value, valueval, multitag); err != nil {
+		if err := convert(value, valueval, mtags); err != nil {
 			return err
 		}
 
@@ -267,10 +267,10 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 			retval.Set(reflect.New(retval.Type().Elem()))
 		}
 
-		return convert(val, reflect.Indirect(retval), multitag)
+		return convert(val, reflect.Indirect(retval), mtags)
 	case reflect.Interface:
 		if !retval.IsNil() {
-			return convert(val, retval.Elem(), multitag)
+			return convert(val, retval.Elem(), mtags)
 		}
 	}
 
@@ -345,7 +345,7 @@ type Flag struct {
 	// The struct field value which the option represents.
 	value reflect.Value
 
-	tag                     multiTag
+	tag                     map[string][]string
 	isSet                   bool
 	isSetDefault            bool
 	preventDefault          bool
@@ -621,7 +621,7 @@ type PositionalArg struct {
 	RequiredMaximum int    // maximum number of required positional arguments
 
 	value reflect.Value
-	tag   multiTag
+	tag   map[string][]string
 }
 
 func isRemainingArg(value reflect.Value) bool {
@@ -780,7 +780,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, err
 		}
 
-		positional := mtag.Get("positional-args")
+		positional := Get(mtag, "positional-args")
 
 		if positional != "" {
 			stype := realval.Type()
@@ -793,12 +793,12 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := internal.Or(m.Get("positional-arg-name"), field.Name)
+				name := internal.Or(Get(m, "positional-arg-name"), field.Name)
 
 				required := -1
 				requiredMaximum := -1
 
-				if sreq := m.Get("required"); sreq != "" {
+				if sreq := Get(m, "required"); sreq != "" {
 					required = 1
 
 					if rng := strings.SplitN(sreq, "-", 2); len(rng) > 1 {
@@ -818,7 +818,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				arg := &PositionalArg{
 					Name:            name,
-					Description:     m.Get("description"),
+					Description:     Get(m, "description"),
 					Required:        required,
 					RequiredMaximum: requiredMaximum,
 
@@ -828,7 +828,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				c.args = append(c.args, arg)
 
-				if mtag.Get("required") != "" {
+				if Get(mtag, "required") != "" {
 					c.ArgsRequired = true
 				}
 			}
@@ -836,7 +836,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, nil
 		}
 
-		subcommand := mtag.Get("command")
+		subcommand := Get(mtag, "command")
 		if subcommand == "" {
 			return parentg.scanSubGroupHandler(realval, sfield)
 		}
@@ -853,21 +853,21 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			ptrval = realval.Addr()
 		}
 
-		shortDescription := mtag.Get("description")
-		longDescription := mtag.Get("long-description")
+		shortDescription := Get(mtag, "description")
+		longDescription := Get(mtag, "long-description")
 		subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
 		if err != nil {
 			return true, err
 		}
 
-		subc.Group.Hidden = mtag.Get("hidden") != ""
+		subc.Group.Hidden = Get(mtag, "hidden") != ""
 
-		subcommandsOptional := mtag.Get("subcommands-optional")
+		subcommandsOptional := Get(mtag, "subcommands-optional")
 		if subcommandsOptional != "" {
 			subc.SubcommandsOptional = true
 		}
 
-		aliases := mtag.GetMany("alias")
+		aliases := GetMany(mtag, "alias")
 		if len(aliases) > 0 {
 			subc.Aliases = aliases
 		}
@@ -1153,7 +1153,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		}
 
 		// Skip fields with the no-flag tag
-		if mtag.Get("no-flag") != "" {
+		if Get(mtag, "no-flag") != "" {
 			continue
 		}
 
@@ -1181,8 +1181,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			}
 		}
 
-		longname := mtag.Get("long")
-		shortname := mtag.Get("short")
+		longname := Get(mtag, "long")
+		shortname := Get(mtag, "short")
 		// Need at least either a short or long name
 		if longname == "" && shortname == "" {
 			continue
@@ -1199,17 +1199,17 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			short, _ = utf8.DecodeRuneInString(shortname)
 		}
 
-		description := mtag.Get("description")
-		def := mtag.GetMany("default")
+		description := Get(mtag, "description")
+		def := GetMany(mtag, "default")
 
-		optionalValue := mtag.GetMany("optional-value")
-		valueName := mtag.Get("value-name")
-		defaultMask := mtag.Get("default-mask")
+		optionalValue := GetMany(mtag, "optional-value")
+		valueName := Get(mtag, "value-name")
+		defaultMask := Get(mtag, "default-mask")
 
-		optional := !isStringFalsy(mtag.Get("optional"))
-		required := !isStringFalsy(mtag.Get("required"))
-		choices := mtag.GetMany("choice")
-		hidden := !isStringFalsy(mtag.Get("hidden"))
+		optional := !isStringFalsy(Get(mtag, "optional"))
+		required := !isStringFalsy(Get(mtag, "required"))
+		choices := GetMany(mtag, "choice")
+		hidden := !isStringFalsy(Get(mtag, "hidden"))
 
 		option := &Flag{
 			Description:   description,
@@ -1279,7 +1279,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		return true, err
 	}
 
-	subgroup := mtag.Get("group")
+	subgroup := Get(mtag, "group")
 	if subgroup == "" {
 		return false, nil
 	}
@@ -1295,15 +1295,15 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		ptrval = realval.Addr()
 	}
 
-	description := mtag.Get("description")
+	description := Get(mtag, "description")
 	group, err := g.AddGroup(subgroup, description, ptrval.Interface())
 	if err != nil {
 		return true, err
 	}
 
-	group.Namespace = mtag.Get("namespace")
-	group.EnvNamespace = mtag.Get("env-namespace")
-	group.Hidden = mtag.Get("hidden") != ""
+	group.Namespace = Get(mtag, "namespace")
+	group.EnvNamespace = Get(mtag, "env-namespace")
+	group.Hidden = Get(mtag, "hidden") != ""
 
 	return true, nil
 }
@@ -2097,7 +2097,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			}
 		}
 
-		if option.tag.Get("unquote") != "false" {
+		if Get(option.tag, "unquote") != "false" {
 			arg, err = func(s string) (string, error) {
 				if s == "" || s[0] != '"' {
 					return s, nil

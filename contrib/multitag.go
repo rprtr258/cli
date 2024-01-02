@@ -64,14 +64,12 @@ func scanMultiTag(value string) (map[string][]string, error) {
 	return ret, nil
 }
 
-type multiTag map[string][]string
-
-func ParseMultiTag(value string) (multiTag, error) {
+func ParseMultiTag(value string) (map[string][]string, error) {
 	vals, err := scanMultiTag(value)
 	return vals, err
 }
 
-func (x multiTag) Get(key string) string {
+func Get(x map[string][]string, key string) string {
 	if v, ok := x[key]; ok {
 		return v[len(v)-1]
 	}
@@ -79,6 +77,6 @@ func (x multiTag) Get(key string) string {
 	return ""
 }
 
-func (x multiTag) GetMany(key string) []string {
+func GetMany(x map[string][]string, key string) []string {
 	return x[key]
 }
