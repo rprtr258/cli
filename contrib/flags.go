@@ -695,7 +695,7 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 // AddGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (c *Command) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
+func (c *Command) AddGroup(shortDescription, longDescription string, data any) *Group {
 	group := &Group{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
@@ -705,11 +705,11 @@ func (c *Command) AddGroup(shortDescription, longDescription string, data any) (
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
 		c.Group.parent.(*Parser).internalError = err
-		return nil, err
+		return nil
 	}
 
 	c.Group.groups = append(c.Group.groups, group)
-	return group, nil
+	return group
 }
 
 // Commands returns a list of subcommands of this command.
@@ -1696,8 +1696,7 @@ func NewParser(data any, options Options) *Parser {
 	p := NewNamedParser(filepath.Base(os.Args[0]), options)
 
 	if data != nil {
-		g, err := p.Command.AddGroup("Application Options", "", data)
-		if err == nil {
+		if g := p.Command.AddGroup("Application Options", "", data); g != nil {
 			g.parent = p
 		}
 	}

@@ -71,9 +71,6 @@ func TestConvertToString(t *testing.T) {
 		4232,
 	}
 
-	p := NewNamedParser("test", Default)
-	grp, _ := p.Command.AddGroup("test group", "", &opts)
-
 	expects := []string{
 		"string",
 		"-2",
@@ -104,7 +101,7 @@ func TestConvertToString(t *testing.T) {
 		"1088",
 	}
 
-	for i, v := range grp.options {
+	for i, v := range NewNamedParser("test", Default).Command.AddGroup("test group", "", &opts).options {
 		s, err := convertToString(v.value, v.tag)
 		assert.NoError(t, err)
 		assert.Equal(t, s, expects[i])
@@ -119,8 +116,7 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 	}
 
 	p := NewNamedParser("test", Default)
-	grp, _ := p.Command.AddGroup("test group", "", &opts)
-	o := grp.options[0]
+	o := p.Command.AddGroup("test group", "", &opts).options[0]
 
 	_, err := convertToString(o.value, o.tag)
 	if err != nil {
@@ -139,10 +135,7 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 		2,
 	}
 
-	p := NewNamedParser("test", Default)
-	grp, _ := p.Command.AddGroup("test group", "", &opts)
-	o := grp.options[0]
-
+	o := NewNamedParser("test", Default).Command.AddGroup("test group", "", &opts).options[0]
 	_, err := convertToString(o.value, o.tag)
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
