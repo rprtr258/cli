@@ -376,7 +376,7 @@ func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
 			return iter.FromMany(g.options...)
 		})
 
-	return append([]*Arg(nil), c.args...), lookup{
+	lookup := lookup{
 		shortNames: ToDict(
 			opts.Filter(func(o *Option) bool {
 				return o.ShortName != 0
@@ -407,5 +407,7 @@ func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
 			func(kv fun.Pair[string, *Command]) (string, *Command) {
 				return kv.K, kv.V
 			}),
-	}, c
+	}
+
+	return append([]*Arg(nil), c.args...), lookup, c
 }
