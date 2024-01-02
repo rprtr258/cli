@@ -1908,39 +1908,35 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	if s.err == nil {
 		p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
-			err := func() error {
-				if option.preventDefault {
-					return nil
-				}
+			if option.preventDefault {
+				return
+			}
 
-				option.isSetDefault = true
+			option.isSetDefault = true
 
-				if len(option.Default) > 0 {
-					option.empty()
+			if len(option.Default) > 0 {
+				option.empty()
 
-					for _, d := range option.Default {
-						if option.preventDefault {
-							return nil
-						}
-
-						if err := option.Set(&d); err != nil {
-							return err
-						}
-
-						option.isSetDefault = true
-						option.preventDefault = false
+				for _, d := range option.Default {
+					if option.preventDefault {
+						break
 					}
-				} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
-					option.empty()
-				}
 
-				return nil
-			}()
-			if err != nil {
-				if _, ok := err.(*Error); !ok {
-					err = marshalError(option, err)
+					if err := option.Set(&d); err != nil {
+						if err != nil {
+							if _, ok := err.(*Error); !ok {
+								err = marshalError(option, err)
+							}
+							s.err = err
+						}
+						break
+					}
+
+					option.isSetDefault = true
+					option.preventDefault = false
 				}
-				s.err = err
+			} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
+				option.empty()
 			}
 		})
 
