@@ -39,30 +39,34 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		terminalColumns: getTerminalColumns(),
 	}
 	var prevcmd *Command
-	eachActiveGroup(p.Command, func(c *Command, grp *Group) {
-		if c != prevcmd {
-			ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
-				return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
-			}, c.args...))
-			prevcmd = c
-		}
-		if !grp.showInHelp() {
-			return
-		}
-
-		for _, info := range grp.options {
-			if !info.showInHelp() {
-				continue
+	for c := p.Command; c != nil; c = c.Active {
+		c.eachGroup(func(grp *Group) bool {
+			if c != prevcmd {
+				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
+					return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
+				}, c.args...))
+				prevcmd = c
+			}
+			if !grp.showInHelp() {
+				return true
 			}
 
-			ret.hasShort = ret.hasShort || info.ShortName != 0
-			ret.hasValueName = ret.hasValueName || info.ValueName != ""
+			for _, info := range grp.options {
+				if !info.showInHelp() {
+					continue
+				}
 
-			l := info.LongNameWithNamespace() + info.ValueName +
-				internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
-			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command, 4))
-		}
-	})
+				ret.hasShort = ret.hasShort || info.ShortName != 0
+				ret.hasValueName = ret.hasValueName || info.ValueName != ""
+
+				l := info.LongNameWithNamespace() + info.ValueName +
+					internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
+				ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command, 4))
+			}
+			return true
+		})
+	}
+
 	return ret
 }
 
