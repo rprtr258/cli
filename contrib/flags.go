@@ -731,7 +731,7 @@ func (c *Command) Commands() []*Command {
 // command can be found Find will return nil.
 func (c *Command) Find(name string) *Command {
 	for _, cc := range c.commands {
-		if cc.match(name) {
+		if cc.Name == name || internal.OneOf(name, cc.Aliases...) {
 			return cc
 		}
 	}
@@ -912,10 +912,6 @@ func visibleCommands(commands []*Command) []*Command {
 	return internal.Filter(func(cmd *Command) bool {
 		return !cmd.Group.Hidden
 	}, commands...)
-}
-
-func (c *Command) match(name string) bool {
-	return c.Name == name || internal.OneOf(name, c.Aliases...)
 }
 
 func (c *Command) hasHelpOptions() bool {
