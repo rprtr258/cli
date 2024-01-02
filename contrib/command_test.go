@@ -374,7 +374,7 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		Value bool   `short:"v"`
 		Foo   fooCmd `command:"foo"`
 	}{}
-	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "foo", "-f", "bar", "-v", "-g")
+	ret, err := NewParser(&opts, Default).Run("-v", "foo", "-f", "bar", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Foo.Flag)
@@ -394,7 +394,7 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		Value bool   `short:"v"`
 		Bar   barCmd `command:"bar"`
 	}{}
-	p := NewParser(&opts, PassAfterNonOption)
+	p := NewParser(&opts, Default)
 	ret, err := p.Run("-v", "bar", "-f", "baz", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)

@@ -228,7 +228,9 @@ func TestUnknown(t *testing.T) {
 		assert.Equal(t, []string{
 			"hello",
 			"world",
+			"-v",
 			"--foo=bar",
+			"--verbose",
 			"-f",
 		}, args)
 	})

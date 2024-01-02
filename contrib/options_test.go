@@ -22,7 +22,7 @@ func TestPassAfterNonOption(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"arg", "-v", "-g"}, ret)
@@ -37,7 +37,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{}, ret)
@@ -53,7 +53,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "1", "2", "3")
+	ret, err := NewParser(&opts, Default).Run("-v", "1", "2", "3")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{}, ret)
@@ -85,7 +85,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			[]string{"1", "notint2", "notint3"},
 		},
 	} {
-		p := NewParser(&opts, PassAfterNonOption)
+		p := NewParser(&opts, Default)
 		ret, err := p.Run(test.opts...)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, test.errContains)

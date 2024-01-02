@@ -151,7 +151,7 @@ func (c *completion) complete(args []string) []Completion {
 					}
 				}
 
-				if o == nil && c.parser.Options&PassAfterNonOption != 0 {
+				if o == nil {
 					opt = nil
 					c.skipPositional(s, len(s.args)-1)
 					break

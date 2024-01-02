@@ -1638,11 +1638,6 @@ const (
 	// remaining command line arguments instead of generating an error.
 	IgnoreUnknown
 
-	// PassAfterNonOption passes all arguments after the first non option
-	// as remaining command line arguments.
-	// This is equivalent to strict POSIX processing.
-	PassAfterNonOption
-
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag | PassDoubleDash
@@ -1758,7 +1753,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 		}
 
 		if !isFlag(arg) {
-			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
+			if s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments are considered positional
 				s.addArgs(s.arg)
 				if s.err == nil {
