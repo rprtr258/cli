@@ -684,7 +684,7 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 			parent:           c,
 		},
 	}
-	if err := cmd.scan(); err != nil {
+	if err := cmd.Group.scanType(cmd.scanSubcommandHandler(cmd.Group)); err != nil {
 		return nil, err
 	}
 
@@ -821,10 +821,6 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 
 		return true, nil
 	}
-}
-
-func (c *Command) scan() error {
-	return c.Group.scanType(c.scanSubcommandHandler(c.Group))
 }
 
 func (c *Command) eachOption(yield func(*Command, *Group, *Flag)) {
