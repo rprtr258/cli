@@ -653,7 +653,7 @@ type Command struct {
 
 	commands            []*Command
 	hasBuiltinHelpGroup bool
-	args                []*PositionalArg
+	args                []PositionalArg
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -780,7 +780,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					}
 				}
 
-				c.args = append(c.args, &PositionalArg{
+				c.args = append(c.args, PositionalArg{
 					Name:            name,
 					Description:     multitagGet(m, "description"),
 					Required:        required,
@@ -1341,7 +1341,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	for c := p.Command; c != nil; c = c.Active {
 		c.Group.eachGroup(func(grp *Group) bool {
 			if c != prevcmd {
-				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *PositionalArg) int {
+				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg PositionalArg) int {
 					return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
 				}, c.args...))
 				prevcmd = c
@@ -1598,7 +1598,7 @@ func (p *Parser) WriteHelp() string {
 			return true
 		})
 
-		if args := internal.Filter(func(arg *PositionalArg) bool {
+		if args := internal.Filter(func(arg PositionalArg) bool {
 			// TODO: separate Hidden field
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
@@ -1698,7 +1698,7 @@ type parseState struct {
 	arg        string
 	args       []string
 	retargs    []string
-	positional []*PositionalArg
+	positional []PositionalArg
 	err        error
 
 	command *Command
@@ -1926,7 +1926,7 @@ func (s *parseState) checkRequired(p *Parser) {
 
 	if len(required) == 0 {
 		reqnames := iter.MapFilter(iter.FromMany(s.positional...),
-			func(arg *PositionalArg) (string, bool) {
+			func(arg PositionalArg) (string, bool) {
 				var desc string
 				switch {
 				case (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1:
