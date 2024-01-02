@@ -1989,24 +1989,22 @@ func (s *parseState) checkRequired(p *Parser) {
 
 		var reqnames []string
 		for _, arg := range s.positional {
-			if (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1 {
-				continue
-			}
-
-			if isRemainingArg(arg.value) {
-				if arg.value.Len() < arg.Required {
-					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
-				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
-					reqnames = append(reqnames, func() string {
-						if arg.RequiredMaximum == 0 {
-							return "`" + arg.Name + " (zero arguments)`"
-						} else {
-							return "`" + arg.Name + " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
-						}
-					}())
+			if !((isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1) {
+				if isRemainingArg(arg.value) {
+					if arg.value.Len() < arg.Required {
+						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
+					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
+						reqnames = append(reqnames, func() string {
+							if arg.RequiredMaximum == 0 {
+								return "`" + arg.Name + " (zero arguments)`"
+							} else {
+								return "`" + arg.Name + " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
+							}
+						}())
+					}
+				} else {
+					reqnames = append(reqnames, "`"+arg.Name+"`")
 				}
-			} else {
-				reqnames = append(reqnames, "`"+arg.Name+"`")
 			}
 		}
 		if len(reqnames) != 0 {
