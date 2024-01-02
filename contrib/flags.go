@@ -2098,13 +2098,9 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 		}
 
 		if multitagGet(option.tag, "unquote") != "false" {
-			arg, err = func(arg string) (string, error) {
-				if arg == "" || arg[0] != '"' {
-					return arg, nil
-				}
-
-				return strconv.Unquote(arg)
-			}(arg)
+			if arg != "" && arg[0] == '"' {
+				arg, err = strconv.Unquote(arg)
+			}
 		}
 
 		if err == nil {
