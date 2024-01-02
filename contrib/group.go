@@ -1735,14 +1735,13 @@ func (p *Parser) WriteHelp() string {
 			// TODO: separate Hidden field
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
-			if c == p.Command {
-				fmt.Fprintf(w, "\nArguments:\n")
-			} else {
-				fmt.Fprintf(w, "\n[%s command arguments]\n", c.Name)
+			sarguments := "Arguments:"
+			if c != p.Command {
+				sarguments = fmt.Sprintf("[%s command arguments]", c.Name)
 			}
+			fmt.Fprint(w, "\n"+sarguments+"\n")
 
 			descStart := aligninfo.descriptionStart() + _paddingBeforeOption
-
 			for _, arg := range args {
 				argPrefix := strings.Repeat(" ", _paddingBeforeOption) + arg.Name
 				if arg.Description != "" {
