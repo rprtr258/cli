@@ -1984,10 +1984,6 @@ func (s *parseState) checkRequired(p *Parser) {
 	}
 
 	if len(required) == 0 {
-		if len(s.positional) == 0 {
-			return
-		}
-
 		reqnames := iter.MapFilter(iter.FromMany(s.positional...),
 			func(arg *Arg) (string, bool) {
 				var desc string
