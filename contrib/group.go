@@ -1989,7 +1989,7 @@ func (s *parseState) checkRequired(p *Parser) {
 
 		var reqnames []string
 		for _, arg := range s.positional {
-			if !(!isRemainingArg(arg.value) && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1) {
+			if (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1 {
 				continue
 			}
 
