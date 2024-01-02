@@ -298,15 +298,6 @@ func (c *Command) eachCommand(yield func(*Command) bool) bool {
 	})
 }
 
-func eachActiveGroup(c *Command, yield func(cc *Command, g *Group)) {
-	for c := c; c != nil; c = c.Active {
-		c.eachGroup(func(g *Group) bool {
-			yield(c, g)
-			return true
-		})
-	}
-}
-
 func (c *Command) addHelpGroups(showHelp func() error) {
 	if !c.hasBuiltinHelpGroup {
 		c.addHelpGroup(showHelp)
