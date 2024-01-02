@@ -2278,17 +2278,19 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		return s.addArgs(s.arg)
 	}
 
-	if len(s.command.commands) > 0 && len(s.retargs) == 0 {
-		if cmd := s.lookup.commands[s.arg]; cmd != nil {
-			s.command.Active = cmd
-			s.positional = cmd.args
-			s.lookup = makeLookupTable(cmd)
-			s.command = cmd
-			return nil
-		} else if !s.command.SubcommandsOptional {
-			_ = s.addArgs(s.arg)
-			return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
-		}
+	if len(s.command.commands) == 0 || len(s.retargs) > 0 {
+		return s.addArgs(s.arg)
+	}
+
+	if cmd := s.lookup.commands[s.arg]; cmd != nil {
+		s.command.Active = cmd
+		s.positional = cmd.args
+		s.lookup = makeLookupTable(cmd)
+		s.command = cmd
+		return nil
+	} else if !s.command.SubcommandsOptional {
+		_ = s.addArgs(s.arg)
+		return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
 	}
 
 	return s.addArgs(s.arg)
