@@ -430,9 +430,9 @@ func (option *Flag) Value() any {
 	return option.value.Interface()
 }
 
-// Set the value of an option to the specified value. An error will be returned
-// if the specified value could not be converted to the corresponding option
-// value type.
+// Set the value of an option to the specified value.
+// An error will be returned if the specified value could not be converted
+// to the corresponding option value type.
 func (option *Flag) Set(value *string) error {
 	if fun.Contains(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
