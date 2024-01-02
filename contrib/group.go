@@ -1992,19 +1992,16 @@ func (s *parseState) checkRequired(p *Parser) {
 			if isRemaining := isRemainingArg(arg.value); !isRemaining && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1 {
 				if !isRemaining {
 					reqnames = append(reqnames, "`"+arg.Name+"`")
-				} else {
-					if arg.value.Len() < arg.Required {
-						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
-					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
-						reqnames = append(reqnames, "`"+arg.Name+func() string {
-							if arg.RequiredMaximum == 0 {
-								return " (zero arguments)"
-							} else {
-								return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
-							}
-						}()+"`")
-					}
-
+				} else if arg.value.Len() < arg.Required {
+					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
+				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
+					reqnames = append(reqnames, "`"+arg.Name+func() string {
+						if arg.RequiredMaximum == 0 {
+							return " (zero arguments)"
+						} else {
+							return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
+						}
+					}()+"`")
 				}
 			}
 		}
