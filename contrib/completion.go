@@ -217,7 +217,7 @@ func (c *completion) complete(args []string) []Completion {
 	switch {
 	case opt != nil: // Completion for the argument of 'opt'
 		return c.completeValue(opt.value, "", lastarg)
-	case doesLookLikeFlag(lastarg): // Complete the option
+	case lastarg != "" && lastarg[0] == '-': // Complete the option
 		prefix, optname, islong := stripFlagPrefix(lastarg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
