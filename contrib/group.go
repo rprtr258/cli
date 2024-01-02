@@ -732,11 +732,9 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 			ShortDescription: shortDescription,
 			LongDescription:  longDescription,
 			data:             data,
+			parent:           c,
 		},
 	}
-
-	cmd.parent = c
-
 	if err := cmd.scan(); err != nil {
 		return nil, err
 	}
