@@ -739,10 +739,10 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-// FindOptionByLongName finds an option that is part of the command,
+// findOptionByLongName finds an option that is part of the command,
 // or any of its parent commands, by matching its long name
 // (including the option namespace)
-func (c *Command) FindOptionByLongName(longName string) *Flag {
+func (c *Command) findOptionByLongName(longName string) *Flag {
 	for ; c != nil; c, _ = c.Group.parent.(*Command) {
 		if option := c.Group.findOptionByLongName(longName); option != nil {
 			return option
@@ -751,16 +751,16 @@ func (c *Command) FindOptionByLongName(longName string) *Flag {
 	return nil
 }
 
-// FindOptionByShortName finds an option that is part of the command, or any of
+// findOptionByShortName finds an option that is part of the command, or any of
 // its parent commands, by matching its long name (including the option
 // namespace).
-func (c *Command) FindOptionByShortName(shortName rune) (option *Flag) {
+func (c *Command) findOptionByShortName(shortName rune) (option *Flag) {
 	for option == nil && c != nil {
-		option = c.Group.findOptionByShortName(shortName)
-
+		option = c.Group.findOption(func(option *Flag) bool {
+			return option.ShortName == shortName
+		})
 		c, _ = c.Group.parent.(*Command)
 	}
-
 	return option
 }
 
@@ -1096,14 +1096,6 @@ func (g *Group) findOption(matcher func(*Flag) bool) *Flag {
 func (g *Group) findOptionByLongName(longName string) *Flag {
 	return g.findOption(func(option *Flag) bool {
 		return option.LongNameWithNamespace() == longName
-	})
-}
-
-// findOptionByShortName finds an option that is part of the group, or any of
-// its subgroups, by matching its short name.
-func (g *Group) findOptionByShortName(shortName rune) *Flag {
-	return g.findOption(func(option *Flag) bool {
-		return option.ShortName == shortName
 	})
 }
 
