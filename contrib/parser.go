@@ -11,6 +11,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 )
 
 // A Parser provides command line option parsing. It can contain several
@@ -273,13 +274,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		prefix, optname, islong := stripFlagPrefix(arg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
-		var err error
-		if islong {
-			err = p.parseLong(s, optname, argument)
-		} else {
-			err = p.parseShort(s, optname, argument)
-		}
-		if err != nil {
+		if err := fun.IF(islong, p.parseLong, p.parseShort)(s, optname, argument); err != nil {
 			ignoreUnknown := (p.Options & IgnoreUnknown) != None
 
 			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag || !ignoreUnknown && p.UnknownOptionHandler == nil {
