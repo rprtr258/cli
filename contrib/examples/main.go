@@ -63,7 +63,7 @@ type Options struct {
 
 func main() {
 	parser := flags.NewParser(&Options{}, flags.Default)
-	if _, err := parser.Parse(); err != nil {
+	if _, err := parser.ParseArgs(os.Args[1:]...); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}

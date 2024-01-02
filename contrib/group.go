@@ -1843,7 +1843,7 @@ type parseState struct {
 // default option group (named "Application Options"). For more control, use
 // flags.NewParser.
 func Parse(data any) ([]string, error) {
-	return NewParser(data, Default).Parse()
+	return NewParser(data, Default).ParseArgs(os.Args[1:]...)
 }
 
 // ParseArgs is a convenience function to parse command line options with default
@@ -1892,12 +1892,6 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p.Command.parent = p
 
 	return p
-}
-
-// Parse parses the command line arguments from os.Args using Parser.ParseArgs.
-// For more detailed information see ParseArgs.
-func (p *Parser) Parse() ([]string, error) {
-	return p.ParseArgs(os.Args[1:]...)
 }
 
 // ParseArgs parses the command line arguments according to the option groups that
