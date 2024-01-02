@@ -951,14 +951,6 @@ func (g *flagSet) Find(shortDescription string) *flagSet {
 	return ret
 }
 
-func (g *flagSet) findFlag(matcher func(*Flag) bool) *Flag {
-	option, _ := iter.
-		FromMany(g.flags...).
-		Filter(matcher).
-		Head()
-	return option
-}
-
 func (g *flagSet) showInHelp() bool {
 	return !g.Hidden && fun.Any(func(opt *Flag) bool {
 		return opt.showInHelp()

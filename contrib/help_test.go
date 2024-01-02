@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/rprtr258/fun/iter"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -547,9 +548,13 @@ func TestHelpDefaultMask(t *testing.T) {
 		}
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
-		p.writeHelpOption(h, p.Command.Group.findFlag(func(f *Flag) bool {
-			return f.ShortName == 'v'
-		}), p.getAlignmentInfo())
+		option, _ := iter.
+			FromMany(p.Command.Group.flags...).
+			Filter(func(f *Flag) bool {
+				return f.ShortName == 'v'
+			}).
+			Head()
+		p.writeHelpOption(h, option, p.getAlignmentInfo())
 		assert.Contains(t, h.String(), test.present)
 	}
 }
