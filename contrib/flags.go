@@ -1088,16 +1088,6 @@ func (g *flagSet) checkForDuplicateFlags() error {
 }
 
 func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
-	mtag, err := ParseMultiTag(string(sfield.Tag))
-	if err != nil {
-		return true, err
-	}
-
-	subgroup := multitagGet(mtag, "group")
-	if subgroup == "" {
-		return false, nil
-	}
-
 	var ptrval reflect.Value
 	if realval.Kind() == reflect.Ptr {
 		ptrval = realval
