@@ -16,7 +16,6 @@ import (
 	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
 	"github.com/rprtr258/fun/iter"
-	"github.com/samber/lo"
 )
 
 // Arg represents a positional argument on the command line.
@@ -2061,19 +2060,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 			return newUnknownCommandError(p.retargs[0], cmdnames)
 		}
 
-		return &Error{
-			Kind: ErrCommandRequired,
-			Message: lo.Switch[bool, string](true).
-				CaseF(len(cmdnames) == 1, func() string {
-					return fmt.Sprintf("Please specify the %s command", cmdnames[0])
-				}).
-				CaseF(len(cmdnames) > 1, func() string {
-					return fmt.Sprintf("Please specify one command of: %s or %s",
-						strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-						cmdnames[len(cmdnames)-1])
-				}).
-				Default(""),
-		}
+		return newCommandRequiredError(cmdnames)
 	}
 
 	if cmd, ok := p.command.Group.data.(Commander); ok {
