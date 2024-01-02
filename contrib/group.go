@@ -1988,14 +1988,12 @@ func (s *parseState) checkRequired(p *Parser) {
 			return
 		}
 
-		reqnames := iter.MapFilter(iter.
-			FromMany(s.positional...).
-			Filter(func(arg *Arg) bool {
-				return !isRemainingArg(arg.value) && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1
-			}),
+		reqnames := iter.MapFilter(iter.FromMany(s.positional...),
 			func(arg *Arg) (string, bool) {
 				var desc string
 				switch {
+				case (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1:
+					return "", false
 				case !isRemainingArg(arg.value):
 					desc = ""
 				case arg.value.Len() < arg.Required:
