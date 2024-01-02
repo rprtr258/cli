@@ -1677,13 +1677,13 @@ func (p *Parser) WriteHelp() string {
 					co, cc = "<", ">"
 				}
 
-				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) > 3 {
-					fmt.Fprint(w, " "+co+"command"+cc)
-				} else {
-					fmt.Fprint(w, " "+co+strings.Join(internal.Map(func(subc *Command) string {
+				scommands := "command"
+				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) <= 3 {
+					scommands = strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
-					}, visibleCommands(allcmd.commands)...), " | ")+cc)
+					}, visibleCommands(allcmd.commands)...), " | ")
 				}
+				fmt.Fprint(w, " "+co+scommands+cc)
 			}
 		}
 
