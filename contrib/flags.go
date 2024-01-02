@@ -954,10 +954,7 @@ func (g *flagSet) Find(shortDescription string) *flagSet {
 
 func (g *flagSet) findFlag(matcher func(*Flag) bool) *Flag {
 	option, _ := iter.
-		FlatMap(iter.FromMany(g),
-			func(gg *flagSet) iter.Seq[*Flag] {
-				return iter.FromMany(gg.flags...)
-			}).
+		FromMany(g.flags...).
 		Filter(matcher).
 		Head()
 	return option
