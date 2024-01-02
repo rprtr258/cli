@@ -1996,11 +1996,11 @@ func (s *parseState) checkRequired(p *Parser) {
 					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
 						reqnames = append(reqnames, "`"+arg.Name+func() string {
 							if arg.RequiredMaximum == 0 {
-								return " (zero arguments)`"
+								return " (zero arguments)"
 							} else {
-								return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
+								return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
 							}
-						}())
+						}()+"`")
 					}
 				} else {
 					reqnames = append(reqnames, "`"+arg.Name+"`")
