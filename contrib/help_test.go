@@ -351,10 +351,6 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	hlpgrp, err := p.Command.AddGroup("Help Options", "", &help)
 	assert.NoError(t, err)
 	hlpgrp.Hidden = true
-	// hlp := p.Command.findFlagByLongName("help")
-	// hlp.Description = "Show this help message"
-	// // make sure the --help option is hidden
-	// hlp.Hidden = true
 
 	// add a hidden command
 	var hiddenCmdOpts struct {
