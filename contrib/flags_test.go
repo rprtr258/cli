@@ -201,7 +201,7 @@ func TestUnknown(t *testing.T) {
 			Args    []string `args`
 		}{}
 
-		err := NewParser(&opts, IgnoreUnknown).Run(
+		err := NewParser(&opts, Default).Run(
 			"hello",
 			"world",
 			"-v",

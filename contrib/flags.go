@@ -14,10 +14,11 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
 	"github.com/rprtr258/fun/iter"
 	"github.com/samber/lo"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // Marshaler is the interface implemented by types that can marshal themselves
@@ -1545,10 +1546,6 @@ const (
 	// will also be automatically printed to os.Stdout.
 	HelpFlag = 1 << iota
 
-	// IgnoreUnknown ignores any unknown options and passes them as
-	// remaining command line arguments instead of generating an error.
-	IgnoreUnknown
-
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
 	Default = HelpFlag
@@ -1711,16 +1708,12 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 		optname, argument := splitFlag(prefix, optname, islong)
 
 		if err := fun.IF(islong, p.parseLong, p.parseShort)(s, optname, argument); err != nil {
-			ignoreUnknown := (p.Options & IgnoreUnknown) != None
-
-			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag || !ignoreUnknown && p.UnknownOptionHandler == nil {
+			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag || p.UnknownOptionHandler == nil {
 				s.err = parseErr
 				break
 			}
 
-			if ignoreUnknown {
-				s.addArgs(arg)
-			} else if p.UnknownOptionHandler != nil {
+			if p.UnknownOptionHandler != nil {
 				modifiedArgs, err := p.UnknownOptionHandler(optname, argument, s.args)
 				if err != nil {
 					s.err = err
