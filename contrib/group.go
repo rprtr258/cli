@@ -58,8 +58,8 @@ type ValueValidator interface {
 }
 
 func getBase(base string, defaultBase int) (int, error) {
-	if sbase := base; sbase != "" {
-		ivbase, err := strconv.ParseInt(sbase, 10, 32)
+	if base != "" {
+		ivbase, err := strconv.ParseInt(base, 10, 32)
 		return int(ivbase), err
 	}
 
