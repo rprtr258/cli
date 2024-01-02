@@ -1282,10 +1282,10 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 	return nil
 }
 
-func (g *Group) checkForDuplicateFlags() *Error {
+func (g *Group) checkForDuplicateFlags() error {
 	shortNames := make(map[rune]*Flag)
 	longNames := make(map[string]*Flag)
-	var duplicateError *Error
+	var duplicateError error
 	g.eachGroup(func(g *Group) bool {
 		for _, option := range g.options {
 			if option.LongName != "" {
@@ -1360,11 +1360,13 @@ func (g *Group) scanType(handler scanHandler) error {
 		return err
 	}
 
-	if err := g.checkForDuplicateFlags(); err != nil {
-		return err
-	}
+	return g.checkForDuplicateFlags()
 
-	return nil
+	// if err := g.checkForDuplicateFlags(); err != nil {
+	// 	return err
+	// }
+
+	// return nil
 }
 
 type alignmentInfo struct {
