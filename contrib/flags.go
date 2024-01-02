@@ -1896,7 +1896,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 			}
 
 			if ignoreUnknown {
-				_ = s.addArgs(arg)
+				s.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
 				modifiedArgs, err := p.UnknownOptionHandler(optname, argument, s.args)
 				if err != nil {
