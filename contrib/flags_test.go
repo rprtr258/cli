@@ -31,7 +31,7 @@ func TestGroupAdd(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, Default)
-	g := p.Command.AddGroup("Grouped Options", "", &grp)
+	g := p.Command.addGroup("Grouped Options", "", &grp)
 
 	ret, err := p.Run("-v", "-g", "rest")
 	assert.NoError(t, err)

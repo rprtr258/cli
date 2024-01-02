@@ -101,7 +101,7 @@ func TestConvertToString(t *testing.T) {
 		"1088",
 	}
 
-	for i, v := range NewNamedParser("test", Default).Command.AddGroup("test group", "", &opts).options {
+	for i, v := range NewNamedParser("test", Default).Command.addGroup("test group", "", &opts).options {
 		s, err := convertToString(v.value, v.tag)
 		assert.NoError(t, err)
 		assert.Equal(t, s, expects[i])
@@ -116,7 +116,7 @@ func TestConvertToStringInvalidIntBase(t *testing.T) {
 	}
 
 	p := NewNamedParser("test", Default)
-	o := p.Command.AddGroup("test group", "", &opts).options[0]
+	o := p.Command.addGroup("test group", "", &opts).options[0]
 
 	_, err := convertToString(o.value, o.tag)
 	if err != nil {
@@ -135,7 +135,7 @@ func TestConvertToStringInvalidUintBase(t *testing.T) {
 		2,
 	}
 
-	o := NewNamedParser("test", Default).Command.AddGroup("test group", "", &opts).options[0]
+	o := NewNamedParser("test", Default).Command.addGroup("test group", "", &opts).options[0]
 	_, err := convertToString(o.value, o.tag)
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)

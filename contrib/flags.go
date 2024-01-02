@@ -692,10 +692,10 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 	return cmd, nil
 }
 
-// AddGroup adds a new group to the command with the given name and data. The
+// addGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (c *Command) AddGroup(shortDescription, longDescription string, data any) *Group {
+func (c *Command) addGroup(shortDescription, longDescription string, data any) *Group {
 	group := &Group{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
@@ -1696,7 +1696,7 @@ func NewParser(data any, options Options) *Parser {
 	p := NewNamedParser(filepath.Base(os.Args[0]), options)
 
 	if data != nil {
-		if g := p.Command.AddGroup("Application Options", "", data); g != nil {
+		if g := p.Command.addGroup("Application Options", "", data); g != nil {
 			g.parent = p
 		}
 	}

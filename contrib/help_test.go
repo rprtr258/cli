@@ -80,7 +80,7 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
-	p.Command.AddGroup("Application Options", "The application options", &opts)
+	p.Command.addGroup("Application Options", "The application options", &opts)
 
 	_, err := p.Run("--help")
 	var expected string
@@ -190,7 +190,7 @@ func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
 	p.Command.Group.ShortDescription = "Test manpage generation"
 	p.Command.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
-	p.Command.AddGroup("Application Options", "The application options", &helpOptions{})
+	p.Command.addGroup("Application Options", "The application options", &helpOptions{})
 
 	for _, cmd := range p.Command.Commands() {
 		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
@@ -309,7 +309,7 @@ type helpCommandNoOptions struct {
 func TestHelpCommand(t *testing.T) {
 	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
-	_ = p.Command.AddGroup("Application Options", "The application options", &opts)
+	_ = p.Command.addGroup("Application Options", "The application options", &opts)
 
 	_, err := p.Run("command", "--help")
 	var expected string
@@ -348,7 +348,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	help.ShowHelp = func() error {
 		return &Error{Kind: ErrHelp}
 	}
-	hlpgrp := p.Command.AddGroup("Help Options", "", &help)
+	hlpgrp := p.Command.addGroup("Help Options", "", &help)
 	hlpgrp.Hidden = true
 
 	// add a hidden command
@@ -436,7 +436,7 @@ Help Options:
 		opts.WithProgrammaticDefault = "default-value"
 
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
-		p.Command.AddGroup("Application Options", "The application options", &opts)
+		p.Command.addGroup("Application Options", "The application options", &opts)
 
 		_, err := p.Run(test.Args...)
 		assert.Equal(t, &Error{
@@ -452,7 +452,7 @@ func TestHelpRestArgs(t *testing.T) {
 	}{}
 
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
-	p.Command.AddGroup("Application Options", "The application options", &opts)
+	p.Command.addGroup("Application Options", "The application options", &opts)
 
 	retargs, err := p.Run("-h", "-v", "rest")
 	assert.Error(t, err)
