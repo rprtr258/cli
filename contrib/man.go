@@ -44,68 +44,54 @@ func formatForMan(w io.Writer, s string) {
 	}
 }
 
-func writeManPageOptions(w io.Writer, grp *flagSet) {
-	grp.eachGroup(func(group *flagSet) bool {
-		if !group.showInHelp() {
-			return true
+func writeManPageOptions(w io.Writer, group *flagSet) {
+	if !group.showInHelp() {
+		return
+	}
+
+	for _, opt := range group.flags {
+		if !opt.showInHelp() {
+			continue
 		}
 
-		// If the parent (grp) has any subgroups, display their descriptions as
-		// subsection headers similar to the output of --help.
-		if group.ShortDescription != "" && len(grp.subgroups) > 0 {
-			fmt.Fprintf(w, ".SS %s\n", group.ShortDescription)
+		fmt.Fprintln(w, ".TP")
+		fmt.Fprintf(w, "\\fB")
 
-			if group.LongDescription != "" {
-				formatForMan(w, group.LongDescription)
-				fmt.Fprintln(w, "")
-			}
+		if opt.ShortName != 0 {
+			fmt.Fprintf(w, "\\fB\\-%c\\fR", opt.ShortName)
 		}
 
-		for _, opt := range group.flags {
-			if !opt.showInHelp() {
-				continue
-			}
-
-			fmt.Fprintln(w, ".TP")
-			fmt.Fprintf(w, "\\fB")
-
+		if opt.LongName != "" {
 			if opt.ShortName != 0 {
-				fmt.Fprintf(w, "\\fB\\-%c\\fR", opt.ShortName)
+				fmt.Fprintf(w, ", ")
 			}
 
-			if opt.LongName != "" {
-				if opt.ShortName != 0 {
-					fmt.Fprintf(w, ", ")
-				}
+			fmt.Fprintf(w, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
+		}
 
-				fmt.Fprintf(w, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
-			}
-
-			if opt.ValueName != "" || opt.IsOptional {
-				if opt.IsOptional {
-					fmt.Fprintf(w, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(internal.Join(strconv.Quote, ", ", opt.OptionalValue...)))
-				} else {
-					fmt.Fprintf(w, " \\fI%s\\fR", manQuote(opt.ValueName))
-				}
-			}
-
-			if len(opt.Default) != 0 {
-				fmt.Fprintf(w, " <default: \\fI%s\\fR>", manQuote(internal.Join(strconv.Quote, ", ", opt.Default...)))
-			}
-
-			if opt.Required {
-				fmt.Fprintf(w, " (\\fIrequired\\fR)")
-			}
-
-			fmt.Fprintln(w, "\\fP")
-
-			if opt.Description != "" {
-				formatForMan(w, opt.Description)
-				fmt.Fprintln(w, "")
+		if opt.ValueName != "" || opt.IsOptional {
+			if opt.IsOptional {
+				fmt.Fprintf(w, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(internal.Join(strconv.Quote, ", ", opt.OptionalValue...)))
+			} else {
+				fmt.Fprintf(w, " \\fI%s\\fR", manQuote(opt.ValueName))
 			}
 		}
-		return true
-	})
+
+		if len(opt.Default) != 0 {
+			fmt.Fprintf(w, " <default: \\fI%s\\fR>", manQuote(internal.Join(strconv.Quote, ", ", opt.Default...)))
+		}
+
+		if opt.Required {
+			fmt.Fprintf(w, " (\\fIrequired\\fR)")
+		}
+
+		fmt.Fprintln(w, "\\fP")
+
+		if opt.Description != "" {
+			formatForMan(w, opt.Description)
+			fmt.Fprintln(w, "")
+		}
+	}
 }
 
 func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*Command) {
