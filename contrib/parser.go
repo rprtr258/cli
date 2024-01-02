@@ -332,7 +332,6 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			return nil
 		}
 	}()
-
 	if reterr != nil {
 		return func() []string {
 			if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
@@ -389,12 +388,13 @@ func (p *parseState) checkRequired(parser *Parser) {
 				if arg.value.Len() < arg.Required {
 					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
 				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
-					var reqname string
-					if arg.RequiredMaximum == 0 {
-						reqname = "`" + arg.Name + " (zero arguments)`"
-					} else {
-						reqname = "`" + arg.Name + " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
-					}
+					reqname := func() string {
+						if arg.RequiredMaximum == 0 {
+							return "`" + arg.Name + " (zero arguments)`"
+						} else {
+							return "`" + arg.Name + " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
+						}
+					}()
 					reqnames = append(reqnames, reqname)
 				}
 			} else {
