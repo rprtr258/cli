@@ -1275,23 +1275,14 @@ func (a *alignmentInfo) descriptionStart() int {
 		internal.Iverson(a.hasValueName, 3)
 }
 
-// A Parser provides command line option parsing. It can contain several
-// option groups each with their own set of options.
+// A Parser provides command line option parsing.
+// It can contain several option groups each with their own set of options.
 type Parser struct {
-	// Embedded, see Command for more information
-	Command *Command
-
-	// A usage string to be displayed in the help message.
-	Usage string
-
-	// Option flags changing the behavior of the parser.
-	Options Options
-
-	// NamespaceDelimiter separates group namespaces and option long names
-	NamespaceDelimiter string
-
-	// EnvNamespaceDelimiter separates group env namespaces and env keys
-	EnvNamespaceDelimiter string
+	Command               *Command
+	Usage                 string  // Usage string to be displayed in the help message.
+	Options               Options // Option flags changing the behavior of the parser.
+	NamespaceDelimiter    string  // NamespaceDelimiter separates group namespaces and option long names
+	EnvNamespaceDelimiter string  // EnvNamespaceDelimiter separates group env namespaces and env keys
 
 	// UnknownOptionsHandler is a function which gets called when the parser
 	// encounters an unknown option. The function receives the unknown option
