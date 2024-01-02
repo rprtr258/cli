@@ -237,7 +237,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		lookup:     fillParseState(p.Command),
 		command:    p.Command,
 	}
-	for !s.eof() {
+	for !s.noargs() {
 		arg := s.pop()
 
 		// When PassDoubleDash is set and we encounter a --, then
@@ -338,12 +338,12 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	return s.retargs, nil
 }
 
-func (p *parseState) eof() bool {
+func (p *parseState) noargs() bool {
 	return len(p.args) == 0
 }
 
 func (p *parseState) pop() string {
-	if p.eof() {
+	if p.noargs() {
 		return ""
 	}
 
@@ -474,7 +474,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 
 		err = option.Set(nil)
-	case argument != nil || canarg && !s.eof():
+	case argument != nil || canarg && !s.noargs():
 		var arg string
 
 		if argument != nil {
