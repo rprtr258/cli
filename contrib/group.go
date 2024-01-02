@@ -483,21 +483,6 @@ func (option *Flag) Set(value *string) error {
 	}
 }
 
-func (option *Flag) setDefault(value *string) error {
-	if option.preventDefault {
-		return nil
-	}
-
-	if err := option.Set(value); err != nil {
-		return err
-	}
-
-	option.isSetDefault = true
-	option.preventDefault = false
-
-	return nil
-}
-
 func (option *Flag) showInHelp() bool {
 	return !option.Hidden && (option.ShortName != 0 || option.LongName != "")
 }
@@ -529,10 +514,16 @@ func (option *Flag) clearDefault() error {
 		option.empty()
 
 		for _, d := range option.Default {
-			err := option.setDefault(&d)
-			if err != nil {
+			if option.preventDefault {
+				return nil
+			}
+
+			if err := option.Set(&d); err != nil {
 				return err
 			}
+
+			option.isSetDefault = true
+			option.preventDefault = false
 		}
 	} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
 		option.empty()
