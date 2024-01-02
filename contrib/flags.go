@@ -765,7 +765,8 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 
 		subcommand := multitagGet(mtag, "command")
 		if subcommand == "" {
-			return parentg.scanSubGroupHandler(realval, sfield)
+			parentg.scanSubGroupHandler(realval, sfield)
+			return true, nil
 		}
 
 		var ptrval reflect.Value
@@ -1087,7 +1088,7 @@ func (g *flagSet) checkForDuplicateFlags() error {
 	return duplicateError
 }
 
-func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) {
 	var ptrval reflect.Value
 	if realval.Kind() == reflect.Ptr {
 		ptrval = realval
@@ -1098,8 +1099,6 @@ func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Str
 	} else {
 		ptrval = realval.Addr()
 	}
-
-	return true, nil
 }
 
 func (g *flagSet) scanType(handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
