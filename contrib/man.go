@@ -25,17 +25,17 @@ func formatForMan(w io.Writer, s string) {
 		idx := strings.IndexRune(s, '`')
 
 		if idx < 0 {
-			fmt.Fprintf(w, "%s", manQuoteLines(s))
+			fmt.Fprint(w, manQuoteLines(s))
 			break
 		}
 
-		fmt.Fprintf(w, "%s", manQuoteLines(s[:idx]))
+		fmt.Fprint(w, manQuoteLines(s[:idx]))
 
 		s = s[idx+1:]
 		idx = strings.IndexRune(s, '\'')
 
 		if idx < 0 {
-			fmt.Fprintf(w, "%s", manQuoteLines(s))
+			fmt.Fprint(w, manQuoteLines(s))
 			break
 		}
 

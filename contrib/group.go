@@ -461,8 +461,7 @@ func (option *Flag) Set(value *string) error {
 		if fun.All(func(choice string) bool {
 			return choice != *value
 		}, option.Choices...) {
-			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
-
+			allowed := strings.Join(option.Choices[:len(option.Choices)-1], ", ")
 			if len(option.Choices) > 1 {
 				allowed += " or " + option.Choices[len(option.Choices)-1]
 			}
