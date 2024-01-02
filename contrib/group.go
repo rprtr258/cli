@@ -1677,11 +1677,9 @@ func (p *Parser) WriteHelp() string {
 					}, visibleCommands(allcmd.commands)...), " | ")
 				}
 
-				var co, cc string
+				co, cc := "<", ">"
 				if allcmd.SubcommandsOptional {
 					co, cc = "[", "]"
-				} else {
-					co, cc = "<", ">"
 				}
 
 				fmt.Fprint(w, " "+co+scommands+cc)
