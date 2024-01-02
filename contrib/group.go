@@ -1124,6 +1124,66 @@ func (a *alignmentInfo) descriptionStart() int {
 		internal.Iverson(a.hasValueName, 3)
 }
 
+// WroteHelp is a helper to test the error from ParseArgs() to
+// determine if the help message was written. It is safe to
+// call without first checking that error is nil.
+func WroteHelp(err error) bool {
+	if err == nil { // No error
+		return false
+	}
+
+	flagError, ok := err.(*Error)
+	return ok && flagError.Kind == ErrHelp
+}
+
+func (g *Group) scang() error {
+	return g.scanType(g.scanSubGroupHandler)
+}
+
+// A Parser provides command line option parsing. It can contain several
+// option groups each with their own set of options.
+type Parser struct {
+	// Embedded, see Command for more information
+	*Command
+
+	// A usage string to be displayed in the help message.
+	Usage string
+
+	// Option flags changing the behavior of the parser.
+	Options Options
+
+	// NamespaceDelimiter separates group namespaces and option long names
+	NamespaceDelimiter string
+
+	// EnvNamespaceDelimiter separates group env namespaces and env keys
+	EnvNamespaceDelimiter string
+
+	// UnknownOptionsHandler is a function which gets called when the parser
+	// encounters an unknown option. The function receives the unknown option
+	// name, a SplitArgument which specifies its value if set with an argument
+	// separator, and the remaining command line arguments.
+	// It should return a new list of remaining arguments to continue parsing,
+	// or an error to indicate a parse failure.
+	UnknownOptionHandler func(option string, arg SplitArgument, args []string) ([]string, error)
+
+	// CompletionHandler is a function gets called to handle the completion of items.
+	// By default, the items are printed and the application is exited.
+	// You can override this default behavior by specifying a custom CompletionHandler.
+	CompletionHandler func(items []Completion)
+
+	// CommandHandler is a function that gets called to handle execution of a
+	// command. By default, the command will simply be executed. This can be
+	// overridden to perform certain actions (such as applying global flags)
+	// just before the command is executed. Note that if you override the
+	// handler it is your responsibility to call the command.Execute function.
+	//
+	// The command passed into CommandHandler may be nil in case there is no
+	// command to be executed when parsing has finished.
+	CommandHandler func(command Commander, args []string) error
+
+	internalError error
+}
+
 func (p *Parser) getAlignmentInfo() alignmentInfo {
 	ret := alignmentInfo{
 		maxLongLen:      0,
@@ -1459,66 +1519,6 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			fmt.Fprintln(bw)
 		}
 	}
-}
-
-// WroteHelp is a helper to test the error from ParseArgs() to
-// determine if the help message was written. It is safe to
-// call without first checking that error is nil.
-func WroteHelp(err error) bool {
-	if err == nil { // No error
-		return false
-	}
-
-	flagError, ok := err.(*Error)
-	return ok && flagError.Kind == ErrHelp
-}
-
-func (g *Group) scang() error {
-	return g.scanType(g.scanSubGroupHandler)
-}
-
-// A Parser provides command line option parsing. It can contain several
-// option groups each with their own set of options.
-type Parser struct {
-	// Embedded, see Command for more information
-	*Command
-
-	// A usage string to be displayed in the help message.
-	Usage string
-
-	// Option flags changing the behavior of the parser.
-	Options Options
-
-	// NamespaceDelimiter separates group namespaces and option long names
-	NamespaceDelimiter string
-
-	// EnvNamespaceDelimiter separates group env namespaces and env keys
-	EnvNamespaceDelimiter string
-
-	// UnknownOptionsHandler is a function which gets called when the parser
-	// encounters an unknown option. The function receives the unknown option
-	// name, a SplitArgument which specifies its value if set with an argument
-	// separator, and the remaining command line arguments.
-	// It should return a new list of remaining arguments to continue parsing,
-	// or an error to indicate a parse failure.
-	UnknownOptionHandler func(option string, arg SplitArgument, args []string) ([]string, error)
-
-	// CompletionHandler is a function gets called to handle the completion of items.
-	// By default, the items are printed and the application is exited.
-	// You can override this default behavior by specifying a custom CompletionHandler.
-	CompletionHandler func(items []Completion)
-
-	// CommandHandler is a function that gets called to handle execution of a
-	// command. By default, the command will simply be executed. This can be
-	// overridden to perform certain actions (such as applying global flags)
-	// just before the command is executed. Note that if you override the
-	// handler it is your responsibility to call the command.Execute function.
-	//
-	// The command passed into CommandHandler may be nil in case there is no
-	// command to be executed when parsing has finished.
-	CommandHandler func(command Commander, args []string) error
-
-	internalError error
 }
 
 // SplitArgument represents the argument value of an option that was passed using
