@@ -196,9 +196,7 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 				}(),
 			}
 		}
-	}
-
-	if s.err != nil {
+	} else {
 		return s.err
 	}
 
