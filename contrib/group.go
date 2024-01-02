@@ -2271,16 +2271,6 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 	return err
 }
 
-func marshalError(option *Option, err error) *Error {
-	valueType := option.value.Type()
-	return &Error{
-		Kind: ErrMarshal,
-		Message: "invalid argument for flag `" + option.String() + "'" +
-			internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
-			": " + err.Error(),
-	}
-}
-
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	option := s.lookup.longNames[name]
 	if option == nil {
