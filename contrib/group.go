@@ -293,12 +293,8 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 	return nil
 }
 
-func isPrint(s string) bool {
-	return fun.All([]rune(s), strconv.IsPrint)
-}
-
 func quoteIfNeeded(s string) string {
-	if !isPrint(s) {
+	if !fun.All([]rune(s), strconv.IsPrint) {
 		return strconv.Quote(s)
 	}
 
