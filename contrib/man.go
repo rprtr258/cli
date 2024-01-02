@@ -127,13 +127,9 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 			fmt.Fprintln(w, command.Group.ShortDescription)
 
 			if command.Group.LongDescription != "" {
-				fmt.Fprintln(w, "")
-
-				cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
-
-				if strings.HasPrefix(command.Group.LongDescription, cmdstart) {
+				fmt.Fprintln(w)
+				if cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name)); strings.HasPrefix(command.Group.LongDescription, cmdstart) {
 					fmt.Fprintf(w, "The \\fI%s\\fP command", manQuote(command.Name))
-
 					formatForMan(w, command.Group.LongDescription[len(cmdstart):])
 				} else {
 					formatForMan(w, command.Group.LongDescription)
