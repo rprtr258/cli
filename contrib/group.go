@@ -503,35 +503,6 @@ func (option *Flag) empty() {
 	}
 }
 
-func (option *Flag) clearDefault() error {
-	if option.preventDefault {
-		return nil
-	}
-
-	option.isSetDefault = true
-
-	if len(option.Default) > 0 {
-		option.empty()
-
-		for _, d := range option.Default {
-			if option.preventDefault {
-				return nil
-			}
-
-			if err := option.Set(&d); err != nil {
-				return err
-			}
-
-			option.isSetDefault = true
-			option.preventDefault = false
-		}
-	} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
-		option.empty()
-	}
-
-	return nil
-}
-
 func isInterface[I any](value reflect.Value) I {
 	for v := value; v.CanInterface(); v = v.Addr() {
 		if u, ok := v.Interface().(I); ok {
@@ -1937,7 +1908,34 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	if s.err == nil {
 		p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
-			err := option.clearDefault()
+			err := func() error {
+				if option.preventDefault {
+					return nil
+				}
+
+				option.isSetDefault = true
+
+				if len(option.Default) > 0 {
+					option.empty()
+
+					for _, d := range option.Default {
+						if option.preventDefault {
+							return nil
+						}
+
+						if err := option.Set(&d); err != nil {
+							return err
+						}
+
+						option.isSetDefault = true
+						option.preventDefault = false
+					}
+				} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
+					option.empty()
+				}
+
+				return nil
+			}()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
 					err = marshalError(option, err)
