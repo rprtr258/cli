@@ -259,6 +259,7 @@ func (f *Filename) Complete(prefix string) []Completion {
 			ret[0] += "/"
 		}
 	}
+
 	return internal.Map(func(v string) Completion {
 		return Completion{
 			Item:        v,
