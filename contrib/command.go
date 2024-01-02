@@ -320,16 +320,42 @@ func (c *Command) addHelpGroups(showHelp func() error) {
 	}
 }
 
-func (c *Command) makeLookup() lookup {
-	var parents []*Command
-	for parent := c.parent; parent != nil; {
-		cmd, ok := parent.(*Command)
-		if !ok {
-			break
+func visibleCommands(commands []*Command) []*Command {
+	return internal.Filter(func(cmd *Command) bool {
+		return !cmd.Hidden
+	}, commands...)
+}
+
+func (c *Command) match(name string) bool {
+	return c.Name == name || internal.OneOf(name, c.Aliases...)
+}
+
+func (c *Command) hasHelpOptions() bool {
+	ret := false
+	c.eachGroup(func(g *Group) bool {
+		if g.isBuiltinHelp {
+			return true
 		}
 
-		parents = append(parents, cmd)
-		parent = cmd.parent
+		for _, opt := range g.options {
+			if opt.showInHelp() {
+				ret = true
+			}
+		}
+		return true
+	})
+	return ret
+}
+
+func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
+	var parents []*Command
+	for parent := c.parent; parent != nil; {
+		if cmd, ok := parent.(*Command); ok {
+			parent = cmd.parent
+			parents = append(parents, cmd)
+		} else {
+			break
+		}
 	}
 
 	opts := iter.FlatMap(
@@ -350,7 +376,7 @@ func (c *Command) makeLookup() lookup {
 			return iter.FromMany(g.options...)
 		})
 
-	return lookup{
+	return append([]*Arg(nil), c.args...), lookup{
 		shortNames: ToDict(
 			opts.Filter(func(o *Option) bool {
 				return o.ShortName != 0
@@ -381,37 +407,5 @@ func (c *Command) makeLookup() lookup {
 			func(kv fun.Pair[string, *Command]) (string, *Command) {
 				return kv.K, kv.V
 			}),
-	}
-}
-
-func visibleCommands(commands []*Command) []*Command {
-	return internal.Filter(func(cmd *Command) bool {
-		return !cmd.Hidden
-	}, commands...)
-}
-
-func (c *Command) match(name string) bool {
-	return c.Name == name || internal.OneOf(name, c.Aliases...)
-}
-
-func (c *Command) hasHelpOptions() bool {
-	ret := false
-	c.eachGroup(func(g *Group) bool {
-		if g.isBuiltinHelp {
-			return true
-		}
-
-		for _, opt := range g.options {
-			if opt.showInHelp() {
-				ret = true
-			}
-		}
-		return true
-	})
-	return ret
-}
-
-func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
-	lookup := c.makeLookup()
-	return append([]*Arg(nil), c.args...), lookup, c
+	}, c
 }
