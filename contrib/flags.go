@@ -84,14 +84,14 @@ func convertToString(val reflect.Value, mtags map[string][]string) (string, erro
 	case reflect.Bool:
 		return fun.IF(val.Bool(), "true", "false"), nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(Get(mtags, "base"), 10)
+		base, err := getBase(multitagGet(mtags, "base"), 10)
 		if err != nil {
 			return "", err
 		}
 
 		return strconv.FormatInt(val.Int(), base), nil
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(Get(mtags, "base"), 10)
+		base, err := getBase(multitagGet(mtags, "base"), 10)
 		if err != nil {
 			return "", err
 		}
@@ -197,7 +197,7 @@ func convert(val string, retval reflect.Value, mtags map[string][]string) error 
 			retval.SetBool(b)
 		}
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
-		base, err := getBase(Get(mtags, "base"), 10)
+		base, err := getBase(multitagGet(mtags, "base"), 10)
 		if err != nil {
 			return err
 		}
@@ -209,7 +209,7 @@ func convert(val string, retval reflect.Value, mtags map[string][]string) error 
 
 		retval.SetInt(parsed)
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
-		base, err := getBase(Get(mtags, "base"), 10)
+		base, err := getBase(multitagGet(mtags, "base"), 10)
 		if err != nil {
 			return err
 		}
@@ -780,7 +780,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, err
 		}
 
-		positional := Get(mtag, "positional-args")
+		positional := multitagGet(mtag, "positional-args")
 
 		if positional != "" {
 			stype := realval.Type()
@@ -793,12 +793,12 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					return true, err
 				}
 
-				name := internal.Or(Get(m, "positional-arg-name"), field.Name)
+				name := internal.Or(multitagGet(m, "positional-arg-name"), field.Name)
 
 				required := -1
 				requiredMaximum := -1
 
-				if sreq := Get(m, "required"); sreq != "" {
+				if sreq := multitagGet(m, "required"); sreq != "" {
 					required = 1
 
 					if rng := strings.SplitN(sreq, "-", 2); len(rng) > 1 {
@@ -818,7 +818,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				arg := &PositionalArg{
 					Name:            name,
-					Description:     Get(m, "description"),
+					Description:     multitagGet(m, "description"),
 					Required:        required,
 					RequiredMaximum: requiredMaximum,
 
@@ -828,7 +828,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				c.args = append(c.args, arg)
 
-				if Get(mtag, "required") != "" {
+				if multitagGet(mtag, "required") != "" {
 					c.ArgsRequired = true
 				}
 			}
@@ -836,7 +836,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, nil
 		}
 
-		subcommand := Get(mtag, "command")
+		subcommand := multitagGet(mtag, "command")
 		if subcommand == "" {
 			return parentg.scanSubGroupHandler(realval, sfield)
 		}
@@ -853,16 +853,16 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			ptrval = realval.Addr()
 		}
 
-		shortDescription := Get(mtag, "description")
-		longDescription := Get(mtag, "long-description")
+		shortDescription := multitagGet(mtag, "description")
+		longDescription := multitagGet(mtag, "long-description")
 		subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
 		if err != nil {
 			return true, err
 		}
 
-		subc.Group.Hidden = Get(mtag, "hidden") != ""
+		subc.Group.Hidden = multitagGet(mtag, "hidden") != ""
 
-		subcommandsOptional := Get(mtag, "subcommands-optional")
+		subcommandsOptional := multitagGet(mtag, "subcommands-optional")
 		if subcommandsOptional != "" {
 			subc.SubcommandsOptional = true
 		}
@@ -1153,7 +1153,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		}
 
 		// Skip fields with the no-flag tag
-		if Get(mtag, "no-flag") != "" {
+		if multitagGet(mtag, "no-flag") != "" {
 			continue
 		}
 
@@ -1181,8 +1181,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			}
 		}
 
-		longname := Get(mtag, "long")
-		shortname := Get(mtag, "short")
+		longname := multitagGet(mtag, "long")
+		shortname := multitagGet(mtag, "short")
 		// Need at least either a short or long name
 		if longname == "" && shortname == "" {
 			continue
@@ -1199,17 +1199,17 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 			short, _ = utf8.DecodeRuneInString(shortname)
 		}
 
-		description := Get(mtag, "description")
+		description := multitagGet(mtag, "description")
 		def := GetMany(mtag, "default")
 
 		optionalValue := GetMany(mtag, "optional-value")
-		valueName := Get(mtag, "value-name")
-		defaultMask := Get(mtag, "default-mask")
+		valueName := multitagGet(mtag, "value-name")
+		defaultMask := multitagGet(mtag, "default-mask")
 
-		optional := !isStringFalsy(Get(mtag, "optional"))
-		required := !isStringFalsy(Get(mtag, "required"))
+		optional := !isStringFalsy(multitagGet(mtag, "optional"))
+		required := !isStringFalsy(multitagGet(mtag, "required"))
 		choices := GetMany(mtag, "choice")
-		hidden := !isStringFalsy(Get(mtag, "hidden"))
+		hidden := !isStringFalsy(multitagGet(mtag, "hidden"))
 
 		option := &Flag{
 			Description:   description,
@@ -1279,7 +1279,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		return true, err
 	}
 
-	subgroup := Get(mtag, "group")
+	subgroup := multitagGet(mtag, "group")
 	if subgroup == "" {
 		return false, nil
 	}
@@ -1295,15 +1295,15 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 		ptrval = realval.Addr()
 	}
 
-	description := Get(mtag, "description")
+	description := multitagGet(mtag, "description")
 	group, err := g.AddGroup(subgroup, description, ptrval.Interface())
 	if err != nil {
 		return true, err
 	}
 
-	group.Namespace = Get(mtag, "namespace")
-	group.EnvNamespace = Get(mtag, "env-namespace")
-	group.Hidden = Get(mtag, "hidden") != ""
+	group.Namespace = multitagGet(mtag, "namespace")
+	group.EnvNamespace = multitagGet(mtag, "env-namespace")
+	group.Hidden = multitagGet(mtag, "hidden") != ""
 
 	return true, nil
 }
@@ -2097,7 +2097,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			}
 		}
 
-		if Get(option.tag, "unquote") != "false" {
+		if multitagGet(option.tag, "unquote") != "false" {
 			arg, err = func(s string) (string, error) {
 				if s == "" || s[0] != '"' {
 					return s, nil

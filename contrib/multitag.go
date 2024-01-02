@@ -69,7 +69,7 @@ func ParseMultiTag(value string) (map[string][]string, error) {
 	return vals, err
 }
 
-func Get(x map[string][]string, key string) string {
+func multitagGet(x map[string][]string, key string) string {
 	if v, ok := x[key]; ok {
 		return v[len(v)-1]
 	}
