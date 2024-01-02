@@ -1678,7 +1678,7 @@ func (p *Parser) WriteHelp() string {
 				}
 
 				scommands := "command"
-				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) <= 3 {
+				if len(visibleCommands(allcmd.commands)) <= 3 {
 					scommands = strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
 					}, visibleCommands(allcmd.commands)...), " | ")
