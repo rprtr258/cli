@@ -823,7 +823,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 	}
 }
 
-func (c *Command) eachOption(yield func(*Command, *Group, *Flag)) {
+func (c *Command) eachFlag(yield func(*Command, *Group, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
 		return c.Group.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
@@ -1725,7 +1725,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 		return nil, p.internalError
 	}
 
-	p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
+	p.Command.eachFlag(func(c *Command, g *Group, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
@@ -1805,36 +1805,36 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 	}
 
 	if s.err == nil {
-		p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
-			if option.preventDefault {
+		p.Command.eachFlag(func(c *Command, g *Group, flag *Flag) {
+			if flag.preventDefault {
 				return
 			}
 
-			option.isSetDefault = true
+			flag.isSetDefault = true
 
-			if len(option.Default) > 0 {
-				option.empty()
+			if len(flag.Default) > 0 {
+				flag.empty()
 
-				for _, d := range option.Default {
-					if option.preventDefault {
+				for _, d := range flag.Default {
+					if flag.preventDefault {
 						break
 					}
 
-					if err := option.Set(&d); err != nil {
+					if err := flag.Set(&d); err != nil {
 						if err != nil {
 							if _, ok := err.(*Error); !ok {
-								err = marshalError(option, err)
+								err = marshalError(flag, err)
 							}
 							s.err = err
 						}
 						break
 					}
 
-					option.isSetDefault = true
-					option.preventDefault = false
+					flag.isSetDefault = true
+					flag.preventDefault = false
 				}
-			} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
-				option.empty()
+			} else if internal.OneOf(flag.value.Type().Kind(), reflect.Map, reflect.Slice) && flag.value.IsNil() {
+				flag.empty()
 			}
 		})
 
