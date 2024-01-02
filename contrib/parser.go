@@ -532,8 +532,8 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 func (p *Parser) marshalError(option *Option, err error) *Error {
 	valueType := option.value.Type()
-	s := "invalid argument for flag `%s'" + internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")")
-	return newErrorf(ErrMarshal, s+": %s", option, err.Error())
+	s := "invalid argument for flag `" + option.String() + "'" + internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")")
+	return newErrorf(ErrMarshal, s+": "+err.Error())
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
