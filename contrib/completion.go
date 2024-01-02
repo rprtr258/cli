@@ -197,7 +197,7 @@ func (c *completion) complete(args []string) []Completion {
 				return c.completeValue(opt.value, prefix+sname, optname[n:])
 			}
 
-			return c.completeNamesForShortPrefix(s, prefix, optname)
+			return c.completeOptionNames(s, prefix, optname, true)
 		case argument != nil:
 			if islong {
 				opt = s.lookup.longNames[optname]
@@ -213,7 +213,7 @@ func (c *completion) complete(args []string) []Completion {
 		case islong:
 			return c.completeOptionNames(s, prefix, optname, false)
 		default:
-			return c.completeNamesForShortPrefix(s, prefix, optname)
+			return c.completeOptionNames(s, prefix, optname, true)
 		}
 	case len(s.positional) > 0: // Complete for positional argument
 		return c.completeValue(s.positional[0].value, "", lastarg)
@@ -222,10 +222,6 @@ func (c *completion) complete(args []string) []Completion {
 	default:
 		return nil
 	}
-}
-
-func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match string) []Completion {
-	return c.completeOptionNames(s, prefix, match, true)
 }
 
 func (c *completion) print(w io.Writer, items []Completion) {
