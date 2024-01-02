@@ -338,7 +338,7 @@ type Flag struct {
 	Hidden bool
 
 	// The group which the option belongs to
-	group *Group
+	group *flagSet
 
 	// The struct field which the option represents.
 	field reflect.StructField
@@ -377,18 +377,18 @@ func (option *Flag) LongNameWithNamespace() string {
 		switch i := g.parent.(type) {
 		case *Command:
 			g = i.Group
-		case *Group:
+		case *flagSet:
 			g = i
 		}
 	}
 
 	// concatenate long name with namespace
 	longName := option.LongName
-	for g := option.group; g != nil; g = func() *Group {
+	for g := option.group; g != nil; g = func() *flagSet {
 		switch i := g.parent.(type) {
 		case *Command:
 			return i.Group
-		case *Group:
+		case *flagSet:
 			return i
 		}
 		return nil
@@ -634,7 +634,7 @@ func isRemainingArg(value reflect.Value) bool {
 // is specified on the command line. The Command type embeds a Group and
 // therefore also carries a set of command specific options.
 type Command struct {
-	Group               *Group
+	Group               *flagSet
 	Name                string   // Name by which the command can be invoked
 	Active              *Command // Active sub command (set by parsing) or nil
 	SubcommandsOptional bool     // Whether subcommands are optional
@@ -678,7 +678,7 @@ type lookup struct {
 func (c *Command) AddCommand(command, shortDescription, longDescription string, data any) (*Command, error) {
 	cmd := &Command{
 		Name: command,
-		Group: &Group{
+		Group: &flagSet{
 			ShortDescription: shortDescription,
 			LongDescription:  longDescription,
 			data:             data,
@@ -696,8 +696,8 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 // addGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (c *Command) addGroup(shortDescription, longDescription string, data any) *Group {
-	group := &Group{
+func (c *Command) addGroup(shortDescription, longDescription string, data any) *flagSet {
+	group := &flagSet{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
 		data:             data,
@@ -730,7 +730,7 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *reflect.StructField) (bool, error) {
+func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *reflect.StructField) (bool, error) {
 	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag, err := ParseMultiTag(string(sfield.Tag))
 		if err != nil {
@@ -824,9 +824,9 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 	}
 }
 
-func (c *Command) eachFlag(yield func(*Command, *Group, *Flag)) {
+func (c *Command) eachFlag(yield func(*Command, *flagSet, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
-		c.Group.eachGroup(func(g *Group) bool {
+		c.Group.eachGroup(func(g *flagSet) bool {
 			for _, option := range g.flags {
 				yield(c, g, option)
 			}
@@ -861,7 +861,7 @@ func visibleCommands(commands []*Command) []*Command {
 
 func (c *Command) hasHelpOptions() bool {
 	ret := false
-	c.Group.eachGroup(func(g *Group) bool {
+	c.Group.eachGroup(func(g *flagSet) bool {
 		if g.isBuiltinHelp {
 			return true
 		}
@@ -898,10 +898,10 @@ func makeLookupTable(c *Command) lookup {
 				}
 				yield(c)
 			}),
-			func(c *Command) iter.Seq[*Group] {
+			func(c *Command) iter.Seq[*flagSet] {
 				return c.Group.eachGroup
 			}),
-		func(g *Group) iter.Seq[*Flag] {
+		func(g *flagSet) iter.Seq[*Flag] {
 			return iter.FromMany(g.flags...)
 		})
 
@@ -944,11 +944,11 @@ func makeLookupTable(c *Command) lookup {
 // for options.
 var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct")
 
-// Group represents an option group.
+// flagSet represents an option group.
 // Option groups can be used to logically group options together under a description.
 // Groups are only used to provide more structure to options both for the user
 // (as displayed in the help message) and for you, since groups can be nested.
-type Group struct {
+type flagSet struct {
 	// A short description of the group.
 	// The short description is primarily used in the built-in generated help message
 	ShortDescription string
@@ -958,12 +958,12 @@ type Group struct {
 	// in the built-in generated help and man pages.
 	LongDescription string
 
-	Namespace     string   // Namespace of the group
-	Hidden        bool     // If true, the group is not displayed in the help or man page
-	parent        any      // Parent of the group or nil if it has no parent
-	flags         []*Flag  // All the options in the group
-	subgroups     []*Group // All the subgroups
-	isBuiltinHelp bool     // Whether the group represents the built-in help group
+	Namespace     string     // Namespace of the group
+	Hidden        bool       // If true, the group is not displayed in the help or man page
+	parent        any        // Parent of the group or nil if it has no parent
+	flags         []*Flag    // All the options in the group
+	subgroups     []*flagSet // All the subgroups
+	isBuiltinHelp bool       // Whether the group represents the built-in help group
 
 	data any
 }
@@ -971,8 +971,8 @@ type Group struct {
 // addGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (g *Group) addGroup(shortDescription, longDescription string, data any) (*Group, error) {
-	group := &Group{
+func (g *flagSet) addGroup(shortDescription, longDescription string, data any) (*flagSet, error) {
+	group := &flagSet{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
 		data:             data,
@@ -988,7 +988,7 @@ func (g *Group) addGroup(shortDescription, longDescription string, data any) (*G
 }
 
 // AddOption adds a new option to this group.
-func (g *Group) AddOption(option *Flag, data any) {
+func (g *flagSet) AddOption(option *Flag, data any) {
 	option.value = reflect.ValueOf(data)
 	option.group = g
 	g.flags = append(g.flags, option)
@@ -997,22 +997,22 @@ func (g *Group) AddOption(option *Flag, data any) {
 // Find locates the subgroup with the given short description and returns it.
 // If no such group can be found Find will return nil.
 // Note that the description is matched case insensitively.
-func (g *Group) Find(shortDescription string) *Group {
+func (g *flagSet) Find(shortDescription string) *flagSet {
 	lshortDescription := strings.ToLower(shortDescription)
 	ret, _ := iter.
-		Seq[*Group](g.eachGroup).
-		Filter(func(gg *Group) bool {
+		Seq[*flagSet](g.eachGroup).
+		Filter(func(gg *flagSet) bool {
 			return gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription)
 		}).
 		Head()
 	return ret
 }
 
-func (g *Group) findFlag(matcher func(*Flag) bool) *Flag {
+func (g *flagSet) findFlag(matcher func(*Flag) bool) *Flag {
 	option, _ := iter.
 		FlatMap(iter.
-			Seq[*Group](g.eachGroup),
-			func(gg *Group) iter.Seq[*Flag] {
+			Seq[*flagSet](g.eachGroup),
+			func(gg *flagSet) iter.Seq[*Flag] {
 				return iter.FromMany(gg.flags...)
 			}).
 		Filter(matcher).
@@ -1020,16 +1020,16 @@ func (g *Group) findFlag(matcher func(*Flag) bool) *Flag {
 	return option
 }
 
-func (g *Group) showInHelp() bool {
+func (g *flagSet) showInHelp() bool {
 	return !g.Hidden && fun.Any(func(opt *Flag) bool {
 		return opt.showInHelp()
 	}, g.flags...)
 }
 
-func (g *Group) eachGroup(yield func(*Group) bool) {
+func (g *flagSet) eachGroup(yield func(*flagSet) bool) {
 	stopped := false
-	var rec func(*Group)
-	rec = func(g *Group) {
+	var rec func(*flagSet)
+	rec = func(g *flagSet) {
 		if stopped || !yield(g) {
 			stopped = true
 			return
@@ -1045,7 +1045,7 @@ func isStringFalsy(s string) bool {
 	return s == "" || s == "false" || s == "no" || s == "0"
 }
 
-func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
+func (g *flagSet) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
 	stype := realval.Type()
 
 	if sfield != nil {
@@ -1160,11 +1160,11 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 	return nil
 }
 
-func (g *Group) checkForDuplicateFlags() error {
+func (g *flagSet) checkForDuplicateFlags() error {
 	shortNames := make(map[rune]*Flag)
 	longNames := make(map[string]*Flag)
 	var duplicateError error
-	g.eachGroup(func(g *Group) bool {
+	g.eachGroup(func(g *flagSet) bool {
 		for _, option := range g.flags {
 			if option.LongName != "" {
 				longName := option.LongNameWithNamespace()
@@ -1190,7 +1190,7 @@ func (g *Group) checkForDuplicateFlags() error {
 	return duplicateError
 }
 
-func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 	mtag, err := ParseMultiTag(string(sfield.Tag))
 	if err != nil {
 		return true, err
@@ -1224,7 +1224,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 	return true, nil
 }
 
-func (g *Group) scanType(handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
+func (g *flagSet) scanType(handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
 	// Get all the public fields in the data struct
 	ptrval := reflect.ValueOf(g.data)
 
@@ -1304,7 +1304,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	}
 	var prevcmd *Command
 	for c := p.Command; c != nil; c = c.Active {
-		c.Group.eachGroup(func(grp *Group) bool {
+		c.Group.eachGroup(func(grp *flagSet) bool {
 			if c != prevcmd {
 				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg PositionalArg) int {
 					return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
@@ -1529,7 +1529,7 @@ func (p *Parser) WriteHelp() string {
 	for c := p.Command; c != nil; c = c.Active {
 		printcmd := c != p.Command
 
-		c.Group.eachGroup(func(grp *Group) bool {
+		c.Group.eachGroup(func(grp *flagSet) bool {
 			// Skip built-in help group for all commands except the top-level parser
 			if grp.Hidden || grp.isBuiltinHelp && c != p.Command {
 				return true
@@ -1685,7 +1685,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
 		Command: &Command{
 			Name: appname,
-			Group: &Group{
+			Group: &flagSet{
 				ShortDescription: "",
 				LongDescription:  "",
 				data:             nil,
@@ -1732,7 +1732,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 
 	args = args[1:] // throw off executable name
 
-	p.Command.eachFlag(func(c *Command, g *Group, option *Flag) {
+	p.Command.eachFlag(func(c *Command, g *flagSet, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
@@ -1812,7 +1812,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 	}
 
 	if s.err == nil {
-		p.Command.eachFlag(func(c *Command, g *Group, flag *Flag) {
+		p.Command.eachFlag(func(c *Command, g *flagSet, flag *Flag) {
 			if flag.preventDefault {
 				return
 			}
@@ -1847,7 +1847,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 
 		var required []*Flag
 		for c := p.Command; c != nil; c = c.Active {
-			c.Group.eachGroup(func(g *Group) bool {
+			c.Group.eachGroup(func(g *flagSet) bool {
 				for _, option := range g.flags {
 					if !option.isSet && option.Required {
 						required = append(required, option)

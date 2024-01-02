@@ -44,8 +44,8 @@ func formatForMan(w io.Writer, s string) {
 	}
 }
 
-func writeManPageOptions(w io.Writer, grp *Group) {
-	grp.eachGroup(func(group *Group) bool {
+func writeManPageOptions(w io.Writer, grp *flagSet) {
+	grp.eachGroup(func(group *flagSet) bool {
 		if !group.showInHelp() {
 			return true
 		}
