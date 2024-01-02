@@ -192,7 +192,7 @@ func TestMan(t *testing.T) {
 	p.Command.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
 	p.Command.addGroup("Application Options", "The application options", &helpOptions{})
 
-	for _, cmd := range p.Command.Commands() {
+	for _, cmd := range p.Command.commands {
 		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
