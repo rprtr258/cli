@@ -897,14 +897,14 @@ func (c *Command) eachCommand(yield func(*Command) bool) bool {
 	}, c.commands...)
 }
 
-func (c *Command) addHelpGroups(showHelp func() error) {
+func (c *Command) addHelpGroups(help func() string) {
 	if !c.hasBuiltinHelpGroup {
-		c.addHelpGroup(showHelp)
+		c.addHelpGroup(help)
 		c.hasBuiltinHelpGroup = true
 	}
 
 	for _, cc := range c.commands {
-		cc.addHelpGroups(showHelp)
+		cc.addHelpGroups(help)
 	}
 }
 
@@ -1828,12 +1828,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	// Add built-in help group to all commands if necessary
 	if p.Options&HelpFlag != 0 {
-		p.Command.addHelpGroups(func() error {
-			return &Error{
-				Kind:    ErrHelp,
-				Message: p.WriteHelp(),
-			}
-		})
+		p.Command.addHelpGroups(p.WriteHelp)
 	}
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
