@@ -1736,11 +1736,22 @@ func NewNamedParser(appname string, options Options) *Parser {
 	return p
 }
 
-// Run parses the command line arguments according to the option groups that
-// were added to the parser. On successful parsing of the arguments, the
-// remaining, non-option, arguments (if any) are returned. The returned error
-// indicates a parsing error and can be used with PrintError to display
-// contextual information on where the error occurred exactly.
+func (p *Parser) printCompletions(args ...string) {
+	comp := &completion{parser: p}
+
+	if p.CompletionHandler == nil {
+		p.CompletionHandler = func(items []Completion) {
+			comp.print(os.Stdout, items)
+		}
+	}
+
+	p.CompletionHandler(comp.complete(args))
+}
+
+// Run parses the command line arguments according to the option groups that were added to the parser.
+// On successful parsing of the arguments, the remaining, non-option, arguments (if any) are returned.
+// The returned error indicates a parsing error and can be used with PrintError
+// to display contextual information on where the error occurred exactly.
 //
 // When the common help group has been added (AddHelp) and either -h or --help
 // was specified in the command line arguments, a help message will be
@@ -1763,15 +1774,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 	}
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
-		comp := &completion{parser: p}
-
-		if p.CompletionHandler == nil {
-			p.CompletionHandler = func(items []Completion) {
-				comp.print(os.Stdout, items)
-			}
-		}
-
-		p.CompletionHandler(comp.complete(args))
+		p.printCompletions(args...)
 		return nil, nil
 	}
 
