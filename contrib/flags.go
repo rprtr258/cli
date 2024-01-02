@@ -2068,8 +2068,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		if c, n := utf8.DecodeRuneInString(optname); n != len(optname) {
 			first := string(c)
 			if option := s.lookup.shortNames[first]; option != nil && option.canArgument() {
-				arg := optname[n:]
-				optname, argument = first, &arg
+				optname, argument = first, fun.Ptr(optname[n:])
 			}
 		}
 	}
