@@ -945,7 +945,7 @@ func (g *flagSet) showInHelp() bool {
 }
 
 func isStringFalsy(s string) bool {
-	return s == "" || s == "false" || s == "no" || s == "0"
+	return internal.OneOf(s, "", "false", "no", "0")
 }
 
 func (g *flagSet) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) error) error {
