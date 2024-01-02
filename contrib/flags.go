@@ -1062,11 +1062,6 @@ func (a *alignmentInfo) descriptionStart() int {
 type Parser struct {
 	Command *Command
 	Usage   string // Usage string to be displayed in the help message.
-
-	// CompletionHandler is a function gets called to handle the completion of items.
-	// By default, the items are printed and the application is exited.
-	// You can override this default behavior by specifying a custom CompletionHandler.
-	CompletionHandler func(items []Completion)
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
@@ -1447,14 +1442,7 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 
 func (p *Parser) printCompletions(args ...string) {
 	comp := &completion{parser: p}
-
-	if p.CompletionHandler == nil {
-		p.CompletionHandler = func(items []Completion) {
-			comp.print(os.Stdout, items)
-		}
-	}
-
-	p.CompletionHandler(comp.complete(args))
+	comp.print(os.Stdout, comp.complete(args))
 }
 
 func (p *parseState) noargs() bool {

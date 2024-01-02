@@ -220,11 +220,11 @@ func TestParserCompletion(t *testing.T) {
 			t.Setenv("GO_FLAGS_COMPLETION", "1")
 
 			var buf bytes.Buffer
-			p := newParser("", &completionTestOptions)
-			p.CompletionHandler = func(items []Completion) {
-				comp := &completion{parser: p}
-				comp.print(&buf, items)
-			}
+			// p := newParser("", &completionTestOptions)
+			// p.CompletionHandler = func(items []Completion) {
+			// 	comp := &completion{parser: p}
+			// 	comp.print(&buf, items)
+			// }
 
 			err := Run(&completionTestOptions, test.Args...)
 			assert.NoError(t, err)
