@@ -434,7 +434,7 @@ func (option *Flag) Value() any {
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Flag) Set(value *string) error {
-	if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
+	if fun.Contains(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
 	}
 
@@ -503,7 +503,7 @@ func isInterface[I any](value reflect.Value) I {
 
 func (option *Flag) isBool() bool {
 	for tp := option.value.Type(); ; tp = tp.Elem() {
-		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+		if !fun.Contains(tp.Kind(), reflect.Slice, reflect.Ptr) {
 			return tp.Kind() == reflect.Bool ||
 				tp.Kind() == reflect.Func && tp.NumIn() == 0
 		}
@@ -512,8 +512,8 @@ func (option *Flag) isBool() bool {
 
 func (option *Flag) isSignedNumber() bool {
 	for tp := option.value.Type(); ; tp = tp.Elem() {
-		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
-			return internal.OneOf(tp.Kind(),
+		if !fun.Contains(tp.Kind(), reflect.Slice, reflect.Ptr) {
+			return fun.Contains(tp.Kind(),
 				reflect.Int,
 				reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
 				reflect.Float32, reflect.Float64)
@@ -558,8 +558,8 @@ func (option *Flag) updateDefaultLiteral() string {
 	switch {
 	case len(defs) == 0 && option.canArgument():
 		kind := option.field.Type.Kind()
-		if internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
-			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array, reflect.Map) && option.value.Len() > 0 ||
+		if fun.Contains(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
+			fun.Contains(kind, reflect.Slice, reflect.String, reflect.Array, reflect.Map) && option.value.Len() > 0 ||
 			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface()) {
 			def, _ := convertToString(option.value, option.tag)
 			return def
@@ -696,7 +696,7 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 // If no such command can be found find will return nil.
 func (c *Command) find(name string) *Command {
 	for _, cc := range c.commands {
-		if cc.Name == name || internal.OneOf(name, cc.Aliases...) {
+		if cc.Name == name || fun.Contains(name, cc.Aliases...) {
 			return cc
 		}
 	}
@@ -945,7 +945,7 @@ func (g *flagSet) showInHelp() bool {
 }
 
 func isStringFalsy(s string) bool {
-	return internal.OneOf(s, "", "false", "no", "0")
+	return fun.Contains(s, "", "false", "no", "0")
 }
 
 func (g *flagSet) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) error) error {
@@ -1715,7 +1715,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 					flag.isSetDefault = true
 					flag.preventDefault = false
 				}
-			} else if internal.OneOf(flag.value.Type().Kind(), reflect.Map, reflect.Slice) && flag.value.IsNil() {
+			} else if fun.Contains(flag.value.Type().Kind(), reflect.Map, reflect.Slice) && flag.value.IsNil() {
 				flag.empty()
 			}
 		})
