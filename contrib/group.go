@@ -1834,7 +1834,6 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		comp := &completion{parser: p}
-		items := comp.complete(args)
 
 		if p.CompletionHandler == nil {
 			p.CompletionHandler = func(items []Completion) {
@@ -1842,7 +1841,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 			}
 		}
 
-		p.CompletionHandler(items)
+		p.CompletionHandler(comp.complete(args))
 		return nil, nil
 	}
 
