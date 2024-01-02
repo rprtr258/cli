@@ -1809,8 +1809,8 @@ const (
 	HelpFlag = 1 << iota
 
 	// PassDoubleDash passes all arguments after a double dash, --, as
-	// remaining command line arguments (i.e. they will not be parsed for
-	// flags).
+	// remaining command line arguments
+	// (i.e. they will not be parsed for flags)
 	PassDoubleDash
 
 	// IgnoreUnknown ignores any unknown options and passes them as
@@ -1818,8 +1818,8 @@ const (
 	IgnoreUnknown
 
 	// PassAfterNonOption passes all arguments after the first non option
-	// as remaining command line arguments. This is equivalent to strict
-	// POSIX processing.
+	// as remaining command line arguments.
+	// This is equivalent to strict POSIX processing.
 	PassAfterNonOption
 
 	// Default is a convenient default set of options which should cover
