@@ -1722,7 +1722,7 @@ func (p *Parser) WriteHelp() string {
 						_, _ = w.WriteString("    ")
 					}
 
-					fmt.Fprintf(w, grp.ShortDescription+":\n")
+					fmt.Fprint(w, grp.ShortDescription+":\n")
 					first = false
 				}
 
