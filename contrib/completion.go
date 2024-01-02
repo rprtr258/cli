@@ -199,12 +199,7 @@ func (c *completion) complete(args []string) []Completion {
 
 			return c.completeOptionNames(s, prefix, optname, true)
 		case argument != nil:
-			if islong {
-				opt = s.lookup.longNames[optname]
-			} else {
-				opt = s.lookup.shortNames[optname]
-			}
-
+			opt = fun.IF(islong, s.lookup.longNames, s.lookup.shortNames)[optname]
 			if opt == nil {
 				return nil
 			}
