@@ -66,7 +66,6 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			return true
 		})
 	}
-
 	return ret
 }
 
