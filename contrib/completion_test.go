@@ -13,26 +13,21 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type TestComplete struct{}
+type testComplete struct{}
 
-func (t *TestComplete) Complete(match string) []Completion {
+func (t *testComplete) Complete(match string) []Completion {
 	options := []string{
 		"hello world",
 		"hello universe",
 		"hello multiverse",
 	}
 
-	ret := make([]Completion, 0, len(options))
-
-	for _, o := range options {
-		if strings.HasPrefix(o, match) {
-			ret = append(ret, Completion{
-				Item: o,
-			})
-		}
-	}
-
-	return ret
+	return fun.FilterMap[Completion](func(o string) (Completion, bool) {
+		return Completion{
+			Item:        o,
+			Description: "",
+		}, strings.HasPrefix(o, match)
+	}, options...)
 }
 
 var completionTestOptions struct {
@@ -66,7 +61,7 @@ var completionTestOptions struct {
 	} `command:"rm" description:"remove an item"`
 
 	RenameCommand struct {
-		Completed TestComplete `short:"c" long:"completed"`
+		Completed testComplete `short:"c" long:"completed"`
 	} `command:"rename" description:"rename an item"`
 
 	HiddenCommand struct{} `command:"hidden" description:"hidden command" hidden:"true"`

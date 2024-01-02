@@ -61,7 +61,7 @@ func writeManPageOptions(w io.Writer, grp *Group) {
 			}
 		}
 
-		for _, opt := range group.options {
+		for _, opt := range group.flags {
 			if !opt.showInHelp() {
 				continue
 			}

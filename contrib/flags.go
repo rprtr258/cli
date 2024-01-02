@@ -826,7 +826,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 func (c *Command) eachFlag(yield func(*Command, *Group, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
 		return c.Group.eachGroup(func(g *Group) bool {
-			for _, option := range g.options {
+			for _, option := range g.flags {
 				yield(c, g, option)
 			}
 			return true
@@ -864,7 +864,7 @@ func (c *Command) hasHelpOptions() bool {
 			return true
 		}
 
-		for _, opt := range g.options {
+		for _, opt := range g.flags {
 			if opt.showInHelp() {
 				ret = true
 			}
@@ -900,7 +900,7 @@ func makeLookupTable(c *Command) lookup {
 				return c.Group.eachGroup
 			}),
 		func(g *Group) iter.Seq[*Flag] {
-			return iter.FromMany(g.options...)
+			return iter.FromMany(g.flags...)
 		})
 
 	return lookup{
@@ -959,7 +959,7 @@ type Group struct {
 	Namespace     string   // Namespace of the group
 	Hidden        bool     // If true, the group is not displayed in the help or man page
 	parent        any      // Parent of the group or nil if it has no parent
-	options       []*Flag  // All the options in the group
+	flags         []*Flag  // All the options in the group
 	subgroups     []*Group // All the subgroups
 	isBuiltinHelp bool     // Whether the group represents the built-in help group
 
@@ -989,7 +989,7 @@ func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*G
 func (g *Group) AddOption(option *Flag, data any) {
 	option.value = reflect.ValueOf(data)
 	option.group = g
-	g.options = append(g.options, option)
+	g.flags = append(g.flags, option)
 }
 
 // Find locates the subgroup with the given short description and returns it.
@@ -1011,7 +1011,7 @@ func (g *Group) findFlag(matcher func(*Flag) bool) *Flag {
 		FlatMap(iter.
 			Seq[*Group](g.eachGroup),
 			func(gg *Group) iter.Seq[*Flag] {
-				return iter.FromMany(gg.options...)
+				return iter.FromMany(gg.flags...)
 			}).
 		Filter(matcher).
 		Head()
@@ -1021,7 +1021,7 @@ func (g *Group) findFlag(matcher func(*Flag) bool) *Flag {
 func (g *Group) showInHelp() bool {
 	return !g.Hidden && fun.Any(func(opt *Flag) bool {
 		return opt.showInHelp()
-	}, g.options...)
+	}, g.flags...)
 }
 
 func (g *Group) eachGroup(yield func(*Group) bool) bool {
@@ -1072,7 +1072,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				return err
 			}
 		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct {
-			flagCountBefore := len(g.options) + len(g.subgroups)
+			flagCountBefore := len(g.flags) + len(g.subgroups)
 
 			if fld.IsNil() {
 				fld = reflect.New(fld.Type().Elem())
@@ -1082,7 +1082,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				return err
 			}
 
-			if len(g.options)+len(g.subgroups) != flagCountBefore {
+			if len(g.flags)+len(g.subgroups) != flagCountBefore {
 				realval.Field(i).Set(fld)
 			}
 		}
@@ -1143,7 +1143,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				shortAndLongName(option.ShortName, option.LongName))
 		}
 
-		g.options = append(g.options, option)
+		g.flags = append(g.flags, option)
 	}
 
 	return nil
@@ -1154,7 +1154,7 @@ func (g *Group) checkForDuplicateFlags() error {
 	longNames := make(map[string]*Flag)
 	var duplicateError error
 	g.eachGroup(func(g *Group) bool {
-		for _, option := range g.options {
+		for _, option := range g.flags {
 			if option.LongName != "" {
 				longName := option.LongNameWithNamespace()
 
@@ -1304,7 +1304,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 				return true
 			}
 
-			for _, info := range grp.options {
+			for _, info := range grp.flags {
 				if !info.showInHelp() {
 					continue
 				}
@@ -1525,7 +1525,7 @@ func (p *Parser) WriteHelp() string {
 			}
 
 			first := true
-			for _, info := range grp.options {
+			for _, info := range grp.flags {
 				if !info.showInHelp() {
 					continue
 				}
@@ -1841,7 +1841,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 		var required []*Flag
 		for c := p.Command; c != nil; c = c.Active {
 			c.Group.eachGroup(func(g *Group) bool {
-				for _, option := range g.options {
+				for _, option := range g.flags {
 					if !option.isSet && option.Required {
 						required = append(required, option)
 					}

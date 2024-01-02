@@ -236,7 +236,7 @@ func TestCommandAdd(t *testing.T) {
 	assert.True(t, cmd.G)
 	assert.Equal(t, c, p.Command.find("cmd"))
 	assert.Equal(t, c, p.Command.Commands()[0])
-	assert.Equal(t, 'g', c.Group.options[0].ShortName)
+	assert.Equal(t, 'g', c.Group.flags[0].ShortName)
 }
 
 func TestCommandNestedInline(t *testing.T) {

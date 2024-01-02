@@ -91,7 +91,7 @@ func TestMarshalError(t *testing.T) {
 		Value marshalledError `short:"v"`
 	}{}
 
-	o := NewParser(&opts, Default).Command.Group.subgroups[0].options[0]
+	o := NewParser(&opts, Default).Command.Group.subgroups[0].flags[0]
 	_, err := convertToString(o.value, o.tag)
 	assert.Equal(t, &Error{
 		Kind:    ErrMarshal,
