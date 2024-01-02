@@ -1989,8 +1989,8 @@ func (s *parseState) checkRequired(p *Parser) {
 
 		var reqnames []string
 		for _, arg := range s.positional {
-			if aboba := isRemainingArg(arg.value); !aboba && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1 {
-				if aboba {
+			if isRemaining := isRemainingArg(arg.value); !isRemaining && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1 {
+				if isRemaining {
 					if arg.value.Len() < arg.Required {
 						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
 					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
