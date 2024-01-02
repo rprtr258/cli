@@ -104,100 +104,100 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 		}
 	}
 
-	if s.err == nil {
-		p.eachFlag(func(c *Command, g *flagSet, flag *Flag) {
-			if flag.preventDefault {
-				return
-			}
+	if s.err != nil {
+		return s.err
+	}
 
-			flag.isSetDefault = true
-
-			if len(flag.Default) > 0 {
-				flag.empty()
-
-				for _, d := range flag.Default {
-					if flag.preventDefault {
-						break
-					}
-
-					if err := flag.set(&d); err != nil {
-						if err != nil {
-							s.err = marshalError(flag, err)
-						}
-						break
-					}
-
-					flag.isSetDefault = true
-					flag.preventDefault = false
-				}
-			} else if fun.Contains(flag.value.Type().Kind(), reflect.Map, reflect.Slice) && flag.value.IsNil() {
-				flag.empty()
-			}
-		})
-
-		var required []*Flag
-		for c := p; c != nil; c = c.Active {
-			for _, option := range c.Flags.flags {
-				if !option.isSet && option.Required {
-					required = append(required, option)
-				}
-			}
+	p.eachFlag(func(c *Command, g *flagSet, flag *Flag) {
+		if flag.preventDefault {
+			return
 		}
 
-		if len(required) == 0 {
-			reqnames := iter.MapFilter(iter.FromMany(s.positional...),
-				func(arg PositionalArg) (string, bool) {
-					var desc string
-					switch {
-					case (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1:
-						return "", false
-					case !isRemainingArg(arg.value):
-						desc = ""
-					case arg.value.Len() < arg.Required:
-						desc = " (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) + ")"
-					case arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum:
-						desc = lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
-							return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
-						})
-					default:
-						return "", false
-					}
-					return "`" + arg.Name + desc + "`", true
-				}).
-				Slice()
-			if len(reqnames) != 0 {
-				s.err = &Error{
-					Kind: ErrRequired,
-					Message: func() string {
-						if len(reqnames) == 1 {
-							return fmt.Sprintf("the required argument %s was not provided", reqnames[0])
-						} else {
-							return fmt.Sprintf("the required arguments %s and %s were not provided",
-								strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
-						}
-					}(),
-				}
-			}
-		} else {
-			names := fun.Map[string](func(k *Flag) string {
-				return "`" + k.String() + "'"
-			}, required...)
-			sort.Strings(names)
+		flag.isSetDefault = true
 
+		if len(flag.Default) > 0 {
+			flag.empty()
+
+			for _, d := range flag.Default {
+				if flag.preventDefault {
+					break
+				}
+
+				if err := flag.set(&d); err != nil {
+					if err != nil {
+						s.err = marshalError(flag, err)
+					}
+					break
+				}
+
+				flag.isSetDefault = true
+				flag.preventDefault = false
+			}
+		} else if fun.Contains(flag.value.Type().Kind(), reflect.Map, reflect.Slice) && flag.value.IsNil() {
+			flag.empty()
+		}
+	})
+
+	var required []*Flag
+	for c := p; c != nil; c = c.Active {
+		for _, option := range c.Flags.flags {
+			if !option.isSet && option.Required {
+				required = append(required, option)
+			}
+		}
+	}
+
+	if len(required) == 0 {
+		reqnames := iter.MapFilter(iter.FromMany(s.positional...),
+			func(arg PositionalArg) (string, bool) {
+				var desc string
+				switch {
+				case (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1:
+					return "", false
+				case !isRemainingArg(arg.value):
+					desc = ""
+				case arg.value.Len() < arg.Required:
+					desc = " (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) + ")"
+				case arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum:
+					desc = lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
+						return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
+					})
+				default:
+					return "", false
+				}
+				return "`" + arg.Name + desc + "`", true
+			}).
+			Slice()
+		if len(reqnames) != 0 {
 			s.err = &Error{
 				Kind: ErrRequired,
 				Message: func() string {
-					if len(required) == 1 {
-						return fmt.Sprintf("the required flag %s was not specified", names[0])
+					if len(reqnames) == 1 {
+						return fmt.Sprintf("the required argument %s was not provided", reqnames[0])
 					} else {
-						return fmt.Sprintf("the required flags %s and %s were not specified",
-							strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+						return fmt.Sprintf("the required arguments %s and %s were not provided",
+							strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
 					}
 				}(),
 			}
 		}
 	} else {
-		return s.err
+		names := fun.Map[string](func(k *Flag) string {
+			return "`" + k.String() + "'"
+		}, required...)
+		sort.Strings(names)
+
+		s.err = &Error{
+			Kind: ErrRequired,
+			Message: func() string {
+				if len(required) == 1 {
+					return fmt.Sprintf("the required flag %s was not specified", names[0])
+				} else {
+					return fmt.Sprintf("the required flags %s and %s were not specified",
+						strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
+				}
+			}(),
+		}
 	}
 
 	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
