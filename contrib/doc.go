@@ -110,8 +110,6 @@ The following is a list of tags for struct fields supported by go-flags:
 	base: a base (radix) used to convert strings to integer values, the
 	      default base is 10 (i.e. decimal) (optional)
 
-	group:                when specified on a struct field, makes the struct
-	                      field a separate group with the given name (optional)
 	namespace:            when specified on a group struct field, the namespace
 	                      gets prepended to every option's long name and
 	                      subgroup's namespace of this group, separated by
@@ -148,20 +146,6 @@ The following is a list of tags for struct fields supported by go-flags:
 
 Either the `short:` tag or the `long:` must be specified to make the field eligible as an
 option.
-
-# Option groups
-
-Option groups are a simple way to semantically separate your options. All
-options in a particular group are shown together in the help under the name
-of the group. Namespaces can be used to specify option long names more
-precisely and emphasize the options affiliation to their group.
-
-There are currently three ways to specify option groups.
-
- 1. Use NewNamedParser specifying the various option groups.
- 2. Use AddGroup to add a group to an existing parser.
- 3. Add a struct field to the top-level options annotated with the
-    group:"group-name" tag.
 
 # Commands
 

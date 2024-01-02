@@ -28,19 +28,17 @@ type helpOptions struct {
 
 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name" hidden:"yes"`
 
-	Other struct {
-		StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
-		IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
-	} `group:"Other Options"`
+	StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
+	IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
 
 	HiddenGroup struct {
 		InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
 		Padder            bool   `long:"this-option-in-a-hidden-group-has-a-ridiculously-long-name"`
-	} `group:"Hidden group" hidden:"yes"`
+	} `group" hidden:"yes"`
 
 	GroupWithOnlyHiddenOptions struct {
 		SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group" hidden:"yes"`
-	} `group:"Non-hidden group with only hidden options"`
+	}
 
 	Group struct {
 		Opt                  string `long:"opt" description:"This is a subgroup option"`
@@ -49,8 +47,8 @@ type helpOptions struct {
 
 		Group struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
-		} `group:"Subsubgroup" namespace:"sap"`
-	} `group:"Subgroup" namespace:"sip"`
+		} `namespace:"sap"`
+	} `namespace:"sip"`
 
 	Bommand struct {
 		Hidden bool `long:"hidden" description:"A hidden option" hidden:"yes"`
@@ -189,12 +187,12 @@ Available commands:
 
 func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
-	p.Command.Group.ShortDescription = "Test manpage generation"
-	p.Command.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
+	p.Command.Flags.ShortDescription = "Test manpage generation"
+	p.Command.Flags.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
 	p.Command.addGroup("Application Options", "The application options", &helpOptions{})
 
 	for _, cmd := range p.Command.commands {
-		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
+		cmd.Flags.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
 	tt := time.Now()
@@ -363,8 +361,8 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	cmdHidden, err := p.Command.AddCommand("hidden", "Hidden command description", "Long hidden command description", &hiddenCmdOpts)
 	assert.NoError(t, err)
 	// make it hidden
-	cmdHidden.Group.Hidden = true
-	assert.Len(t, cmdHidden.Group.flags, 2)
+	cmdHidden.Flags.Hidden = true
+	assert.Len(t, cmdHidden.Flags.flags, 2)
 
 	// which help we ask for explicitly
 	err = p.Run("hidden", "--help")
@@ -549,7 +547,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
 		option, _ := iter.
-			FromMany(p.Command.Group.flags...).
+			FromMany(p.Command.Flags.flags...).
 			Filter(func(f *Flag) bool {
 				return f.ShortName == 'v'
 			}).

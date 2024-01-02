@@ -99,12 +99,12 @@ type PointerGroup struct {
 
 func TestPointerGroup(t *testing.T) {
 	opts := struct {
-		Group *PointerGroup `group:"Group Options"`
+		PointerGroup
 	}{}
 
 	ret := assertParserSuccess(t, &opts, "-v")
 	assert.Equal(t, []string{}, ret)
-	assert.True(t, opts.Group.Value)
+	assert.True(t, opts.Value)
 }
 
 func TestDoNotChangeNonTaggedFields(t *testing.T) {

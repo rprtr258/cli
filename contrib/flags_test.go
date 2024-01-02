@@ -97,7 +97,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 		Test bool
 	}
 	p := NewParser(&opts, Default)
-	p.Command.Group.AddOption(&Flag{
+	p.Command.Flags.AddOption(&Flag{
 		LongName: "test",
 	}, &opts.Test)
 

@@ -377,7 +377,7 @@ func (option *Flag) LongNameWithNamespace() string {
 
 		switch i := g.parent.(type) {
 		case *Command:
-			g = i.Group
+			g = i.Flags
 		case *flagSet:
 			g = i
 		}
@@ -388,7 +388,7 @@ func (option *Flag) LongNameWithNamespace() string {
 	for g := option.group; g != nil; g = func() *flagSet {
 		switch i := g.parent.(type) {
 		case *Command:
-			return i.Group
+			return i.Flags
 		case *flagSet:
 			return i
 		}
@@ -633,7 +633,7 @@ func isRemainingArg(value reflect.Value) bool {
 // is specified on the command line. The Command type embeds a Group and
 // therefore also carries a set of command specific options.
 type Command struct {
-	Group               *flagSet
+	Flags               *flagSet
 	Name                string   // Name by which the command can be invoked
 	Active              *Command // Active sub command (set by parsing) or nil
 	SubcommandsOptional bool     // Whether subcommands are optional
@@ -677,14 +677,14 @@ type lookup struct {
 func (c *Command) AddCommand(command, shortDescription, longDescription string, data any) (*Command, error) {
 	cmd := &Command{
 		Name: command,
-		Group: &flagSet{
+		Flags: &flagSet{
 			ShortDescription: shortDescription,
 			LongDescription:  longDescription,
 			data:             data,
 			parent:           c,
 		},
 	}
-	if err := cmd.Group.scanType(cmd.scanSubcommandHandler(cmd.Group)); err != nil {
+	if err := cmd.Flags.scanType(cmd.scanSubcommandHandler(cmd.Flags)); err != nil {
 		return nil, err
 	}
 
@@ -790,7 +790,7 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 			return true, err
 		}
 
-		subc.Group.Hidden = multitagGet(mtag, "hidden") != ""
+		subc.Flags.Hidden = multitagGet(mtag, "hidden") != ""
 		subc.SubcommandsOptional = multitagGet(mtag, "subcommands-optional") != ""
 		subc.Aliases = GetMany(mtag, "alias")
 
@@ -800,8 +800,8 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 
 func (c *Command) eachFlag(yield func(*Command, *flagSet, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
-		for _, option := range c.Group.flags {
-			yield(c, c.Group, option)
+		for _, option := range c.Flags.flags {
+			yield(c, c.Flags, option)
 		}
 		return true
 	})
@@ -826,17 +826,17 @@ func (c *Command) addHelpGroups(help func() string) {
 
 func visibleCommands(commands []*Command) []*Command {
 	return internal.Filter(func(cmd *Command) bool {
-		return !cmd.Group.Hidden
+		return !cmd.Flags.Hidden
 	}, commands...)
 }
 
 func (c *Command) hasHelpOptions() bool {
-	if c.Group.isBuiltinHelp {
+	if c.Flags.isBuiltinHelp {
 		return true
 	}
 
 	ret := false
-	for _, opt := range c.Group.flags {
+	for _, opt := range c.Flags.flags {
 		if opt.showInHelp() {
 			ret = true
 		}
@@ -846,9 +846,9 @@ func (c *Command) hasHelpOptions() bool {
 
 func makeLookupTable(c *Command) lookup {
 	var parents []*Command
-	for parent := c.Group.parent; parent != nil; {
+	for parent := c.Flags.parent; parent != nil; {
 		if cmd, ok := parent.(*Command); ok {
-			parent = cmd.Group.parent
+			parent = cmd.Flags.parent
 			parents = append(parents, cmd)
 		} else {
 			break
@@ -865,7 +865,7 @@ func makeLookupTable(c *Command) lookup {
 			yield(c)
 		},
 		func(c *Command) iter.Seq[*Flag] {
-			return iter.FromMany(c.Group.flags...)
+			return iter.FromMany(c.Flags.flags...)
 		})
 
 	return lookup{
@@ -1198,11 +1198,11 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			}, c.args...))
 			prevcmd = c
 		}
-		if !c.Group.showInHelp() {
+		if !c.Flags.showInHelp() {
 			continue
 		}
 
-		for _, info := range c.Group.flags {
+		for _, info := range c.Flags.flags {
 			if !info.showInHelp() {
 				continue
 			}
@@ -1358,7 +1358,7 @@ func (p *Parser) WriteHelp() string {
 				} else if p.Options&HelpFlag != 0 {
 					usage = "[OPTIONS]"
 				}
-			} else if us, ok := allcmd.Group.data.(Usage); ok {
+			} else if us, ok := allcmd.Flags.data.(Usage); ok {
 				usage = us.Usage()
 			} else if allcmd.hasHelpOptions() {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
@@ -1405,9 +1405,9 @@ func (p *Parser) WriteHelp() string {
 
 		fmt.Fprintln(w)
 
-		if cmd.Group.LongDescription != "" {
+		if cmd.Flags.LongDescription != "" {
 			fmt.Fprintln(w)
-			fmt.Fprintln(w, wrapText(cmd.Group.LongDescription, aligninfo.terminalColumns, ""))
+			fmt.Fprintln(w, wrapText(cmd.Flags.LongDescription, aligninfo.terminalColumns, ""))
 		}
 	}
 
@@ -1415,12 +1415,12 @@ func (p *Parser) WriteHelp() string {
 		printcmd := c != p.Command
 
 		// Skip built-in help group for all commands except the top-level parser
-		if c.Group.Hidden || c.Group.isBuiltinHelp && c != p.Command {
+		if c.Flags.Hidden || c.Flags.isBuiltinHelp && c != p.Command {
 			continue
 		}
 
 		first := true
-		for _, info := range c.Group.flags {
+		for _, info := range c.Flags.flags {
 			if !info.showInHelp() {
 				continue
 			}
@@ -1431,14 +1431,14 @@ func (p *Parser) WriteHelp() string {
 				printcmd = false
 			}
 
-			if first && cmd.Group != c.Group {
+			if first && cmd.Flags != c.Flags {
 				fmt.Fprintln(w)
 
 				if aligninfo.indent {
 					_, _ = w.WriteString("    ")
 				}
 
-				fmt.Fprint(w, c.Group.ShortDescription+":\n")
+				fmt.Fprint(w, c.Flags.ShortDescription+":\n")
 				first = false
 			}
 
@@ -1496,9 +1496,9 @@ func (p *Parser) WriteHelp() string {
 			fullNameRepresentation := c.Name + internal.Iverson(len(c.Aliases) > 0, ","+strings.Join(c.Aliases, ","))
 			fmt.Fprint(w, "  "+fullNameRepresentation)
 
-			if c.Group.ShortDescription != "" {
+			if c.Flags.ShortDescription != "" {
 				pad := strings.Repeat(" ", maxnamelen-len(fullNameRepresentation))
-				fmt.Fprintf(w, "%s  %s", pad, c.Group.ShortDescription)
+				fmt.Fprintf(w, "%s  %s", pad, c.Flags.ShortDescription)
 			}
 
 			fmt.Fprintln(w)
@@ -1564,11 +1564,11 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 	}
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
-		c.Group.parent.(*Parser).internalError = err
+		c.Flags.parent.(*Parser).internalError = err
 		return nil
 	}
 
-	c.Group = group
+	c.Flags = group
 	return group
 }
 
@@ -1579,7 +1579,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
 		Command: &Command{
 			Name: appname,
-			Group: &flagSet{
+			Flags: &flagSet{
 				ShortDescription: "",
 				LongDescription:  "",
 				data:             nil,
@@ -1589,7 +1589,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
 	}
-	p.Command.Group.parent = p
+	p.Command.Flags.parent = p
 	return p
 }
 
@@ -1737,7 +1737,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 
 		var required []*Flag
 		for c := p.Command; c != nil; c = c.Active {
-			for _, option := range c.Group.flags {
+			for _, option := range c.Flags.flags {
 				if !option.isSet && option.Required {
 					required = append(required, option)
 				}
@@ -1837,7 +1837,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 		return newCommandRequiredError(cmdnames)
 	}
 
-	if cmd, ok := p.command.Group.data.(Commander); ok {
+	if cmd, ok := p.command.Flags.data.(Commander); ok {
 		if commandHandler != nil {
 			return commandHandler(cmd, p.retargs)
 		}

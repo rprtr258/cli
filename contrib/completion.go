@@ -79,8 +79,8 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
 		return Completion{
 			Item:        cmd.Name,
-			Description: cmd.Group.ShortDescription,
-		}, cmd.Group.data != c && !cmd.Group.Hidden && strings.HasPrefix(cmd.Name, match)
+			Description: cmd.Flags.ShortDescription,
+		}, cmd.Flags.data != c && !cmd.Flags.Hidden && strings.HasPrefix(cmd.Name, match)
 	}, s.command.commands...)
 }
 
