@@ -161,7 +161,6 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 
 // WriteManPage writes a basic man page in groff format to the specified writer.
 func (p *Parser) WriteManPage(w io.Writer, t time.Time) {
-	// TODO: move out
 	if sourceDateEpoch := os.Getenv("SOURCE_DATE_EPOCH"); sourceDateEpoch != "" {
 		sde, err := strconv.ParseInt(sourceDateEpoch, 10, 64)
 		if err != nil {

@@ -1986,9 +1986,9 @@ func (p *parseState) pop() string {
 	return p.arg
 }
 
-func (p *parseState) checkRequired(parser *Parser) {
+func (s *parseState) checkRequired(p *Parser) {
 	var required []*Flag
-	for c := parser.Command; c != nil; c = c.Active {
+	for c := p.Command; c != nil; c = c.Active {
 		c.Group.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				if !option.isSet && option.Required {
@@ -2000,13 +2000,13 @@ func (p *parseState) checkRequired(parser *Parser) {
 	}
 
 	if len(required) == 0 {
-		if len(p.positional) == 0 {
+		if len(s.positional) == 0 {
 			return
 		}
 
 		var reqnames []string
-		for _, arg := range p.positional {
-			if argRequired := !isRemainingArg(arg.value) && p.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
+		for _, arg := range s.positional {
+			if argRequired := !isRemainingArg(arg.value) && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
 				continue
 			}
 
@@ -2030,7 +2030,7 @@ func (p *parseState) checkRequired(parser *Parser) {
 			return
 		}
 
-		p.err = &Error{
+		s.err = &Error{
 			Kind: ErrRequired,
 			Message: func() string {
 				if len(reqnames) == 1 {
@@ -2050,7 +2050,7 @@ func (p *parseState) checkRequired(parser *Parser) {
 	}, required...)
 	sort.Strings(names)
 
-	p.err = &Error{
+	s.err = &Error{
 		Kind: ErrRequired,
 		Message: func() string {
 			if len(required) == 1 {
