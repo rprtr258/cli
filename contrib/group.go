@@ -292,7 +292,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 	return nil
 }
 
-func ToDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
+func toDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
 	ret := make(map[K]V)
 	seq(func(t T) bool {
 		k, v := f(t)
@@ -1005,21 +1005,21 @@ func makeLookupTable(c *Command) lookup {
 		})
 
 	return lookup{
-		shortNames: ToDict(
+		shortNames: toDict(
 			opts.Filter(func(o *Option) bool {
 				return o.ShortName != 0
 			}),
 			func(o *Option) (string, *Option) {
 				return string(o.ShortName), o
 			}),
-		longNames: ToDict(
+		longNames: toDict(
 			opts.Filter(func(o *Option) bool {
 				return o.LongName != ""
 			}),
 			func(o *Option) (string, *Option) {
 				return o.LongNameWithNamespace(), o
 			}),
-		commands: ToDict(
+		commands: toDict(
 			iter.FlatMap(
 				iter.FromMany(c.commands...),
 				func(c *Command) iter.Seq[fun.Pair[string, *Command]] {
