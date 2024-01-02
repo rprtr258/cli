@@ -1861,9 +1861,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
 	}
-
 	p.Command.parent = p
-
 	return p
 }
 
