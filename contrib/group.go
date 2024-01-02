@@ -810,12 +810,12 @@ func (c *Command) Args() []*Arg {
 
 func newCommand(name, shortDescription, longDescription string, data any) *Command {
 	return &Command{
+		Name: name,
 		Group: &Group{
 			ShortDescription: shortDescription,
 			LongDescription:  longDescription,
 			data:             data,
 		},
-		Name: name,
 	}
 }
 
