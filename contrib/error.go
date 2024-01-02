@@ -99,14 +99,14 @@ func newUnknownCommandError(name string, cmdnames []string) error {
 			switch {
 			case l*2 < len(c):
 				return fmt.Sprintf(", did you mean `%s'?", c)
+			case len(cmdnames) == 0:
+				return ""
 			case len(cmdnames) == 1:
 				return fmt.Sprintf(". You should use the %s command", cmdnames[0])
-			case len(cmdnames) > 1:
+			default:
 				return fmt.Sprintf(". Please specify one command of: %s or %s",
 					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 					cmdnames[len(cmdnames)-1])
-			default:
-				return ""
 			}
 		}(),
 	}

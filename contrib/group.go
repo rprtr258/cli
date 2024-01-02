@@ -1828,7 +1828,12 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	// Add built-in help group to all commands if necessary
 	if p.Options&HelpFlag != 0 {
-		p.Command.addHelpGroups(p.showBuiltinHelp)
+		p.Command.addHelpGroups(func() error {
+			return &Error{
+				Kind:    ErrHelp,
+				Message: p.WriteHelp(),
+			}
+		})
 	}
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
@@ -2216,11 +2221,4 @@ func (p *Parser) parseNonOption(s *parseState) bool {
 	}
 
 	return s.addArgs(s.arg)
-}
-
-func (p *Parser) showBuiltinHelp() error {
-	return &Error{
-		Kind:    ErrHelp,
-		Message: p.WriteHelp(),
-	}
 }
