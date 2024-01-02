@@ -41,7 +41,7 @@ func TestGroupAdd(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, grp.G)
 	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
-	assert.Equal(t, g, p.groups[1])
+	assert.Equal(t, g, p.Group.groups[1])
 	assert.Equal(t, 'g', g.options[0].ShortName)
 }
 
@@ -169,7 +169,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 		Test bool
 	}
 	p := NewParser(&opts, Default)
-	p.AddOption(&Flag{
+	p.Group.AddOption(&Flag{
 		LongName: "test",
 	}, &opts.Test)
 

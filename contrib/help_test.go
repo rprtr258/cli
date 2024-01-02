@@ -189,12 +189,12 @@ Available commands:
 
 func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
-	p.ShortDescription = "Test manpage generation"
-	p.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
+	p.Group.ShortDescription = "Test manpage generation"
+	p.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
 	_, _ = p.AddGroup("Application Options", "The application options", &helpOptions{})
 
 	for _, cmd := range p.Commands() {
-		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
+		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
 	tt := time.Now()
@@ -368,8 +368,8 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	cmdHidden, err := p.Command.AddCommand("hidden", "Hidden command description", "Long hidden command description", &hiddenCmdOpts)
 	assert.NoError(t, err)
 	// make it hidden
-	cmdHidden.Hidden = true
-	assert.Len(t, cmdHidden.options, 2)
+	cmdHidden.Group.Hidden = true
+	assert.Len(t, cmdHidden.Group.options, 2)
 
 	// which help we ask for explicitly
 	_, err = p.ParseArgs("hidden", "--help")

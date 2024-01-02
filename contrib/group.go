@@ -673,7 +673,7 @@ func (option *Flag) isValidValue(arg string) error {
 // therefore also carries a set of command specific options.
 type Command struct {
 	// Embedded, see Group for more information
-	*Group
+	Group *Group
 
 	// The name by which the command can be invoked
 	Name string
@@ -757,7 +757,7 @@ func (c *Command) AddGroup(shortDescription, longDescription string, data any) (
 		return nil, err
 	}
 
-	c.groups = append(c.groups, group)
+	c.Group.groups = append(c.Group.groups, group)
 	return group, nil
 }
 
@@ -785,7 +785,7 @@ func (c *Command) FindOptionByLongName(longName string) (option *Flag) {
 	for option == nil && c != nil {
 		option = c.Group.findOptionByLongName(longName)
 
-		c, _ = c.parent.(*Command)
+		c, _ = c.Group.parent.(*Command)
 	}
 
 	return option
@@ -798,7 +798,7 @@ func (c *Command) FindOptionByShortName(shortName rune) (option *Flag) {
 	for option == nil && c != nil {
 		option = c.Group.findOptionByShortName(shortName)
 
-		c, _ = c.parent.(*Command)
+		c, _ = c.Group.parent.(*Command)
 	}
 
 	return option
@@ -899,7 +899,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 			return true, err
 		}
 
-		subc.Hidden = mtag.Get("hidden") != ""
+		subc.Group.Hidden = mtag.Get("hidden") != ""
 
 		subcommandsOptional := mtag.Get("subcommands-optional")
 		if subcommandsOptional != "" {
@@ -916,12 +916,12 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 }
 
 func (c *Command) scan() error {
-	return c.scanType(c.scanSubcommandHandler(c.Group))
+	return c.Group.scanType(c.scanSubcommandHandler(c.Group))
 }
 
 func (c *Command) eachOption(yield func(*Command, *Group, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
-		return c.eachGroup(func(g *Group) bool {
+		return c.Group.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				yield(c, g, option)
 			}
@@ -949,7 +949,7 @@ func (c *Command) addHelpGroups(showHelp func() error) {
 
 func visibleCommands(commands []*Command) []*Command {
 	return internal.Filter(func(cmd *Command) bool {
-		return !cmd.Hidden
+		return !cmd.Group.Hidden
 	}, commands...)
 }
 
@@ -959,7 +959,7 @@ func (c *Command) match(name string) bool {
 
 func (c *Command) hasHelpOptions() bool {
 	ret := false
-	c.eachGroup(func(g *Group) bool {
+	c.Group.eachGroup(func(g *Group) bool {
 		if g.isBuiltinHelp {
 			return true
 		}
@@ -976,9 +976,9 @@ func (c *Command) hasHelpOptions() bool {
 
 func makeLookupTable(c *Command) lookup {
 	var parents []*Command
-	for parent := c.parent; parent != nil; {
+	for parent := c.Group.parent; parent != nil; {
 		if cmd, ok := parent.(*Command); ok {
-			parent = cmd.parent
+			parent = cmd.Group.parent
 			parents = append(parents, cmd)
 		} else {
 			break
@@ -997,7 +997,7 @@ func makeLookupTable(c *Command) lookup {
 				return yield(c)
 			}),
 			func(c *Command) iter.Seq[*Group] {
-				return c.eachGroup
+				return c.Group.eachGroup
 			}),
 		func(g *Group) iter.Seq[*Flag] {
 			return iter.FromMany(g.options...)
@@ -1456,7 +1456,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	}
 	var prevcmd *Command
 	for c := p.Command; c != nil; c = c.Active {
-		c.eachGroup(func(grp *Group) bool {
+		c.Group.eachGroup(func(grp *Group) bool {
 			if c != prevcmd {
 				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
 					return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
@@ -1625,7 +1625,7 @@ func (p *Parser) WriteHelp() string {
 				} else if p.Options&HelpFlag != 0 {
 					usage = "[OPTIONS]"
 				}
-			} else if us, ok := allcmd.data.(Usage); ok {
+			} else if us, ok := allcmd.Group.data.(Usage); ok {
 				usage = us.Usage()
 			} else if allcmd.hasHelpOptions() {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
@@ -1672,16 +1672,16 @@ func (p *Parser) WriteHelp() string {
 
 		fmt.Fprintln(w)
 
-		if cmd.LongDescription != "" {
+		if cmd.Group.LongDescription != "" {
 			fmt.Fprintln(w)
-			fmt.Fprintln(w, wrapText(cmd.LongDescription, aligninfo.terminalColumns, ""))
+			fmt.Fprintln(w, wrapText(cmd.Group.LongDescription, aligninfo.terminalColumns, ""))
 		}
 	}
 
 	for c := p.Command; c != nil; c = c.Active {
 		printcmd := c != p.Command
 
-		c.eachGroup(func(grp *Group) bool {
+		c.Group.eachGroup(func(grp *Group) bool {
 			// Skip built-in help group for all commands except the top-level parser
 			if grp.Hidden || grp.isBuiltinHelp && c != p.Command {
 				return true
@@ -1766,9 +1766,9 @@ func (p *Parser) WriteHelp() string {
 			fullNameRepresentation := c.Name + internal.Iverson(len(c.Aliases) > 0, ","+strings.Join(c.Aliases, ","))
 			fmt.Fprint(w, "  "+fullNameRepresentation)
 
-			if c.ShortDescription != "" {
+			if c.Group.ShortDescription != "" {
 				pad := strings.Repeat(" ", maxnamelen-len(fullNameRepresentation))
-				fmt.Fprintf(w, "%s  %s", pad, c.ShortDescription)
+				fmt.Fprintf(w, "%s  %s", pad, c.Group.ShortDescription)
 			}
 
 			fmt.Fprintln(w)
@@ -1860,7 +1860,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
 	}
-	p.Command.parent = p
+	p.Command.Group.parent = p
 	return p
 }
 
@@ -2009,7 +2009,7 @@ func (p *parseState) pop() string {
 func (p *parseState) checkRequired(parser *Parser) {
 	var required []*Flag
 	for c := parser.Command; c != nil; c = c.Active {
-		c.eachGroup(func(g *Group) bool {
+		c.Group.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
 				if !option.isSet && option.Required {
 					required = append(required, option)
@@ -2129,7 +2129,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 		}
 	}
 
-	if cmd, ok := p.command.data.(Commander); ok {
+	if cmd, ok := p.command.Group.data.(Commander); ok {
 		if commandHandler != nil {
 			return commandHandler(cmd, p.retargs)
 		}

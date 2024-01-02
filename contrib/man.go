@@ -119,7 +119,7 @@ func writeManPageSubcommands(wr io.Writer, name, usagePrefix string, commands []
 	iter.
 		FromMany(commands...).
 		Filter(func(c *Command) bool {
-			return !c.Hidden
+			return !c.Group.Hidden
 		}).
 		ForEach(func(c *Command) {
 			nn := c.Name
@@ -133,20 +133,20 @@ func writeManPageSubcommands(wr io.Writer, name, usagePrefix string, commands []
 
 func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Command) {
 	fmt.Fprintf(wr, ".SS %s\n", name)
-	fmt.Fprintln(wr, command.ShortDescription)
+	fmt.Fprintln(wr, command.Group.ShortDescription)
 
-	if command.LongDescription != "" {
+	if command.Group.LongDescription != "" {
 		fmt.Fprintln(wr, "")
 
 		cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
 
-		if strings.HasPrefix(command.LongDescription, cmdstart) {
+		if strings.HasPrefix(command.Group.LongDescription, cmdstart) {
 			fmt.Fprintf(wr, "The \\fI%s\\fP command", manQuote(command.Name))
 
-			formatForMan(wr, command.LongDescription[len(cmdstart):])
+			formatForMan(wr, command.Group.LongDescription[len(cmdstart):])
 			fmt.Fprintln(wr, "")
 		} else {
-			formatForMan(wr, command.LongDescription)
+			formatForMan(wr, command.Group.LongDescription)
 			fmt.Fprintln(wr, "")
 		}
 	}
@@ -154,7 +154,7 @@ func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Comman
 	pre := usagePrefix + " " + command.Name
 
 	var usage string
-	if us, ok := command.data.(Usage); ok {
+	if us, ok := command.Group.data.(Usage); ok {
 		usage = us.Usage()
 	} else if command.hasHelpOptions() {
 		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
@@ -188,7 +188,7 @@ func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
 
 	fmt.Fprintf(wr, ".TH %s 1 \"%s\"\n", manQuote(p.Name), t.Format("2 January 2006"))
 	fmt.Fprintln(wr, ".SH NAME")
-	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.ShortDescription))
+	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.Group.ShortDescription))
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
 
 	usage := internal.Or(p.Usage, "[OPTIONS]")
@@ -196,7 +196,7 @@ func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
 	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
 
-	formatForMan(wr, p.LongDescription)
+	formatForMan(wr, p.Group.LongDescription)
 	fmt.Fprintln(wr)
 
 	fmt.Fprintln(wr, ".SH OPTIONS")
