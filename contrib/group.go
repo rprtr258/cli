@@ -67,7 +67,7 @@ func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*G
 		parent:           g,
 	}
 
-	if err := group.scan(); err != nil {
+	if err := group.scang(); err != nil {
 		return nil, err
 	}
 
@@ -347,6 +347,6 @@ func (g *Group) scanType(handler scanHandler) error {
 	return nil
 }
 
-func (g *Group) scan() error {
+func (g *Group) scang() error {
 	return g.scanType(g.scanSubGroupHandler)
 }
