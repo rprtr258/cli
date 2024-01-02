@@ -177,3 +177,75 @@ func TestAddOptionNonOptional(t *testing.T) {
 	assert.NoError(t, err)
 	assert.True(t, opts.Test)
 }
+
+func TestLong(t *testing.T) {
+	t.Run("Long", func(t *testing.T) {
+		opts := struct {
+			Value bool `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value")
+		assert.Equal(t, []string{}, ret)
+		assert.True(t, opts.Value)
+	})
+
+	t.Run("LongArg", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value", "value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongArgEqual", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value=value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongDefault", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" default:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts)
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptional", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptionalArg", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value", "no")
+		assert.Equal(t, []string{"no"}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptionalArgEqual", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value=value", "no")
+		assert.Equal(t, []string{"no"}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+}
