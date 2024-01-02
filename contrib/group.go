@@ -293,14 +293,6 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 	return nil
 }
 
-func unquoteIfPossible(s string) (string, error) {
-	if s == "" || s[0] != '"' {
-		return s, nil
-	}
-
-	return strconv.Unquote(s)
-}
-
 func ToDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
 	ret := make(map[K]V)
 	seq(func(t T) bool {
@@ -2249,7 +2241,13 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 		}
 
 		if option.tag.Get("unquote") != "false" {
-			arg, err = unquoteIfPossible(arg)
+			arg, err = func(s string) (string, error) {
+				if s == "" || s[0] != '"' {
+					return s, nil
+				}
+
+				return strconv.Unquote(s)
+			}(arg)
 		}
 
 		if err == nil {
