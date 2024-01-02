@@ -29,6 +29,366 @@ func ToDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
 	return ret
 }
 
+// Option flag information. Contains a description of the option, short and
+// long name as well as a default value and whether an argument for this
+// flag is optional.
+type Option struct {
+	// The description of the option flag. This description is shown automatically in the built-in help.
+	Description string
+
+	// The short name of the option (a single character).
+	// If not 0, the option flag can be 'activated' using -<ShortName>.
+	// Either ShortName or LongName needs to be non-empty.
+	ShortName rune
+
+	// The long name of the option.
+	// If not "", the option flag can be activated using --<LongName>.
+	// Either ShortName or LongName needs to be non-empty.
+	LongName string
+
+	// The default value of the option.
+	Default []string
+
+	// If true, specifies that the argument to an option flag is optional.
+	// When no argument to the flag is specified on the command line, the
+	// value of OptionalValue will be set in the field this option represents.
+	// This is only valid for non-boolean options.
+	OptionalArgument bool
+
+	// The optional value of the option.
+	// The optional value is used when the option flag is marked as having an OptionalArgument.
+	// This means that when the flag is specified, but no option argument is given,
+	// the value of the field this option represents will be set to OptionalValue.
+	// This is only valid for non-boolean options.
+	OptionalValue []string
+
+	// If true, the option _must_ be specified on the command line.
+	// If the option is not specified, the parser will generate an ErrRequired type error.
+	Required bool
+
+	// A name for the value of an option shown in the Help as --flag [ValueName]
+	ValueName string
+
+	// A mask value to show in the help instead of the default value.
+	// This is useful for hiding sensitive information in the help, such as passwords.
+	DefaultMask string
+
+	// If non empty, only a certain set of values is allowed for an option.
+	Choices []string
+
+	// If true, the option is not displayed in the help or man page
+	Hidden bool
+
+	// The group which the option belongs to
+	group *Group
+
+	// The struct field which the option represents.
+	field reflect.StructField
+
+	// The struct field value which the option represents.
+	value reflect.Value
+
+	tag                     multiTag
+	isSet                   bool
+	isSetDefault            bool
+	preventDefault          bool
+	clearReferenceBeforeSet bool
+
+	defaultLiteral string
+}
+
+// LongNameWithNamespace returns the option's long name with the group namespaces
+// prepended by walking up the option's group tree. Namespaces and the long name
+// itself are separated by the parser's namespace delimiter. If the long name is
+// empty an empty string is returned.
+func (option *Option) LongNameWithNamespace() string {
+	if option.LongName == "" {
+		return ""
+	}
+
+	// fetch the namespace delimiter from the parser which is always at the
+	// end of the group hierarchy
+	var namespaceDelimiter string
+	g := option.group
+	for {
+		if p, ok := g.parent.(*Parser); ok {
+			namespaceDelimiter = p.NamespaceDelimiter
+			break
+		}
+
+		switch i := g.parent.(type) {
+		case *Command:
+			g = i.Group
+		case *Group:
+			g = i
+		}
+	}
+
+	// concatenate long name with namespace
+	longName := option.LongName
+	for g := option.group; g != nil; g = func() *Group {
+		switch i := g.parent.(type) {
+		case *Command:
+			return i.Group
+		case *Group:
+			return i
+		}
+		return nil
+	}() {
+		if g.Namespace != "" {
+			longName = g.Namespace + namespaceDelimiter + longName
+		}
+	}
+	return longName
+}
+
+// String converts an option to a human friendly readable string describing the
+// option.
+func (option *Option) String() string {
+	if option.ShortName != 0 {
+		data := make([]byte, utf8.RuneLen(option.ShortName))
+		utf8.EncodeRune(data, option.ShortName)
+		short := string(data)
+
+		if option.LongName != "" {
+			return fmt.Sprintf("%s, %s",
+				string(_defaultOptDelimiterShort)+short,
+				_defaultOptDelimiterLong+option.LongNameWithNamespace())
+		}
+
+		return string(_defaultOptDelimiterShort) + short
+	}
+
+	if option.LongName != "" {
+		return _defaultOptDelimiterLong + option.LongNameWithNamespace()
+	}
+
+	return ""
+}
+
+// Value returns the option value as an any.
+func (option *Option) Value() any {
+	return option.value.Interface()
+}
+
+// Set the value of an option to the specified value. An error will be returned
+// if the specified value could not be converted to the corresponding option
+// value type.
+func (option *Option) Set(value *string) error {
+	kind := option.value.Type().Kind()
+
+	if internal.OneOf(kind, reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
+		option.empty()
+	}
+
+	option.isSet = true
+	option.preventDefault = true
+	option.clearReferenceBeforeSet = false
+
+	if len(option.Choices) != 0 {
+		if fun.All(option.Choices, func(choice string) bool {
+			return choice != *value
+		}) {
+			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
+
+			if len(option.Choices) > 1 {
+				allowed += " or " + option.Choices[len(option.Choices)-1]
+			}
+
+			return newErrorf(ErrInvalidChoice,
+				"Invalid value `%s' for option `%s'. Allowed values are: %s",
+				*value, option, allowed)
+		}
+	}
+
+	switch {
+	case option.isFunc():
+		return option.call(value)
+	case value != nil:
+		return convert(*value, option.value, option.tag)
+	default:
+		return convert("", option.value, option.tag)
+	}
+}
+
+func (option *Option) setDefault(value *string) error {
+	if option.preventDefault {
+		return nil
+	}
+
+	if err := option.Set(value); err != nil {
+		return err
+	}
+
+	option.isSetDefault = true
+	option.preventDefault = false
+
+	return nil
+}
+
+func (option *Option) showInHelp() bool {
+	return !option.Hidden && (option.ShortName != 0 || option.LongName != "")
+}
+
+func (option *Option) canArgument() bool {
+	return isInterface[Unmarshaler](option.value) != nil || !option.isBool()
+}
+
+func (option *Option) empty() {
+	if !option.isFunc() {
+		tp := option.value.Type()
+		zeroValue := fun.
+			If(tp.Kind() != reflect.Map, reflect.Zero(tp)).
+			ElseF(func() reflect.Value {
+				return reflect.MakeMap(tp)
+			})
+		option.value.Set(zeroValue)
+	}
+}
+
+func (option *Option) clearDefault() error {
+	if option.preventDefault {
+		return nil
+	}
+
+	option.isSetDefault = true
+
+	if len(option.Default) > 0 {
+		option.empty()
+
+		for _, d := range option.Default {
+			err := option.setDefault(&d)
+			if err != nil {
+				return err
+			}
+		}
+	} else if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.value.IsNil() {
+		option.empty()
+	}
+
+	return nil
+}
+
+func isInterface[I any](value reflect.Value) I {
+	for v := value; v.CanInterface(); v = v.Addr() {
+		if u, ok := v.Interface().(I); ok {
+			return u
+		}
+
+		if !v.CanAddr() {
+			break
+		}
+	}
+
+	return fun.Zero[I]()
+}
+
+func (option *Option) isBool() bool {
+	for tp := option.value.Type(); ; tp = tp.Elem() {
+		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+			return tp.Kind() == reflect.Bool ||
+				tp.Kind() == reflect.Func && tp.NumIn() == 0
+		}
+	}
+}
+
+func (option *Option) isSignedNumber() bool {
+	for tp := option.value.Type(); ; tp = tp.Elem() {
+		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
+			return internal.OneOf(tp.Kind(),
+				reflect.Int,
+				reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+				reflect.Float32, reflect.Float64)
+		}
+	}
+}
+
+func (option *Option) isFunc() bool {
+	return option.value.Type().Kind() == reflect.Func
+}
+
+func typeof[T any]() reflect.Type {
+	return reflect.TypeOf((*T)(nil)).Elem()
+}
+
+func (option *Option) call(value *string) error {
+	var retval []reflect.Value
+	if value == nil {
+		retval = option.value.Call(nil)
+	} else {
+		val := reflect.Indirect(reflect.New(option.value.Type().In(0)))
+		if err := convert(*value, val, option.tag); err != nil {
+			return err
+		}
+
+		retval = option.value.Call([]reflect.Value{val})
+	}
+
+	if len(retval) == 1 && retval[0].Type() == typeof[error]() {
+		if retval[0].Interface() == nil {
+			return nil
+		}
+
+		return retval[0].Interface().(error)
+	}
+
+	return nil
+}
+
+func (option *Option) updateDefaultLiteral() string {
+	defs := option.Default
+	switch {
+	case len(defs) == 0 && option.canArgument():
+		kind := option.field.Type.Kind()
+		if internal.OneOf(kind, reflect.Func, reflect.Ptr) && !option.value.IsNil() ||
+			internal.OneOf(kind, reflect.Slice, reflect.String, reflect.Array, reflect.Map) && option.value.Len() > 0 ||
+			!reflect.DeepEqual(reflect.Zero(option.field.Type).Interface(), option.value.Interface()) {
+			def, _ := convertToString(option.value, option.tag)
+			return def
+		}
+
+		return ""
+	case len(defs) != 0:
+		return internal.Join(quoteIfNeeded, ", ", defs...)
+	default:
+		return ""
+	}
+}
+
+func shortAndLongName(shortName rune, longName string) string {
+	ret := &bytes.Buffer{}
+
+	if shortName != 0 {
+		ret.WriteByte(_defaultOptDelimiterShort)
+		ret.WriteRune(shortName)
+	}
+
+	if longName != "" {
+		if shortName != 0 {
+			ret.WriteByte('/')
+		}
+
+		ret.WriteString(longName)
+	}
+
+	return ret.String()
+}
+
+func (option *Option) isValidValue(arg string) error {
+	if validator := isInterface[ValueValidator](option.value); validator != nil {
+		return validator.IsValidValue(arg)
+	}
+
+	if isFlag(arg) && (!option.isSignedNumber() ||
+		len(arg) <= 1 ||
+		arg[0] != '-' ||
+		arg[1] < '0' || arg[1] > '9') {
+		return fmt.Errorf("expected argument for flag `%s', but got option `%s'", option, arg)
+	}
+
+	return nil
+}
+
 // Command represents an application command. Commands can be added to the
 // parser (which itself is a command) and are selected/executed when its name
 // is specified on the command line. The Command type embeds a Group and
