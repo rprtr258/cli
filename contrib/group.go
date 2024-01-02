@@ -1352,19 +1352,12 @@ func (g *Group) scanType(handler scanHandler) error {
 	// Get all the public fields in the data struct
 	ptrval := reflect.ValueOf(g.data)
 
-	if ptrval.Type().Kind() != reflect.Ptr {
+	if ptrval.Type().Kind() != reflect.Ptr ||
+		ptrval.Type().Elem().Kind() != reflect.Struct {
 		panic(ErrNotPointerToStruct)
 	}
 
-	stype := ptrval.Type().Elem()
-
-	if stype.Kind() != reflect.Struct {
-		panic(ErrNotPointerToStruct)
-	}
-
-	realval := reflect.Indirect(ptrval)
-
-	if err := g.scanStruct(realval, nil, handler); err != nil {
+	if err := g.scanStruct(reflect.Indirect(ptrval), nil, handler); err != nil {
 		return err
 	}
 
