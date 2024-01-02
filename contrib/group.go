@@ -147,9 +147,7 @@ func convertUnmarshal(val string, retval reflect.Value) (bool, error) {
 		if unmarshaler, ok := retval.Interface().(Unmarshaler); ok {
 			if retval.IsNil() {
 				retval.Set(reflect.New(retval.Type().Elem()))
-
-				// Re-assign from the new value
-				unmarshaler = retval.Interface().(Unmarshaler)
+				unmarshaler = retval.Interface().(Unmarshaler) // Re-assign from the new value
 			}
 
 			return true, unmarshaler.UnmarshalFlag(val)
