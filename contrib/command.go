@@ -336,7 +336,25 @@ func (c *Command) makeLookup() lookup {
 		return yield(c)
 	}).
 		ForEach(func(g *Command) {
-			fillLookup(g.eachGroup, ret)
+			g.eachGroup(func(g *Group) bool {
+				iter.
+					FromMany(g.options...).
+					Filter(func(o *Option) bool {
+						return o.ShortName != 0
+					}).
+					ForEach(func(o *Option) {
+						ret.shortNames[string(o.ShortName)] = o
+					})
+				iter.
+					FromMany(g.options...).
+					Filter(func(o *Option) bool {
+						return o.LongName != ""
+					}).
+					ForEach(func(o *Option) {
+						ret.longNames[o.LongNameWithNamespace()] = o
+					})
+				return true
+			})
 		})
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
@@ -345,28 +363,6 @@ func (c *Command) makeLookup() lookup {
 		}
 	}
 	return ret
-}
-
-func fillLookup(seq iter.Seq[*Group], ret lookup) {
-	seq(func(g *Group) bool {
-		iter.
-			FromMany(g.options...).
-			Filter(func(o *Option) bool {
-				return o.ShortName != 0
-			}).
-			ForEach(func(o *Option) {
-				ret.shortNames[string(o.ShortName)] = o
-			})
-		iter.
-			FromMany(g.options...).
-			Filter(func(o *Option) bool {
-				return o.LongName != ""
-			}).
-			ForEach(func(o *Option) {
-				ret.longNames[o.LongNameWithNamespace()] = o
-			})
-		return true
-	})
 }
 
 func visibleCommands(commands []*Command) []*Command {
