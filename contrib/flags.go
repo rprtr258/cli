@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -1429,11 +1428,6 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 
 	c.Flags = group
 	return group
-}
-
-func (p *Command) printCompletions(args ...string) {
-	comp := &completion{cmd: p}
-	comp.print(os.Stdout, comp.complete(args))
 }
 
 func (p *parseState) noargs() bool {

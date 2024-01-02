@@ -29,6 +29,23 @@ type Unmarshaler interface {
 	UnmarshalFlag(value string) error
 }
 
+func (p *Command) printCompletions(args ...string) {
+	items := (&completion{cmd: p}).complete(args)
+	maxl := internal.MaxBy(func(v Completion) int {
+		return len(v.Item)
+	}, items...)
+
+	for _, v := range items {
+		fmt.Printf(v.Item)
+		// TODO: problems with colored description
+		// TODO: description get into completion wtf
+		if v.Description != "" {
+			fmt.Printf("%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
+		}
+		fmt.Println()
+	}
+}
+
 func Run(data any, args ...string) error {
 	return RunContext(context.Background(), data, args...)
 }
@@ -43,12 +60,14 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 	p := newParser(args[0], data)
 	args = args[1:] // throw off executable name
 
+	// add help flags to each subcommand
 	p.eachFlag(func(c *Command, g *flagSet, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
 	p.addHelpGroups(p.writeHelp)
 
+	// check if we should just print completions, then exit
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)
 		return nil

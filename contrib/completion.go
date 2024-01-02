@@ -1,8 +1,6 @@
 package flags
 
 import (
-	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -215,22 +213,6 @@ func (c *completion) complete(args []string) []Completion {
 		return c.completeCommands(s, lastarg)
 	default:
 		return nil
-	}
-}
-
-func (c *completion) print(w io.Writer, items []Completion) {
-	maxl := internal.MaxBy(func(v Completion) int {
-		return len(v.Item)
-	}, items...)
-
-	for _, v := range items {
-		fmt.Fprint(w, v.Item)
-		// TODO: problems with colored description
-		// TODO: description get into completion wtf
-		if v.Description != "" {
-			fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
-		}
-		fmt.Fprintln(w)
 	}
 }
 
