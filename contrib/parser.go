@@ -437,19 +437,22 @@ func (p *parseState) estimateCommand() error {
 
 	if len(p.retargs) != 0 {
 		c, l := getClosest(p.retargs[0], cmdnames)
-		msg := fmt.Sprintf("Unknown command `%s'", p.retargs[0])
-		if l*2 < len(c) {
-			msg += fmt.Sprintf(", did you mean `%s'?", c)
-		} else if len(cmdnames) == 1 {
-			msg += fmt.Sprintf(". You should use the %s command", cmdnames[0])
-		} else if len(cmdnames) > 1 {
-			msg += fmt.Sprintf(". Please specify one command of: %s or %s",
-				strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-				cmdnames[len(cmdnames)-1])
-		}
 		return &Error{
-			Kind:    ErrUnknownCommand,
-			Message: msg,
+			Kind: ErrUnknownCommand,
+			Message: fmt.Sprintf("Unknown command `%s'", p.retargs[0]) + func() string {
+				switch {
+				case l*2 < len(c):
+					return fmt.Sprintf(", did you mean `%s'?", c)
+				case len(cmdnames) == 1:
+					return fmt.Sprintf(". You should use the %s command", cmdnames[0])
+				case len(cmdnames) > 1:
+					return fmt.Sprintf(". Please specify one command of: %s or %s",
+						strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+						cmdnames[len(cmdnames)-1])
+				default:
+					return ""
+				}
+			}(),
 		}
 	}
 
