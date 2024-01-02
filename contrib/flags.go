@@ -2121,7 +2121,6 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			err = marshalError(option, err)
 		}
 	}
-
 	return err
 }
 
