@@ -27,31 +27,31 @@ func manQuote(s string) string {
 	return strings.ReplaceAll(s, "\\", "\\\\")
 }
 
-func formatForMan(wr io.Writer, s string) {
+func formatForMan(w io.Writer, s string) {
 	for {
 		idx := strings.IndexRune(s, '`')
 
 		if idx < 0 {
-			fmt.Fprintf(wr, "%s", manQuoteLines(s))
+			fmt.Fprintf(w, "%s", manQuoteLines(s))
 			break
 		}
 
-		fmt.Fprintf(wr, "%s", manQuoteLines(s[:idx]))
+		fmt.Fprintf(w, "%s", manQuoteLines(s[:idx]))
 
 		s = s[idx+1:]
 		idx = strings.IndexRune(s, '\'')
 
 		if idx < 0 {
-			fmt.Fprintf(wr, "%s", manQuoteLines(s))
+			fmt.Fprintf(w, "%s", manQuoteLines(s))
 			break
 		}
 
-		fmt.Fprintf(wr, "\\fB%s\\fP", manQuoteLines(s[:idx]))
+		fmt.Fprintf(w, "\\fB%s\\fP", manQuoteLines(s[:idx]))
 		s = s[idx+1:]
 	}
 }
 
-func writeManPageOptions(wr io.Writer, grp *Group) {
+func writeManPageOptions(w io.Writer, grp *Group) {
 	grp.eachGroup(func(group *Group) bool {
 		if !group.showInHelp() {
 			return true
@@ -60,11 +60,11 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 		// If the parent (grp) has any subgroups, display their descriptions as
 		// subsection headers similar to the output of --help.
 		if group.ShortDescription != "" && len(grp.groups) > 0 {
-			fmt.Fprintf(wr, ".SS %s\n", group.ShortDescription)
+			fmt.Fprintf(w, ".SS %s\n", group.ShortDescription)
 
 			if group.LongDescription != "" {
-				formatForMan(wr, group.LongDescription)
-				fmt.Fprintln(wr, "")
+				formatForMan(w, group.LongDescription)
+				fmt.Fprintln(w, "")
 			}
 		}
 
@@ -73,76 +73,76 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 				continue
 			}
 
-			fmt.Fprintln(wr, ".TP")
-			fmt.Fprintf(wr, "\\fB")
+			fmt.Fprintln(w, ".TP")
+			fmt.Fprintf(w, "\\fB")
 
 			if opt.ShortName != 0 {
-				fmt.Fprintf(wr, "\\fB\\-%c\\fR", opt.ShortName)
+				fmt.Fprintf(w, "\\fB\\-%c\\fR", opt.ShortName)
 			}
 
 			if opt.LongName != "" {
 				if opt.ShortName != 0 {
-					fmt.Fprintf(wr, ", ")
+					fmt.Fprintf(w, ", ")
 				}
 
-				fmt.Fprintf(wr, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
+				fmt.Fprintf(w, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
 			}
 
 			if opt.ValueName != "" || opt.IsOptional {
 				if opt.IsOptional {
-					fmt.Fprintf(wr, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(internal.Map(strconv.Quote, opt.OptionalValue...), ", ")))
+					fmt.Fprintf(w, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(internal.Map(strconv.Quote, opt.OptionalValue...), ", ")))
 				} else {
-					fmt.Fprintf(wr, " \\fI%s\\fR", manQuote(opt.ValueName))
+					fmt.Fprintf(w, " \\fI%s\\fR", manQuote(opt.ValueName))
 				}
 			}
 
 			if len(opt.Default) != 0 {
-				fmt.Fprintf(wr, " <default: \\fI%s\\fR>", manQuote(strings.Join(internal.Map(strconv.Quote, opt.Default...), ", ")))
+				fmt.Fprintf(w, " <default: \\fI%s\\fR>", manQuote(strings.Join(internal.Map(strconv.Quote, opt.Default...), ", ")))
 			}
 
 			if opt.Required {
-				fmt.Fprintf(wr, " (\\fIrequired\\fR)")
+				fmt.Fprintf(w, " (\\fIrequired\\fR)")
 			}
 
-			fmt.Fprintln(wr, "\\fP")
+			fmt.Fprintln(w, "\\fP")
 
 			if opt.Description != "" {
-				formatForMan(wr, opt.Description)
-				fmt.Fprintln(wr, "")
+				formatForMan(w, opt.Description)
+				fmt.Fprintln(w, "")
 			}
 		}
 		return true
 	})
 }
 
-func writeManPageSubcommands(wr io.Writer, name, usagePrefix string, commands []*Command) {
+func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*Command) {
 	iter.
 		FromMany(commands...).
 		Filter(func(c *Command) bool {
 			return !c.Group.Hidden
 		}).
 		ForEach(func(c *Command) {
-			writeManPageCommand(wr, internal.Iverson(name != "", name+" ")+c.Name, usagePrefix, c)
+			writeManPageCommand(w, internal.Iverson(name != "", name+" ")+c.Name, usagePrefix, c)
 		})
 }
 
-func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Command) {
-	fmt.Fprintf(wr, ".SS %s\n", name)
-	fmt.Fprintln(wr, command.Group.ShortDescription)
+func writeManPageCommand(w io.Writer, name, usagePrefix string, command *Command) {
+	fmt.Fprintf(w, ".SS %s\n", name)
+	fmt.Fprintln(w, command.Group.ShortDescription)
 
 	if command.Group.LongDescription != "" {
-		fmt.Fprintln(wr, "")
+		fmt.Fprintln(w, "")
 
 		cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
 
 		if strings.HasPrefix(command.Group.LongDescription, cmdstart) {
-			fmt.Fprintf(wr, "The \\fI%s\\fP command", manQuote(command.Name))
+			fmt.Fprintf(w, "The \\fI%s\\fP command", manQuote(command.Name))
 
-			formatForMan(wr, command.Group.LongDescription[len(cmdstart):])
-			fmt.Fprintln(wr, "")
+			formatForMan(w, command.Group.LongDescription[len(cmdstart):])
+			fmt.Fprintln(w, "")
 		} else {
-			formatForMan(wr, command.Group.LongDescription)
-			fmt.Fprintln(wr, "")
+			formatForMan(w, command.Group.LongDescription)
+			fmt.Fprintln(w, "")
 		}
 	}
 
@@ -157,20 +157,20 @@ func writeManPageCommand(wr io.Writer, name, usagePrefix string, command *Comman
 
 	nextPrefix := pre
 	if usage != "" {
-		fmt.Fprintf(wr, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
+		fmt.Fprintf(w, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
 		nextPrefix = pre + " " + usage
 	}
 
 	if len(command.Aliases) > 0 {
-		fmt.Fprintf(wr, "\n\\fBAliases\\fP: %s\n\n", manQuote(strings.Join(command.Aliases, ", ")))
+		fmt.Fprintf(w, "\n\\fBAliases\\fP: %s\n\n", manQuote(strings.Join(command.Aliases, ", ")))
 	}
 
-	writeManPageOptions(wr, command.Group)
-	writeManPageSubcommands(wr, name, nextPrefix, visibleCommands(command.commands))
+	writeManPageOptions(w, command.Group)
+	writeManPageSubcommands(w, name, nextPrefix, visibleCommands(command.commands))
 }
 
 // WriteManPage writes a basic man page in groff format to the specified writer.
-func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
+func (p *Parser) WriteManPage(w io.Writer, t time.Time) {
 	// TODO: move out
 	if sourceDateEpoch := os.Getenv("SOURCE_DATE_EPOCH"); sourceDateEpoch != "" {
 		sde, err := strconv.ParseInt(sourceDateEpoch, 10, 64)
@@ -181,25 +181,25 @@ func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
 		t = time.Unix(sde, 0)
 	}
 
-	fmt.Fprintf(wr, ".TH %s 1 \"%s\"\n", manQuote(p.Command.Name), t.Format("2 January 2006"))
-	fmt.Fprintln(wr, ".SH NAME")
-	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Command.Name), manQuoteLines(p.Command.Group.ShortDescription))
-	fmt.Fprintln(wr, ".SH SYNOPSIS")
+	fmt.Fprintf(w, ".TH %s 1 \"%s\"\n", manQuote(p.Command.Name), t.Format("2 January 2006"))
+	fmt.Fprintln(w, ".SH NAME")
+	fmt.Fprintf(w, "%s \\- %s\n", manQuote(p.Command.Name), manQuoteLines(p.Command.Group.ShortDescription))
+	fmt.Fprintln(w, ".SH SYNOPSIS")
 
 	usage := internal.Or(p.Usage, "[OPTIONS]")
 
-	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Command.Name), manQuote(usage))
-	fmt.Fprintln(wr, ".SH DESCRIPTION")
+	fmt.Fprintf(w, "\\fB%s\\fP %s\n", manQuote(p.Command.Name), manQuote(usage))
+	fmt.Fprintln(w, ".SH DESCRIPTION")
 
-	formatForMan(wr, p.Command.Group.LongDescription)
-	fmt.Fprintln(wr)
+	formatForMan(w, p.Command.Group.LongDescription)
+	fmt.Fprintln(w)
 
-	fmt.Fprintln(wr, ".SH OPTIONS")
+	fmt.Fprintln(w, ".SH OPTIONS")
 
-	writeManPageOptions(wr, p.Command.Group)
+	writeManPageOptions(w, p.Command.Group)
 
 	if len(visibleCommands(p.Command.commands)) > 0 {
-		fmt.Fprintln(wr, ".SH COMMANDS")
-		writeManPageSubcommands(wr, "", p.Command.Name+" "+usage, visibleCommands(p.Command.commands))
+		fmt.Fprintln(w, ".SH COMMANDS")
+		writeManPageSubcommands(w, "", p.Command.Name+" "+usage, visibleCommands(p.Command.commands))
 	}
 }
