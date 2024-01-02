@@ -1094,7 +1094,7 @@ func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*G
 		parent:           g,
 	}
 
-	if err := group.scang(); err != nil {
+	if err := group.scanType(group.scanSubGroupHandler); err != nil {
 		return nil, err
 	}
 
@@ -1397,10 +1397,6 @@ func WroteHelp(err error) bool {
 
 	flagError, ok := err.(*Error)
 	return ok && flagError.Kind == ErrHelp
-}
-
-func (g *Group) scang() error {
-	return g.scanType(g.scanSubGroupHandler)
 }
 
 // A Parser provides command line option parsing. It can contain several
