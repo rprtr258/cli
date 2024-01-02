@@ -1443,7 +1443,7 @@ type Parser struct {
 	// separator, and the remaining command line arguments.
 	// It should return a new list of remaining arguments to continue parsing,
 	// or an error to indicate a parse failure.
-	UnknownOptionHandler func(option string, arg SplitArgument, args []string) ([]string, error)
+	UnknownOptionHandler func(option string, arg *string, args []string) ([]string, error)
 
 	// CompletionHandler is a function gets called to handle the completion of items.
 	// By default, the items are printed and the application is exited.
@@ -1794,24 +1794,7 @@ func (p *Parser) WriteHelp() string {
 	return w.String()
 }
 
-// SplitArgument represents the argument value of an option that was passed using
-// an argument separator.
-type SplitArgument interface {
-	// String returns the option's value as a string, and a boolean indicating
-	// if the option was present.
-	Value() (string, bool)
-}
-
-type strArgument struct {
-	value *string
-}
-
-func (s strArgument) Value() (string, bool) {
-	return fun.Deref(s.value), s.value != nil
-}
-
-// Options provides parser options that change the behavior of the option
-// parser.
+// Options provides parser options that change the behavior of the option parser
 type Options uint
 
 const (
@@ -2012,7 +1995,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			if ignoreUnknown {
 				_ = s.addArgs(arg)
 			} else if p.UnknownOptionHandler != nil {
-				modifiedArgs, err := p.UnknownOptionHandler(optname, strArgument{argument}, s.args)
+				modifiedArgs, err := p.UnknownOptionHandler(optname, argument, s.args)
 				if err != nil {
 					s.err = err
 					break
