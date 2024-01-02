@@ -260,10 +260,9 @@ func completionsWithoutDescriptions(items []string) []Completion {
 	}, items...)
 }
 
-// Complete returns a list of existing files with the given
-// prefix.
-func (f *Filename) Complete(match string) []Completion {
-	ret, _ := filepath.Glob(match + "*")
+// Complete returns a list of existing files with the given prefix.
+func (f *Filename) Complete(prefix string) []Completion {
+	ret, _ := filepath.Glob(prefix + "*")
 	if len(ret) == 1 {
 		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
 			ret[0] += "/"
