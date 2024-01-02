@@ -334,20 +334,23 @@ func (c *Command) makeLookup() lookup {
 
 	opts := iter.FlatMap(
 		iter.FlatMap(iter.
-			Seq[*Command](func(yield func(*Command) bool) bool {
-			for i := len(parents) - 1; i >= 0; i-- {
-				if !yield(parents[i]) {
-					return false
+			Seq[*Command](
+			func(yield func(*Command) bool) bool {
+				for i := len(parents) - 1; i >= 0; i-- {
+					if !yield(parents[i]) {
+						return false
+					}
 				}
-			}
-			return yield(c)
-		}),
+				return yield(c)
+			}),
 			func(c *Command) iter.Seq[*Group] {
 				return c.eachGroup
-			}), func(g *Group) iter.Seq[*Option] {
+			}),
+		func(g *Group) iter.Seq[*Option] {
 			return iter.FromMany(g.options...)
 		})
-	ret := lookup{
+
+	return lookup{
 		shortNames: ToDict(opts.
 			Filter(func(o *Option) bool {
 				return o.ShortName != 0
@@ -360,16 +363,21 @@ func (c *Command) makeLookup() lookup {
 			}), func(o *Option) (string, *Option) {
 			return o.LongNameWithNamespace(), o
 		}),
-		commands: make(map[string]*Command),
+		commands: ToDict(iter.FlatMap(
+			iter.FromMany(c.commands...),
+			func(c *Command) iter.Seq[fun.Pair[string, *Command]] {
+				return iter.Concat(
+					iter.FromMany(fun.Pair[string, *Command]{K: c.Name, V: c}),
+					iter.Map(
+						iter.FromMany(c.Aliases...),
+						func(s string) fun.Pair[string, *Command] {
+							return fun.Pair[string, *Command]{K: s, V: c}
+						}),
+				)
+			}), func(kv fun.Pair[string, *Command]) (string, *Command) {
+			return kv.K, kv.V
+		}),
 	}
-
-	for _, subcommand := range c.commands {
-		ret.commands[subcommand.Name] = subcommand
-		for _, a := range subcommand.Aliases {
-			ret.commands[a] = subcommand
-		}
-	}
-	return ret
 }
 
 func visibleCommands(commands []*Command) []*Command {
