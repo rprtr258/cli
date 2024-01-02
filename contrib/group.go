@@ -985,7 +985,7 @@ func (c *Command) hasHelpOptions() bool {
 	return ret
 }
 
-func fillParseState(c *Command) lookup {
+func makeLookupTable(c *Command) lookup {
 	var parents []*Command
 	for parent := c.parent; parent != nil; {
 		if cmd, ok := parent.(*Command); ok {
@@ -1973,7 +1973,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		args:       args,
 		retargs:    make([]string, 0, len(args)),
 		positional: p.Command.args,
-		lookup:     fillParseState(p.Command),
+		lookup:     makeLookupTable(p.Command),
 		command:    p.Command,
 	}
 	for !s.noargs() {
@@ -2351,7 +2351,7 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		if cmd := s.lookup.commands[s.arg]; cmd != nil {
 			s.command.Active = cmd
 			s.positional = cmd.args
-			s.lookup = fillParseState(cmd)
+			s.lookup = makeLookupTable(cmd)
 			s.command = cmd
 			return nil
 		} else if !s.command.SubcommandsOptional {

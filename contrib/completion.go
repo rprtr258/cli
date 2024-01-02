@@ -147,7 +147,7 @@ func (c *completion) complete(args []string) []Completion {
 		args:       args,
 		command:    c.parser.Command,
 		positional: c.parser.Command.args,
-		lookup:     fillParseState(c.parser.Command),
+		lookup:     makeLookupTable(c.parser.Command),
 	}
 	var opt *Option
 	for len(s.args) > 1 {
@@ -205,7 +205,7 @@ func (c *completion) complete(args []string) []Completion {
 				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
 				s.positional = cmd.args
-				s.lookup = fillParseState(cmd)
+				s.lookup = makeLookupTable(cmd)
 				s.command = cmd
 			}
 
