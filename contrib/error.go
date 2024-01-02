@@ -115,15 +115,15 @@ func newUnknownCommandError(name string, cmdnames []string) error {
 func newCommandRequiredError(cmdnames []string) error {
 	return &Error{
 		Kind: ErrCommandRequired,
-		Message: lo.Switch[bool, string](true).
-			CaseF(len(cmdnames) == 1, func() string {
+		Message: lo.Switch[int, string](len(cmdnames)).
+			Case(0, "").
+			CaseF(1, func() string {
 				return fmt.Sprintf("Please specify the %s command", cmdnames[0])
 			}).
-			CaseF(len(cmdnames) > 1, func() string {
+			DefaultF(func() string {
 				return fmt.Sprintf("Please specify one command of: %s or %s",
 					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 					cmdnames[len(cmdnames)-1])
-			}).
-			Default(""),
+			}),
 	}
 }
