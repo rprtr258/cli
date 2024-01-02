@@ -6,19 +6,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func assertParserSuccess(t *testing.T, data any, args ...string) *Parser {
+func assertParserSuccess(t *testing.T, data any, args ...string) {
 	t.Helper()
 
-	parser := NewParser(data)
-	err := parser.Run(args...)
-	assert.NoError(t, err)
-	return parser
+	assert.NoError(t, Run(data, args...))
 }
 
 func assertParseFail(t *testing.T, errWant *Error, data any, args ...string) {
 	t.Helper()
 
-	parser := NewParser(data)
-	err := parser.Run(args...)
-	assert.Equal(t, errWant, err)
+	assert.Equal(t, errWant, Run(data, args...))
 }

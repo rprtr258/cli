@@ -197,9 +197,7 @@ var completionTests = func() map[string]completionTest {
 }()
 
 func TestCompletion(t *testing.T) {
-	p := NewParser(&completionTestOptions)
-	c := &completion{parser: p}
-
+	c := &completion{parser: newParser("", &completionTestOptions)}
 	for name, test := range completionTests {
 		t.Run(name, func(t *testing.T) {
 			items := fun.Map[string](func(v Completion) string {
@@ -222,13 +220,13 @@ func TestParserCompletion(t *testing.T) {
 			t.Setenv("GO_FLAGS_COMPLETION", "1")
 
 			var buf bytes.Buffer
-			p := NewParser(&completionTestOptions)
+			p := newParser("", &completionTestOptions)
 			p.CompletionHandler = func(items []Completion) {
 				comp := &completion{parser: p}
 				comp.print(&buf, items)
 			}
 
-			err := p.Run(test.Args...)
+			err := Run(&completionTestOptions, test.Args...)
 			assert.NoError(t, err)
 
 			got := strings.Split(buf.String(), "\n")

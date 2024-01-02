@@ -1098,16 +1098,6 @@ type Parser struct {
 	// By default, the items are printed and the application is exited.
 	// You can override this default behavior by specifying a custom CompletionHandler.
 	CompletionHandler func(items []Completion)
-
-	// CommandHandler is a function that gets called to handle execution of a
-	// command. By default, the command will simply be executed. This can be
-	// overridden to perform certain actions (such as applying global flags)
-	// just before the command is executed. Note that if you override the
-	// handler it is your responsibility to call the command.Execute function.
-	//
-	// The command passed into CommandHandler may be nil in case there is no
-	// command to be executed when parsing has finished.
-	CommandHandler func(command Commander, args []string) error
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
@@ -1442,14 +1432,25 @@ type parseState struct {
 	lookup  lookup
 }
 
-// NewParser creates a new parser. It uses os.Args[0] as the application
+// newParser creates a new parser. It uses os.Args[0] as the application
 // name and then calls Parser.NewNamedParser (see Parser.NewNamedParser for
 // more details). The provided data is a pointer to a struct representing the
 // default option group (named "Application Options"), or nil if the default
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
-func NewParser(data any) *Parser {
-	p := NewNamedParser(filepath.Base(os.Args[0]))
+func newParser(appname string, data any) *Parser {
+	p := &Parser{
+		Command: &Command{
+			Name: appname,
+			Flags: &flagSet{
+				ShortDescription: "",
+				LongDescription:  "",
+				data:             nil,
+			},
+		},
+	}
+	p.Command.Flags.parent = p
+	p.Command.SubcommandsOptional = true
 	if g := p.Command.addGroup("Application Options", "", data); g != nil {
 		g.parent = p
 	}
@@ -1475,24 +1476,6 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 	return group
 }
 
-// NewNamedParser creates a new parser. The appname is used to display the
-// executable name in the built-in help message. Option groups and commands can
-// be added to this parser by using AddGroup and AddCommand.
-func NewNamedParser(appname string) *Parser {
-	p := &Parser{
-		Command: &Command{
-			Name: appname,
-			Flags: &flagSet{
-				ShortDescription: "",
-				LongDescription:  "",
-				data:             nil,
-			},
-		},
-	}
-	p.Command.Flags.parent = p
-	return p
-}
-
 func (p *Parser) printCompletions(args ...string) {
 	comp := &completion{parser: p}
 
@@ -1505,8 +1488,8 @@ func (p *Parser) printCompletions(args ...string) {
 	p.CompletionHandler(comp.complete(args))
 }
 
-func (p *Parser) Run(args ...string) error {
-	return p.RunContext(context.Background(), args...)
+func Run(data any, args ...string) error {
+	return RunContext(context.Background(), data, args...)
 }
 
 // Run parses the command line arguments according to the option groups that were added to the parser.
@@ -1519,7 +1502,9 @@ func (p *Parser) Run(args ...string) error {
 // automatically printed if the PrintErrors option is enabled.
 // Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
-func (p *Parser) RunContext(ctx context.Context, args ...string) error {
+func RunContext(ctx context.Context, data any, args ...string) error {
+	appname := filepath.Base(os.Args[0])
+	p := newParser(appname, data)
 	args = args[1:] // throw off executable name
 
 	p.Command.eachFlag(func(c *Command, g *flagSet, option *Flag) {
@@ -1690,7 +1675,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 		}
 	}
 
-	if reterr := s.reterr(p.CommandHandler); reterr != nil {
+	if reterr := s.reterr(); reterr != nil {
 		return reterr
 	}
 
@@ -1712,7 +1697,7 @@ func (p *parseState) pop() string {
 	return p.arg
 }
 
-func (p *parseState) reterr(commandHandler func(Commander, []string) error) error {
+func (p *parseState) reterr() error {
 	if p.err != nil {
 		return p.err
 	}
@@ -1730,15 +1715,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 	}
 
 	if cmd, ok := p.command.Flags.data.(Commander); ok {
-		if commandHandler != nil {
-			return commandHandler(cmd, p.retargs)
-		}
-
 		return cmd.Execute(p.retargs)
-	}
-
-	if commandHandler != nil {
-		return commandHandler(nil, p.retargs)
 	}
 
 	return nil

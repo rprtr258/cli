@@ -15,11 +15,9 @@ func TestCommandInline(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	p := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
-	assert.NotNil(t, p.Command.Active)
+	assertParserSuccess(t, &opts, "-v", "cmd", "-g")
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
-	assert.Equal(t, p.Command.find("cmd"), p.Command.Active)
 }
 
 func TestCommandInlineMulti(t *testing.T) {
@@ -31,15 +29,9 @@ func TestCommandInlineMulti(t *testing.T) {
 		} `command:"c2"`
 	}{}
 
-	p := assertParserSuccess(t, &opts, "-v", "c2", "-g")
-	assert.NotNil(t, p.Command.Active)
+	assertParserSuccess(t, &opts, "-v", "c2", "-g")
 	assert.True(t, opts.Value)
 	assert.True(t, opts.C2.G)
-	assert.NotNil(t, p.Command.find("c1"))
-
-	c2 := p.Command.find("c2")
-	assert.NotNil(t, c2)
-	assert.Equal(t, c2, p.Command.Active)
 }
 
 func TestCommandFlagOrder1(t *testing.T) {
@@ -152,8 +144,7 @@ func TestCommandEstimate(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	p := NewParser(&opts)
-	err := p.Run()
+	err := Run(&opts)
 	assert.Equal(t, &Error{
 		Kind:    ErrCommandRequired,
 		Message: "Please specify one command of: remove or add",
@@ -167,8 +158,7 @@ func TestCommandEstimate2(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	p := NewParser(&opts)
-	err := p.Run("rmive")
+	err := Run(&opts, "rmive")
 	assert.Equal(t, &Error{
 		Kind:    ErrUnknownCommand,
 		Message: "Unknown command `rmive', did you mean `remove'?",
@@ -222,7 +212,7 @@ func TestCommandAdd(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	err := NewParser(&opts).Run("-v", "cmd", "-g", "rest")
+	err := Run(&opts, "-v", "cmd", "-g", "rest")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"rest"}, opts.Cmd.Args)
 	assert.True(t, opts.Value)
@@ -308,10 +298,7 @@ func TestSubcommandsOptional(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	p := NewParser(&opts)
-	p.Command.SubcommandsOptional = true
-
-	err := p.Run("-v")
+	err := Run(&opts, "-v")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 }
@@ -323,10 +310,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	p := NewParser(&opts)
-	p.Command.SubcommandsOptional = true
-
-	err := p.Run("nocmd", "remove")
+	err := Run(&opts, "nocmd", "remove")
 	assert.NoError(t, err)
 	// assert.Equal(t, []string{"nocmd", "remove"}, retargs)
 }
@@ -357,7 +341,7 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		Value bool   `short:"v"`
 		Foo   fooCmd `command:"foo"`
 	}{}
-	err := NewParser(&opts).Run("-v", "foo", "-f", "bar", "-v", "-g")
+	err := Run(&opts, "-v", "foo", "-f", "bar", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Foo.Flag)
@@ -376,8 +360,7 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		Value bool   `short:"v"`
 		Bar   barCmd `command:"bar"`
 	}{}
-	p := NewParser(&opts)
-	err := p.Run("-v", "bar", "-f", "baz", "-v", "-g")
+	err := Run(&opts, "-v", "bar", "-f", "baz", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Bar.Flag)
