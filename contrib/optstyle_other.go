@@ -3,7 +3,11 @@
 
 package flags
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/rprtr258/fun"
+)
 
 const (
 	_defaultOptDelimiterShort = '-'
@@ -33,8 +37,7 @@ func stripFlagPrefix(arg string) (prefix, name string, islong bool) {
 // When there is no argument specified, nil will be returned for it.
 func splitFlag(prefix, option string, islong bool) (option_ string, rest_ *string) {
 	if pos := strings.Index(option, "="); islong && pos >= 0 || !islong && pos == 1 {
-		rest := option[pos+1:]
-		return option[:pos], &rest
+		return option[:pos], fun.Ptr(option[pos+1:])
 	}
 
 	return option, nil
