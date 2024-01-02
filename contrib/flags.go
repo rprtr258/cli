@@ -356,51 +356,6 @@ type Flag struct {
 	defaultLiteral string
 }
 
-// LongNameWithNamespace returns the option's long name with the group namespaces
-// prepended by walking up the option's group tree. Namespaces and the long name
-// itself are separated by the parser's namespace delimiter. If the long name is
-// empty an empty string is returned.
-func (option *Flag) LongNameWithNamespace() string {
-	if option.LongName == "" {
-		return ""
-	}
-
-	// fetch the namespace delimiter from the parser which is always at the
-	// end of the group hierarchy
-	var namespaceDelimiter string
-	g := option.group
-	for {
-		if p, ok := g.parent.(*Parser); ok {
-			namespaceDelimiter = p.NamespaceDelimiter
-			break
-		}
-
-		switch i := g.parent.(type) {
-		case *Command:
-			g = i.Flags
-		case *flagSet:
-			g = i
-		}
-	}
-
-	// concatenate long name with namespace
-	longName := option.LongName
-	for g := option.group; g != nil; g = func() *flagSet {
-		switch i := g.parent.(type) {
-		case *Command:
-			return i.Flags
-		case *flagSet:
-			return i
-		}
-		return nil
-	}() {
-		if g.Namespace != "" {
-			longName = g.Namespace + namespaceDelimiter + longName
-		}
-	}
-	return longName
-}
-
 // String converts an option to a human friendly readable string describing the option
 func (option *Flag) String() string {
 	if option.ShortName != 0 {
@@ -411,14 +366,14 @@ func (option *Flag) String() string {
 		if option.LongName != "" {
 			return fmt.Sprintf("%s, %s",
 				string(_defaultOptDelimiterShort)+short,
-				_defaultOptDelimiterLong+option.LongNameWithNamespace())
+				_defaultOptDelimiterLong+option.LongName)
 		}
 
 		return string(_defaultOptDelimiterShort) + short
 	}
 
 	if option.LongName != "" {
-		return _defaultOptDelimiterLong + option.LongNameWithNamespace()
+		return _defaultOptDelimiterLong + option.LongName
 	}
 
 	return ""
@@ -876,7 +831,7 @@ func makeLookupTable(c *Command) lookup {
 				return o.LongName != ""
 			}),
 			func(o *Flag) (string, *Flag) {
-				return o.LongNameWithNamespace(), o
+				return o.LongName, o
 			}),
 		commands: toDict(
 			iter.FlatMap(
@@ -1059,7 +1014,7 @@ func (g *flagSet) checkForDuplicateFlags() error {
 	var duplicateError error
 	for _, option := range g.flags {
 		if option.LongName != "" {
-			longName := option.LongNameWithNamespace()
+			longName := option.LongName
 
 			if otherOption, ok := longNames[longName]; ok {
 				duplicateError = newErrorf(ErrDuplicatedFlag, "option `%s' uses the same long name as option `%s'", option, otherOption)
@@ -1130,10 +1085,8 @@ func (a *alignmentInfo) descriptionStart() int {
 // A Parser provides command line option parsing.
 // It can contain several option groups each with their own set of options.
 type Parser struct {
-	Command               *Command
-	Usage                 string // Usage string to be displayed in the help message.
-	NamespaceDelimiter    string // NamespaceDelimiter separates group namespaces and option long names
-	EnvNamespaceDelimiter string // EnvNamespaceDelimiter separates group env namespaces and env keys
+	Command *Command
+	Usage   string // Usage string to be displayed in the help message.
 
 	// UnknownOptionsHandler is a function which gets called when the parser
 	// encounters an unknown option. The function receives the unknown option
@@ -1186,7 +1139,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 			ret.hasShort = ret.hasShort || info.ShortName != 0
 			ret.hasValueName = ret.hasValueName || info.ValueName != ""
 
-			l := info.LongNameWithNamespace() + info.ValueName +
+			l := info.LongName + info.ValueName +
 				internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
 			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command, 4))
 		}
@@ -1266,7 +1219,7 @@ func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentIn
 		}
 
 		line.WriteString(_defaultOptDelimiterLong)
-		line.WriteString(option.LongNameWithNamespace())
+		line.WriteString(option.LongName)
 	}
 
 	if option.canArgument() {
@@ -1537,8 +1490,6 @@ func NewNamedParser(appname string) *Parser {
 				data:             nil,
 			},
 		},
-		NamespaceDelimiter:    ".",
-		EnvNamespaceDelimiter: "_",
 	}
 	p.Command.Flags.parent = p
 	return p

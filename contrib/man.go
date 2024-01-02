@@ -66,7 +66,7 @@ func writeManPageOptions(w io.Writer, group *flagSet) {
 				fmt.Fprintf(w, ", ")
 			}
 
-			fmt.Fprintf(w, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
+			fmt.Fprintf(w, "\\fB\\-\\-%s\\fR", manQuote(opt.LongName))
 		}
 
 		if opt.ValueName != "" || opt.IsOptional {
