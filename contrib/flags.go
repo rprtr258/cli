@@ -670,10 +670,10 @@ type lookup struct {
 	commands   map[string]*Command
 }
 
-// AddCommand adds a new command to the parser with the given name and data. The
-// data needs to be a pointer to a struct from which the fields indicate which
-// options are in the command. The provided data can implement the Command and
-// Usage interfaces.
+// AddCommand adds a new command to the parser with the given name and data.
+// The data needs to be a pointer to a struct from which the fields indicate which
+// options are in the command.
+// The provided data can implement the Command and Usage interfaces.
 func (c *Command) AddCommand(command, shortDescription, longDescription string, data any) (*Command, error) {
 	cmd := &Command{
 		Name: command,
