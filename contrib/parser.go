@@ -326,13 +326,13 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	}
 
 	if reterr != nil {
-		var retargs []string
-		if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
-			retargs = append([]string{s.arg}, s.args...)
-		} else {
-			retargs = s.args
-		}
-		return retargs, p.printError(reterr)
+		return func() []string {
+			if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
+				return append([]string{s.arg}, s.args...)
+			} else {
+				return s.args
+			}
+		}(), p.printError(reterr)
 	}
 
 	return s.retargs, nil
