@@ -1640,18 +1640,13 @@ const (
 	// will also be automatically printed to os.Stdout.
 	HelpFlag = 1 << iota
 
-	// PassDoubleDash passes all arguments after a double dash, --, as
-	// remaining command line arguments
-	// (i.e. they will not be parsed for flags)
-	PassDoubleDash
-
 	// IgnoreUnknown ignores any unknown options and passes them as
 	// remaining command line arguments instead of generating an error.
 	IgnoreUnknown
 
 	// Default is a convenient default set of options which should cover
 	// most of the uses of the flags package.
-	Default = HelpFlag | PassDoubleDash
+	Default = HelpFlag
 )
 
 type parseState struct {
@@ -1764,7 +1759,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
-		if p.Options&PassDoubleDash != 0 && arg == "--" {
+		if arg == "--" {
 			s.addArgs(s.args...)
 			break
 		}
@@ -1987,7 +1982,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 
 			if validationErr := option.isValidValue(arg); validationErr != nil {
 				return newErrorf(ErrExpectedArgument, "%s", validationErr.Error())
-			} else if p.Options&PassDoubleDash != 0 && arg == "--" {
+			} else if arg == "--" {
 				return newErrorf(ErrExpectedArgument, "expected argument for flag `%s', but got double dash `--'", option)
 			}
 		}

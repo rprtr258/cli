@@ -120,8 +120,7 @@ func (c *completion) complete(args []string) []Completion {
 	var opt *Flag
 	for len(s.args) > 1 {
 		arg := s.pop()
-
-		if c.parser.Options&PassDoubleDash != 0 && arg == "--" {
+		if arg == "--" {
 			opt = nil
 			c.skipPositional(s, len(s.args)-1)
 			break

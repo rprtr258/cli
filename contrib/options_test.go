@@ -12,7 +12,7 @@ func TestPassDoubleDash(t *testing.T) {
 		Args  []string `args`
 	}{}
 
-	err := NewParser(&opts, PassDoubleDash).Run("-v", "--", "-v", "-g")
+	err := NewParser(&opts, Default).Run("-v", "--", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"-v", "-g"}, opts.Args)
