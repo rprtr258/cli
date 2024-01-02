@@ -310,20 +310,26 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		s.checkRequired(p)
 	}
 
-	var reterr error
-	if s.err != nil {
-		reterr = s.err
-	} else if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		reterr = s.estimateCommand()
-	} else if cmd, ok := s.command.data.(Commander); ok {
-		if p.CommandHandler != nil {
-			reterr = p.CommandHandler(cmd, s.retargs)
-		} else {
-			reterr = cmd.Execute(s.retargs)
+	reterr := func() error {
+		switch {
+		case s.err != nil:
+			return s.err
+		case len(s.command.commands) != 0 && !s.command.SubcommandsOptional:
+			return s.estimateCommand()
+		default:
+			if cmd, ok := s.command.data.(Commander); ok {
+				if p.CommandHandler != nil {
+					return p.CommandHandler(cmd, s.retargs)
+				} else {
+					return cmd.Execute(s.retargs)
+				}
+			} else if p.CommandHandler != nil {
+				return p.CommandHandler(nil, s.retargs)
+			}
+
+			return nil
 		}
-	} else if p.CommandHandler != nil {
-		reterr = p.CommandHandler(nil, s.retargs)
-	}
+	}()
 
 	if reterr != nil {
 		return func() []string {
