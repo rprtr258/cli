@@ -135,11 +135,10 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 					fmt.Fprintf(w, "The \\fI%s\\fP command", manQuote(command.Name))
 
 					formatForMan(w, command.Group.LongDescription[len(cmdstart):])
-					fmt.Fprintln(w, "")
 				} else {
 					formatForMan(w, command.Group.LongDescription)
-					fmt.Fprintln(w, "")
 				}
+				fmt.Fprintln(w, "")
 			}
 
 			pre := usagePrefix + " " + command.Name
