@@ -1164,8 +1164,6 @@ type Parser struct {
 	// The command passed into CommandHandler may be nil in case there is no
 	// command to be executed when parsing has finished.
 	CommandHandler func(command Commander, args []string) error
-
-	internalError error
 }
 
 func (p *Parser) getAlignmentInfo() alignmentInfo {
