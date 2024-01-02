@@ -351,32 +351,36 @@ func (c *Command) makeLookup() lookup {
 		})
 
 	return lookup{
-		shortNames: ToDict(opts.
-			Filter(func(o *Option) bool {
+		shortNames: ToDict(
+			opts.Filter(func(o *Option) bool {
 				return o.ShortName != 0
-			}), func(o *Option) (string, *Option) {
-			return string(o.ShortName), o
-		}),
-		longNames: ToDict(opts.
-			Filter(func(o *Option) bool {
+			}),
+			func(o *Option) (string, *Option) {
+				return string(o.ShortName), o
+			}),
+		longNames: ToDict(
+			opts.Filter(func(o *Option) bool {
 				return o.LongName != ""
-			}), func(o *Option) (string, *Option) {
-			return o.LongNameWithNamespace(), o
-		}),
-		commands: ToDict(iter.FlatMap(
-			iter.FromMany(c.commands...),
-			func(c *Command) iter.Seq[fun.Pair[string, *Command]] {
-				return iter.Concat(
-					iter.FromMany(fun.Pair[string, *Command]{K: c.Name, V: c}),
-					iter.Map(
-						iter.FromMany(c.Aliases...),
-						func(s string) fun.Pair[string, *Command] {
-							return fun.Pair[string, *Command]{K: s, V: c}
-						}),
-				)
-			}), func(kv fun.Pair[string, *Command]) (string, *Command) {
-			return kv.K, kv.V
-		}),
+			}),
+			func(o *Option) (string, *Option) {
+				return o.LongNameWithNamespace(), o
+			}),
+		commands: ToDict(
+			iter.FlatMap(
+				iter.FromMany(c.commands...),
+				func(c *Command) iter.Seq[fun.Pair[string, *Command]] {
+					return iter.Concat(
+						iter.FromMany(fun.Pair[string, *Command]{K: c.Name, V: c}),
+						iter.Map(
+							iter.FromMany(c.Aliases...),
+							func(s string) fun.Pair[string, *Command] {
+								return fun.Pair[string, *Command]{K: s, V: c}
+							}),
+					)
+				}),
+			func(kv fun.Pair[string, *Command]) (string, *Command) {
+				return kv.K, kv.V
+			}),
 	}
 }
 
