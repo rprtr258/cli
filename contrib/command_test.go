@@ -359,48 +359,6 @@ func TestCommandAlias(t *testing.T) {
 	assert.Equal(t, "value", opts.Command.G)
 }
 
-func TestSubCommandFindOptionByLongFlag(t *testing.T) {
-	var opts struct {
-		Testing bool `long:"testing" description:"Testing"`
-	}
-
-	var cmd struct {
-		Other bool `long:"other" description:"Other"`
-	}
-
-	p := NewParser(&opts, Default)
-	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
-
-	opt := c.findFlagByLongName("other")
-	assert.NotNil(t, opt)
-	assert.Equal(t, "other", opt.LongName)
-
-	opt = c.findFlagByLongName("testing")
-	assert.NotNil(t, opt)
-	assert.Equal(t, "testing", opt.LongName)
-}
-
-func TestSubCommandFindOptionByShortFlag(t *testing.T) {
-	var opts struct {
-		Testing bool `short:"t" description:"Testing"`
-	}
-
-	var cmd struct {
-		Other bool `short:"o" description:"Other"`
-	}
-
-	p := NewParser(&opts, Default)
-	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
-
-	opt := c.findFlagByShortName('o')
-	assert.NotNil(t, opt)
-	assert.Equal(t, 'o', opt.ShortName)
-
-	opt = c.findFlagByShortName('t')
-	assert.NotNil(t, opt)
-	assert.Equal(t, 't', opt.ShortName)
-}
-
 type fooCmd struct {
 	Flag bool `short:"f"`
 	args []string

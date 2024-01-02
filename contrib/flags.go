@@ -739,38 +739,6 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-// findFlagByLongName finds an option that is part of the command,
-// or any of its parent commands, by matching its long name
-// (including the option namespace)
-func (c *Command) findFlagByLongName(longName string) *Flag {
-	for c != nil {
-		if option := c.Group.findFlag(func(flag *Flag) bool {
-			return flag.LongNameWithNamespace() == longName
-		}); option != nil {
-			return option
-		}
-
-		c, _ = c.Group.parent.(*Command)
-	}
-	return nil
-}
-
-// findFlagByShortName finds an option that is part of the command, or any of
-// its parent commands, by matching its long name
-// (including the option namespace).
-func (c *Command) findFlagByShortName(shortName rune) *Flag {
-	for c != nil {
-		if option := c.Group.findFlag(func(flag *Flag) bool {
-			return flag.ShortName == shortName
-		}); option != nil {
-			return option
-		}
-
-		c, _ = c.Group.parent.(*Command)
-	}
-	return nil
-}
-
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag, err := ParseMultiTag(string(sfield.Tag))

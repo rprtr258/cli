@@ -116,54 +116,6 @@ func TestDuplicateLongFlags(t *testing.T) {
 	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
 }
 
-func TestFindOptionByLongFlag(t *testing.T) {
-	var opts struct {
-		Testing bool `long:"testing" description:"Testing"`
-	}
-
-	p := NewParser(&opts, Default)
-	opt := p.Command.findFlagByLongName("testing")
-	assert.NotNil(t, opt)
-	assert.Equal(t, "testing", opt.LongName)
-}
-
-func TestFindOptionByShortFlag(t *testing.T) {
-	var opts struct {
-		Testing bool `short:"t" description:"Testing"`
-	}
-
-	p := NewParser(&opts, Default)
-	opt := p.Command.findFlagByShortName('t')
-	assert.NotNil(t, opt)
-	assert.Equal(t, 't', opt.ShortName)
-}
-
-func TestFindOptionByLongFlagInSubGroup(t *testing.T) {
-	var opts struct {
-		Group struct {
-			Testing bool `long:"testing" description:"Testing"`
-		} `group:"sub-group"`
-	}
-
-	p := NewParser(&opts, Default)
-	opt := p.Command.findFlagByLongName("testing")
-	assert.NotNil(t, opt)
-	assert.Equal(t, "testing", opt.LongName)
-}
-
-func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
-	var opts struct {
-		Group struct {
-			Testing bool `short:"t" description:"Testing"`
-		} `group:"sub-group"`
-	}
-
-	p := NewParser(&opts, Default)
-	opt := p.Command.findFlagByShortName('t')
-	assert.NotNil(t, opt)
-	assert.Equal(t, 't', opt.ShortName)
-}
-
 func TestAddOptionNonOptional(t *testing.T) {
 	var opts struct {
 		Test bool
