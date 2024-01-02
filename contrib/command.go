@@ -7,6 +7,7 @@ import (
 
 	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/iter"
 )
 
 // Command represents an application command. Commands can be added to the
@@ -340,15 +341,22 @@ func (c *Command) makeLookup() lookup {
 
 func fillLookup(ret lookup) func(g *Group) bool {
 	return func(g *Group) bool {
-		for _, option := range g.options {
-			if option.ShortName != 0 {
-				ret.shortNames[string(option.ShortName)] = option
-			}
-
-			if option.LongName != "" {
-				ret.longNames[option.LongNameWithNamespace()] = option
-			}
-		}
+		iter.
+			FromMany(g.options...).
+			Filter(func(o *Option) bool {
+				return o.ShortName != 0
+			}).
+			ForEach(func(o *Option) {
+				ret.shortNames[string(o.ShortName)] = o
+			})
+		iter.
+			FromMany(g.options...).
+			Filter(func(o *Option) bool {
+				return o.LongName != ""
+			}).
+			ForEach(func(o *Option) {
+				ret.longNames[o.LongNameWithNamespace()] = o
+			})
 		return true
 	}
 }
