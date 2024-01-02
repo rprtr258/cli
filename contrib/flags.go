@@ -2122,16 +2122,14 @@ func (p *parseState) addArgs(args ...string) bool {
 }
 
 func (p *Parser) parseNonOption(s *parseState) bool {
-	if len(s.positional) > 0 || len(s.command.commands) == 0 || len(s.retargs) > 0 {
-		return s.addArgs(s.arg)
-	}
-
-	if cmd := s.lookup.commands[s.arg]; cmd != nil {
-		s.command.Active = cmd
-		s.positional = cmd.args
-		s.lookup = makeLookupTable(cmd)
-		s.command = cmd
-		return true
+	if len(s.positional) == 0 && len(s.command.commands) > 0 && len(s.retargs) == 0 {
+		if cmd := s.lookup.commands[s.arg]; cmd != nil {
+			s.command.Active = cmd
+			s.positional = cmd.args
+			s.lookup = makeLookupTable(cmd)
+			s.command = cmd
+			return true
+		}
 	}
 
 	return s.addArgs(s.arg)
