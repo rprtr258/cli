@@ -376,7 +376,7 @@ func fillParseState(c *Command) lookup {
 			return iter.FromMany(g.options...)
 		})
 
-	lookup := lookup{
+	return lookup{
 		shortNames: ToDict(
 			opts.Filter(func(o *Option) bool {
 				return o.ShortName != 0
@@ -408,6 +408,4 @@ func fillParseState(c *Command) lookup {
 				return kv.K, kv.V
 			}),
 	}
-
-	return lookup
 }
