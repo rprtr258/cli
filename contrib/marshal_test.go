@@ -81,7 +81,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	err := NewParser(&opts, Default).Run("invalid")
+	err := NewParser(&opts).Run("invalid")
 	assert.Error(t, err)
 	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }
@@ -91,7 +91,7 @@ func TestMarshalError(t *testing.T) {
 		Value marshalledError `short:"v"`
 	}{}
 
-	o := NewParser(&opts, Default).Command.Flags.flags[0]
+	o := NewParser(&opts).Command.Flags.flags[0]
 	_, err := convertToString(o.value, o.tag)
 	assert.Equal(t, &Error{
 		Kind:    ErrMarshal,

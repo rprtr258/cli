@@ -116,7 +116,7 @@ func TestDefaults(t *testing.T) {
 		},
 	} {
 		var opts defaultOptions
-		err := NewParser(&opts, Default).Run(test.args...)
+		err := NewParser(&opts).Run(test.args...)
 		assert.NoError(t, err)
 		assert.Equal(t, test.expected, opts)
 	}
@@ -178,7 +178,7 @@ func TestUnquoting(t *testing.T) {
 			{"--str=" + test.arg, "--strnot=" + test.arg},
 			{"--str", test.arg, "--strnot", test.arg},
 		} {
-			p := NewParser(&opts, None)
+			p := NewParser(&opts)
 
 			err := p.Run(delimiter...)
 			if test.err == nil {
@@ -347,7 +347,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 		Flag2 string `long:"flag2"`
 	}
 
-	p := NewParser(&opts, None)
+	p := NewParser(&opts)
 
 	var unknownFlag1 string
 	var unknownFlag2 bool
@@ -432,7 +432,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	parser := NewParser(&opts, Default)
+	parser := NewParser(&opts)
 
 	var executedCommand Commander
 	var executedArgs []string
@@ -457,7 +457,7 @@ func TestCommandHandler(t *testing.T) {
 		Command command `command:"cmd"`
 	}{}
 
-	parser := NewParser(&opts, Default)
+	parser := NewParser(&opts)
 
 	var executedCommand Commander
 	var executedArgs []string

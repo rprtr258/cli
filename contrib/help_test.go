@@ -78,7 +78,7 @@ type helpOptions struct {
 
 func TestHelp(t *testing.T) {
 	var opts helpOptions
-	p := NewNamedParser("TestHelp", HelpFlag)
+	p := NewNamedParser("TestHelp")
 	p.Command.addGroup("Application Options", "The application options", &opts)
 
 	err := p.Run("--help")
@@ -186,7 +186,7 @@ Available commands:
 }
 
 func TestMan(t *testing.T) {
-	p := NewNamedParser("TestMan", HelpFlag)
+	p := NewNamedParser("TestMan")
 	p.Command.Flags.ShortDescription = "Test manpage generation"
 	p.Command.Flags.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
 	p.Command.addGroup("Application Options", "The application options", &helpOptions{})
@@ -307,7 +307,7 @@ type helpCommandNoOptions struct {
 
 func TestHelpCommand(t *testing.T) {
 	var opts helpCommandNoOptions
-	p := NewNamedParser("TestHelpCommand", HelpFlag)
+	p := NewNamedParser("TestHelpCommand")
 	_ = p.Command.addGroup("Application Options", "The application options", &opts)
 
 	err := p.Run("command", "--help")
@@ -336,7 +336,7 @@ Help Options:
 
 func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	// no auto added help group
-	p := NewNamedParser("TestHelpCommand", 0)
+	p := NewNamedParser("TestHelpCommand")
 	// and no usage information either
 	p.Usage = ""
 
@@ -434,7 +434,7 @@ Help Options:
 
 		opts.WithProgrammaticDefault = "default-value"
 
-		p := NewNamedParser("TestHelpDefaults", HelpFlag)
+		p := NewNamedParser("TestHelpDefaults")
 		p.Command.addGroup("Application Options", "The application options", &opts)
 
 		err := p.Run(test.Args...)
@@ -451,7 +451,7 @@ func TestHelpRestArgs(t *testing.T) {
 		Args    []string `args`
 	}{}
 
-	p := NewNamedParser("TestHelpDefaults", HelpFlag)
+	p := NewNamedParser("TestHelpDefaults")
 	p.Command.addGroup("Application Options", "The application options", &opts)
 
 	err := p.Run("-h", "-v", "rest")
@@ -539,7 +539,7 @@ func TestHelpDefaultMask(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		p := NewParser(test.opts, HelpFlag)
+		p := NewParser(test.opts)
 		err := p.Run("-h")
 		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil

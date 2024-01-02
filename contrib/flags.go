@@ -1137,10 +1137,9 @@ func (a *alignmentInfo) descriptionStart() int {
 // It can contain several option groups each with their own set of options.
 type Parser struct {
 	Command               *Command
-	Usage                 string  // Usage string to be displayed in the help message.
-	Options               Options // Option flags changing the behavior of the parser.
-	NamespaceDelimiter    string  // NamespaceDelimiter separates group namespaces and option long names
-	EnvNamespaceDelimiter string  // EnvNamespaceDelimiter separates group env namespaces and env keys
+	Usage                 string // Usage string to be displayed in the help message.
+	NamespaceDelimiter    string // NamespaceDelimiter separates group namespaces and option long names
+	EnvNamespaceDelimiter string // EnvNamespaceDelimiter separates group env namespaces and env keys
 
 	// UnknownOptionsHandler is a function which gets called when the parser
 	// encounters an unknown option. The function receives the unknown option
@@ -1336,11 +1335,7 @@ func (p *Parser) WriteHelp() string {
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
-				if p.Usage != "" {
-					usage = p.Usage
-				} else if p.Options&HelpFlag != 0 {
-					usage = "[OPTIONS]"
-				}
+				usage = internal.Or(p.Usage, "[OPTIONS]")
 			} else if us, ok := allcmd.Flags.data.(Usage); ok {
 				usage = us.Usage()
 			} else if allcmd.hasHelpOptions() {
@@ -1491,25 +1486,6 @@ func (p *Parser) WriteHelp() string {
 	return w.String()
 }
 
-// Options provides parser options that change the behavior of the option parser
-type Options uint
-
-const (
-	// None indicates no options.
-	None Options = 0
-
-	// HelpFlag adds a default Help Options group to the parser containing
-	// -h and --help options. When either -h or --help is specified on the
-	// command line, the parser will return the special error of type
-	// ErrHelp. When PrintErrors is also specified, then the help message
-	// will also be automatically printed to os.Stdout.
-	HelpFlag = 1 << iota
-
-	// Default is a convenient default set of options which should cover
-	// most of the uses of the flags package.
-	Default = HelpFlag
-)
-
 type parseState struct {
 	arg        string
 	args       []string
@@ -1527,8 +1503,8 @@ type parseState struct {
 // default option group (named "Application Options"), or nil if the default
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
-func NewParser(data any, options Options) *Parser {
-	p := NewNamedParser(filepath.Base(os.Args[0]), options)
+func NewParser(data any) *Parser {
+	p := NewNamedParser(filepath.Base(os.Args[0]))
 	if g := p.Command.addGroup("Application Options", "", data); g != nil {
 		g.parent = p
 	}
@@ -1557,7 +1533,7 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 // NewNamedParser creates a new parser. The appname is used to display the
 // executable name in the built-in help message. Option groups and commands can
 // be added to this parser by using AddGroup and AddCommand.
-func NewNamedParser(appname string, options Options) *Parser {
+func NewNamedParser(appname string) *Parser {
 	p := &Parser{
 		Command: &Command{
 			Name: appname,
@@ -1567,7 +1543,6 @@ func NewNamedParser(appname string, options Options) *Parser {
 				data:             nil,
 			},
 		},
-		Options:               options,
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
 	}
@@ -1608,11 +1583,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
-
-	// Add built-in help group to all commands if necessary
-	if p.Options&HelpFlag != 0 {
-		p.Command.addHelpGroups(p.WriteHelp)
-	}
+	p.Command.addHelpGroups(p.WriteHelp)
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)

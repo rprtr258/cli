@@ -12,7 +12,7 @@ func TestPassDoubleDash(t *testing.T) {
 		Args  []string `args`
 	}{}
 
-	err := NewParser(&opts, Default).Run("-v", "--", "-v", "-g")
+	err := NewParser(&opts).Run("-v", "--", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"-v", "-g"}, opts.Args)
@@ -24,7 +24,7 @@ func TestPassAfterNonOption(t *testing.T) {
 		Args  []string `args`
 	}{}
 
-	err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
+	err := NewParser(&opts).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"arg", "-v", "-g"}, opts.Args)
@@ -38,7 +38,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
+	err := NewParser(&opts).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"arg", "-v", "-g"}, opts.Positional.Rest)
@@ -52,7 +52,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	err := NewParser(&opts, Default).Run("-v", "1", "2", "3")
+	err := NewParser(&opts).Run("-v", "1", "2", "3")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []int{1, 2, 3}, opts.Positional.Rest)
@@ -82,7 +82,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			[]string{"1", "notint2", "notint3"},
 		},
 	} {
-		p := NewParser(&opts, Default)
+		p := NewParser(&opts)
 		err := p.Run(test.opts...)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, test.errContains)

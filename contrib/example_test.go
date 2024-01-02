@@ -46,7 +46,7 @@ func Example() {
 		_ = cmd.Process.Release()
 	}
 
-	err := NewParser(&opts, Default).Run(
+	err := NewParser(&opts).Run(
 		// some fake arguments to parse
 		"-vv",
 		"--offset=5",

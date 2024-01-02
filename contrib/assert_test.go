@@ -9,7 +9,7 @@ import (
 func assertParserSuccess(t *testing.T, data any, args ...string) *Parser {
 	t.Helper()
 
-	parser := NewParser(data, Default)
+	parser := NewParser(data)
 	err := parser.Run(args...)
 	assert.NoError(t, err)
 	return parser
@@ -18,7 +18,7 @@ func assertParserSuccess(t *testing.T, data any, args ...string) *Parser {
 func assertParseFail(t *testing.T, errWant *Error, data any, args ...string) {
 	t.Helper()
 
-	parser := NewParser(data, Default)
+	parser := NewParser(data)
 	err := parser.Run(args...)
 	assert.Equal(t, errWant, err)
 }
