@@ -13,14 +13,7 @@ import (
 )
 
 func manQuoteLines(s string) string {
-	lines := strings.Split(s, "\n")
-	parts := []string{}
-
-	for _, line := range lines {
-		parts = append(parts, manQuote(line))
-	}
-
-	return strings.Join(parts, "\n")
+	return internal.Join(manQuote, "\n", strings.Split(s, "\n")...)
 }
 
 func manQuote(s string) string {
