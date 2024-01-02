@@ -1807,11 +1807,7 @@ type strArgument struct {
 }
 
 func (s strArgument) Value() (string, bool) {
-	if s.value == nil {
-		return "", false
-	}
-
-	return *s.value, true
+	return fun.Deref(s.value), s.value != nil
 }
 
 // Options provides parser options that change the behavior of the option
