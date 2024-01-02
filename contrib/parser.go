@@ -246,16 +246,15 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			break
 		}
 
-		var err error
 		if !isFlag(arg) {
 			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments
 				// are considered positional
-				if err = s.addArgs(s.arg); err != nil {
+				if s.addArgs(s.arg) != nil {
 					break
 				}
 
-				if err = s.addArgs(s.args...); err != nil {
+				if s.addArgs(s.args...) != nil {
 					break
 				}
 
@@ -274,6 +273,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		prefix, optname, islong := stripFlagPrefix(arg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
+		var err error
 		if islong {
 			err = p.parseLong(s, optname, argument)
 		} else {
