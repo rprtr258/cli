@@ -1361,12 +1361,6 @@ func (g *Group) scanType(handler scanHandler) error {
 	}
 
 	return g.checkForDuplicateFlags()
-
-	// if err := g.checkForDuplicateFlags(); err != nil {
-	// 	return err
-	// }
-
-	// return nil
 }
 
 type alignmentInfo struct {
