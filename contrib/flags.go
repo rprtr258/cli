@@ -2135,8 +2135,7 @@ func (p *Parser) parseNonOption(s *parseState) bool {
 	}
 
 	if !s.command.SubcommandsOptional {
-		_ = s.addArgs(s.arg)
-		return false
+		return s.addArgs(s.arg)
 	}
 
 	return s.addArgs(s.arg)
