@@ -739,9 +739,9 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-// FindOptionByLongName finds an option that is part of the command, or any of
-// its parent commands, by matching its long name (including the option
-// namespace).
+// FindOptionByLongName finds an option that is part of the command,
+// or any of its parent commands, by matching its long name
+// (including the option namespace)
 func (c *Command) FindOptionByLongName(longName string) *Flag {
 	for ; c != nil; c, _ = c.Group.parent.(*Command) {
 		if option := c.Group.findOptionByLongName(longName); option != nil {
