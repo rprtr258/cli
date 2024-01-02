@@ -568,11 +568,10 @@ type Command struct {
 	Active              *Command // Active sub command (set by parsing) or nil
 	SubcommandsOptional bool     // Whether subcommands are optional
 	Aliases             []string // Aliases for the command
-	ArgsRequired        bool     // Whether positional arguments are required
 
-	commands            []*Command
-	hasBuiltinHelpGroup bool
-	args                []PositionalArg
+	commands     []*Command
+	args         []PositionalArg
+	ArgsRequired bool // Whether positional arguments are required
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -745,10 +744,7 @@ func (c *Command) eachCommand(yield func(*Command) bool) bool {
 }
 
 func (c *Command) addHelpGroups(help func() string) {
-	if !c.hasBuiltinHelpGroup {
-		c.addHelpGroup(help)
-		c.hasBuiltinHelpGroup = true
-	}
+	c.addHelpGroup(help)
 
 	for _, cc := range c.commands {
 		cc.addHelpGroups(help)
