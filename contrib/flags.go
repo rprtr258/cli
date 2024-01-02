@@ -814,10 +814,8 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 
 		subc.Group.Hidden = multitagGet(mtag, "hidden") != ""
 
-		subcommandsOptional := multitagGet(mtag, "subcommands-optional")
-		if subcommandsOptional != "" {
-			subc.SubcommandsOptional = true
-		}
+		// subcommandsOptional := multitagGet(mtag, "subcommands-optional")
+		subc.SubcommandsOptional = true //subcommandsOptional != ""
 
 		aliases := GetMany(mtag, "alias")
 		subc.Aliases = aliases
