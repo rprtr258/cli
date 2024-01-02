@@ -97,19 +97,9 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 		optname, argument := splitFlag(prefix, optname, islong)
 
 		if err := fun.IF(islong, p.parseLong, p.parseShort)(s, optname, argument); err != nil {
-			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag || p.UnknownOptionHandler == nil {
+			if parseErr := wrapError(err); parseErr.Kind != ErrUnknownFlag {
 				s.err = parseErr
 				break
-			}
-
-			if p.UnknownOptionHandler != nil {
-				modifiedArgs, err := p.UnknownOptionHandler(optname, argument, s.args)
-				if err != nil {
-					s.err = err
-					break
-				}
-
-				s.args = modifiedArgs
 			}
 		}
 	}

@@ -2,7 +2,6 @@ package flags
 
 import (
 	"errors"
-	"fmt"
 	"runtime"
 	"strconv"
 	"strings"
@@ -333,35 +332,6 @@ func TestUnknownFlagHandler(t *testing.T) {
 	var unknownFlag1 string
 	var unknownFlag2 bool
 	var unknownFlag3 string
-
-	// Set up a callback to intercept unknown options during parsing
-	p := newParser("", &opts)
-	p.UnknownOptionHandler = func(option string, arg *string, args []string) ([]string, error) {
-		switch option {
-		case "unknownFlag1":
-			if arg != nil {
-				unknownFlag1 = *arg
-				return args, nil
-			}
-			// consume a value from remaining args list
-			unknownFlag1 = args[0]
-			return args[1:], nil
-		case "unknownFlag2":
-			// treat this one as a bool switch, don't consume any args
-			unknownFlag2 = true
-			return args, nil
-		case "unknownFlag3":
-			if arg != nil {
-				unknownFlag3 = *arg
-				return args, nil
-			}
-			// consume a value from remaining args list
-			unknownFlag3 = args[0]
-			return args[1:], nil
-		}
-
-		return args, fmt.Errorf("Unknown flag: %v", option)
-	}
 
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them

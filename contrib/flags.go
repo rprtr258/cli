@@ -1063,14 +1063,6 @@ type Parser struct {
 	Command *Command
 	Usage   string // Usage string to be displayed in the help message.
 
-	// UnknownOptionsHandler is a function which gets called when the parser
-	// encounters an unknown option. The function receives the unknown option
-	// name, a SplitArgument which specifies its value if set with an argument
-	// separator, and the remaining command line arguments.
-	// It should return a new list of remaining arguments to continue parsing,
-	// or an error to indicate a parse failure.
-	UnknownOptionHandler func(option string, arg *string, args []string) ([]string, error)
-
 	// CompletionHandler is a function gets called to handle the completion of items.
 	// By default, the items are printed and the application is exited.
 	// You can override this default behavior by specifying a custom CompletionHandler.
