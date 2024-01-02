@@ -116,13 +116,8 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 		}
 		return "[" + strings.Join(ret, ", ") + "]", nil
 	case reflect.Map:
-		ret := "{"
-
+		ret := make([]string, val.Len())
 		for i, key := range val.MapKeys() {
-			if i != 0 {
-				ret += ", "
-			}
-
 			keyitem, err := convertToString(key, options)
 			if err != nil {
 				return "", err
@@ -133,10 +128,9 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 				return "", err
 			}
 
-			ret += keyitem + ":" + item
+			ret[i] = keyitem + ":" + item
 		}
-
-		return ret + "}", nil
+		return "{" + strings.Join(ret, ", ") + "}", nil
 	case reflect.Ptr:
 		return convertToString(reflect.Indirect(val), options)
 	case reflect.Interface:
