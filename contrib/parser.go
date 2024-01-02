@@ -578,7 +578,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 		if option := s.lookup.shortNames[shortname]; option != nil {
 			// Only the last short argument can consume an argument from
 			// the arguments list, and only if it's non optional
-			canarg := (i+utf8.RuneLen(c) == len(optname)) && !option.OptionalArgument
+			canarg := i+utf8.RuneLen(c) == len(optname) && !option.OptionalArgument
 
 			if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
 				return err
