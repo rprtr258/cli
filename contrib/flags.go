@@ -763,10 +763,8 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 				required := -1
 				requiredMaximum := -1
-
 				if sreq := multitagGet(m, "required"); sreq != "" {
 					required = 1
-
 					if rng := strings.SplitN(sreq, "-", 2); len(rng) > 1 {
 						if preq, err := strconv.ParseInt(rng[0], 10, 32); err == nil {
 							required = int(preq)
@@ -782,7 +780,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					}
 				}
 
-				arg := &PositionalArg{
+				c.args = append(c.args, &PositionalArg{
 					Name:            name,
 					Description:     multitagGet(m, "description"),
 					Required:        required,
@@ -790,9 +788,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 
 					value: realval.Field(i),
 					tag:   m,
-				}
-
-				c.args = append(c.args, arg)
+				})
 
 				if multitagGet(mtag, "required") != "" {
 					c.ArgsRequired = true
