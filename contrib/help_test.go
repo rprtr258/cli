@@ -40,15 +40,15 @@ type helpOptions struct {
 		SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group" hidden:"yes"`
 	}
 
-	Group struct {
+	Sip struct {
 		Opt                  string `long:"opt" description:"This is a subgroup option"`
 		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
 		NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group" hidden:"false"`
 
-		Group struct {
+		Sap struct {
 			Opt string `long:"opt" description:"This is a subsubgroup option"`
-		} `namespace:"sap"`
-	} `namespace:"sip"`
+		}
+	}
 
 	Bommand struct {
 		Hidden bool `long:"hidden" description:"A hidden option" hidden:"yes"`
