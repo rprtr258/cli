@@ -351,7 +351,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	hlpgrp, err := p.Command.AddGroup("Help Options", "", &help)
 	assert.NoError(t, err)
 	hlpgrp.Hidden = true
-	hlp := p.Command.findOptionByLongName("help")
+	hlp := p.Command.findFlagByLongName("help")
 	hlp.Description = "Show this help message"
 	// make sure the --help option is hidden
 	hlp.Hidden = true
@@ -551,7 +551,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		}
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
-		p.writeHelpOption(h, p.Command.findOptionByShortName('v'), p.getAlignmentInfo())
+		p.writeHelpOption(h, p.Command.findFlagByShortName('v'), p.getAlignmentInfo())
 		assert.Contains(t, h.String(), test.present)
 	}
 }

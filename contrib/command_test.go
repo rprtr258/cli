@@ -371,11 +371,11 @@ func TestSubCommandFindOptionByLongFlag(t *testing.T) {
 	p := NewParser(&opts, Default)
 	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
 
-	opt := c.findOptionByLongName("other")
+	opt := c.findFlagByLongName("other")
 	assert.NotNil(t, opt)
 	assert.Equal(t, "other", opt.LongName)
 
-	opt = c.findOptionByLongName("testing")
+	opt = c.findFlagByLongName("testing")
 	assert.NotNil(t, opt)
 	assert.Equal(t, "testing", opt.LongName)
 }
@@ -392,11 +392,11 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 	p := NewParser(&opts, Default)
 	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
 
-	opt := c.findOptionByShortName('o')
+	opt := c.findFlagByShortName('o')
 	assert.NotNil(t, opt)
 	assert.Equal(t, 'o', opt.ShortName)
 
-	opt = c.findOptionByShortName('t')
+	opt = c.findFlagByShortName('t')
 	assert.NotNil(t, opt)
 	assert.Equal(t, 't', opt.ShortName)
 }

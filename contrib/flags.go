@@ -739,13 +739,13 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-// findOptionByLongName finds an option that is part of the command,
+// findFlagByLongName finds an option that is part of the command,
 // or any of its parent commands, by matching its long name
 // (including the option namespace)
-func (c *Command) findOptionByLongName(longName string) *Flag {
+func (c *Command) findFlagByLongName(longName string) *Flag {
 	for c != nil {
-		if option := c.Group.findOption(func(option *Flag) bool {
-			return option.LongNameWithNamespace() == longName
+		if option := c.Group.findFlag(func(flag *Flag) bool {
+			return flag.LongNameWithNamespace() == longName
 		}); option != nil {
 			return option
 		}
@@ -755,13 +755,13 @@ func (c *Command) findOptionByLongName(longName string) *Flag {
 	return nil
 }
 
-// findOptionByShortName finds an option that is part of the command, or any of
-// its parent commands, by matching its long name (including the option
-// namespace).
-func (c *Command) findOptionByShortName(shortName rune) *Flag {
+// findFlagByShortName finds an option that is part of the command, or any of
+// its parent commands, by matching its long name
+// (including the option namespace).
+func (c *Command) findFlagByShortName(shortName rune) *Flag {
 	for c != nil {
-		if option := c.Group.findOption(func(option *Flag) bool {
-			return option.ShortName == shortName
+		if option := c.Group.findFlag(func(flag *Flag) bool {
+			return flag.ShortName == shortName
 		}); option != nil {
 			return option
 		}
@@ -1086,7 +1086,7 @@ func (g *Group) Find(shortDescription string) *Group {
 	return ret
 }
 
-func (g *Group) findOption(matcher func(*Flag) bool) *Flag {
+func (g *Group) findFlag(matcher func(*Flag) bool) *Flag {
 	option, _ := iter.
 		FlatMap(iter.
 			Seq[*Group](g.eachGroup),
