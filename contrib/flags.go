@@ -425,11 +425,6 @@ func (option *Flag) String() string {
 	return ""
 }
 
-// Value returns the option value as an any.
-func (option *Flag) Value() any {
-	return option.value.Interface()
-}
-
 // Set the value of an option to the specified value.
 // An error will be returned if the specified value could not be converted
 // to the corresponding option value type.
