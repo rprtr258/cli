@@ -2155,26 +2155,27 @@ func (p *parseState) checkRequired(parser *Parser) {
 }
 
 func (s *parseState) reterr(commandHandler func(Commander, []string) error) error {
-	switch {
-	case s.err != nil:
+	if s.err != nil {
 		return s.err
-	case len(s.command.commands) != 0 && !s.command.SubcommandsOptional:
-		return s.estimateCommand()
-	default:
-		if cmd, ok := s.command.data.(Commander); ok {
-			if commandHandler != nil {
-				return commandHandler(cmd, s.retargs)
-			}
-
-			return cmd.Execute(s.retargs)
-		}
-
-		if commandHandler != nil {
-			return commandHandler(nil, s.retargs)
-		}
-
-		return nil
 	}
+
+	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
+		return s.estimateCommand()
+	}
+
+	if cmd, ok := s.command.data.(Commander); ok {
+		if commandHandler != nil {
+			return commandHandler(cmd, s.retargs)
+		}
+
+		return cmd.Execute(s.retargs)
+	}
+
+	if commandHandler != nil {
+		return commandHandler(nil, s.retargs)
+	}
+
+	return nil
 }
 
 func (p *parseState) estimateCommand() error {
