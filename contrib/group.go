@@ -1625,10 +1625,6 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 // command line parser which will automatically show the help messages using
 // this method.
 func (p *Parser) WriteHelp(w io.Writer) {
-	if w == nil {
-		return
-	}
-
 	bw := bufio.NewWriter(w)
 	defer bw.Flush()
 
