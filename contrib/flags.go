@@ -729,7 +729,7 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
+func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *reflect.StructField) (bool, error) {
 	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag, err := ParseMultiTag(string(sfield.Tag))
 		if err != nil {
@@ -820,9 +820,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 		}
 
 		aliases := GetMany(mtag, "alias")
-		if len(aliases) > 0 {
-			subc.Aliases = aliases
-		}
+		subc.Aliases = aliases
 
 		return true, nil
 	}
@@ -975,8 +973,6 @@ type Group struct {
 	data any
 }
 
-type scanHandler func(reflect.Value, *reflect.StructField) (bool, error)
-
 // AddGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
@@ -1045,7 +1041,7 @@ func isStringFalsy(s string) bool {
 	return s == "" || s == "false" || s == "no" || s == "0"
 }
 
-func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler scanHandler) error {
+func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
 	stype := realval.Type()
 
 	if sfield != nil {
@@ -1224,7 +1220,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 	return true, nil
 }
 
-func (g *Group) scanType(handler scanHandler) error {
+func (g *Group) scanType(handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
 	// Get all the public fields in the data struct
 	ptrval := reflect.ValueOf(g.data)
 
