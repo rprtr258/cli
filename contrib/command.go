@@ -327,9 +327,9 @@ func (c *Command) makeLookup() lookup {
 		commands:   make(map[string]*Command),
 	}
 	for i := len(parents) - 1; i >= 0; i-- {
-		parents[i].eachGroup(fillLookup(ret))
+		fillLookup(parents[i].eachGroup, ret)
 	}
-	c.eachGroup(fillLookup(ret))
+	fillLookup(c.eachGroup, ret)
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
 		for _, a := range subcommand.Aliases {
@@ -339,8 +339,8 @@ func (c *Command) makeLookup() lookup {
 	return ret
 }
 
-func fillLookup(ret lookup) func(g *Group) bool {
-	return func(g *Group) bool {
+func fillLookup(seq iter.Seq[*Group], ret lookup) {
+	seq(func(g *Group) bool {
 		iter.
 			FromMany(g.options...).
 			Filter(func(o *Option) bool {
@@ -358,7 +358,7 @@ func fillLookup(ret lookup) func(g *Group) bool {
 				ret.longNames[o.LongNameWithNamespace()] = o
 			})
 		return true
-	}
+	})
 }
 
 func visibleCommands(commands []*Command) []*Command {
