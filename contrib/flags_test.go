@@ -249,3 +249,36 @@ func TestLong(t *testing.T) {
 		assert.Equal(t, "value", opts.Value)
 	})
 }
+
+func TestUnknown(t *testing.T) {
+	t.Run("UnknownFlags", func(t *testing.T) {
+		opts := struct {
+			Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+		}{}
+
+		_, err := NewParser(&opts, 0).Run("-f")
+		assert.Error(t, err)
+	})
+
+	t.Run("IgnoreUnknownFlags", func(t *testing.T) {
+		opts := struct {
+			Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+		}{}
+
+		args, err := NewParser(&opts, IgnoreUnknown).Run(
+			"hello",
+			"world",
+			"-v",
+			"--foo=bar",
+			"--verbose",
+			"-f",
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{
+			"hello",
+			"world",
+			"--foo=bar",
+			"-f",
+		}, args)
+	})
+}
