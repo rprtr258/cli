@@ -743,12 +743,14 @@ func (c *Command) find(name string) *Command {
 // or any of its parent commands, by matching its long name
 // (including the option namespace)
 func (c *Command) findOptionByLongName(longName string) *Flag {
-	for ; c != nil; c, _ = c.Group.parent.(*Command) {
+	for c != nil {
 		if option := c.Group.findOption(func(option *Flag) bool {
 			return option.LongNameWithNamespace() == longName
 		}); option != nil {
 			return option
 		}
+
+		c, _ = c.Group.parent.(*Command)
 	}
 	return nil
 }
@@ -756,14 +758,17 @@ func (c *Command) findOptionByLongName(longName string) *Flag {
 // findOptionByShortName finds an option that is part of the command, or any of
 // its parent commands, by matching its long name (including the option
 // namespace).
-func (c *Command) findOptionByShortName(shortName rune) (option *Flag) {
-	for option == nil && c != nil {
-		option = c.Group.findOption(func(option *Flag) bool {
+func (c *Command) findOptionByShortName(shortName rune) *Flag {
+	for c != nil {
+		if option := c.Group.findOption(func(option *Flag) bool {
 			return option.ShortName == shortName
-		})
+		}); option != nil {
+			return option
+		}
+
 		c, _ = c.Group.parent.(*Command)
 	}
-	return option
+	return nil
 }
 
 // Args returns a list of positional arguments associated with this command.
