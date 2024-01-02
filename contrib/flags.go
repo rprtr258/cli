@@ -805,9 +805,12 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 			ptrval = realval.Addr()
 		}
 
-		shortDescription := multitagGet(mtag, "description")
-		longDescription := multitagGet(mtag, "long-description")
-		subc, err := c.AddCommand(subcommand, shortDescription, longDescription, ptrval.Interface())
+		subc, err := c.AddCommand(
+			subcommand,
+			multitagGet(mtag, "description"),
+			multitagGet(mtag, "long-description"),
+			ptrval.Interface(),
+		)
 		if err != nil {
 			return true, err
 		}
