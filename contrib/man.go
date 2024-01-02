@@ -141,8 +141,6 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 				fmt.Fprintln(w)
 			}
 
-			pre := usagePrefix + " " + command.Name
-
 			var usage string
 			if us, ok := command.Group.data.(Usage); ok {
 				usage = us.Usage()
@@ -150,10 +148,10 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 				usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
 			}
 
-			nextPrefix := pre
+			nextPrefix := usagePrefix + " " + command.Name
 			if usage != "" {
-				fmt.Fprintf(w, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
-				nextPrefix = pre + " " + usage
+				fmt.Fprintf(w, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(nextPrefix), manQuote(usage))
+				nextPrefix += " " + usage
 			}
 
 			if len(command.Aliases) > 0 {
