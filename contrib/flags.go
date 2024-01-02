@@ -1979,7 +1979,6 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			arg = *argument
 		} else {
 			arg = s.pop()
-
 			if validationErr := option.isValidValue(arg); validationErr != nil {
 				return newErrorf(ErrExpectedArgument, "%s", validationErr.Error())
 			} else if arg == "--" {
