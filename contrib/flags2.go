@@ -43,11 +43,11 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 	p := newParser(args[0], data)
 	args = args[1:] // throw off executable name
 
-	p.Command.eachFlag(func(c *Command, g *flagSet, option *Flag) {
+	p.eachFlag(func(c *Command, g *flagSet, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
-	p.Command.addHelpGroups(p.writeHelp)
+	p.addHelpGroups(p.writeHelp)
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)
@@ -57,9 +57,9 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 	s := &parseState{
 		args:       args,
 		retargs:    make([]string, 0, len(args)),
-		positional: p.Command.args,
-		lookup:     makeLookupTable(p.Command),
-		command:    p.Command,
+		positional: p.args,
+		lookup:     makeLookupTable(p),
+		command:    p,
 	}
 	for !s.noargs() {
 		arg := s.pop()
@@ -105,7 +105,7 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 	}
 
 	if s.err == nil {
-		p.Command.eachFlag(func(c *Command, g *flagSet, flag *Flag) {
+		p.eachFlag(func(c *Command, g *flagSet, flag *Flag) {
 			if flag.preventDefault {
 				return
 			}
@@ -139,7 +139,7 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 		})
 
 		var required []*Flag
-		for c := p.Command; c != nil; c = c.Active {
+		for c := p; c != nil; c = c.Active {
 			for _, option := range c.Flags.flags {
 				if !option.isSet && option.Required {
 					required = append(required, option)

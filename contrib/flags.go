@@ -1057,13 +1057,7 @@ func (a *alignmentInfo) descriptionStart() int {
 		internal.Iverson(a.hasValueName, 3)
 }
 
-// A Parser provides command line option parsing.
-// It can contain several option groups each with their own set of options.
-type Parser struct {
-	Command *Command
-}
-
-func (p *Parser) getAlignmentInfo() alignmentInfo {
+func (p *Command) getAlignmentInfo() alignmentInfo {
 	ret := alignmentInfo{
 		maxLongLen:      0,
 		hasShort:        false,
@@ -1071,10 +1065,10 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		terminalColumns: getTerminalColumns(),
 	}
 	var prevcmd *Command
-	for c := p.Command; c != nil; c = c.Active {
+	for c := p; c != nil; c = c.Active {
 		if c != prevcmd {
 			ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg PositionalArg) int {
-				return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
+				return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p, 4)
 			}, c.args...))
 			prevcmd = c
 		}
@@ -1092,7 +1086,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 
 			l := info.LongName + info.ValueName +
 				internal.Iverson(len(info.Choices) != 0, "["+strings.Join(info.Choices, "|")+"]")
-			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p.Command, 4))
+			ret.maxLongLen = max(ret.maxLongLen, utf8.RuneCountInString(l)+internal.Iverson(c != p, 4))
 		}
 	}
 	return ret
@@ -1143,7 +1137,7 @@ func wrapText(s string, l int, prefix string) string {
 	return ret
 }
 
-func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentInfo) {
+func (p *Command) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentInfo) {
 	if option.Hidden {
 		return
 	}
@@ -1219,20 +1213,20 @@ func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentIn
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) writeHelp() string {
+func (p *Command) writeHelp() string {
 	aligninfo := p.getAlignmentInfo()
 
-	cmd := p.Command
+	cmd := p
 	for cmd.Active != nil {
 		cmd = cmd.Active
 	}
 
 	w := &bytes.Buffer{}
-	if p.Command.Name != "" {
+	if p.Name != "" {
 		_, _ = w.WriteString("Usage:\n ")
-		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
+		for allcmd := p; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
-			if allcmd == p.Command {
+			if allcmd == p {
 				usage = "[OPTIONS]"
 			} else if us, ok := allcmd.Flags.data.(Usage); ok {
 				usage = us.Usage()
@@ -1287,11 +1281,11 @@ func (p *Parser) writeHelp() string {
 		}
 	}
 
-	for c := p.Command; c != nil; c = c.Active {
-		printcmd := c != p.Command
+	for c := p; c != nil; c = c.Active {
+		printcmd := c != p
 
 		// Skip built-in help group for all commands except the top-level parser
-		if c.Flags.Hidden || c.Flags.isBuiltinHelp && c != p.Command {
+		if c.Flags.Hidden || c.Flags.isBuiltinHelp && c != p {
 			continue
 		}
 
@@ -1326,7 +1320,7 @@ func (p *Parser) writeHelp() string {
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
 			sarguments := "Arguments:"
-			if c != p.Command {
+			if c != p {
 				sarguments = fmt.Sprintf("[%s command arguments]", c.Name)
 			}
 			fmt.Fprint(w, "\n"+sarguments+"\n")
@@ -1401,20 +1395,18 @@ type parseState struct {
 // default option group (named "Application Options"), or nil if the default
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
-func newParser(appname string, data any) *Parser {
-	p := &Parser{
-		Command: &Command{
-			Name: appname,
-			Flags: &flagSet{
-				ShortDescription: "",
-				LongDescription:  "",
-				data:             nil,
-			},
+func newParser(appname string, data any) *Command {
+	p := &Command{
+		Name: appname,
+		Flags: &flagSet{
+			ShortDescription: "",
+			LongDescription:  "",
+			data:             nil,
 		},
+		SubcommandsOptional: true,
 	}
-	p.Command.Flags.parent = p
-	p.Command.SubcommandsOptional = true
-	if g := p.Command.addGroup("Application Options", "", data); g != nil {
+	p.Flags.parent = p
+	if g := p.addGroup("Application Options", "", data); g != nil {
 		g.parent = p
 	}
 	return p
@@ -1439,8 +1431,8 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 	return group
 }
 
-func (p *Parser) printCompletions(args ...string) {
-	comp := &completion{cmd: p.Command}
+func (p *Command) printCompletions(args ...string) {
+	comp := &completion{cmd: p}
 	comp.print(os.Stdout, comp.complete(args))
 }
 
@@ -1483,7 +1475,7 @@ func (p *parseState) reterr() error {
 	return nil
 }
 
-func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bool, argument *string) (err error) {
+func (p *Command) parseOption(s *parseState, name string, option *Flag, canarg bool, argument *string) (err error) {
 	switch {
 	case !option.canArgument():
 		if argument != nil {
@@ -1531,7 +1523,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 	return err
 }
 
-func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
+func (p *Command) parseLong(s *parseState, name string, argument *string) error {
 	option := s.lookup.longNames[name]
 	if option == nil {
 		return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
@@ -1541,7 +1533,7 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	return p.parseOption(s, name, option, !option.IsOptional, argument)
 }
 
-func (p *Parser) parseShort(s *parseState, optname string, argument *string) error {
+func (p *Command) parseShort(s *parseState, optname string, argument *string) error {
 	if argument == nil {
 		if c, n := utf8.DecodeRuneInString(optname); n != len(optname) {
 			first := string(c)

@@ -508,7 +508,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
 		option, _ := iter.
-			FromMany(p.Command.Flags.flags...).
+			FromMany(p.Flags.flags...).
 			Filter(func(f *Flag) bool {
 				return f.ShortName == 'v'
 			}).

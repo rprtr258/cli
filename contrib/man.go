@@ -139,7 +139,7 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 }
 
 // WriteManPage writes a basic man page in groff format to the specified writer.
-func (p *Parser) WriteManPage(w io.Writer, t time.Time) {
+func (p *Command) WriteManPage(w io.Writer, t time.Time) {
 	if sourceDateEpoch := os.Getenv("SOURCE_DATE_EPOCH"); sourceDateEpoch != "" {
 		sde, err := strconv.ParseInt(sourceDateEpoch, 10, 64)
 		if err != nil {
@@ -149,25 +149,25 @@ func (p *Parser) WriteManPage(w io.Writer, t time.Time) {
 		t = time.Unix(sde, 0)
 	}
 
-	fmt.Fprintf(w, ".TH %s 1 \"%s\"\n", manQuote(p.Command.Name), t.Format("2 January 2006"))
+	fmt.Fprintf(w, ".TH %s 1 \"%s\"\n", manQuote(p.Name), t.Format("2 January 2006"))
 	fmt.Fprintln(w, ".SH NAME")
-	fmt.Fprintf(w, "%s \\- %s\n", manQuote(p.Command.Name), manQuoteLines(p.Command.Flags.ShortDescription))
+	fmt.Fprintf(w, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.Flags.ShortDescription))
 	fmt.Fprintln(w, ".SH SYNOPSIS")
 
 	usage := "[OPTIONS]"
 
-	fmt.Fprintf(w, "\\fB%s\\fP %s\n", manQuote(p.Command.Name), manQuote(usage))
+	fmt.Fprintf(w, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
 	fmt.Fprintln(w, ".SH DESCRIPTION")
 
-	formatForMan(w, p.Command.Flags.LongDescription)
+	formatForMan(w, p.Flags.LongDescription)
 	fmt.Fprintln(w)
 
 	fmt.Fprintln(w, ".SH OPTIONS")
 
-	writeManPageOptions(w, p.Command.Flags)
+	writeManPageOptions(w, p.Flags)
 
-	if len(visibleCommands(p.Command.commands)) > 0 {
+	if len(visibleCommands(p.commands)) > 0 {
 		fmt.Fprintln(w, ".SH COMMANDS")
-		writeManPageSubcommands(w, "", p.Command.Name+" "+usage, visibleCommands(p.Command.commands))
+		writeManPageSubcommands(w, "", p.Name+" "+usage, visibleCommands(p.commands))
 	}
 }
