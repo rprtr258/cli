@@ -19,21 +19,6 @@ import (
 	"github.com/samber/lo"
 )
 
-// Arg represents a positional argument on the command line.
-type Arg struct {
-	Name            string // Name of the positional argument (used in the help)
-	Description     string // Description of the positional argument (used in the help)
-	Required        int    // minimal number of required positional arguments
-	RequiredMaximum int    // maximum number of required positional arguments
-
-	value reflect.Value
-	tag   multiTag
-}
-
-func isRemainingArg(value reflect.Value) bool {
-	return value.Type().Kind() == reflect.Slice
-}
-
 // Marshaler is the interface implemented by types that can marshal themselves
 // to a string representation of the flag.
 type Marshaler interface {
@@ -628,6 +613,21 @@ func (option *Flag) isValidValue(arg string) error {
 	return nil
 }
 
+// PositionalArg represents positional argument on the command line
+type PositionalArg struct {
+	Name            string // Name of the positional argument (used in the help)
+	Description     string // Description of the positional argument (used in the help)
+	Required        int    // minimal number of required positional arguments
+	RequiredMaximum int    // maximum number of required positional arguments
+
+	value reflect.Value
+	tag   multiTag
+}
+
+func isRemainingArg(value reflect.Value) bool {
+	return value.Type().Kind() == reflect.Slice
+}
+
 // Command represents an application command. Commands can be added to the
 // parser (which itself is a command) and are selected/executed when its name
 // is specified on the command line. The Command type embeds a Group and
@@ -653,7 +653,7 @@ type Command struct {
 
 	commands            []*Command
 	hasBuiltinHelpGroup bool
-	args                []*Arg
+	args                []*PositionalArg
 }
 
 // Commander is an interface which can be implemented by any command added in
@@ -766,8 +766,8 @@ func (c *Command) FindOptionByShortName(shortName rune) (option *Flag) {
 }
 
 // Args returns a list of positional arguments associated with this command.
-func (c *Command) Args() []*Arg {
-	ret := make([]*Arg, len(c.args))
+func (c *Command) Args() []*PositionalArg {
+	ret := make([]*PositionalArg, len(c.args))
 	copy(ret, c.args)
 
 	return ret
@@ -816,7 +816,7 @@ func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 					}
 				}
 
-				arg := &Arg{
+				arg := &PositionalArg{
 					Name:            name,
 					Description:     m.Get("description"),
 					Required:        required,
@@ -1399,7 +1399,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 	for c := p.Command; c != nil; c = c.Active {
 		c.Group.eachGroup(func(grp *Group) bool {
 			if c != prevcmd {
-				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
+				ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *PositionalArg) int {
 					return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
 				}, c.args...))
 				prevcmd = c
@@ -1656,7 +1656,7 @@ func (p *Parser) WriteHelp() string {
 			return true
 		})
 
-		if args := internal.Filter(func(arg *Arg) bool {
+		if args := internal.Filter(func(arg *PositionalArg) bool {
 			// TODO: separate Hidden field
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
@@ -1756,7 +1756,7 @@ type parseState struct {
 	arg        string
 	args       []string
 	retargs    []string
-	positional []*Arg
+	positional []*PositionalArg
 	err        error
 
 	command *Command
@@ -1989,7 +1989,7 @@ func (s *parseState) checkRequired(p *Parser) {
 
 	if len(required) == 0 {
 		reqnames := iter.MapFilter(iter.FromMany(s.positional...),
-			func(arg *Arg) (string, bool) {
+			func(arg *PositionalArg) (string, bool) {
 				var desc string
 				switch {
 				case (isRemainingArg(arg.value) || !s.command.ArgsRequired) && arg.Required == -1 && arg.RequiredMaximum == -1:
