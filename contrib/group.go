@@ -1623,7 +1623,7 @@ func (p *Parser) writeHelpOption(writer io.Writer, option *Option, info alignmen
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) WriteHelp(w io.Writer) {
+func (p *Parser) WriteHelp() string {
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
@@ -1631,6 +1631,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 		cmd = cmd.Active
 	}
 
+	w := &bytes.Buffer{}
 	if p.Name != "" {
 		_, _ = io.WriteString(w, "Usage:\n ")
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
@@ -1792,6 +1793,8 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			fmt.Fprintln(w)
 		}
 	}
+
+	return w.String()
 }
 
 // SplitArgument represents the argument value of an option that was passed using
@@ -2356,10 +2359,8 @@ func (p *Parser) parseNonOption(s *parseState) error {
 }
 
 func (p *Parser) showBuiltinHelp() error {
-	var b bytes.Buffer
-	p.WriteHelp(&b)
 	return &Error{
 		Kind:    ErrHelp,
-		Message: b.String(),
+		Message: p.WriteHelp(),
 	}
 }
