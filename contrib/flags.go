@@ -401,8 +401,7 @@ func (option *Flag) LongNameWithNamespace() string {
 	return longName
 }
 
-// String converts an option to a human friendly readable string describing the
-// option.
+// String converts an option to a human friendly readable string describing the option
 func (option *Flag) String() string {
 	if option.ShortName != 0 {
 		data := make([]byte, utf8.RuneLen(option.ShortName))
