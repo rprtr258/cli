@@ -726,7 +726,14 @@ type lookup struct {
 // options are in the command. The provided data can implement the Command and
 // Usage interfaces.
 func (c *Command) AddCommand(command, shortDescription, longDescription string, data any) (*Command, error) {
-	cmd := newCommand(command, shortDescription, longDescription, data)
+	cmd := &Command{
+		Name: command,
+		Group: &Group{
+			ShortDescription: shortDescription,
+			LongDescription:  longDescription,
+			data:             data,
+		},
+	}
 
 	cmd.parent = c
 
@@ -806,17 +813,6 @@ func (c *Command) Args() []*Arg {
 	copy(ret, c.args)
 
 	return ret
-}
-
-func newCommand(name, shortDescription, longDescription string, data any) *Command {
-	return &Command{
-		Name: name,
-		Group: &Group{
-			ShortDescription: shortDescription,
-			LongDescription:  longDescription,
-			data:             data,
-		},
-	}
 }
 
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
@@ -1864,7 +1860,14 @@ func NewParser(data any, options Options) *Parser {
 // be added to this parser by using AddGroup and AddCommand.
 func NewNamedParser(appname string, options Options) *Parser {
 	p := &Parser{
-		Command:               newCommand(appname, "", "", nil),
+		Command: &Command{
+			Name: appname,
+			Group: &Group{
+				ShortDescription: "",
+				LongDescription:  "",
+				data:             nil,
+			},
+		},
 		Options:               options,
 		NamespaceDelimiter:    ".",
 		EnvNamespaceDelimiter: "_",
