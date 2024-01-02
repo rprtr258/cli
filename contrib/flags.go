@@ -704,6 +704,7 @@ func (c *Command) AddGroup(shortDescription, longDescription string, data any) (
 	}
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
+		c.Group.parent.(*Parser).internalError = err
 		return nil, err
 	}
 
@@ -1699,8 +1700,6 @@ func NewParser(data any, options Options) *Parser {
 		if err == nil {
 			g.parent = p
 		}
-
-		p.internalError = err
 	}
 
 	return p
