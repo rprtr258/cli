@@ -704,11 +704,11 @@ func (c *Command) find(name string) *Command {
 	return nil
 }
 
-func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *reflect.StructField) (bool, error) {
-	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
+func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *reflect.StructField) error {
+	return func(realval reflect.Value, sfield *reflect.StructField) error {
 		mtag, err := ParseMultiTag(string(sfield.Tag))
 		if err != nil {
-			return true, err
+			return err
 		}
 
 		positional := multitagGet(mtag, "positional-args")
@@ -721,7 +721,7 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 
 				m, err := ParseMultiTag(string(field.Tag))
 				if err != nil {
-					return true, err
+					return err
 				}
 
 				name := internal.Or(multitagGet(m, "positional-arg-name"), field.Name)
@@ -760,13 +760,13 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 				}
 			}
 
-			return true, nil
+			return nil
 		}
 
 		subcommand := multitagGet(mtag, "command")
 		if subcommand == "" {
 			parentg.scanSubGroupHandler(realval, sfield)
-			return true, nil
+			return nil
 		}
 
 		var ptrval reflect.Value
@@ -788,14 +788,14 @@ func (c *Command) scanSubcommandHandler(parentg *flagSet) func(reflect.Value, *r
 			ptrval.Interface(),
 		)
 		if err != nil {
-			return true, err
+			return err
 		}
 
 		subc.Flags.Hidden = multitagGet(mtag, "hidden") != ""
 		subc.SubcommandsOptional = multitagGet(mtag, "subcommands-optional") != ""
 		subc.Aliases = GetMany(mtag, "alias")
 
-		return true, nil
+		return nil
 	}
 }
 
@@ -948,15 +948,11 @@ func isStringFalsy(s string) bool {
 	return s == "" || s == "false" || s == "no" || s == "0"
 }
 
-func (g *flagSet) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
+func (g *flagSet) scanStruct(realval reflect.Value, sfield *reflect.StructField, handler func(reflect.Value, *reflect.StructField) error) error {
 	stype := realval.Type()
 
 	if sfield != nil {
-		if ok, err := handler(realval, sfield); err != nil {
-			return err
-		} else if ok {
-			return nil
-		}
+		return handler(realval, sfield)
 	}
 
 	for i := 0; i < stype.NumField(); i++ {
@@ -1101,7 +1097,7 @@ func (g *flagSet) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Str
 	}
 }
 
-func (g *flagSet) scanType(handler func(reflect.Value, *reflect.StructField) (bool, error)) error {
+func (g *flagSet) scanType(handler func(reflect.Value, *reflect.StructField) error) error {
 	// Get all the public fields in the data struct
 	ptrval := reflect.ValueOf(g.data)
 
