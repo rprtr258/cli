@@ -852,9 +852,8 @@ func makeLookupTable(c *Command) lookup {
 	}
 }
 
-// ErrNotPointerToStruct indicates that a provided data container is not
-// a pointer to a struct. Only pointers to structs are valid data containers
-// for options.
+// ErrNotPointerToStruct indicates that a provided data container is not a pointer to a struct.
+// Only pointers to structs are valid data containers for options.
 var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct")
 
 // flagSet represents an option group.
