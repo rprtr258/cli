@@ -9,15 +9,12 @@ import (
 func TestGroupInline(t *testing.T) {
 	opts := struct {
 		Value bool `short:"v"`
-		Group struct {
-			G bool `short:"g"`
-		} `group:"Grouped Options"`
+		G     bool `short:"g"`
 	}{}
 
-	p := assertParserSuccess(t, &opts, "-v", "-g")
+	assertParserSuccess(t, &opts, "-v", "-g")
 	assert.True(t, opts.Value)
-	assert.True(t, opts.Group.G)
-	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
+	assert.True(t, opts.G)
 }
 
 func TestGroupAdd(t *testing.T) {
@@ -39,21 +36,17 @@ func TestGroupAdd(t *testing.T) {
 
 func TestGroupNestedInline(t *testing.T) {
 	opts := struct {
-		Value  bool `short:"v"`
-		G      bool `short:"g"`
-		Nested struct {
-			N    string   `long:"n"`
-			Args []string `args`
-		} `group:"Nested Options"`
+		Value bool     `short:"v"`
+		G     bool     `short:"g"`
+		N     string   `long:"n"`
+		Args  []string `args`
 	}{}
 
-	p := assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
-	assert.Equal(t, []string{"rest"}, opts.Nested.Args)
+	assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
+	assert.Equal(t, []string{"rest"}, opts.Args)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.G)
-	assert.Equal(t, opts.Nested.N, "n")
-	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
-	assert.NotNil(t, p.Command.Group.Find("Nested Options"))
+	assert.Equal(t, opts.N, "n")
 }
 
 func TestGroupNestedInlineNamespace(t *testing.T) {

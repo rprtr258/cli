@@ -937,20 +937,6 @@ func (g *flagSet) AddOption(option *Flag, data any) {
 	g.flags = append(g.flags, option)
 }
 
-// Find locates the subgroup with the given short description and returns it.
-// If no such group can be found Find will return nil.
-// Note that the description is matched case insensitively.
-func (g *flagSet) Find(shortDescription string) *flagSet {
-	lshortDescription := strings.ToLower(shortDescription)
-	ret, _ := iter.
-		FromMany(g).
-		Filter(func(gg *flagSet) bool {
-			return gg != g && strings.EqualFold(gg.ShortDescription, lshortDescription)
-		}).
-		Head()
-	return ret
-}
-
 func (g *flagSet) showInHelp() bool {
 	return !g.Hidden && fun.Any(func(opt *Flag) bool {
 		return opt.showInHelp()
