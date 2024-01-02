@@ -771,11 +771,6 @@ func (c *Command) findFlagByShortName(shortName rune) *Flag {
 	return nil
 }
 
-// Args returns a list of positional arguments associated with this command.
-func (c *Command) Args() []*PositionalArg {
-	return append([]*PositionalArg(nil), c.args...)
-}
-
 func (c *Command) scanSubcommandHandler(parentg *Group) scanHandler {
 	return func(realval reflect.Value, sfield *reflect.StructField) (bool, error) {
 		mtag, err := ParseMultiTag(string(sfield.Tag))
