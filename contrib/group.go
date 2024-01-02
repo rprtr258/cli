@@ -294,13 +294,7 @@ func convert(val string, retval reflect.Value, multitag multiTag) error {
 }
 
 func isPrint(s string) bool {
-	for _, c := range s {
-		if !strconv.IsPrint(c) {
-			return false
-		}
-	}
-
-	return true
+	return fun.All([]rune(s), strconv.IsPrint)
 }
 
 func quoteIfNeeded(s string) string {
