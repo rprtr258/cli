@@ -425,10 +425,10 @@ func (option *Flag) String() string {
 	return ""
 }
 
-// Set the value of an option to the specified value.
+// set the value of an option to the specified value.
 // An error will be returned if the specified value could not be converted
 // to the corresponding option value type.
-func (option *Flag) Set(value *string) error {
+func (option *Flag) set(value *string) error {
 	if fun.Contains(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
 	}
@@ -1661,7 +1661,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 						break
 					}
 
-					if err := flag.Set(&d); err != nil {
+					if err := flag.set(&d); err != nil {
 						if err != nil {
 							if _, ok := err.(*Error); !ok {
 								err = marshalError(flag, err)
@@ -1803,7 +1803,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			return newErrorf(ErrNoArgumentForBool, "bool flag `%s' cannot have an argument", option)
 		}
 
-		err = option.Set(nil)
+		err = option.set(nil)
 	case argument != nil || canarg && !s.noargs():
 		var arg string
 		if argument != nil {
@@ -1822,13 +1822,13 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 		}
 
 		if err == nil {
-			err = option.Set(&arg)
+			err = option.set(&arg)
 		}
 	case option.IsOptional:
 		option.empty()
 
 		for _, v := range option.OptionalValue {
-			if err = option.Set(&v); err != nil {
+			if err = option.set(&v); err != nil {
 				break
 			}
 		}
