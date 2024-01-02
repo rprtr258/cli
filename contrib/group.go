@@ -1993,21 +1993,20 @@ func (s *parseState) checkRequired(p *Parser) {
 			Filter(func(arg *Arg) bool {
 				return !isRemainingArg(arg.value) && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1
 			}), func(arg *Arg) (string, bool) {
+			var desc string
 			switch {
 			case !isRemainingArg(arg.value):
-				return "`" + arg.Name + "`", true
+				desc = ""
 			case arg.value.Len() < arg.Required:
-				return "`" + arg.Name +
-					" (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) + ")" +
-					"`", true
+				desc = " (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) + ")"
 			case arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum:
-				desc := lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
+				desc = lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
 					return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
 				})
-				return "`" + arg.Name + desc + "`", true
 			default:
 				return "", false
 			}
+			return "`" + arg.Name + desc + "`", true
 		}).ToSlice()
 		if len(reqnames) != 0 {
 			s.err = &Error{
