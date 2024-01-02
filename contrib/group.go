@@ -1647,9 +1647,9 @@ func (p *Parser) WriteHelp() string {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
-			fmt.Fprintf(w, " %s", allcmd.Name)
+			fmt.Fprint(w, " "+allcmd.Name)
 			if usage != "" {
-				fmt.Fprintf(w, " %s", usage)
+				fmt.Fprint(w, " "+usage)
 			}
 
 			if len(allcmd.args) > 0 {
