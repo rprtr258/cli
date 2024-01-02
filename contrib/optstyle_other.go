@@ -11,10 +11,6 @@ const (
 	defaultNameArgDelimiter  = '='
 )
 
-func doesLookLikeFlag(arg string) bool {
-	return arg != "" && arg[0] == '-'
-}
-
 func isFlag(arg string) bool {
 	return len(arg) > 1 && arg[0] == '-' && arg[1] != '-' ||
 		len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-'
