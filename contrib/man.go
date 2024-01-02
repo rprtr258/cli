@@ -186,25 +186,25 @@ func (p *Parser) WriteManPage(wr io.Writer, t time.Time) {
 		t = time.Unix(sde, 0)
 	}
 
-	fmt.Fprintf(wr, ".TH %s 1 \"%s\"\n", manQuote(p.Name), t.Format("2 January 2006"))
+	fmt.Fprintf(wr, ".TH %s 1 \"%s\"\n", manQuote(p.Command.Name), t.Format("2 January 2006"))
 	fmt.Fprintln(wr, ".SH NAME")
-	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Name), manQuoteLines(p.Group.ShortDescription))
+	fmt.Fprintf(wr, "%s \\- %s\n", manQuote(p.Command.Name), manQuoteLines(p.Command.Group.ShortDescription))
 	fmt.Fprintln(wr, ".SH SYNOPSIS")
 
 	usage := internal.Or(p.Usage, "[OPTIONS]")
 
-	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Name), manQuote(usage))
+	fmt.Fprintf(wr, "\\fB%s\\fP %s\n", manQuote(p.Command.Name), manQuote(usage))
 	fmt.Fprintln(wr, ".SH DESCRIPTION")
 
-	formatForMan(wr, p.Group.LongDescription)
+	formatForMan(wr, p.Command.Group.LongDescription)
 	fmt.Fprintln(wr)
 
 	fmt.Fprintln(wr, ".SH OPTIONS")
 
 	writeManPageOptions(wr, p.Command.Group)
 
-	if len(visibleCommands(p.commands)) > 0 {
+	if len(visibleCommands(p.Command.commands)) > 0 {
 		fmt.Fprintln(wr, ".SH COMMANDS")
-		writeManPageSubcommands(wr, "", p.Name+" "+usage, visibleCommands(p.Command.commands))
+		writeManPageSubcommands(wr, "", p.Command.Name+" "+usage, visibleCommands(p.Command.commands))
 	}
 }

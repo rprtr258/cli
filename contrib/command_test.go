@@ -17,10 +17,10 @@ func TestCommandInline(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
 	assert.Equal(t, []string{}, ret)
-	assert.NotNil(t, p.Active)
+	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
-	assert.Equal(t, p.Command.Find("cmd"), p.Active)
+	assert.Equal(t, p.Command.Find("cmd"), p.Command.Active)
 }
 
 func TestCommandInlineMulti(t *testing.T) {
@@ -34,14 +34,14 @@ func TestCommandInlineMulti(t *testing.T) {
 
 	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
 	assert.Equal(t, []string{}, ret)
-	assert.NotNil(t, p.Active)
+	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.C2.G)
 	assert.NotNil(t, p.Command.Find("c1"))
 
 	c2 := p.Command.Find("c2")
 	assert.NotNil(t, c2)
-	assert.Equal(t, c2, p.Active)
+	assert.Equal(t, c2, p.Command.Active)
 }
 
 func TestCommandFlagOrder1(t *testing.T) {
@@ -226,7 +226,7 @@ func TestCommandAdd(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, Default)
-	c, err := p.AddCommand("cmd", "", "", &cmd)
+	c, err := p.Command.AddCommand("cmd", "", "", &cmd)
 	assert.NoError(t, err)
 
 	ret, err := p.ParseArgs("-v", "cmd", "-g", "rest")
@@ -235,7 +235,7 @@ func TestCommandAdd(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, cmd.G)
 	assert.Equal(t, c, p.Command.Find("cmd"))
-	assert.Equal(t, c, p.Commands()[0])
+	assert.Equal(t, c, p.Command.Commands()[0])
 	assert.Equal(t, 'g', c.Group.options[0].ShortName)
 }
 
@@ -258,7 +258,7 @@ func TestCommandNestedInline(t *testing.T) {
 
 	c := p.Command.Find("cmd")
 	assert.NotNil(t, c)
-	assert.Equal(t, c, p.Active)
+	assert.Equal(t, c, p.Command.Active)
 
 	nested := c.Find("nested")
 	assert.NotNil(t, nested)
@@ -326,7 +326,7 @@ func TestSubcommandsOptional(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	p.SubcommandsOptional = true
+	p.Command.SubcommandsOptional = true
 
 	_, err := p.ParseArgs("-v")
 	assert.NoError(t, err)
@@ -341,7 +341,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	p.SubcommandsOptional = true
+	p.Command.SubcommandsOptional = true
 
 	retargs, err := p.ParseArgs("nocmd", "remove")
 	assert.NoError(t, err)
@@ -369,7 +369,7 @@ func TestSubCommandFindOptionByLongFlag(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByLongName("other")
 	assert.NotNil(t, opt)
@@ -390,7 +390,7 @@ func TestSubCommandFindOptionByShortFlag(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	c, _ := p.AddCommand("command", "Short", "Long", &cmd)
+	c, _ := p.Command.AddCommand("command", "Short", "Long", &cmd)
 
 	opt := c.FindOptionByShortName('o')
 	assert.NotNil(t, opt)

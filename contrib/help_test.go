@@ -80,7 +80,7 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
-	_, _ = p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("--help")
 	var expected string
@@ -188,11 +188,11 @@ Available commands:
 
 func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
-	p.Group.ShortDescription = "Test manpage generation"
-	p.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
-	_, _ = p.AddGroup("Application Options", "The application options", &helpOptions{})
+	p.Command.Group.ShortDescription = "Test manpage generation"
+	p.Command.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
+	_, _ = p.Command.AddGroup("Application Options", "The application options", &helpOptions{})
 
-	for _, cmd := range p.Commands() {
+	for _, cmd := range p.Command.Commands() {
 		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
@@ -309,7 +309,7 @@ type helpCommandNoOptions struct {
 func TestHelpCommand(t *testing.T) {
 	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
-	_, _ = p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
 	_, err := p.ParseArgs("command", "--help")
 	var expected string
@@ -348,10 +348,10 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	help.ShowHelp = func() error {
 		return &Error{Kind: ErrHelp}
 	}
-	hlpgrp, err := p.AddGroup("Help Options", "", &help)
+	hlpgrp, err := p.Command.AddGroup("Help Options", "", &help)
 	assert.NoError(t, err)
 	hlpgrp.Hidden = true
-	hlp := p.FindOptionByLongName("help")
+	hlp := p.Command.FindOptionByLongName("help")
 	hlp.Description = "Show this help message"
 	// make sure the --help option is hidden
 	hlp.Hidden = true
@@ -441,7 +441,7 @@ Help Options:
 		opts.WithProgrammaticDefault = "default-value"
 
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
-		_, _ = p.AddGroup("Application Options", "The application options", &opts)
+		_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
 		_, err := p.ParseArgs(test.Args...)
 		assert.Equal(t, &Error{
@@ -457,7 +457,7 @@ func TestHelpRestArgs(t *testing.T) {
 	}{}
 
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
-	_, _ = p.AddGroup("Application Options", "The application options", &opts)
+	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
 	retargs, err := p.ParseArgs("-h", "-v", "rest")
 	assert.Error(t, err)
@@ -551,7 +551,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		}
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
-		p.writeHelpOption(h, p.FindOptionByShortName('v'), p.getAlignmentInfo())
+		p.writeHelpOption(h, p.Command.FindOptionByShortName('v'), p.getAlignmentInfo())
 		assert.Contains(t, h.String(), test.present)
 	}
 }

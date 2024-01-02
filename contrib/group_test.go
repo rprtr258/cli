@@ -31,7 +31,7 @@ func TestGroupAdd(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, Default)
-	g, err := p.AddGroup("Grouped Options", "", &grp)
+	g, err := p.Command.AddGroup("Grouped Options", "", &grp)
 	assert.NoError(t, err)
 
 	ret, err := p.ParseArgs("-v", "-g", "rest")
@@ -41,7 +41,7 @@ func TestGroupAdd(t *testing.T) {
 	assert.True(t, opts.Value)
 	assert.True(t, grp.G)
 	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
-	assert.Equal(t, g, p.Group.groups[1])
+	assert.Equal(t, g, p.Command.Group.groups[1])
 	assert.Equal(t, 'g', g.options[0].ShortName)
 }
 
@@ -122,7 +122,7 @@ func TestFindOptionByLongFlag(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	opt := p.FindOptionByLongName("testing")
+	opt := p.Command.FindOptionByLongName("testing")
 	assert.NotNil(t, opt)
 	assert.Equal(t, "testing", opt.LongName)
 }
@@ -133,7 +133,7 @@ func TestFindOptionByShortFlag(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	opt := p.FindOptionByShortName('t')
+	opt := p.Command.FindOptionByShortName('t')
 	assert.NotNil(t, opt)
 	assert.Equal(t, 't', opt.ShortName)
 }
@@ -146,7 +146,7 @@ func TestFindOptionByLongFlagInSubGroup(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	opt := p.FindOptionByLongName("testing")
+	opt := p.Command.FindOptionByLongName("testing")
 	assert.NotNil(t, opt)
 	assert.Equal(t, "testing", opt.LongName)
 }
@@ -159,7 +159,7 @@ func TestFindOptionByShortFlagInSubGroup(t *testing.T) {
 	}
 
 	p := NewParser(&opts, Default)
-	opt := p.FindOptionByShortName('t')
+	opt := p.Command.FindOptionByShortName('t')
 	assert.NotNil(t, opt)
 	assert.Equal(t, 't', opt.ShortName)
 }
@@ -169,7 +169,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 		Test bool
 	}
 	p := NewParser(&opts, Default)
-	p.Group.AddOption(&Flag{
+	p.Command.Group.AddOption(&Flag{
 		LongName: "test",
 	}, &opts.Test)
 

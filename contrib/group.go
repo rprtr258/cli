@@ -1387,7 +1387,7 @@ func (a *alignmentInfo) descriptionStart() int {
 // option groups each with their own set of options.
 type Parser struct {
 	// Embedded, see Command for more information
-	*Command
+	Command *Command
 
 	// A usage string to be displayed in the help message.
 	Usage string
@@ -1595,7 +1595,7 @@ func (p *Parser) WriteHelp() string {
 	}
 
 	w := &bytes.Buffer{}
-	if p.Name != "" {
+	if p.Command.Name != "" {
 		_, _ = w.WriteString("Usage:\n ")
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
@@ -1812,7 +1812,7 @@ func NewParser(data any, options Options) *Parser {
 	p := NewNamedParser(filepath.Base(os.Args[0]), options)
 
 	if data != nil {
-		g, err := p.AddGroup("Application Options", "", data)
+		g, err := p.Command.AddGroup("Application Options", "", data)
 		if err == nil {
 			g.parent = p
 		}
@@ -1860,14 +1860,14 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		return nil, p.internalError
 	}
 
-	p.eachOption(func(c *Command, g *Group, option *Flag) {
+	p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
 
 	// Add built-in help group to all commands if necessary
 	if p.Options&HelpFlag != 0 {
-		p.addHelpGroups(p.showBuiltinHelp)
+		p.Command.addHelpGroups(p.showBuiltinHelp)
 	}
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
@@ -1945,7 +1945,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	}
 
 	if s.err == nil {
-		p.eachOption(func(c *Command, g *Group, option *Flag) {
+		p.Command.eachOption(func(c *Command, g *Group, option *Flag) {
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
