@@ -197,7 +197,7 @@ var completionTests = func() map[string]completionTest {
 }()
 
 func TestCompletion(t *testing.T) {
-	c := &completion{cmd: newParser("", &completionTestOptions)}
+	c := newParser("", &completionTestOptions)
 	for name, test := range completionTests {
 		t.Run(name, func(t *testing.T) {
 			items := fun.Map[string](func(v Completion) string {

@@ -25,11 +25,7 @@ type Completer interface {
 	Complete(prefix string) []Completion
 }
 
-type completion struct {
-	cmd *Command
-}
-
-func (c *completion) skipPositional(s *parseState, n int) {
+func (c *Command) skipPositional(s *parseState, n int) {
 	if n >= len(s.positional) {
 		s.positional = nil
 	} else {
@@ -37,7 +33,7 @@ func (c *completion) skipPositional(s *parseState, n int) {
 	}
 }
 
-func (c *completion) completeOptionNames(s *parseState, prefix, match string, short bool) []Completion {
+func (c *Command) completeOptionNames(s *parseState, prefix, match string, short bool) []Completion {
 	if short && match != "" {
 		return []Completion{
 			{
@@ -73,7 +69,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix, match string, sh
 	return results
 }
 
-func (c *completion) completeCommands(s *parseState, match string) []Completion {
+func (c *Command) completeCommands(s *parseState, match string) []Completion {
 	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
 		return Completion{
 			Item:        cmd.Name,
@@ -82,7 +78,7 @@ func (c *completion) completeCommands(s *parseState, match string) []Completion 
 	}, s.command.commands...)
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix, match string) []Completion {
+func (c *Command) completeValue(value reflect.Value, prefix, match string) []Completion {
 	if value.Kind() == reflect.Slice {
 		value = reflect.New(value.Type().Elem())
 	}
@@ -104,16 +100,16 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 	}, ret...)
 }
 
-func (c *completion) complete(args []string) []Completion {
+func (c *Command) complete(args []string) []Completion {
 	if len(args) == 0 {
 		args = []string{""}
 	}
 
 	s := &parseState{
 		args:       args,
-		command:    c.cmd,
-		positional: c.cmd.args,
-		lookup:     makeLookupTable(c.cmd),
+		command:    c,
+		positional: c.args,
+		lookup:     makeLookupTable(c),
 	}
 	var opt *Flag
 	for len(s.args) > 1 {

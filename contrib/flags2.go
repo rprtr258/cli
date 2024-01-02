@@ -30,7 +30,7 @@ type Unmarshaler interface {
 }
 
 func (p *Command) printCompletions(args ...string) {
-	items := (&completion{cmd: p}).complete(args)
+	items := p.complete(args)
 	maxl := internal.MaxBy(func(v Completion) int {
 		return len(v.Item)
 	}, items...)
