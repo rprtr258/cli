@@ -326,7 +326,7 @@ func (c *Command) makeLookup() lookup {
 		longNames:  make(map[string]*Option),
 		commands:   make(map[string]*Command),
 	}
-	iter.
+	iter.FlatMap(iter.
 		Seq[*Command](func(yield func(*Command) bool) bool {
 		for i := len(parents) - 1; i >= 0; i-- {
 			if !yield(parents[i]) {
@@ -334,27 +334,27 @@ func (c *Command) makeLookup() lookup {
 			}
 		}
 		return yield(c)
-	}).
-		ForEach(func(g *Command) {
-			g.eachGroup(func(g *Group) bool {
-				iter.
-					FromMany(g.options...).
-					Filter(func(o *Option) bool {
-						return o.ShortName != 0
-					}).
-					ForEach(func(o *Option) {
-						ret.shortNames[string(o.ShortName)] = o
-					})
-				iter.
-					FromMany(g.options...).
-					Filter(func(o *Option) bool {
-						return o.LongName != ""
-					}).
-					ForEach(func(o *Option) {
-						ret.longNames[o.LongNameWithNamespace()] = o
-					})
-				return true
-			})
+	}),
+		func(c *Command) iter.Seq[*Group] {
+			return c.eachGroup
+		}).
+		ForEach(func(g *Group) {
+			iter.
+				FromMany(g.options...).
+				Filter(func(o *Option) bool {
+					return o.ShortName != 0
+				}).
+				ForEach(func(o *Option) {
+					ret.shortNames[string(o.ShortName)] = o
+				})
+			iter.
+				FromMany(g.options...).
+				Filter(func(o *Option) bool {
+					return o.LongName != ""
+				}).
+				ForEach(func(o *Option) {
+					ret.longNames[o.LongNameWithNamespace()] = o
+				})
 		})
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
