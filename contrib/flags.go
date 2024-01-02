@@ -966,10 +966,10 @@ type Group struct {
 	data any
 }
 
-// AddGroup adds a new group to the command with the given name and data. The
+// addGroup adds a new group to the command with the given name and data. The
 // data needs to be a pointer to a struct from which the fields indicate which
 // options are in the group.
-func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*Group, error) {
+func (g *Group) addGroup(shortDescription, longDescription string, data any) (*Group, error) {
 	group := &Group{
 		ShortDescription: shortDescription,
 		LongDescription:  longDescription,
@@ -1202,7 +1202,7 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 	}
 
 	description := multitagGet(mtag, "description")
-	group, err := g.AddGroup(subgroup, description, ptrval.Interface())
+	group, err := g.addGroup(subgroup, description, ptrval.Interface())
 	if err != nil {
 		return true, err
 	}
