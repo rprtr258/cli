@@ -1925,7 +1925,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		if !isFlag(arg) {
 			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments are considered positional
-				if s.addArgs(s.arg) != nil || s.addArgs(s.args...) != nil {
+				if !s.addArgs(s.arg) || !s.addArgs(s.args...) {
 					break
 				}
 
@@ -2253,12 +2253,12 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 	return nil
 }
 
-func (p *parseState) addArgs(args ...string) error {
+func (p *parseState) addArgs(args ...string) bool {
 	for len(p.positional) > 0 && len(args) > 0 {
 		arg := p.positional[0]
 		if err := convert(args[0], arg.value, arg.tag); err != nil {
 			p.err = err
-			return err
+			return false
 		}
 
 		if !isRemainingArg(arg.value) {
@@ -2269,12 +2269,12 @@ func (p *parseState) addArgs(args ...string) error {
 	}
 
 	p.retargs = append(p.retargs, args...)
-	return nil
+	return true
 }
 
 func (p *Parser) parseNonOption(s *parseState) bool {
 	if len(s.positional) > 0 || len(s.command.commands) == 0 || len(s.retargs) > 0 {
-		return s.addArgs(s.arg) == nil
+		return s.addArgs(s.arg)
 	}
 
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
@@ -2290,7 +2290,7 @@ func (p *Parser) parseNonOption(s *parseState) bool {
 		return false
 	}
 
-	return s.addArgs(s.arg) == nil
+	return s.addArgs(s.arg)
 }
 
 func (p *Parser) showBuiltinHelp() error {
