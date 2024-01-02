@@ -708,7 +708,7 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 		return nil
 	}
 
-	c.Group.groups = append(c.Group.groups, group)
+	c.Group.subgroups = append(c.Group.subgroups, group)
 	return group
 }
 
@@ -956,36 +956,21 @@ var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct
 // more structure to options both for the user (as displayed in the help message)
 // and for you, since groups can be nested.
 type Group struct {
-	// A short description of the group. The
-	// short description is primarily used in the built-in generated help
-	// message
+	// A short description of the group.
+	// The short description is primarily used in the built-in generated help message
 	ShortDescription string
 
-	// A long description of the group. The long
-	// description is primarily used to present information on commands
+	// A long description of the group.
+	// The long description is primarily used to present information on commands
 	// in the built-in generated help and man pages.
 	LongDescription string
 
-	// The namespace of the group
-	Namespace string
-
-	// The environment namespace of the group
-	EnvNamespace string
-
-	// If true, the group is not displayed in the help or man page
-	Hidden bool
-
-	// The parent of the group or nil if it has no parent
-	parent any
-
-	// All the options in the group
-	options []*Flag
-
-	// All the subgroups
-	groups []*Group
-
-	// Whether the group represents the built-in help group
-	isBuiltinHelp bool
+	Namespace     string   // Namespace of the group
+	Hidden        bool     // If true, the group is not displayed in the help or man page
+	parent        any      // Parent of the group or nil if it has no parent
+	options       []*Flag  // All the options in the group
+	subgroups     []*Group // All the subgroups
+	isBuiltinHelp bool     // Whether the group represents the built-in help group
 
 	data any
 }
@@ -1007,7 +992,7 @@ func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*G
 		return nil, err
 	}
 
-	g.groups = append(g.groups, group)
+	g.subgroups = append(g.subgroups, group)
 	return group, nil
 }
 
@@ -1053,7 +1038,7 @@ func (g *Group) showInHelp() bool {
 func (g *Group) eachGroup(yield func(*Group) bool) bool {
 	return yield(g) && fun.All(func(gg *Group) bool {
 		return gg.eachGroup(yield)
-	}, g.groups...)
+	}, g.subgroups...)
 }
 
 func isStringFalsy(s string) bool {
@@ -1098,7 +1083,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				return err
 			}
 		} else if kind == reflect.Ptr && field.Type.Elem().Kind() == reflect.Struct {
-			flagCountBefore := len(g.options) + len(g.groups)
+			flagCountBefore := len(g.options) + len(g.subgroups)
 
 			if fld.IsNil() {
 				fld = reflect.New(fld.Type().Elem())
@@ -1108,7 +1093,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 				return err
 			}
 
-			if len(g.options)+len(g.groups) != flagCountBefore {
+			if len(g.options)+len(g.subgroups) != flagCountBefore {
 				realval.Field(i).Set(fld)
 			}
 		}
@@ -1234,7 +1219,6 @@ func (g *Group) scanSubGroupHandler(realval reflect.Value, sfield *reflect.Struc
 	}
 
 	group.Namespace = multitagGet(mtag, "namespace")
-	group.EnvNamespace = multitagGet(mtag, "env-namespace")
 	group.Hidden = multitagGet(mtag, "hidden") != ""
 
 	return true, nil

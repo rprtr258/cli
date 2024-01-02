@@ -52,7 +52,7 @@ func writeManPageOptions(w io.Writer, grp *Group) {
 
 		// If the parent (grp) has any subgroups, display their descriptions as
 		// subsection headers similar to the output of --help.
-		if group.ShortDescription != "" && len(grp.groups) > 0 {
+		if group.ShortDescription != "" && len(grp.subgroups) > 0 {
 			fmt.Fprintf(w, ".SS %s\n", group.ShortDescription)
 
 			if group.LongDescription != "" {
