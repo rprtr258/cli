@@ -302,7 +302,7 @@ func toDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
 	return ret
 }
 
-// Flag flag information. Contains a description of the option, short and
+// Flag information. Contains a description of the flag, short and
 // long name as well as a default value and whether an argument for this
 // flag is optional.
 type Flag struct {
