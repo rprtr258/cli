@@ -458,9 +458,9 @@ func (option *Flag) Set(value *string) error {
 	option.clearReferenceBeforeSet = false
 
 	if len(option.Choices) != 0 {
-		if fun.All(option.Choices, func(choice string) bool {
+		if fun.All(func(choice string) bool {
 			return choice != *value
-		}) {
+		}, option.Choices...) {
 			allowed := strings.Join(option.Choices[0:len(option.Choices)-1], ", ")
 
 			if len(option.Choices) > 1 {
@@ -622,7 +622,7 @@ func (option *Flag) updateDefaultLiteral() string {
 		return ""
 	case len(defs) != 0:
 		return internal.Join(func(s string) string {
-			if !fun.All([]rune(s), strconv.IsPrint) {
+			if !fun.All(strconv.IsPrint, []rune(s)...) {
 				return strconv.Quote(s)
 			}
 
@@ -931,9 +931,9 @@ func (c *Command) eachOption(yield func(*Command, *Group, *Flag)) {
 }
 
 func (c *Command) eachCommand(yield func(*Command) bool) bool {
-	return yield(c) && fun.All(c.commands, func(c *Command) bool {
+	return yield(c) && fun.All(func(c *Command) bool {
 		return c.eachCommand(yield)
-	})
+	}, c.commands...)
 }
 
 func (c *Command) addHelpGroups(showHelp func() error) {
@@ -1152,15 +1152,15 @@ func (g *Group) findOptionByShortName(shortName rune) *Flag {
 }
 
 func (g *Group) showInHelp() bool {
-	return !g.Hidden && fun.Any(g.options, func(opt *Flag) bool {
+	return !g.Hidden && fun.Any(func(opt *Flag) bool {
 		return opt.showInHelp()
-	})
+	}, g.options...)
 }
 
 func (g *Group) eachGroup(yield func(*Group) bool) bool {
-	return yield(g) && fun.All(g.groups, func(gg *Group) bool {
+	return yield(g) && fun.All(func(gg *Group) bool {
 		return gg.eachGroup(yield)
-	})
+	}, g.groups...)
 }
 
 func isStringFalsy(s string) bool {
