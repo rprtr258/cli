@@ -299,13 +299,11 @@ func (c *Command) eachCommand(yield func(*Command) bool) bool {
 }
 
 func eachActiveGroup(c *Command, yield func(cc *Command, g *Group)) {
-	c.eachGroup(func(g *Group) bool {
-		yield(c, g)
-		return true
-	})
-
-	if c.Active != nil {
-		eachActiveGroup(c.Active, yield)
+	for c := c; c != nil; c = c.Active {
+		c.eachGroup(func(g *Group) bool {
+			yield(c, g)
+			return true
+		})
 	}
 }
 
