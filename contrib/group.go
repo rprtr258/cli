@@ -1633,7 +1633,7 @@ func (p *Parser) WriteHelp() string {
 
 	w := &bytes.Buffer{}
 	if p.Name != "" {
-		_, _ = io.WriteString(w, "Usage:\n ")
+		_, _ = w.WriteString("Usage:\n ")
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
@@ -1721,7 +1721,7 @@ func (p *Parser) WriteHelp() string {
 					fmt.Fprintln(w)
 
 					if aligninfo.indent {
-						_, _ = io.WriteString(w, "    ")
+						_, _ = w.WriteString("    ")
 					}
 
 					fmt.Fprintf(w, "%s:\n", grp.ShortDescription)
@@ -1749,11 +1749,11 @@ func (p *Parser) WriteHelp() string {
 				argPrefix := strings.Repeat(" ", _paddingBeforeOption) + arg.Name
 				if arg.Description != "" {
 					argPrefix += ":"
-					_, _ = io.WriteString(w, argPrefix)
+					_, _ = w.WriteString(argPrefix)
 
 					// Space between "arg:" and the description start
-					_, _ = io.WriteString(w, strings.Repeat(" ", descStart-len(argPrefix)))
-					_, _ = io.WriteString(w, wrapText(
+					_, _ = w.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
+					_, _ = w.WriteString(wrapText(
 						arg.Description,
 						// How much space the description gets before wrapping
 						aligninfo.terminalColumns-1-descStart,
@@ -1761,7 +1761,7 @@ func (p *Parser) WriteHelp() string {
 						strings.Repeat(" ", descStart),
 					))
 				} else {
-					_, _ = io.WriteString(w, argPrefix)
+					_, _ = w.WriteString(argPrefix)
 				}
 
 				fmt.Fprintln(w)
