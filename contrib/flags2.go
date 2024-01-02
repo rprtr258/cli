@@ -122,10 +122,7 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 
 					if err := flag.set(&d); err != nil {
 						if err != nil {
-							if _, ok := err.(*Error); !ok {
-								err = marshalError(flag, err)
-							}
-							s.err = err
+							s.err = marshalError(flag, err)
 						}
 						break
 					}

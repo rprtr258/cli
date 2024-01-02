@@ -82,6 +82,10 @@ func wrapError(err error) *Error {
 }
 
 func marshalError(option *Flag, err error) *Error {
+	if e, ok := err.(*Error); ok {
+		return e
+	}
+
 	valueType := option.value.Type()
 	return &Error{
 		Kind: ErrMarshal,

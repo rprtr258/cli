@@ -1516,11 +1516,10 @@ func (p *Command) parseOption(s *parseState, name string, option *Flag, canarg b
 	}
 
 	if err != nil {
-		if _, ok := err.(*Error); !ok {
-			err = marshalError(option, err)
-		}
+		return marshalError(option, err)
 	}
-	return err
+
+	return nil
 }
 
 func (p *Command) parseLong(s *parseState, name string, argument *string) error {
