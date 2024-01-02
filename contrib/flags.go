@@ -1802,8 +1802,12 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 				break
 			}
 
-			// Note: this also sets s.err, so we can just check for nil here and use s.err later
-			if !p.parseNonOption(s) {
+			if cmd := s.lookup.commands[s.arg]; len(s.positional) == 0 && len(s.command.commands) > 0 && len(s.retargs) == 0 && cmd != nil {
+				s.command.Active = cmd
+				s.positional = cmd.args
+				s.lookup = makeLookupTable(cmd)
+				s.command = cmd
+			} else if !s.addArgs(s.arg) {
 				break
 			}
 
@@ -2119,18 +2123,4 @@ func (p *parseState) addArgs(args ...string) bool {
 
 	p.retargs = append(p.retargs, args...)
 	return true
-}
-
-func (p *Parser) parseNonOption(s *parseState) bool {
-	if len(s.positional) == 0 && len(s.command.commands) > 0 && len(s.retargs) == 0 {
-		if cmd := s.lookup.commands[s.arg]; cmd != nil {
-			s.command.Active = cmd
-			s.positional = cmd.args
-			s.lookup = makeLookupTable(cmd)
-			s.command = cmd
-			return true
-		}
-	}
-
-	return s.addArgs(s.arg)
 }
