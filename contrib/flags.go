@@ -871,7 +871,6 @@ type flagSet struct {
 	// in the built-in generated help and man pages.
 	LongDescription string
 
-	Namespace     string  // Namespace of the group
 	Hidden        bool    // If true, the group is not displayed in the help or man page
 	parent        any     // *Command|*Parser Parent of the group or nil if it has no parent
 	flags         []*Flag // All the options in the group
