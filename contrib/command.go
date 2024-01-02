@@ -326,10 +326,18 @@ func (c *Command) makeLookup() lookup {
 		longNames:  make(map[string]*Option),
 		commands:   make(map[string]*Command),
 	}
-	for i := len(parents) - 1; i >= 0; i-- {
-		fillLookup(parents[i].eachGroup, ret)
-	}
-	fillLookup(c.eachGroup, ret)
+	iter.
+		Seq[*Command](func(yield func(*Command) bool) bool {
+		for i := len(parents) - 1; i >= 0; i-- {
+			if !yield(parents[i]) {
+				return false
+			}
+		}
+		return yield(c)
+	}).
+		ForEach(func(g *Command) {
+			fillLookup(g.eachGroup, ret)
+		})
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
 		for _, a := range subcommand.Aliases {
