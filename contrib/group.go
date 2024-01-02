@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -1548,7 +1547,7 @@ func wrapText(s string, l int, prefix string) string {
 	return ret
 }
 
-func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alignmentInfo) {
+func (p *Parser) writeHelpOption(writer io.Writer, option *Option, info alignmentInfo) {
 	if option.Hidden {
 		return
 	}
@@ -1595,7 +1594,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 
 	if option.Description != "" {
 		dw := descstart - written
-		_, _ = writer.WriteString(strings.Repeat(" ", dw))
+		_, _ = io.WriteString(writer, strings.Repeat(" ", dw))
 
 		var def string
 		if option.DefaultMask != "" {
@@ -1611,12 +1610,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			desc = fmt.Sprintf("%s (default: %v)", option.Description, def)
 		}
 
-		_, _ = writer.WriteString(wrapText(desc,
+		_, _ = io.WriteString(writer, wrapText(desc,
 			info.terminalColumns-descstart,
 			strings.Repeat(" ", descstart)))
 	}
 
-	_, _ = writer.WriteString("\n")
+	_, _ = io.WriteString(writer, "\n")
 }
 
 // WriteHelp writes a help message containing all the possible options and
@@ -1625,9 +1624,6 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 // command line parser which will automatically show the help messages using
 // this method.
 func (p *Parser) WriteHelp(w io.Writer) {
-	bw := bufio.NewWriter(w)
-	defer bw.Flush()
-
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
@@ -1636,7 +1632,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 	}
 
 	if p.Name != "" {
-		_, _ = bw.WriteString("Usage:\n ")
+		_, _ = io.WriteString(w, "Usage:\n ")
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
@@ -1651,18 +1647,18 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				usage = fmt.Sprintf("[%s-OPTIONS]", allcmd.Name)
 			}
 
-			fmt.Fprintf(bw, " %s", allcmd.Name)
+			fmt.Fprintf(w, " %s", allcmd.Name)
 			if usage != "" {
-				fmt.Fprintf(bw, " %s", usage)
+				fmt.Fprintf(w, " %s", usage)
 			}
 
 			if len(allcmd.args) > 0 {
-				fmt.Fprintf(bw, " ")
+				fmt.Fprintf(w, " ")
 			}
 
 			for i, arg := range allcmd.args {
 				if i != 0 {
-					fmt.Fprintf(bw, " ")
+					fmt.Fprintf(w, " ")
 				}
 
 				name := arg.Name + internal.Iverson(isRemainingArg(arg.value), "...")
@@ -1670,7 +1666,7 @@ func (p *Parser) WriteHelp(w io.Writer) {
 					name = "[" + name + "]"
 				}
 
-				fmt.Fprint(bw, name)
+				fmt.Fprint(w, name)
 			}
 
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
@@ -1682,20 +1678,20 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				}
 
 				if visibleCommandss := visibleCommands(allcmd.commands); len(visibleCommandss) > 3 {
-					fmt.Fprint(bw, " "+co+"command"+cc)
+					fmt.Fprint(w, " "+co+"command"+cc)
 				} else {
-					fmt.Fprint(bw, " "+co+strings.Join(internal.Map(func(subc *Command) string {
+					fmt.Fprint(w, " "+co+strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
 					}, visibleCommands(allcmd.commands)...), " | ")+cc)
 				}
 			}
 		}
 
-		fmt.Fprintln(bw)
+		fmt.Fprintln(w)
 
 		if cmd.LongDescription != "" {
-			fmt.Fprintln(bw)
-			fmt.Fprintln(bw, wrapText(cmd.LongDescription, aligninfo.terminalColumns, ""))
+			fmt.Fprintln(w)
+			fmt.Fprintln(w, wrapText(cmd.LongDescription, aligninfo.terminalColumns, ""))
 		}
 	}
 
@@ -1715,23 +1711,23 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				}
 
 				if printcmd {
-					fmt.Fprintf(bw, "\n[%s command options]\n", c.Name)
+					fmt.Fprintf(w, "\n[%s command options]\n", c.Name)
 					aligninfo.indent = true
 					printcmd = false
 				}
 
 				if first && cmd.Group != grp {
-					fmt.Fprintln(bw)
+					fmt.Fprintln(w)
 
 					if aligninfo.indent {
-						_, _ = bw.WriteString("    ")
+						_, _ = io.WriteString(w, "    ")
 					}
 
-					fmt.Fprintf(bw, "%s:\n", grp.ShortDescription)
+					fmt.Fprintf(w, "%s:\n", grp.ShortDescription)
 					first = false
 				}
 
-				p.writeHelpOption(bw, info, aligninfo)
+				p.writeHelpOption(w, info, aligninfo)
 			}
 			return true
 		})
@@ -1741,9 +1737,9 @@ func (p *Parser) WriteHelp(w io.Writer) {
 			return arg.Description != ""
 		}, c.args...); len(args) > 0 {
 			if c == p.Command {
-				fmt.Fprintf(bw, "\nArguments:\n")
+				fmt.Fprintf(w, "\nArguments:\n")
 			} else {
-				fmt.Fprintf(bw, "\n[%s command arguments]\n", c.Name)
+				fmt.Fprintf(w, "\n[%s command arguments]\n", c.Name)
 			}
 
 			descStart := aligninfo.descriptionStart() + _paddingBeforeOption
@@ -1752,11 +1748,11 @@ func (p *Parser) WriteHelp(w io.Writer) {
 				argPrefix := strings.Repeat(" ", _paddingBeforeOption) + arg.Name
 				if arg.Description != "" {
 					argPrefix += ":"
-					_, _ = bw.WriteString(argPrefix)
+					_, _ = io.WriteString(w, argPrefix)
 
 					// Space between "arg:" and the description start
-					_, _ = bw.WriteString(strings.Repeat(" ", descStart-len(argPrefix)))
-					_, _ = bw.WriteString(wrapText(
+					_, _ = io.WriteString(w, strings.Repeat(" ", descStart-len(argPrefix)))
+					_, _ = io.WriteString(w, wrapText(
 						arg.Description,
 						// How much space the description gets before wrapping
 						aligninfo.terminalColumns-1-descStart,
@@ -1764,17 +1760,17 @@ func (p *Parser) WriteHelp(w io.Writer) {
 						strings.Repeat(" ", descStart),
 					))
 				} else {
-					_, _ = bw.WriteString(argPrefix)
+					_, _ = io.WriteString(w, argPrefix)
 				}
 
-				fmt.Fprintln(bw)
+				fmt.Fprintln(w)
 			}
 		}
 	}
 
 	if scommands := visibleCommands(cmd.commands); len(scommands) > 0 {
-		fmt.Fprintln(bw)
-		fmt.Fprintln(bw, "Available commands:")
+		fmt.Fprintln(w)
+		fmt.Fprintln(w, "Available commands:")
 
 		maxnamelen := internal.MaxBy(func(v *Command) int {
 			aliasesTotalLen := 0
@@ -1786,14 +1782,14 @@ func (p *Parser) WriteHelp(w io.Writer) {
 
 		for _, c := range scommands {
 			fullNameRepresentation := c.Name + internal.Iverson(len(c.Aliases) > 0, ","+strings.Join(c.Aliases, ","))
-			fmt.Fprint(bw, "  "+fullNameRepresentation)
+			fmt.Fprint(w, "  "+fullNameRepresentation)
 
 			if c.ShortDescription != "" {
 				pad := strings.Repeat(" ", maxnamelen-len(fullNameRepresentation))
-				fmt.Fprintf(bw, "%s  %s", pad, c.ShortDescription)
+				fmt.Fprintf(w, "%s  %s", pad, c.ShortDescription)
 			}
 
-			fmt.Fprintln(bw)
+			fmt.Fprintln(w)
 		}
 	}
 }
