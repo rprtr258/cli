@@ -83,11 +83,7 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 	case reflect.String:
 		return val.String(), nil
 	case reflect.Bool:
-		if val.Bool() {
-			return "true", nil
-		}
-
-		return "false", nil
+		return fun.IF(val.Bool(), "true", "false"), nil
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		base, err := getBase(options.Get("base"), 10)
 		if err != nil {
@@ -109,22 +105,16 @@ func convertToString(val reflect.Value, options multiTag) (string, error) {
 			return "", nil
 		}
 
-		ret := "["
-
+		ret := make([]string, val.Len())
 		for i := 0; i < val.Len(); i++ {
-			if i != 0 {
-				ret += ", "
-			}
-
 			item, err := convertToString(val.Index(i), options)
 			if err != nil {
 				return "", err
 			}
 
-			ret += item
+			ret[i] = item
 		}
-
-		return ret + "]", nil
+		return "[" + strings.Join(ret, ", ") + "]", nil
 	case reflect.Map:
 		ret := "{"
 
