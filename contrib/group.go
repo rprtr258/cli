@@ -1671,10 +1671,10 @@ func (p *Parser) WriteHelp() string {
 
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
 				scommands := "command"
-				if len(visibleCommands(allcmd.commands)) <= 3 {
+				if visibleCommands := visibleCommands(allcmd.commands); len(visibleCommands) <= 3 {
 					scommands = strings.Join(internal.Map(func(subc *Command) string {
 						return subc.Name
-					}, visibleCommands(allcmd.commands)...), " | ")
+					}, visibleCommands...), " | ")
 				}
 
 				co, cc := "<", ">"
