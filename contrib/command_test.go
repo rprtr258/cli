@@ -20,7 +20,7 @@ func TestCommandInline(t *testing.T) {
 	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
-	assert.Equal(t, p.Command.Find("cmd"), p.Command.Active)
+	assert.Equal(t, p.Command.find("cmd"), p.Command.Active)
 }
 
 func TestCommandInlineMulti(t *testing.T) {
@@ -37,9 +37,9 @@ func TestCommandInlineMulti(t *testing.T) {
 	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.C2.G)
-	assert.NotNil(t, p.Command.Find("c1"))
+	assert.NotNil(t, p.Command.find("c1"))
 
-	c2 := p.Command.Find("c2")
+	c2 := p.Command.find("c2")
 	assert.NotNil(t, c2)
 	assert.Equal(t, c2, p.Command.Active)
 }
@@ -234,7 +234,7 @@ func TestCommandAdd(t *testing.T) {
 	assert.Equal(t, []string{"rest"}, ret)
 	assert.True(t, opts.Value)
 	assert.True(t, cmd.G)
-	assert.Equal(t, c, p.Command.Find("cmd"))
+	assert.Equal(t, c, p.Command.find("cmd"))
 	assert.Equal(t, c, p.Command.Commands()[0])
 	assert.Equal(t, 'g', c.Group.options[0].ShortName)
 }
@@ -256,11 +256,11 @@ func TestCommandNestedInline(t *testing.T) {
 	assert.True(t, opts.Command.G)
 	assert.Equal(t, "n", opts.Command.Nested.N)
 
-	c := p.Command.Find("cmd")
+	c := p.Command.find("cmd")
 	assert.NotNil(t, c)
 	assert.Equal(t, c, p.Command.Active)
 
-	nested := c.Find("nested")
+	nested := c.find("nested")
 	assert.NotNil(t, nested)
 	assert.Equal(t, nested, c.Active)
 }

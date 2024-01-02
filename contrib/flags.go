@@ -727,9 +727,9 @@ func (c *Command) Commands() []*Command {
 	return c.commands
 }
 
-// Find locates the subcommand with the given name and returns it. If no such
-// command can be found Find will return nil.
-func (c *Command) Find(name string) *Command {
+// find locates the subcommand with the given name and returns it. If no such
+// command can be found find will return nil.
+func (c *Command) find(name string) *Command {
 	for _, cc := range c.commands {
 		if cc.Name == name || internal.OneOf(name, cc.Aliases...) {
 			return cc
