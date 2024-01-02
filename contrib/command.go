@@ -5,10 +5,21 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
 	"github.com/rprtr258/fun/iter"
+
+	"github.com/rprtr258/cli/internal"
 )
+
+func ToDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
+	ret := make(map[K]V)
+	seq(func(t T) bool {
+		k, v := f(t)
+		ret[k] = v
+		return true
+	})
+	return ret
+}
 
 // Command represents an application command. Commands can be added to the
 // parser (which itself is a command) and are selected/executed when its name
@@ -321,11 +332,6 @@ func (c *Command) makeLookup() lookup {
 		parent = cmd.parent
 	}
 
-	ret := lookup{
-		shortNames: make(map[string]*Option),
-		longNames:  make(map[string]*Option),
-		commands:   make(map[string]*Command),
-	}
 	opts := iter.FlatMap(
 		iter.FlatMap(iter.
 			Seq[*Command](func(yield func(*Command) bool) bool {
@@ -341,20 +347,22 @@ func (c *Command) makeLookup() lookup {
 			}), func(g *Group) iter.Seq[*Option] {
 			return iter.FromMany(g.options...)
 		})
-	opts.
-		Filter(func(o *Option) bool {
-			return o.ShortName != 0
-		}).
-		ForEach(func(o *Option) {
-			ret.shortNames[string(o.ShortName)] = o
-		})
-	opts.
-		Filter(func(o *Option) bool {
-			return o.LongName != ""
-		}).
-		ForEach(func(o *Option) {
-			ret.longNames[o.LongNameWithNamespace()] = o
-		})
+	ret := lookup{
+		shortNames: ToDict(opts.
+			Filter(func(o *Option) bool {
+				return o.ShortName != 0
+			}), func(o *Option) (string, *Option) {
+			return string(o.ShortName), o
+		}),
+		longNames: ToDict(opts.
+			Filter(func(o *Option) bool {
+				return o.LongName != ""
+			}), func(o *Option) (string, *Option) {
+			return o.LongNameWithNamespace(), o
+		}),
+		commands: make(map[string]*Command),
+	}
+
 	for _, subcommand := range c.commands {
 		ret.commands[subcommand.Name] = subcommand
 		for _, a := range subcommand.Aliases {
