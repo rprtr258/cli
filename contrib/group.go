@@ -2058,24 +2058,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 		}, visibleCommands(p.command.commands)...)
 
 		if len(p.retargs) != 0 {
-			c, l := getClosest(p.retargs[0], cmdnames)
-			return &Error{
-				Kind: ErrUnknownCommand,
-				Message: fmt.Sprintf("Unknown command `%s'", p.retargs[0]) + func() string {
-					switch {
-					case l*2 < len(c):
-						return fmt.Sprintf(", did you mean `%s'?", c)
-					case len(cmdnames) == 1:
-						return fmt.Sprintf(". You should use the %s command", cmdnames[0])
-					case len(cmdnames) > 1:
-						return fmt.Sprintf(". Please specify one command of: %s or %s",
-							strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-							cmdnames[len(cmdnames)-1])
-					default:
-						return ""
-					}
-				}(),
-			}
+			return newUnknownCommandError(p.retargs[0], cmdnames)
 		}
 
 		return &Error{

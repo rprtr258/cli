@@ -3,6 +3,7 @@ package flags
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/samber/lo"
 
@@ -87,5 +88,26 @@ func marshalError(option *Flag, err error) *Error {
 		Message: "invalid argument for flag `" + option.String() + "'" +
 			internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
 			": " + err.Error(),
+	}
+}
+
+func newUnknownCommandError(name string, cmdnames []string) error {
+	c, l := getClosest(name, cmdnames)
+	return &Error{
+		Kind: ErrUnknownCommand,
+		Message: fmt.Sprintf("Unknown command `%s'", name) + func() string {
+			switch {
+			case l*2 < len(c):
+				return fmt.Sprintf(", did you mean `%s'?", c)
+			case len(cmdnames) == 1:
+				return fmt.Sprintf(". You should use the %s command", cmdnames[0])
+			case len(cmdnames) > 1:
+				return fmt.Sprintf(". Please specify one command of: %s or %s",
+					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+					cmdnames[len(cmdnames)-1])
+			default:
+				return ""
+			}
+		}(),
 	}
 }
