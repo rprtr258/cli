@@ -1,3 +1,4 @@
+//go:build !windows && !plan9 && !appengine && !wasm
 // +build !windows,!plan9,!appengine,!wasm
 
 package flags
@@ -11,5 +12,10 @@ func getTerminalColumns() int {
 	if err != nil {
 		return 80
 	}
+
+	if ws.Col <= 0 {
+		return 80
+	}
+
 	return int(ws.Col)
 }

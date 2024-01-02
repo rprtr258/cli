@@ -9,31 +9,25 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/assert"
 )
 
-type TestComplete struct {
-}
+type testComplete struct{}
 
-func (t *TestComplete) Complete(match string) []Completion {
+func (t *testComplete) Complete(match string) []Completion {
 	options := []string{
 		"hello world",
 		"hello universe",
 		"hello multiverse",
 	}
 
-	ret := make([]Completion, 0, len(options))
-
-	for _, o := range options {
-		if strings.HasPrefix(o, match) {
-			ret = append(ret, Completion{
-				Item: o,
-			})
-		}
-	}
-
-	return ret
+	return fun.FilterMap[Completion](func(o string) (Completion, bool) {
+		return Completion{
+			Item:        o,
+			Description: "",
+		}, strings.HasPrefix(o, match)
+	}, options...)
 }
 
 var completionTestOptions struct {
@@ -67,11 +61,10 @@ var completionTestOptions struct {
 	} `command:"rm" description:"remove an item"`
 
 	RenameCommand struct {
-		Completed TestComplete `short:"c" long:"completed"`
+		Completed testComplete `short:"c" long:"completed"`
 	} `command:"rename" description:"rename an item"`
 
-	HiddenCommand struct {
-	} `command:"hidden" description:"hidden command" hidden:"true"`
+	HiddenCommand struct{} `command:"hidden" description:"hidden command" hidden:"true"`
 }
 
 type completionTest struct {
@@ -86,10 +79,10 @@ var completionTests = func() map[string]completionTest {
 	completionTestFilename := []string{filepath.Join(completionTestSourcedir, "completion.go"), filepath.Join(completionTestSourcedir, "completion_test.go")}
 
 	completionTestSubdir := []string{
-		filepath.Join(completionTestSourcedir, "examples/add.go"),
-		filepath.Join(completionTestSourcedir, "examples/bash-completion"),
-		filepath.Join(completionTestSourcedir, "examples/main.go"),
-		filepath.Join(completionTestSourcedir, "examples/rm.go"),
+		filepath.Join(completionTestSourcedir, "examples", "add.go"),
+		filepath.Join(completionTestSourcedir, "examples", "bash-completion"),
+		filepath.Join(completionTestSourcedir, "examples", "main.go"),
+		filepath.Join(completionTestSourcedir, "examples", "rm.go"),
 	}
 
 	return map[string]completionTest{
@@ -209,7 +202,7 @@ func TestCompletion(t *testing.T) {
 
 	for name, test := range completionTests {
 		t.Run(name, func(t *testing.T) {
-			items := internal.Map(func(v Completion) string {
+			items := fun.Map[string](func(v Completion) string {
 				return v.Item
 			}, c.complete(test.Args)...)
 
@@ -235,7 +228,7 @@ func TestParserCompletion(t *testing.T) {
 				comp.print(&buf, items)
 			}
 
-			_, err := p.ParseArgs(test.Args...)
+			_, err := p.Run(test.Args...)
 			assert.NoError(t, err)
 
 			got := strings.Split(buf.String(), "\n")

@@ -2,8 +2,12 @@ package flags
 
 import (
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/samber/lo"
+
+	"github.com/rprtr258/cli/internal"
 )
 
 // ErrorKind represents the type of error.
@@ -47,10 +51,6 @@ func (e ErrorKind) String() string {
 		Default("unrecognized error type")
 }
 
-func (e ErrorKind) Error() string {
-	return e.String()
-}
-
 // Error represents a parser error. The error returned from Parse is of this
 // type. The error contains both a Type and Message.
 type Error struct {
@@ -63,15 +63,11 @@ func (e *Error) Error() string {
 	return e.Message
 }
 
-func newError(tp ErrorKind, message string) *Error {
+func newErrorf(tp ErrorKind, format string, args ...any) *Error {
 	return &Error{
 		Kind:    tp,
-		Message: message,
+		Message: fmt.Sprintf(format, args...),
 	}
-}
-
-func newErrorf(tp ErrorKind, format string, args ...any) *Error {
-	return newError(tp, fmt.Sprintf(format, args...))
 }
 
 func wrapError(err error) *Error {
@@ -79,5 +75,55 @@ func wrapError(err error) *Error {
 		return ret
 	}
 
-	return newError(ErrUnknown, err.Error())
+	return &Error{
+		Kind:    ErrUnknown,
+		Message: err.Error(),
+	}
+}
+
+func marshalError(option *Flag, err error) *Error {
+	valueType := option.value.Type()
+	return &Error{
+		Kind: ErrMarshal,
+		Message: "invalid argument for flag `" + option.String() + "'" +
+			internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
+			": " + err.Error(),
+	}
+}
+
+func newUnknownCommandError(name string, cmdnames []string) error {
+	c, l := getClosest(name, cmdnames)
+	return &Error{
+		Kind: ErrUnknownCommand,
+		Message: fmt.Sprintf("Unknown command `%s'", name) + func() string {
+			switch {
+			case l*2 < len(c):
+				return fmt.Sprintf(", did you mean `%s'?", c)
+			case len(cmdnames) == 0:
+				return ""
+			case len(cmdnames) == 1:
+				return fmt.Sprintf(". You should use the %s command", cmdnames[0])
+			default:
+				return fmt.Sprintf(". Please specify one command of: %s or %s",
+					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+					cmdnames[len(cmdnames)-1])
+			}
+		}(),
+	}
+}
+
+func newCommandRequiredError(cmdnames []string) error {
+	return &Error{
+		Kind: ErrCommandRequired,
+		Message: lo.Switch[int, string](len(cmdnames)).
+			Case(0, "").
+			CaseF(1, func() string {
+				return fmt.Sprintf("Please specify the %s command", cmdnames[0])
+			}).
+			DefaultF(func() string {
+				return fmt.Sprintf("Please specify one command of: %s or %s",
+					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+					cmdnames[len(cmdnames)-1])
+			}),
+	}
 }

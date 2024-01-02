@@ -11,34 +11,24 @@ func Example() {
 		// Slice of bool will append 'true' each time the option
 		// is encountered (can be set multiple times, like -vvv)
 		Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-
 		// Example of automatic marshalling to desired type (uint)
 		Offset uint `long:"offset" description:"Offset"`
-
 		// Example of a callback, called each time the option is found.
 		Call func(string) `short:"c" description:"Call phone number"`
-
 		// Example of a required flag
 		Name string `short:"n" long:"name" description:"A name" required:"true"`
-
 		// Example of a value name
 		File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
-
 		// Example of a pointer
 		Ptr *int `short:"p" description:"A pointer to an integer"`
-
 		// Example of a slice of strings
 		StringSlice []string `short:"s" description:"A slice of strings"`
-
 		// Example of a slice of pointers
 		PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
-
 		// Example of a map
 		IntMap map[string]int `long:"intmap" description:"A map from string to int"`
-
 		// Example of a filename (useful for completion)
 		Filename Filename `long:"filename" description:"A filename"`
-
 		// Example of positional arguments
 		Args struct {
 			ID   string
@@ -52,14 +42,11 @@ func Example() {
 	// Skype) but it shows the idea.
 	opts.Call = func(num string) {
 		cmd := exec.Command("open", "callto:"+num)
-		cmd.Start()
-		cmd.Process.Release()
+		_ = cmd.Start()
+		_ = cmd.Process.Release()
 	}
 
-	// Parse flags from `args'. Note that here we use flags.ParseArgs for
-	// the sake of making a working example. Normally, you would simply use
-	// flags.Parse(&opts) which uses os.Args
-	_, err := ParseArgs(&opts,
+	_, err := NewParser(&opts, Default).Run(
 		// some fake arguments to parse
 		"-vv",
 		"--offset=5",
@@ -77,7 +64,6 @@ func Example() {
 		"remaining1",
 		"remaining2",
 	)
-
 	if err != nil {
 		panic(err)
 	}

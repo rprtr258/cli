@@ -1,11 +1,12 @@
 package flags
 
+// TODO: OPTIMIZE: less memory could be used
 func dist(s, t string) int {
-	if len(s) == 0 {
+	if s == "" {
 		return len(t)
 	}
 
-	if len(t) == 0 {
+	if t == "" {
 		return len(s)
 	}
 
@@ -24,13 +25,11 @@ func dist(s, t string) int {
 			if sc == tc {
 				dists[i+1][j+1] = dists[i][j]
 			} else {
-				dists[i+1][j+1] = dists[i][j] + 1
-				if dists[i+1][j] < dists[i+1][j+1] {
-					dists[i+1][j+1] = dists[i+1][j] + 1
-				}
-				if dists[i][j+1] < dists[i+1][j+1] {
-					dists[i+1][j+1] = dists[i][j+1] + 1
-				}
+				dists[i+1][j+1] = min(
+					dists[i][j],
+					dists[i+1][j],
+					dists[i][j+1],
+				) + 1
 			}
 		}
 	}
@@ -38,7 +37,7 @@ func dist(s, t string) int {
 	return dists[len(s)][len(t)]
 }
 
-func getClosest(cmd string, choices []string) (string, int) {
+func getClosest(cmd string, choices []string) (closest_ string, distMin_ int) {
 	if len(choices) == 0 {
 		return "", 0
 	}

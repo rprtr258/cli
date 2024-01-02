@@ -3,28 +3,27 @@ package flags
 import (
 	"fmt"
 	"testing"
+
+	"github.com/rprtr258/fun"
+	"github.com/stretchr/testify/assert"
 )
 
 type marshalled string
 
 func (m *marshalled) UnmarshalFlag(value string) error {
-	if value == "yes" {
+	switch value {
+	case "yes":
 		*m = "true"
-	} else if value == "no" {
+	case "no":
 		*m = "false"
-	} else {
+	default:
 		return fmt.Errorf("`%s' is not a valid value, please specify `yes' or `no'", value)
 	}
-
 	return nil
 }
 
 func (m marshalled) MarshalFlag() (string, error) {
-	if m == "true" {
-		return "yes", nil
-	}
-
-	return "no", nil
+	return fun.IF(m == "true", "yes", "no"), nil
 }
 
 type marshalledError bool
@@ -34,86 +33,68 @@ func (m marshalledError) MarshalFlag() (string, error) {
 }
 
 func TestUnmarshal(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v=yes")
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, marshalled("true"), opts.Value)
 }
 
 func TestUnmarshalDefault(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v" default:"yes"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts)
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, marshalled("true"), opts.Value)
 }
 
 func TestUnmarshalOptional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value != "true" {
-		t.Errorf("Expected Value to be \"true\"")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, marshalled("true"), opts.Value)
 }
 
 func TestUnmarshalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalled `short:"v"`
 	}{}
 
-	assertParseFail(t, ErrMarshal, fmt.Sprintf("invalid argument for flag `%cv' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'", defaultShortOptDelimiter), &opts, "-vinvalid")
+	assertParseFail(t, newErrorf(
+		ErrMarshal,
+		"invalid argument for flag `%cv' (expected flags.marshalled): `invalid' is not a valid value, please specify `yes' or `no'",
+		_defaultOptDelimiterShort,
+	), &opts, "-vinvalid")
 }
 
 func TestUnmarshalPositionalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Args struct {
 			Value marshalled
 		} `positional-args:"yes"`
 	}{}
 
-	parser := NewParser(&opts, Default&^PrintErrors)
-	_, err := parser.ParseArgs("invalid")
-
-	msg := "`invalid' is not a valid value, please specify `yes' or `no'"
-
-	if err == nil {
-		assertFatalf(t, "Expected error: %s", msg)
-		return
-	}
-
-	if err.Error() != msg {
-		assertErrorf(t, "Expected error message %#v, but got %#v", msg, err.Error())
-	}
+	_, err := NewParser(&opts, Default).Run("invalid")
+	assert.Error(t, err)
+	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }
 
 func TestMarshalError(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value marshalledError `short:"v"`
 	}{}
 
-	p := NewParser(&opts, Default)
-	o := p.Command.Groups()[0].Options()[0]
-
+	o := NewParser(&opts, Default).Command.Group.subgroups[0].flags[0]
 	_, err := convertToString(o.value, o.tag)
-
-	assertError(t, err, ErrMarshal, "Failed to marshal")
+	assert.Equal(t, &Error{
+		Kind:    ErrMarshal,
+		Message: "Failed to marshal",
+	}, err)
 }

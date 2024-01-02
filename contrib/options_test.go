@@ -1,52 +1,35 @@
 package flags
 
 import (
-	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPassDoubleDash(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
-	p := NewParser(&opts, PassDoubleDash)
-	ret, err := p.ParseArgs("-v", "--", "-v", "-g")
-
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assertStringArray(t, ret, []string{"-v", "-g"})
+	ret, err := NewParser(&opts, PassDoubleDash).Run("-v", "--", "-v", "-g")
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{"-v", "-g"}, ret)
 }
 
 func TestPassAfterNonOption(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assertStringArray(t, ret, []string{"arg", "-v", "-g"})
+	ret, err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{"arg", "-v", "-g"}, ret)
 }
 
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -54,24 +37,15 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "arg", "-v", "-g")
-
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assertStringArray(t, ret, []string{})
-	assertStringArray(t, opts.Positional.Rest, []string{"arg", "-v", "-g"})
+	ret, err := NewParser(&opts, Default).Run("-v", "arg", "-v", "-g")
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []string{"arg", "-v", "-g"}, opts.Positional.Rest)
 }
 
 func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -79,28 +53,15 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "1", "2", "3")
-
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-		return
-	}
-
-	if !opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
-
-	assertStringArray(t, ret, []string{})
-	for i, rest := range opts.Positional.Rest {
-		if rest != i+1 {
-			assertErrorf(t, "Expected %v got %v", i+1, rest)
-		}
-	}
+	ret, err := NewParser(&opts, Default).Run("-v", "1", "2", "3")
+	assert.NoError(t, err)
+	assert.True(t, opts.Value)
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []int{1, 2, 3}, opts.Positional.Rest)
 }
 
 func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value bool `short:"v"`
 
 		Positional struct {
@@ -108,7 +69,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	tests := []struct {
+	for _, test := range []struct {
 		opts        []string
 		errContains string
 		ret         []string
@@ -123,21 +84,11 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 			"notint2",
 			[]string{"1", "notint2", "notint3"},
 		},
-	}
-
-	for _, test := range tests {
-		p := NewParser(&opts, PassAfterNonOption)
-		ret, err := p.ParseArgs(test.opts...)
-
-		if err == nil {
-			assertErrorf(t, "Expected error")
-			return
-		}
-
-		if !strings.Contains(err.Error(), test.errContains) {
-			assertErrorf(t, "Expected the first illegal argument in the error")
-		}
-
-		assertStringArray(t, ret, test.ret)
+	} {
+		p := NewParser(&opts, Default)
+		ret, err := p.Run(test.opts...)
+		assert.Error(t, err)
+		assert.ErrorContains(t, err, test.errContains)
+		assert.Equal(t, ret, test.ret)
 	}
 }

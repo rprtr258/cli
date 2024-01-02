@@ -1,0 +1,237 @@
+package flags
+
+import (
+	"testing"
+
+	"github.com/stretchr/testify/assert"
+)
+
+func TestGroupInline(t *testing.T) {
+	opts := struct {
+		Value bool `short:"v"`
+		Group struct {
+			G bool `short:"g"`
+		} `group:"Grouped Options"`
+	}{}
+
+	p, ret := assertParserSuccess(t, &opts, "-v", "-g")
+	assert.Equal(t, ret, []string{})
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Group.G)
+	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
+}
+
+func TestGroupAdd(t *testing.T) {
+	opts := struct {
+		Value bool `short:"v"`
+	}{}
+
+	grp := struct {
+		G bool `short:"g"`
+	}{}
+
+	p := NewParser(&opts, Default)
+	g := p.Command.addGroup("Grouped Options", "", &grp)
+
+	ret, err := p.Run("-v", "-g", "rest")
+	assert.NoError(t, err)
+
+	assert.Equal(t, ret, []string{"rest"})
+	assert.True(t, opts.Value)
+	assert.True(t, grp.G)
+	assert.Equal(t, g, p.Command.Group.Find("Grouped Options"))
+	assert.Equal(t, g, p.Command.Group.subgroups[1])
+	assert.Equal(t, 'g', g.flags[0].ShortName)
+}
+
+func TestGroupNestedInline(t *testing.T) {
+	opts := struct {
+		Value bool `short:"v"`
+		Group struct {
+			G bool `short:"g"`
+
+			Nested struct {
+				N string `long:"n"`
+			} `group:"Nested Options"`
+		} `group:"Grouped Options"`
+	}{}
+
+	p, ret := assertParserSuccess(t, &opts, "-v", "-g", "--n", "n", "rest")
+	assert.Equal(t, ret, []string{"rest"})
+	assert.True(t, opts.Value)
+	assert.True(t, opts.Group.G)
+	assert.Equal(t, opts.Group.Nested.N, "n")
+	assert.NotNil(t, p.Command.Group.Find("Grouped Options"))
+	assert.NotNil(t, p.Command.Group.Find("Nested Options"))
+}
+
+func TestGroupNestedInlineNamespace(t *testing.T) {
+	opts := struct {
+		Opt string `long:"opt"`
+
+		Group struct {
+			Opt   string `long:"opt"`
+			Group struct {
+				Opt string `long:"opt"`
+			} `group:"Subsubgroup" namespace:"sap"`
+		} `group:"Subgroup" namespace:"sip"`
+	}{}
+
+	p, ret := assertParserSuccess(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
+	assert.Equal(t, ret, []string{"rest"})
+	assert.Equal(t, opts.Opt, "a")
+	assert.Equal(t, opts.Group.Opt, "b")
+	assert.Equal(t, opts.Group.Group.Opt, "c")
+	for _, name := range []string{"Subgroup", "Subsubgroup"} {
+		assert.NotNil(t, p.Command.Group.Find(name))
+	}
+}
+
+func TestDuplicateShortFlags(t *testing.T) {
+	var opts struct {
+		Verbose   []bool   `short:"v" long:"verbose" description:"Show verbose debug information"`
+		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
+	}
+
+	_, err := NewParser(&opts, Default).Run(
+		"--verbose",
+		"-v", "123",
+		"-v", "456",
+	)
+	assert.Error(t, err)
+	err2 := err.(*Error)
+	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
+}
+
+func TestDuplicateLongFlags(t *testing.T) {
+	var opts struct {
+		Test1 []bool   `short:"a" long:"testing" description:"Test 1"`
+		Test2 []string `short:"b" long:"testing" description:"Test 2."`
+	}
+
+	_, err := NewParser(&opts, Default).Run("--testing")
+	assert.Error(t, err)
+	err2 := err.(*Error)
+	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
+}
+
+func TestAddOptionNonOptional(t *testing.T) {
+	var opts struct {
+		Test bool
+	}
+	p := NewParser(&opts, Default)
+	p.Command.Group.AddOption(&Flag{
+		LongName: "test",
+	}, &opts.Test)
+
+	_, err := p.Run("--test")
+	assert.NoError(t, err)
+	assert.True(t, opts.Test)
+}
+
+func TestLong(t *testing.T) {
+	t.Run("Long", func(t *testing.T) {
+		opts := struct {
+			Value bool `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value")
+		assert.Equal(t, []string{}, ret)
+		assert.True(t, opts.Value)
+	})
+
+	t.Run("LongArg", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value", "value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongArgEqual", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value=value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongDefault", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" default:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts)
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptional", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value")
+		assert.Equal(t, []string{}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptionalArg", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value", "no")
+		assert.Equal(t, []string{"no"}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+
+	t.Run("LongOptionalArgEqual", func(t *testing.T) {
+		opts := struct {
+			Value string `long:"value" optional:"yes" optional-value:"value"`
+		}{}
+
+		ret := assertParseSuccess(t, &opts, "--value=value", "no")
+		assert.Equal(t, []string{"no"}, ret)
+		assert.Equal(t, "value", opts.Value)
+	})
+}
+
+func TestUnknown(t *testing.T) {
+	t.Run("UnknownFlags", func(t *testing.T) {
+		opts := struct {
+			Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+		}{}
+
+		_, err := NewParser(&opts, 0).Run("-f")
+		assert.Error(t, err)
+	})
+
+	t.Run("IgnoreUnknownFlags", func(t *testing.T) {
+		opts := struct {
+			Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+		}{}
+
+		args, err := NewParser(&opts, IgnoreUnknown).Run(
+			"hello",
+			"world",
+			"-v",
+			"--foo=bar",
+			"--verbose",
+			"-f",
+		)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{
+			"hello",
+			"world",
+			"-v",
+			"--foo=bar",
+			"--verbose",
+			"-f",
+		}, args)
+	})
+}

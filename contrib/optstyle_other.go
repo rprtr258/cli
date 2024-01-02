@@ -5,17 +5,15 @@ package flags
 
 import (
 	"strings"
+
+	"github.com/rprtr258/fun"
 )
 
 const (
-	defaultShortOptDelimiter = '-'
-	defaultLongOptDelimiter  = "--"
-	defaultNameArgDelimiter  = '='
+	_defaultOptDelimiterShort = '-'
+	_defaultOptDelimiterLong  = "--"
+	_defaultArgDelimiterName  = '='
 )
-
-func doesLookLikeFlag(arg string) bool {
-	return len(arg) > 0 && arg[0] == '-'
-}
 
 func isFlag(arg string) bool {
 	return len(arg) > 1 && arg[0] == '-' && arg[1] != '-' ||
@@ -37,23 +35,26 @@ func stripFlagPrefix(arg string) (prefix, name string, islong bool) {
 
 // splitFlag attempts to split the passed option into a name and an argument.
 // When there is no argument specified, nil will be returned for it.
-func splitFlag(prefix string, option string, islong bool) (string, *string) {
+func splitFlag(prefix, option string, islong bool) (option_ string, rest_ *string) {
 	if pos := strings.Index(option, "="); islong && pos >= 0 || !islong && pos == 1 {
-		rest := option[pos+1:]
-		return option[:pos], &rest
+		return option[:pos], fun.Ptr(option[pos+1:])
 	}
 
 	return option, nil
 }
 
 // addHelpGroup adds a new group that contains default help parameters.
-func (c *Command) addHelpGroup(showHelp func() error) *Group {
-	var help struct {
+func (c *Command) addHelpGroup(help func() string) *Group {
+	ret := c.addGroup("Help Options", "", &struct {
 		ShowHelp func() error `short:"h" long:"help" description:"Show this help message"`
-	}
-	help.ShowHelp = showHelp
-
-	ret, _ := c.AddGroup("Help Options", "", &help)
+	}{
+		ShowHelp: func() error {
+			return &Error{
+				Kind:    ErrHelp,
+				Message: help(),
+			}
+		},
+	})
 	ret.isBuiltinHelp = true
 	return ret
 }

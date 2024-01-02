@@ -1,12 +1,9 @@
 package flags
 
 import (
-	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"runtime"
-	"strings"
 	"testing"
 	"time"
 
@@ -83,25 +80,12 @@ type helpOptions struct {
 func TestHelp(t *testing.T) {
 	var opts helpOptions
 	p := NewNamedParser("TestHelp", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	p.Command.addGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs("--help")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
-		var expected string
-
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
+	_, err := p.Run("--help")
+	var expected string
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
@@ -148,8 +132,8 @@ Available commands:
   command  A command (aliases: cm, cmd)
   parent   A command with a sub command
 `
-		} else {
-			expected = `Usage:
+	} else {
+		expected = `Usage:
   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
 
 Application Options:
@@ -195,29 +179,28 @@ Available commands:
   command,cm,cmd  A command
   parent          A parent command
 `
-		}
-
-		assertDiff(t, e.Message, expected, "help message")
 	}
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: expected,
+	}, err)
 }
 
 func TestMan(t *testing.T) {
 	p := NewNamedParser("TestMan", HelpFlag)
-	p.ShortDescription = "Test manpage generation"
-	p.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
-	p.AddGroup("Application Options", "The application options", &helpOptions{})
+	p.Command.Group.ShortDescription = "Test manpage generation"
+	p.Command.Group.LongDescription = "This is a somewhat `longer' description of what this does.\nWith multiple lines."
+	p.Command.addGroup("Application Options", "The application options", &helpOptions{})
 
-	for _, cmd := range p.Commands() {
-		cmd.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
+	for _, cmd := range p.Command.Commands() {
+		cmd.Group.LongDescription = fmt.Sprintf("Longer `%s' description", cmd.Name)
 	}
 
 	tt := time.Now()
 
 	var buf bytes.Buffer
 	p.WriteManPage(&buf, tt)
-
 	got := buf.String()
-
 	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
 .SH NAME
 TestMan \- Test manpage generation
@@ -320,49 +303,36 @@ This is a sub command option
 }
 
 type helpCommandNoOptions struct {
-	Command struct {
-	} `command:"command" description:"A command"`
+	Command struct{} `command:"command" description:"A command"`
 }
 
 func TestHelpCommand(t *testing.T) {
 	var opts helpCommandNoOptions
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	_ = p.Command.addGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs("command", "--help")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
-		var expected string
-
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
+	_, err := p.Run("command", "--help")
+	var expected string
+	if runtime.GOOS == "windows" {
+		expected = `Usage:
   TestHelpCommand [OPTIONS] command
 
 Help Options:
   /?              Show this help message
   /h, /help       Show this help message
 `
-		} else {
-			expected = `Usage:
+	} else {
+		expected = `Usage:
   TestHelpCommand [OPTIONS] command
 
 Help Options:
   -h, --help      Show this help message
 `
-		}
-
-		assertDiff(t, e.Message, expected, "help message")
 	}
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: expected,
+	}, err)
 }
 
 func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
@@ -378,15 +348,8 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	help.ShowHelp = func() error {
 		return &Error{Kind: ErrHelp}
 	}
-	hlpgrp, err := p.AddGroup("Help Options", "", &help)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-	}
+	hlpgrp := p.Command.addGroup("Help Options", "", &help)
 	hlpgrp.Hidden = true
-	hlp := p.FindOptionByLongName("help")
-	hlp.Description = "Show this help message"
-	// make sure the --help option is hidden
-	hlp.Hidden = true
 
 	// add a hidden command
 	var hiddenCmdOpts struct {
@@ -397,31 +360,19 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 		} `positional-args:"yes"`
 	}
 	cmdHidden, err := p.Command.AddCommand("hidden", "Hidden command description", "Long hidden command description", &hiddenCmdOpts)
-	if err != nil {
-		t.Fatalf("Unexpected error: %v", err)
-	}
+	assert.NoError(t, err)
 	// make it hidden
-	cmdHidden.Hidden = true
-	if len(cmdHidden.Options()) != 2 {
-		t.Fatalf("unexpected options count")
-	}
+	cmdHidden.Group.Hidden = true
+	assert.Len(t, cmdHidden.Group.flags, 2)
+
 	// which help we ask for explicitly
-	_, err = p.ParseArgs("hidden", "--help")
+	_, err = p.Run("hidden", "--help")
+	assert.Equal(t, &Error{
+		Kind:    ErrHelp,
+		Message: "",
+	}, err)
 
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-	if e, ok := err.(*Error); !ok {
-		t.Fatalf("Expected flags.Error, but got %T", err)
-	} else {
-		if e.Kind != ErrHelp {
-			t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-		}
-
-		var expected string
-
-		if runtime.GOOS == "windows" {
-			expected = `Usage:
+	const _expected = `Usage:
   TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
 
 Long hidden command description
@@ -429,26 +380,11 @@ Long hidden command description
 [hidden command arguments]
   <positional-foo>:         positional foo
 `
-		} else {
-			expected = `Usage:
-  TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
-
-Long hidden command description
-
-[hidden command arguments]
-  <positional-foo>:         positional foo
-`
-		}
-		h := &bytes.Buffer{}
-		p.WriteHelp(h)
-
-		assertDiff(t, h.String(), expected, "help message")
-	}
+	assert.Equal(t, _expected, p.WriteHelp())
 }
 
 func TestHelpDefaults(t *testing.T) {
 	var expected string
-
 	if runtime.GOOS == "windows" {
 		expected = `Usage:
   TestHelpDefaults [OPTIONS]
@@ -478,7 +414,7 @@ Help Options:
 `
 	}
 
-	tests := []struct {
+	for _, test := range []struct {
 		Args   []string
 		Output string
 	}{
@@ -490,9 +426,7 @@ Help Options:
 			Args:   []string{"--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
 			Output: expected,
 		},
-	}
-
-	for _, test := range tests {
+	} {
 		var opts struct {
 			WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
 			WithoutDefault          string `long:"without-default" description:"Without default"`
@@ -502,23 +436,13 @@ Help Options:
 		opts.WithProgrammaticDefault = "default-value"
 
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
-		p.AddGroup("Application Options", "The application options", &opts)
+		p.Command.addGroup("Application Options", "The application options", &opts)
 
-		_, err := p.ParseArgs(test.Args...)
-
-		if err == nil {
-			t.Fatalf("Expected help error")
-		}
-
-		if e, ok := err.(*Error); !ok {
-			t.Fatalf("Expected flags.Error, but got %T", err)
-		} else {
-			if e.Kind != ErrHelp {
-				t.Errorf("Expected flags.ErrHelp type, but got %s", e.Kind)
-			}
-
-			assertDiff(t, e.Message, test.Output, "help message")
-		}
+		_, err := p.Run(test.Args...)
+		assert.Equal(t, &Error{
+			Kind:    ErrHelp,
+			Message: test.Output,
+		}, err)
 	}
 }
 
@@ -528,22 +452,17 @@ func TestHelpRestArgs(t *testing.T) {
 	}{}
 
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
-	p.AddGroup("Application Options", "The application options", &opts)
+	p.Command.addGroup("Application Options", "The application options", &opts)
 
-	retargs, err := p.ParseArgs("-h", "-v", "rest")
-
-	if err == nil {
-		t.Fatalf("Expected help error")
-	}
-
-	assertStringArray(t, retargs, []string{"-v", "rest"})
+	retargs, err := p.Run("-h", "-v", "rest")
+	assert.Error(t, err)
+	assert.Equal(t, retargs, []string{"-v", "rest"})
 }
 
 func TestWrapText(t *testing.T) {
 	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-
 	got := wrapText(s, 60, "      ")
-	expected := `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
       sed do eiusmod tempor incididunt ut labore et dolore magna
       aliqua. Ut enim ad minim veniam, quis nostrud exercitation
       ullamco laboris nisi ut aliquip ex ea commodo consequat.
@@ -551,18 +470,16 @@ func TestWrapText(t *testing.T) {
       esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
       occaecat cupidatat non proident, sunt in culpa qui officia
       deserunt mollit anim id est laborum.`
-
-	assertDiff(t, got, expected, "wrapped text")
+	assert.Equal(t, got, _expected)
 }
 
 func TestWrapParagraph(t *testing.T) {
-	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n"
-	s += "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n"
-	s += "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\n"
-	s += "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
-
+	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n" +
+		"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n" +
+		"Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\n" +
+		"Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
 	got := wrapText(s, 60, "      ")
-	expected := `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
+	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
       sed do eiusmod tempor incididunt ut labore et dolore magna
       aliqua.
 
@@ -575,12 +492,11 @@ func TestWrapParagraph(t *testing.T) {
       Excepteur sint occaecat cupidatat non proident, sunt in
       culpa qui officia deserunt mollit anim id est laborum.
 `
-
-	assertDiff(t, got, expected, "wrapped paragraph")
+	assert.Equal(t, got, _expected)
 }
 
 func TestHelpDefaultMask(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		opts    any
 		present string
 	}{
@@ -624,41 +540,15 @@ func TestHelpDefaultMask(t *testing.T) {
 
 	for _, test := range tests {
 		p := NewParser(test.opts, HelpFlag)
-		_, err := p.ParseArgs("-h")
+		_, err := p.Run("-h")
 		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil
 		}
-		if err != nil {
-			t.Fatalf("Unexpected error: %v", err)
-		}
+		assert.NoError(t, err)
 		h := &bytes.Buffer{}
-		w := bufio.NewWriter(h)
-		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
-		w.Flush()
-		if strings.Index(h.String(), test.present) < 0 {
-			t.Errorf("Not present %q\n%s", test.present, h.String())
-		}
-	}
-}
-
-func TestWroteHelp(t *testing.T) {
-	type testInfo struct {
-		value  error
-		isHelp bool
-	}
-	tests := map[string]testInfo{
-		"No error":    {value: nil, isHelp: false},
-		"Plain error": {value: errors.New("an error"), isHelp: false},
-		"ErrUnknown":  {value: newError(ErrUnknown, "an error"), isHelp: false},
-		"ErrHelp":     {value: newError(ErrHelp, "an error"), isHelp: true},
-	}
-
-	for name, test := range tests {
-		t.Run(name, func(t *testing.T) {
-			res := WroteHelp(test.value)
-			if test.isHelp != res {
-				t.Errorf("Expected %t, got %t", test.isHelp, res)
-			}
-		})
+		p.writeHelpOption(h, p.Command.Group.findFlag(func(f *Flag) bool {
+			return f.ShortName == 'v'
+		}), p.getAlignmentInfo())
+		assert.Contains(t, h.String(), test.present)
 	}
 }

@@ -21,19 +21,16 @@ type Point struct {
 
 func (p *Point) UnmarshalFlag(value string) error {
 	parts := strings.Split(value, ",")
-
 	if len(parts) != 2 {
 		return errors.New("expected two numbers separated by a ,")
 	}
 
 	x, err := strconv.ParseInt(parts[0], 10, 32)
-
 	if err != nil {
 		return err
 	}
 
 	y, err := strconv.ParseInt(parts[1], 10, 32)
-
 	if err != nil {
 		return err
 	}
@@ -66,13 +63,8 @@ type Options struct {
 
 func main() {
 	parser := flags.NewParser(&Options{}, flags.Default)
-	if _, err := parser.Parse(); err != nil {
-		switch flagsErr := err.(type) {
-		case flags.ErrorKind:
-			if flagsErr == flags.ErrHelp {
-				return
-			}
-		}
+	if _, err := parser.Run(os.Args[1:]...); err != nil {
+		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
 }

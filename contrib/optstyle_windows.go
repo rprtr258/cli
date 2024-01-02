@@ -1,3 +1,4 @@
+//go:build !forceposix
 // +build !forceposix
 
 package flags
@@ -15,7 +16,7 @@ const (
 )
 
 func argumentStartsOption(arg string) bool {
-	return len(arg) > 0 && (arg[0] == '-' || arg[0] == '/')
+	return arg != "" && (arg[0] == '-' || arg[0] == '/')
 }
 
 func argumentIsOption(arg string) bool {
@@ -72,16 +73,15 @@ func splitOption(prefix string, option string, islong bool) (string, string, *st
 	// --foo=bar are acceptable, but /foo=bar and --foo:bar are not.
 	var pos int
 	var sp string
-
 	if prefix == "/" {
 		sp = ":"
 		pos = strings.Index(option, sp)
-	} else if len(prefix) > 0 {
+	} else if prefix != "" {
 		sp = "="
 		pos = strings.Index(option, sp)
 	}
 
-	if (islong && pos >= 0) || (!islong && pos == 1) {
+	if islong && pos >= 0 || !islong && pos == 1 {
 		rest := option[pos+1:]
 		return option[:pos], sp, &rest
 	}

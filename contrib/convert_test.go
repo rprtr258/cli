@@ -3,23 +3,14 @@ package flags
 import (
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
 )
-
-func expectConvert(t *testing.T, o *Option, expected string) {
-	s, err := convertToString(o.value, o.tag)
-
-	if err != nil {
-		t.Errorf("Unexpected error: %v", err)
-		return
-	}
-
-	assertString(t, s, expected)
-}
 
 func TestConvertToString(t *testing.T) {
 	d, _ := time.ParseDuration("1h2m4s")
 
-	var opts = struct {
+	opts := struct {
 		String string `long:"string"`
 
 		Int   int   `long:"int"`
@@ -80,9 +71,6 @@ func TestConvertToString(t *testing.T) {
 		4232,
 	}
 
-	p := NewNamedParser("test", Default)
-	grp, _ := p.AddGroup("test group", "", &opts)
-
 	expects := []string{
 		"string",
 		"-2",
@@ -113,47 +101,47 @@ func TestConvertToString(t *testing.T) {
 		"1088",
 	}
 
-	for i, v := range grp.Options() {
-		expectConvert(t, v, expects[i])
+	for i, v := range NewNamedParser("test", Default).Command.addGroup("test group", "", &opts).flags {
+		s, err := convertToString(v.value, v.tag)
+		assert.NoError(t, err)
+		assert.Equal(t, s, expects[i])
 	}
 }
 
 func TestConvertToStringInvalidIntBase(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Int int `long:"int" base:"no"`
 	}{
 		2,
 	}
 
 	p := NewNamedParser("test", Default)
-	grp, _ := p.AddGroup("test group", "", &opts)
-	o := grp.Options()[0]
+	o := p.Command.addGroup("test group", "", &opts).flags[0]
 
 	_, err := convertToString(o.value, o.tag)
-
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
 	}
-
-	assertError(t, err, ErrMarshal, "strconv.ParseInt: parsing \"no\": invalid syntax")
+	assert.Equal(t, &Error{
+		Kind:    ErrMarshal,
+		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
+	}, err)
 }
 
 func TestConvertToStringInvalidUintBase(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Uint uint `long:"uint" base:"no"`
 	}{
 		2,
 	}
 
-	p := NewNamedParser("test", Default)
-	grp, _ := p.AddGroup("test group", "", &opts)
-	o := grp.Options()[0]
-
+	o := NewNamedParser("test", Default).Command.addGroup("test group", "", &opts).flags[0]
 	_, err := convertToString(o.value, o.tag)
-
 	if err != nil {
 		err = newErrorf(ErrMarshal, "%v", err)
 	}
-
-	assertError(t, err, ErrMarshal, "strconv.ParseInt: parsing \"no\": invalid syntax")
+	assert.Equal(t, &Error{
+		Kind:    ErrMarshal,
+		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
+	}, err)
 }

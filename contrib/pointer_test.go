@@ -2,64 +2,49 @@ package flags
 
 import (
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 func TestPointerBool(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *bool `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assertStringArray(t, ret, []string{})
-
-	if !*opts.Value {
-		t.Errorf("Expected Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, *opts.Value)
 }
 
 func TestPointerString(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *string `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assertStringArray(t, ret, []string{})
-	assertString(t, *opts.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, "value", *opts.Value)
 }
 
 func TestPointerSlice(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *[]string `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value1", "-v", "value2")
-
-	assertStringArray(t, ret, []string{})
-	assertStringArray(t, *opts.Value, []string{"value1", "value2"})
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, []string{"value1", "value2"}, *opts.Value)
 }
 
 func TestPointerMap(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *map[string]int `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
-
-	assertStringArray(t, ret, []string{})
-
-	if v, ok := (*opts.Value)["k1"]; !ok {
-		t.Errorf("Expected key \"k1\" to exist")
-	} else if v != 2 {
-		t.Errorf("Expected \"k1\" to be 2, but got %#v", v)
-	}
-
-	if v, ok := (*opts.Value)["k2"]; !ok {
-		t.Errorf("Expected key \"k2\" to exist")
-	} else if v != -5 {
-		t.Errorf("Expected \"k2\" to be -5, but got %#v", v)
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Equal(t, 2, (*opts.Value)["k1"])
+	assert.Equal(t, -5, (*opts.Value)["k2"])
 }
 
 type marshalledString string
@@ -74,20 +59,14 @@ func (m marshalledString) MarshalFlag() (string, error) {
 }
 
 func TestPointerStringMarshalled(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *marshalledString `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value == nil {
-		t.Error("Expected value not to be nil")
-		return
-	}
-
-	assertString(t, string(*opts.Value), "value")
+	assert.Equal(t, []string{}, ret)
+	assert.NotNil(t, opts.Value)
+	assert.Equal(t, "value", string(*opts.Value))
 }
 
 type marshalledStruct struct {
@@ -104,20 +83,14 @@ func (m marshalledStruct) MarshalFlag() (string, error) {
 }
 
 func TestPointerStructMarshalled(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Value *marshalledStruct `short:"v"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v", "value")
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.Value == nil {
-		t.Error("Expected value not to be nil")
-		return
-	}
-
-	assertString(t, opts.Value.Value, "value")
+	assert.Equal(t, []string{}, ret)
+	assert.NotNil(t, opts.Value)
+	assert.Equal(t, "value", opts.Value.Value)
 }
 
 type PointerGroup struct {
@@ -125,17 +98,13 @@ type PointerGroup struct {
 }
 
 func TestPointerGroup(t *testing.T) {
-	var opts = struct {
+	opts := struct {
 		Group *PointerGroup `group:"Group Options"`
 	}{}
 
 	ret := assertParseSuccess(t, &opts, "-v")
-
-	assertStringArray(t, ret, []string{})
-
-	if !opts.Group.Value {
-		t.Errorf("Expected Group.Value to be true")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.True(t, opts.Group.Value)
 }
 
 func TestDoNotChangeNonTaggedFields(t *testing.T) {
@@ -149,16 +118,7 @@ func TestDoNotChangeNonTaggedFields(t *testing.T) {
 	}
 
 	ret := assertParseSuccess(t, &opts)
-
-	assertStringArray(t, ret, []string{})
-
-	if opts.A.Pointer != nil {
-		t.Error("Expected A.Pointer to be nil")
-	}
-	if opts.B != nil {
-		t.Error("Expected B to be nil")
-	}
-	if opts.B != nil && opts.B.Pointer != nil {
-		t.Error("Expected B.Pointer to be nil")
-	}
+	assert.Equal(t, []string{}, ret)
+	assert.Nil(t, opts.A.Pointer)
+	assert.Nil(t, opts.B)
 }

@@ -1,5 +1,5 @@
 /*
-package cli provides an extensive command line option parser.
+Package flags provides an extensive command line option parser.
 The flags package is similar in functionality to the go built-in flag package
 but provides more options and uses reflection to provide a convenient and
 succinct way of specifying command line options.
@@ -109,10 +109,6 @@ The following is a list of tags for struct fields supported by go-flags:
 
 	base: a base (radix) used to convert strings to integer values, the
 	      default base is 10 (i.e. decimal) (optional)
-
-	ini-name:       the explicit ini option name (optional)
-	no-ini:         if non-empty this field is ignored as an ini option
-	                (optional)
 
 	group:                when specified on a struct field, makes the struct
 	                      field a separate group with the given name (optional)
@@ -245,9 +241,9 @@ calls the binary which supports go-flags completion:
 Completion requires the parser option PassDoubleDash and is therefore enforced if the environment variable GO_FLAGS_COMPLETION is set.
 
 Customized completion for argument values is supported by implementing
-the cli.Completer interface for the argument value type. An example
-of a type which does so is the cli.Filename type, an alias of string
+the flags.Completer interface for the argument value type. An example
+of a type which does so is the flags.Filename type, an alias of string
 allowing simple filename completion. A slice or array argument value
-whose element type implements cli.Completer will also be completed.
+whose element type implements flags.Completer will also be completed.
 */
-package cli
+package flags

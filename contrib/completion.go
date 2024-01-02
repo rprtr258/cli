@@ -8,6 +8,9 @@ import (
 	"reflect"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 )
 
 // Completion is a type containing information of a completion.
@@ -28,31 +31,6 @@ type completion struct {
 	parser *Parser
 }
 
-// Filename is a string alias which provides filename completion.
-type Filename string
-
-func completionsWithoutDescriptions(items []string) []Completion {
-	ret := make([]Completion, len(items))
-
-	for i, v := range items {
-		ret[i].Item = v
-	}
-
-	return ret
-}
-
-// Complete returns a list of existing files with the given
-// prefix.
-func (f *Filename) Complete(match string) []Completion {
-	ret, _ := filepath.Glob(match + "*")
-	if len(ret) == 1 {
-		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
-			ret[0] = ret[0] + "/"
-		}
-	}
-	return completionsWithoutDescriptions(ret)
-}
-
 func (c *completion) skipPositional(s *parseState, n int) {
 	if n >= len(s.positional) {
 		s.positional = nil
@@ -61,8 +39,8 @@ func (c *completion) skipPositional(s *parseState, n int) {
 	}
 }
 
-func (c *completion) completeOptionNames(s *parseState, prefix string, match string, short bool) []Completion {
-	if short && len(match) != 0 {
+func (c *completion) completeOptionNames(s *parseState, prefix, match string, short bool) []Completion {
+	if short && match != "" {
 		return []Completion{
 			{
 				Item: prefix + match,
@@ -75,7 +53,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 	for name, opt := range s.lookup.longNames {
 		if strings.HasPrefix(name, match) && !opt.Hidden {
 			results = append(results, Completion{
-				Item:        defaultLongOptDelimiter + name,
+				Item:        _defaultOptDelimiterLong + name,
 				Description: opt.Description,
 			})
 
@@ -88,7 +66,7 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 		for name, opt := range s.lookup.shortNames {
 			if _, ok := repeats[name]; !ok && strings.HasPrefix(name, match) && !opt.Hidden {
 				results = append(results, Completion{
-					Item:        string(defaultShortOptDelimiter) + name,
+					Item:        string(_defaultOptDelimiterShort) + name,
 					Description: opt.Description,
 				})
 			}
@@ -97,38 +75,22 @@ func (c *completion) completeOptionNames(s *parseState, prefix string, match str
 	return results
 }
 
-func (c *completion) completeNamesForLongPrefix(s *parseState, prefix string, match string) []Completion {
-	return c.completeOptionNames(s, prefix, match, false)
-}
-
-func (c *completion) completeNamesForShortPrefix(s *parseState, prefix string, match string) []Completion {
-	return c.completeOptionNames(s, prefix, match, true)
-}
-
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
-	n := make([]Completion, 0, len(s.command.commands))
-
-	for _, cmd := range s.command.commands {
-		if cmd.data != c && !cmd.Hidden && strings.HasPrefix(cmd.Name, match) {
-			n = append(n, Completion{
-				Item:        cmd.Name,
-				Description: cmd.ShortDescription,
-			})
-		}
-	}
-
-	return n
+	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
+		return Completion{
+			Item:        cmd.Name,
+			Description: cmd.Group.ShortDescription,
+		}, cmd.Group.data != c && !cmd.Group.Hidden && strings.HasPrefix(cmd.Name, match)
+	}, s.command.commands...)
 }
 
-func (c *completion) completeValue(value reflect.Value, prefix string, match string) []Completion {
+func (c *completion) completeValue(value reflect.Value, prefix, match string) []Completion {
 	if value.Kind() == reflect.Slice {
 		value = reflect.New(value.Type().Elem())
 	}
-	i := value.Interface()
 
 	var ret []Completion
-
-	if cmp, ok := i.(Completer); ok {
+	if cmp, ok := value.Interface().(Completer); ok {
 		ret = cmp.Complete(match)
 	} else if value.CanAddr() {
 		if cmp, ok = value.Addr().Interface().(Completer); ok {
@@ -136,11 +98,12 @@ func (c *completion) completeValue(value reflect.Value, prefix string, match str
 		}
 	}
 
-	for i, v := range ret {
-		ret[i].Item = prefix + v.Item
-	}
-
-	return ret
+	return fun.Map[Completion](func(v Completion) Completion {
+		return Completion{
+			Item:        prefix + v.Item,
+			Description: v.Description,
+		}
+	}, ret...)
 }
 
 func (c *completion) complete(args []string) []Completion {
@@ -149,12 +112,12 @@ func (c *completion) complete(args []string) []Completion {
 	}
 
 	s := &parseState{
-		args: args,
+		args:       args,
+		command:    c.parser.Command,
+		positional: c.parser.Command.args,
+		lookup:     makeLookupTable(c.parser.Command),
 	}
-
-	c.parser.fillParseState(s)
-
-	var opt *Option
+	var opt *Flag
 	for len(s.args) > 1 {
 		arg := s.pop()
 
@@ -169,7 +132,7 @@ func (c *completion) complete(args []string) []Completion {
 			optname, argument := splitFlag(prefix, optname, islong)
 
 			if argument == nil {
-				var o *Option
+				var o *Flag
 				canarg := true
 				if islong {
 					o = s.lookup.longNames[optname]
@@ -177,7 +140,6 @@ func (c *completion) complete(args []string) []Completion {
 					for i, r := range optname {
 						sname := string(r)
 						o = s.lookup.shortNames[sname]
-
 						if o == nil {
 							break
 						}
@@ -189,11 +151,11 @@ func (c *completion) complete(args []string) []Completion {
 					}
 				}
 
-				if o == nil && c.parser.Options&PassAfterNonOption != 0 {
+				if o == nil {
 					opt = nil
 					c.skipPositional(s, len(s.args)-1)
 					break
-				} else if o != nil && o.canArgument() && !o.OptionalArgument && canarg {
+				} else if o != nil && o.canArgument() && !o.IsOptional && canarg {
 					if len(s.args) > 1 {
 						s.pop()
 					} else {
@@ -203,13 +165,15 @@ func (c *completion) complete(args []string) []Completion {
 			}
 		} else {
 			if len(s.positional) > 0 {
-				if !s.positional[0].isRemaining() {
-					// Don't advance beyond a remaining positional arg (because
-					// it consumes all subsequent args).
+				if !isRemainingArg(s.positional[0].value) {
+					// Don't advance beyond a remaining positional arg
+					// (because it consumes all subsequent args)
 					s.positional = s.positional[1:]
 				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
-				cmd.fillParseState(s)
+				s.positional = cmd.args
+				s.lookup = makeLookupTable(cmd)
+				s.command = cmd
 			}
 
 			opt = nil
@@ -217,60 +181,76 @@ func (c *completion) complete(args []string) []Completion {
 	}
 
 	lastarg := s.args[len(s.args)-1]
-	var ret []Completion
 	switch {
 	case opt != nil: // Completion for the argument of 'opt'
-		ret = c.completeValue(opt.value, "", lastarg)
-	case doesLookLikeFlag(lastarg): // Complete the option
+		return c.completeValue(opt.value, "", lastarg)
+	case lastarg != "" && lastarg[0] == '-': // Complete the option
 		prefix, optname, islong := stripFlagPrefix(lastarg)
 		optname, argument := splitFlag(prefix, optname, islong)
 
-		if argument == nil && !islong {
+		switch {
+		case argument == nil && !islong:
 			rname, n := utf8.DecodeRuneInString(optname)
 			sname := string(rname)
 
 			if opt := s.lookup.shortNames[sname]; opt != nil && opt.canArgument() {
-				ret = c.completeValue(opt.value, prefix+sname, optname[n:])
-			} else {
-				ret = c.completeNamesForShortPrefix(s, prefix, optname)
-			}
-		} else if argument != nil {
-			if islong {
-				opt = s.lookup.longNames[optname]
-			} else {
-				opt = s.lookup.shortNames[optname]
+				return c.completeValue(opt.value, prefix+sname, optname[n:])
 			}
 
-			if opt != nil {
-				ret = c.completeValue(opt.value, prefix+optname+"=", *argument)
+			return c.completeOptionNames(s, prefix, optname, true)
+		case argument != nil:
+			opt = fun.IF(islong, s.lookup.longNames, s.lookup.shortNames)[optname]
+			if opt == nil {
+				return nil
 			}
-		} else if islong {
-			ret = c.completeNamesForLongPrefix(s, prefix, optname)
-		} else {
-			ret = c.completeNamesForShortPrefix(s, prefix, optname)
+
+			return c.completeValue(opt.value, prefix+optname+"=", *argument)
+		case islong:
+			return c.completeOptionNames(s, prefix, optname, false)
+		default:
+			return c.completeOptionNames(s, prefix, optname, true)
 		}
 	case len(s.positional) > 0: // Complete for positional argument
-		ret = c.completeValue(s.positional[0].value, "", lastarg)
+		return c.completeValue(s.positional[0].value, "", lastarg)
 	case len(s.command.commands) > 0: // Complete for command
-		ret = c.completeCommands(s, lastarg)
+		return c.completeCommands(s, lastarg)
+	default:
+		return nil
 	}
-
-	return ret
 }
 
 func (c *completion) print(w io.Writer, items []Completion) {
-	maxl := 0
-	for _, v := range items {
-		maxl = max(maxl, len(v.Item))
-	}
+	maxl := internal.MaxBy(func(v Completion) int {
+		return len(v.Item)
+	}, items...)
 
 	for _, v := range items {
 		fmt.Fprintf(w, v.Item)
 		// TODO: problems with colored description
 		// TODO: description get into completion wtf
-		// if v.Description != "" {
-		// 	fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
-		// }
+		if v.Description != "" {
+			fmt.Fprintf(w, "%s  # %s", strings.Repeat(" ", maxl-len(v.Item)), v.Description)
+		}
 		fmt.Fprintln(w)
 	}
+}
+
+// Filename is a string alias which provides filename completion.
+type Filename string
+
+// Complete returns a list of existing files with the given prefix.
+func (f *Filename) Complete(prefix string) []Completion {
+	ret, _ := filepath.Glob(prefix + "*")
+	if len(ret) == 1 {
+		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
+			ret[0] += "/"
+		}
+	}
+
+	return fun.Map[Completion](func(v string) Completion {
+		return Completion{
+			Item:        v,
+			Description: "",
+		}
+	}, ret...)
 }
