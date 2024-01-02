@@ -1998,8 +1998,8 @@ func (s *parseState) checkRequired(p *Parser) {
 				return "`" + arg.Name + "`", true
 			case arg.value.Len() < arg.Required:
 				return "`" + arg.Name +
-					" (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) +
-					")`", true
+					" (at least " + fmt.Sprint(arg.Required) + " argument" + internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len())) + ")" +
+					"`", true
 			case arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum:
 				desc := lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
 					return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
