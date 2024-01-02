@@ -320,10 +320,12 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			if cmd, ok := s.command.data.(Commander); ok {
 				if p.CommandHandler != nil {
 					return p.CommandHandler(cmd, s.retargs)
-				} else {
-					return cmd.Execute(s.retargs)
 				}
-			} else if p.CommandHandler != nil {
+
+				return cmd.Execute(s.retargs)
+			}
+
+			if p.CommandHandler != nil {
 				return p.CommandHandler(nil, s.retargs)
 			}
 
