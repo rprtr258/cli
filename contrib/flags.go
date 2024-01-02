@@ -1547,8 +1547,7 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 	}
 
 	if err := group.scanType(c.scanSubcommandHandler(group)); err != nil {
-		c.Flags.parent.(*Parser).internalError = err
-		return nil
+		panic(err.Error())
 	}
 
 	c.Flags = group
@@ -1603,10 +1602,6 @@ func (p *Parser) Run(args ...string) error {
 // Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
 func (p *Parser) RunContext(ctx context.Context, args ...string) error {
-	if p.internalError != nil {
-		return p.internalError
-	}
-
 	args = args[1:] // throw off executable name
 
 	p.Command.eachFlag(func(c *Command, g *flagSet, option *Flag) {
