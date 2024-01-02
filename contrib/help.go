@@ -39,7 +39,7 @@ func (p *Parser) getAlignmentInfo() alignmentInfo {
 		terminalColumns: getTerminalColumns(),
 	}
 	var prevcmd *Command
-	p.eachActiveGroup(func(c *Command, grp *Group) {
+	eachActiveGroup(p.Command, func(c *Command, grp *Group) {
 		if c != prevcmd {
 			ret.maxLongLen = max(ret.maxLongLen, internal.MaxBy(func(arg *Arg) int {
 				return utf8.RuneCountInString(arg.Name) + internal.Iverson(c != p.Command, 4)
