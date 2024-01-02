@@ -693,8 +693,8 @@ func (c *Command) AddCommand(command, shortDescription, longDescription string, 
 	return cmd, nil
 }
 
-// find locates the subcommand with the given name and returns it. If no such
-// command can be found find will return nil.
+// find locates the subcommand with the given name and returns it.
+// If no such command can be found find will return nil.
 func (c *Command) find(name string) *Command {
 	for _, cc := range c.commands {
 		if cc.Name == name || internal.OneOf(name, cc.Aliases...) {
