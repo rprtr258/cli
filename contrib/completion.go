@@ -147,7 +147,6 @@ func (c *completion) complete(args []string) []Completion {
 					for i, r := range optname {
 						sname := string(r)
 						o = s.lookup.shortNames[sname]
-
 						if o == nil {
 							break
 						}
