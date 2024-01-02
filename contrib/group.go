@@ -5,7 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"reflect"
 	"sort"
 	"strconv"
@@ -1845,11 +1845,10 @@ type parseState struct {
 // group should not be added. The options parameter specifies a set of options
 // for the parser.
 func NewParser(data any, options Options) *Parser {
-	p := NewNamedParser(path.Base(os.Args[0]), options)
+	p := NewNamedParser(filepath.Base(os.Args[0]), options)
 
 	if data != nil {
 		g, err := p.AddGroup("Application Options", "", data)
-
 		if err == nil {
 			g.parent = p
 		}
