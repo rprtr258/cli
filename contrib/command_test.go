@@ -275,7 +275,7 @@ func TestRequiredOnCommand(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrRequired,
-		Message: fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter),
+		Message: fmt.Sprintf("the required flag `%cv' was not specified", _defaultOptDelimiterShort),
 	}, &opts, "cmd")
 }
 
@@ -290,7 +290,7 @@ func TestRequiredAllOnCommand(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrRequired,
-		Message: fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", defaultLongOptDelimiter, defaultShortOptDelimiter),
+		Message: fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", _defaultOptDelimiterLong, _defaultOptDelimiterShort),
 	}, &opts, "cmd")
 }
 

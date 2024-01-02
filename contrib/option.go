@@ -134,15 +134,15 @@ func (option *Option) String() string {
 
 		if option.LongName != "" {
 			return fmt.Sprintf("%s, %s",
-				string(defaultShortOptDelimiter)+short,
-				defaultLongOptDelimiter+option.LongNameWithNamespace())
+				string(_defaultOptDelimiterShort)+short,
+				_defaultOptDelimiterLong+option.LongNameWithNamespace())
 		}
 
-		return string(defaultShortOptDelimiter) + short
+		return string(_defaultOptDelimiterShort) + short
 	}
 
 	if option.LongName != "" {
-		return defaultLongOptDelimiter + option.LongNameWithNamespace()
+		return _defaultOptDelimiterLong + option.LongNameWithNamespace()
 	}
 
 	return ""
@@ -341,7 +341,7 @@ func shortAndLongName(shortName rune, longName string) string {
 	ret := &bytes.Buffer{}
 
 	if shortName != 0 {
-		ret.WriteByte(defaultShortOptDelimiter)
+		ret.WriteByte(_defaultOptDelimiterShort)
 		ret.WriteRune(shortName)
 	}
 

@@ -125,7 +125,7 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 	line.WriteString(strings.Repeat(" ", prefixLen))
 
 	if option.ShortName != 0 {
-		line.WriteByte(defaultShortOptDelimiter)
+		line.WriteByte(_defaultOptDelimiterShort)
 		line.WriteRune(option.ShortName)
 	} else if info.hasShort {
 		line.WriteString("  ")
@@ -140,12 +140,12 @@ func (p *Parser) writeHelpOption(writer *bufio.Writer, option *Option, info alig
 			line.WriteString("  ")
 		}
 
-		line.WriteString(defaultLongOptDelimiter)
+		line.WriteString(_defaultOptDelimiterLong)
 		line.WriteString(option.LongNameWithNamespace())
 	}
 
 	if option.canArgument() {
-		line.WriteByte(defaultNameArgDelimiter)
+		line.WriteByte(_defaultArgDelimiterName)
 
 		if option.ValueName != "" {
 			line.WriteString(option.ValueName)

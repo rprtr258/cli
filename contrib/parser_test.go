@@ -243,7 +243,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errWant: &Error{
 				Kind:    ErrExpectedArgument,
-				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-o'",
+				Message: "expected argument for flag `" + _defaultOptDelimiterLong + "string-slice', but got option `-o'",
 			},
 			rest: []string{},
 		},
@@ -253,7 +253,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errWant: &Error{
 				Kind:    ErrExpectedArgument,
-				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `--other-option'",
+				Message: "expected argument for flag `" + _defaultOptDelimiterLong + "string-slice', but got option `--other-option'",
 			},
 			rest: []string{},
 		},
@@ -263,7 +263,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errWant: &Error{
 				Kind:    ErrExpectedArgument,
-				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got double dash `--'",
+				Message: "expected argument for flag `" + _defaultOptDelimiterLong + "string-slice', but got double dash `--'",
 			},
 			rest: []string{},
 		},
@@ -283,7 +283,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errWant: &Error{
 				Kind:    ErrExpectedArgument,
-				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-3.14'",
+				Message: "expected argument for flag `" + _defaultOptDelimiterLong + "string-slice', but got option `-3.14'",
 			},
 			rest: []string{},
 		},
@@ -293,7 +293,7 @@ func TestOptionAsArgument(t *testing.T) {
 			expectError: true,
 			errWant: &Error{
 				Kind:    ErrExpectedArgument,
-				Message: "expected argument for flag `" + defaultLongOptDelimiter + "string-slice', but got option `-character'",
+				Message: "expected argument for flag `" + _defaultOptDelimiterLong + "string-slice', but got option `-character'",
 			},
 			rest: []string{},
 		},
@@ -412,7 +412,7 @@ func TestChoices(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrInvalidChoice,
-		Message: "Invalid value `invalid' for option `" + defaultLongOptDelimiter + "choose'. Allowed values are: v1 or v2",
+		Message: "Invalid value `invalid' for option `" + _defaultOptDelimiterLong + "choose'. Allowed values are: v1 or v2",
 	}, &opts, "--choose", "invalid")
 	assertParseSuccess(t, &opts, "--choose", "v2")
 	assert.Equal(t, opts.Choice, "v2")

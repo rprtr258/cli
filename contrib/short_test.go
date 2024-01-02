@@ -35,7 +35,7 @@ func TestShortRequired(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrRequired,
-		Message: fmt.Sprintf("the required flag `%cv' was not specified", defaultShortOptDelimiter),
+		Message: fmt.Sprintf("the required flag `%cv' was not specified", _defaultOptDelimiterShort),
 	}, &opts)
 }
 
@@ -141,7 +141,7 @@ func TestShortMultiWithEqualArg(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrExpectedArgument,
-		Message: fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter),
+		Message: fmt.Sprintf("expected argument for flag `%cv'", _defaultOptDelimiterShort),
 	}, &opts, "-ffv=value")
 }
 
@@ -165,7 +165,7 @@ func TestShortMultiArgConcatFail(t *testing.T) {
 
 	assertParseFail(t, &Error{
 		Kind:    ErrExpectedArgument,
-		Message: fmt.Sprintf("expected argument for flag `%cv'", defaultShortOptDelimiter),
+		Message: fmt.Sprintf("expected argument for flag `%cv'", _defaultOptDelimiterShort),
 	}, &opts, "-ffvvalue")
 }
 

@@ -6,9 +6,9 @@ package flags
 import "strings"
 
 const (
-	defaultShortOptDelimiter = '-'
-	defaultLongOptDelimiter  = "--"
-	defaultNameArgDelimiter  = '='
+	_defaultOptDelimiterShort = '-'
+	_defaultOptDelimiterLong  = "--"
+	_defaultArgDelimiterName  = '='
 )
 
 func isFlag(arg string) bool {
