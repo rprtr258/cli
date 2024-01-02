@@ -12,7 +12,7 @@ func TestShort(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := assertParserSuccess(t, &opts, "-v")
 	assert.Equal(t, []string{}, ret)
 	assert.True(t, opts.Value)
 }
@@ -44,7 +44,7 @@ func TestShortRequiredFalsy1(t *testing.T) {
 		Value bool `short:"v" required:"false"`
 	}{}
 
-	assertParseSuccess(t, &opts)
+	assertParserSuccess(t, &opts)
 }
 
 func TestShortRequiredFalsy2(t *testing.T) {
@@ -52,7 +52,7 @@ func TestShortRequiredFalsy2(t *testing.T) {
 		Value bool `short:"v" required:"no"`
 	}{}
 
-	assertParseSuccess(t, &opts)
+	assertParserSuccess(t, &opts)
 }
 
 func TestShortMultiConcat(t *testing.T) {
@@ -62,7 +62,7 @@ func TestShortMultiConcat(t *testing.T) {
 		F bool `short:"f"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+	ret := assertParserSuccess(t, &opts, "-vo", "-f")
 	assert.Equal(t, []string{}, ret)
 	assert.True(t, opts.V)
 	assert.True(t, opts.O)
@@ -76,7 +76,7 @@ func TestShortMultiRequiredConcat(t *testing.T) {
 		F bool `short:"f" required:"true"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-vo", "-f")
+	ret := assertParserSuccess(t, &opts, "-vo", "-f")
 	assert.Equal(t, []string{}, ret)
 	assert.True(t, opts.V)
 	assert.True(t, opts.O)
@@ -88,7 +88,7 @@ func TestShortMultiSlice(t *testing.T) {
 		Values []bool `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "-v")
+	ret := assertParserSuccess(t, &opts, "-v", "-v")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []bool{true, true}, opts.Values)
 }
@@ -98,7 +98,7 @@ func TestShortMultiSliceConcat(t *testing.T) {
 		Values []bool `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-vvv")
+	ret := assertParserSuccess(t, &opts, "-vvv")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []bool{true, true, true}, opts.Values)
 }
@@ -108,7 +108,7 @@ func TestShortWithEqualArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v=value")
+	ret := assertParserSuccess(t, &opts, "-v=value")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "value", opts.Value)
 }
@@ -118,7 +118,7 @@ func TestShortWithArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-vvalue")
+	ret := assertParserSuccess(t, &opts, "-vvalue")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "value", opts.Value)
 }
@@ -128,7 +128,7 @@ func TestShortArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := assertParserSuccess(t, &opts, "-v", "value")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "value", opts.Value)
 }
@@ -151,7 +151,7 @@ func TestShortMultiArg(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-ffv", "value")
+	ret := assertParserSuccess(t, &opts, "-ffv", "value")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []bool{true, true}, opts.F)
 	assert.Equal(t, "value", opts.Value)
@@ -175,7 +175,7 @@ func TestShortMultiArgConcat(t *testing.T) {
 		Value string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-vff")
+	ret := assertParserSuccess(t, &opts, "-vff")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "ff", opts.Value)
 }
@@ -186,7 +186,7 @@ func TestShortOptional(t *testing.T) {
 		Value string `short:"v" optional:"yes" optional-value:"value"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := assertParserSuccess(t, &opts, "-fv", "f")
 	assert.Equal(t, []string{"f"}, ret)
 	assert.Equal(t, "value", opts.Value)
 }
@@ -197,7 +197,7 @@ func TestShortOptionalFalsy1(t *testing.T) {
 		Value string `short:"v" optional:"false" optional-value:"value"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := assertParserSuccess(t, &opts, "-fv", "f")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "f", opts.Value)
 }
@@ -208,7 +208,7 @@ func TestShortOptionalFalsy2(t *testing.T) {
 		Value string `short:"v" optional:"no" optional-value:"value"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-fv", "f")
+	ret := assertParserSuccess(t, &opts, "-fv", "f")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "f", opts.Value)
 }

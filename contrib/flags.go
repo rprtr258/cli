@@ -2,6 +2,7 @@ package flags
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"os"
@@ -1715,6 +1716,10 @@ func (p *Parser) printCompletions(args ...string) {
 	p.CompletionHandler(comp.complete(args))
 }
 
+func (p *Parser) Run(args ...string) error {
+	return p.RunContext(context.Background(), args...)
+}
+
 // Run parses the command line arguments according to the option groups that were added to the parser.
 // On successful parsing of the arguments, the remaining, non-option, arguments (if any) are returned.
 // The returned error indicates a parsing error and can be used with PrintError
@@ -1725,10 +1730,12 @@ func (p *Parser) printCompletions(args ...string) {
 // automatically printed if the PrintErrors option is enabled.
 // Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
-func (p *Parser) Run(args ...string) ([]string, error) {
+func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 	if p.internalError != nil {
-		return nil, p.internalError
+		return p.internalError
 	}
+
+	args = args[1:] // throw off executable name
 
 	p.Command.eachFlag(func(c *Command, g *Group, option *Flag) {
 		option.clearReferenceBeforeSet = true
@@ -1742,7 +1749,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)
-		return nil, nil
+		return nil
 	}
 
 	s := &parseState{
@@ -1910,16 +1917,10 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 	}
 
 	if reterr := s.reterr(p.CommandHandler); reterr != nil {
-		return func() []string {
-			if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
-				return append([]string{s.arg}, s.args...)
-			} else {
-				return s.args
-			}
-		}(), reterr
+		return reterr
 	}
 
-	return s.retargs, nil
+	return nil
 }
 
 func (p *parseState) noargs() bool {

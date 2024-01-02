@@ -37,7 +37,7 @@ func TestUnmarshal(t *testing.T) {
 		Value marshalled `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v=yes")
+	ret := assertParserSuccess(t, &opts, "-v=yes")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, marshalled("true"), opts.Value)
 }
@@ -47,7 +47,7 @@ func TestUnmarshalDefault(t *testing.T) {
 		Value marshalled `short:"v" default:"yes"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts)
+	ret := assertParserSuccess(t, &opts)
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, marshalled("true"), opts.Value)
 }
@@ -57,7 +57,7 @@ func TestUnmarshalOptional(t *testing.T) {
 		Value marshalled `short:"v" optional:"yes" optional-value:"yes"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := assertParserSuccess(t, &opts, "-v")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, marshalled("true"), opts.Value)
 }
@@ -81,7 +81,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	_, err := NewParser(&opts, Default).Run("invalid")
+	err := NewParser(&opts, Default).Run("invalid")
 	assert.Error(t, err)
 	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }

@@ -11,7 +11,7 @@ func TestPointerBool(t *testing.T) {
 		Value *bool `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := assertParserSuccess(t, &opts, "-v")
 	assert.Equal(t, []string{}, ret)
 	assert.True(t, *opts.Value)
 }
@@ -21,7 +21,7 @@ func TestPointerString(t *testing.T) {
 		Value *string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := assertParserSuccess(t, &opts, "-v", "value")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, "value", *opts.Value)
 }
@@ -31,7 +31,7 @@ func TestPointerSlice(t *testing.T) {
 		Value *[]string `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value1", "-v", "value2")
+	ret := assertParserSuccess(t, &opts, "-v", "value1", "-v", "value2")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []string{"value1", "value2"}, *opts.Value)
 }
@@ -41,7 +41,7 @@ func TestPointerMap(t *testing.T) {
 		Value *map[string]int `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
+	ret := assertParserSuccess(t, &opts, "-v", "k1:2", "-v", "k2:-5")
 	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, 2, (*opts.Value)["k1"])
 	assert.Equal(t, -5, (*opts.Value)["k2"])
@@ -63,7 +63,7 @@ func TestPointerStringMarshalled(t *testing.T) {
 		Value *marshalledString `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := assertParserSuccess(t, &opts, "-v", "value")
 	assert.Equal(t, []string{}, ret)
 	assert.NotNil(t, opts.Value)
 	assert.Equal(t, "value", string(*opts.Value))
@@ -87,7 +87,7 @@ func TestPointerStructMarshalled(t *testing.T) {
 		Value *marshalledStruct `short:"v"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v", "value")
+	ret := assertParserSuccess(t, &opts, "-v", "value")
 	assert.Equal(t, []string{}, ret)
 	assert.NotNil(t, opts.Value)
 	assert.Equal(t, "value", opts.Value.Value)
@@ -102,7 +102,7 @@ func TestPointerGroup(t *testing.T) {
 		Group *PointerGroup `group:"Group Options"`
 	}{}
 
-	ret := assertParseSuccess(t, &opts, "-v")
+	ret := assertParserSuccess(t, &opts, "-v")
 	assert.Equal(t, []string{}, ret)
 	assert.True(t, opts.Group.Value)
 }
@@ -117,7 +117,7 @@ func TestDoNotChangeNonTaggedFields(t *testing.T) {
 		}
 	}
 
-	ret := assertParseSuccess(t, &opts)
+	ret := assertParserSuccess(t, &opts)
 	assert.Equal(t, []string{}, ret)
 	assert.Nil(t, opts.A.Pointer)
 	assert.Nil(t, opts.B)

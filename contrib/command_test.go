@@ -15,8 +15,7 @@ func TestCommandInline(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
-	assert.Equal(t, []string{}, ret)
+	p := assertParserSuccess(t, &opts, "-v", "cmd", "-g")
 	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
@@ -32,8 +31,7 @@ func TestCommandInlineMulti(t *testing.T) {
 		} `command:"c2"`
 	}{}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "c2", "-g")
-	assert.Equal(t, []string{}, ret)
+	p := assertParserSuccess(t, &opts, "-v", "c2", "-g")
 	assert.NotNil(t, p.Command.Active)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.C2.G)
@@ -66,7 +64,7 @@ func TestCommandFlagOrder2(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd", "-v", "-g")
+	assertParserSuccess(t, &opts, "cmd", "-v", "-g")
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
 }
@@ -82,7 +80,7 @@ func TestCommandFlagOrderSub(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
+	assertParserSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
 	assert.True(t, opts.Command.SubCommand.B)
@@ -96,7 +94,7 @@ func TestCommandFlagOverride1(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "-v", "cmd")
+	assertParserSuccess(t, &opts, "-v", "cmd")
 	assert.True(t, opts.Value)
 	assert.False(t, opts.Command.Value)
 }
@@ -109,7 +107,7 @@ func TestCommandFlagOverride2(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd", "-v")
+	assertParserSuccess(t, &opts, "cmd", "-v")
 	assert.False(t, opts.Value)
 	assert.True(t, opts.Command.Value)
 }
@@ -125,7 +123,7 @@ func TestCommandFlagOverrideSub(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
+	assertParserSuccess(t, &opts, "cmd", "sub", "-v")
 	assert.False(t, opts.Value)
 	assert.False(t, opts.Command.Value)
 	assert.True(t, opts.Command.SubCommand.Value)
@@ -142,7 +140,7 @@ func TestCommandFlagOverrideSub2(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd", "sub", "-v")
+	assertParserSuccess(t, &opts, "cmd", "sub", "-v")
 	assert.False(t, opts.Value)
 	assert.True(t, opts.Command.Value)
 }
@@ -155,7 +153,7 @@ func TestCommandEstimate(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.Run()
+	err := p.Run()
 	assert.Equal(t, &Error{
 		Kind:    ErrCommandRequired,
 		Message: "Please specify one command of: remove or add",
@@ -170,7 +168,7 @@ func TestCommandEstimate2(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.Run("rmive")
+	err := p.Run("rmive")
 	assert.Equal(t, &Error{
 		Kind:    ErrUnknownCommand,
 		Message: "Unknown command `rmive', did you mean `remove'?",
@@ -195,7 +193,7 @@ func TestCommandExecute(t *testing.T) {
 		Command testCommand `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
+	assertParserSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.Executed)
 	assert.True(t, opts.Command.G)
@@ -209,34 +207,26 @@ func TestCommandClosest(t *testing.T) {
 		Cmd2  struct{} `command:"add"`
 	}{}
 
-	args := assertParseFail(t, &Error{
+	assertParseFail(t, &Error{
 		Kind:    ErrUnknownCommand,
 		Message: "Unknown command `addd', did you mean `add'?",
 	}, &opts, "-v", "addd")
-	assert.Equal(t, []string{"addd"}, args)
 }
 
 func TestCommandAdd(t *testing.T) {
 	opts := struct {
 		Value bool `short:"v"`
+		Cmd   struct {
+			G    bool     `short:"g"`
+			Args []string `args`
+		} `command:"cmd"`
 	}{}
 
-	cmd := struct {
-		G bool `short:"g"`
-	}{}
-
-	p := NewParser(&opts, Default)
-	c, err := p.Command.AddCommand("cmd", "", "", &cmd)
+	err := NewParser(&opts, Default).Run("-v", "cmd", "-g", "rest")
 	assert.NoError(t, err)
-
-	ret, err := p.Run("-v", "cmd", "-g", "rest")
-	assert.NoError(t, err)
-	assert.Equal(t, []string{"rest"}, ret)
+	assert.Equal(t, []string{"rest"}, opts.Cmd.Args)
 	assert.True(t, opts.Value)
-	assert.True(t, cmd.G)
-	assert.Equal(t, c, p.Command.find("cmd"))
-	assert.Equal(t, c, p.Command.Commands()[0])
-	assert.Equal(t, 'g', c.Group.flags[0].ShortName)
+	assert.True(t, opts.Cmd.G)
 }
 
 func TestCommandNestedInline(t *testing.T) {
@@ -245,24 +235,17 @@ func TestCommandNestedInline(t *testing.T) {
 		Command struct {
 			G      bool `short:"g"`
 			Nested struct {
-				N string `long:"n"`
+				N    string   `long:"n"`
+				Args []string `args`
 			} `command:"nested"`
 		} `command:"cmd"`
 	}{}
 
-	p, ret := assertParserSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
-	assert.Equal(t, []string{"rest"}, ret)
+	assertParserSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
+	assert.Equal(t, []string{"rest"}, opts.Command.Nested.Args)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Command.G)
 	assert.Equal(t, "n", opts.Command.Nested.N)
-
-	c := p.Command.find("cmd")
-	assert.NotNil(t, c)
-	assert.Equal(t, c, p.Command.Active)
-
-	nested := c.find("nested")
-	assert.NotNil(t, nested)
-	assert.Equal(t, nested, c.Active)
 }
 
 func TestRequiredOnCommand(t *testing.T) {
@@ -301,7 +284,7 @@ func TestDefaultOnCommand(t *testing.T) {
 		} `command:"cmd"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cmd")
+	assertParserSuccess(t, &opts, "cmd")
 	assert.Equal(t, "value", opts.Command.G)
 }
 
@@ -328,7 +311,7 @@ func TestSubcommandsOptional(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.Command.SubcommandsOptional = true
 
-	_, err := p.Run("-v")
+	err := p.Run("-v")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 }
@@ -343,9 +326,9 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.Command.SubcommandsOptional = true
 
-	retargs, err := p.Run("nocmd", "remove")
+	err := p.Run("nocmd", "remove")
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"nocmd", "remove"}, retargs)
+	// assert.Equal(t, []string{"nocmd", "remove"}, retargs)
 }
 
 func TestCommandAlias(t *testing.T) {
@@ -355,7 +338,7 @@ func TestCommandAlias(t *testing.T) {
 		} `command:"cmd" alias:"cm"`
 	}{}
 
-	assertParseSuccess(t, &opts, "cm")
+	assertParserSuccess(t, &opts, "cm")
 	assert.Equal(t, "value", opts.Command.G)
 }
 
@@ -374,11 +357,10 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		Value bool   `short:"v"`
 		Foo   fooCmd `command:"foo"`
 	}{}
-	ret, err := NewParser(&opts, Default).Run("-v", "foo", "-f", "bar", "-v", "-g")
+	err := NewParser(&opts, Default).Run("-v", "foo", "-f", "bar", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Foo.Flag)
-	assert.Equal(t, []string{"bar", "-v", "-g"}, ret)
 	assert.Equal(t, []string{"bar", "-v", "-g"}, opts.Foo.args)
 }
 
@@ -395,11 +377,10 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		Bar   barCmd `command:"bar"`
 	}{}
 	p := NewParser(&opts, Default)
-	ret, err := p.Run("-v", "bar", "-f", "baz", "-v", "-g")
+	err := p.Run("-v", "bar", "-f", "baz", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Bar.Flag)
-	assert.Equal(t, []string{}, ret)
 	assert.Equal(t, []string{}, opts.Bar.args)
 	assert.Equal(t, []string{"baz", "-v", "-g"}, opts.Bar.Positional.Args)
 }

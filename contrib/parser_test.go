@@ -116,13 +116,8 @@ func TestDefaults(t *testing.T) {
 		},
 	} {
 		var opts defaultOptions
-		_, err := NewParser(&opts, Default).Run(test.args...)
+		err := NewParser(&opts, Default).Run(test.args...)
 		assert.NoError(t, err)
-
-		if opts.Slice == nil {
-			opts.Slice = []int{}
-		}
-
 		assert.Equal(t, test.expected, opts)
 	}
 }
@@ -179,17 +174,13 @@ func TestUnquoting(t *testing.T) {
 
 	for _, test := range tests {
 		var opts defaultOptions
-
-		for _, delimiter := range []bool{false, true} {
+		for _, delimiter := range [][]string{
+			{"--str=" + test.arg, "--strnot=" + test.arg},
+			{"--str", test.arg, "--strnot", test.arg},
+		} {
 			p := NewParser(&opts, None)
 
-			var err error
-			if delimiter {
-				_, err = p.Run("--str="+test.arg, "--strnot="+test.arg)
-			} else {
-				_, err = p.Run("--str", test.arg, "--strnot", test.arg)
-			}
-
+			err := p.Run(delimiter...)
 			if test.err == nil {
 				assert.NoError(t, err)
 				assert.Equal(t, test.value, opts.String)
@@ -345,7 +336,7 @@ func TestOptionAsArgument(t *testing.T) {
 		if test.expectError {
 			assertParseFail(t, test.errWant, &opts, test.args...)
 		} else {
-			assert.Equal(t, test.rest, assertParseSuccess(t, &opts, test.args...))
+			assert.Equal(t, test.rest, assertParserSuccess(t, &opts, test.args...))
 		}
 	}
 }
@@ -392,7 +383,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them
-	_, err := p.Run("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
+	err := p.Run("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
 	assert.NoError(t, err)
 	assert.Equal(t, opts.Flag1, "stuff")
 	assert.Equal(t, opts.Flag2, "foo")
@@ -401,7 +392,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	assert.True(t, unknownFlag2)
 
 	// Parse args with unknown flags that callback doesn't handle, verify it returns error
-	_, err = p.Run("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
+	err = p.Run("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
 	assert.Error(t, err)
 }
 
@@ -414,7 +405,7 @@ func TestChoices(t *testing.T) {
 		Kind:    ErrInvalidChoice,
 		Message: "Invalid value `invalid' for option `" + _defaultOptDelimiterLong + "choose'. Allowed values are: v1 or v2",
 	}, &opts, "--choose", "invalid")
-	assertParseSuccess(t, &opts, "--choose", "v2")
+	assertParserSuccess(t, &opts, "--choose", "v2")
 	assert.Equal(t, opts.Choice, "v2")
 }
 
@@ -426,7 +417,7 @@ func TestEmbedded(t *testing.T) {
 		embedded
 	}
 
-	assertParseSuccess(t, &opts, "-v")
+	assertParserSuccess(t, &opts, "-v")
 	assert.True(t, opts.V)
 }
 
@@ -453,7 +444,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.Run("arg1", "arg2")
+	err := parser.Run("arg1", "arg2")
 	assert.NoError(t, err)
 	assert.True(t, executed)
 	assert.Nil(t, executedCommand)
@@ -478,7 +469,7 @@ func TestCommandHandler(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.Run("cmd", "arg1", "arg2")
+	err := parser.Run("cmd", "arg1", "arg2")
 	assert.NoError(t, err)
 	assert.True(t, executed)
 	assert.NotNil(t, executedCommand)
