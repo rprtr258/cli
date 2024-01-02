@@ -347,7 +347,7 @@ func (c *Command) hasHelpOptions() bool {
 	return ret
 }
 
-func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
+func fillParseState(c *Command) ([]*Arg, lookup) {
 	var parents []*Command
 	for parent := c.parent; parent != nil; {
 		if cmd, ok := parent.(*Command); ok {
@@ -409,5 +409,5 @@ func fillParseState(c *Command) ([]*Arg, lookup, *Command) {
 			}),
 	}
 
-	return append([]*Arg(nil), c.args...), lookup, c
+	return append([]*Arg(nil), c.args...), lookup
 }
