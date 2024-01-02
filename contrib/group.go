@@ -2040,7 +2040,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
-					err = p.marshalError(option, err)
+					err = marshalError(option, err)
 				}
 				s.err = err
 			}
@@ -2264,14 +2264,14 @@ func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg 
 
 	if err != nil {
 		if _, ok := err.(*Error); !ok {
-			err = p.marshalError(option, err)
+			err = marshalError(option, err)
 		}
 	}
 
 	return err
 }
 
-func (p *Parser) marshalError(option *Option, err error) *Error {
+func marshalError(option *Option, err error) *Error {
 	valueType := option.value.Type()
 	return &Error{
 		Kind: ErrMarshal,
