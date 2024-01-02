@@ -541,12 +541,13 @@ func (p *Parser) marshalError(option *Option, err error) *Error {
 }
 
 func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
-	if option := s.lookup.longNames[name]; option != nil {
-		// Only long options that are required can consume an argument from the argument list
-		return p.parseOption(s, name, option, !option.OptionalArgument, argument)
+	option := s.lookup.longNames[name]
+	if option == nil {
+		return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
 	}
 
-	return newErrorf(ErrUnknownFlag, "unknown flag `%s'", name)
+	// Only long options that are required can consume an argument from the argument list
+	return p.parseOption(s, name, option, !option.OptionalArgument, argument)
 }
 
 func (p *Parser) splitShortConcatArg(s *parseState, optname string) (optname_ string, arg_ *string) {
