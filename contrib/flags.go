@@ -743,11 +743,11 @@ func (c *Command) eachCommand(yield func(*Command) bool) bool {
 	}, c.commands...)
 }
 
-func (c *Command) addHelpGroups(help func() string) {
-	c.addHelpGroup(help)
+func (c *Command) addHelpGroups(help func(string) string, usage string) {
+	c.addHelpGroup(help, usage)
 
 	for _, cc := range c.commands {
-		cc.addHelpGroups(help)
+		cc.addHelpGroups(help, usage)
 	}
 }
 
@@ -1220,7 +1220,7 @@ func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentIn
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) writeHelp() string {
+func (p *Parser) writeHelp(usage string) string {
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
@@ -1234,7 +1234,7 @@ func (p *Parser) writeHelp() string {
 		for allcmd := p.Command; allcmd != nil; allcmd = allcmd.Active {
 			var usage string
 			if allcmd == p.Command {
-				usage = internal.Or(p.Usage, "[OPTIONS]")
+				usage = internal.Or(usage, "[OPTIONS]")
 			} else if us, ok := allcmd.Flags.data.(Usage); ok {
 				usage = us.Usage()
 			} else if allcmd.hasHelpOptions() {

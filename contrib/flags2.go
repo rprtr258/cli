@@ -47,7 +47,7 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
-	p.Command.addHelpGroups(p.writeHelp)
+	p.Command.addHelpGroups(p.writeHelp, p.Usage)
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)
