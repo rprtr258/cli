@@ -302,10 +302,10 @@ func toDict[K comparable, V, T any](seq iter.Seq[T], f func(T) (K, V)) map[K]V {
 	return ret
 }
 
-// Option flag information. Contains a description of the option, short and
+// Flag flag information. Contains a description of the option, short and
 // long name as well as a default value and whether an argument for this
 // flag is optional.
-type Option struct {
+type Flag struct {
 	// The description of the option flag. This description is shown automatically in the built-in help.
 	Description string
 
@@ -313,7 +313,6 @@ type Option struct {
 	// If not 0, the option flag can be 'activated' using -<ShortName>.
 	// Either ShortName or LongName needs to be non-empty.
 	ShortName rune
-
 	// The long name of the option.
 	// If not "", the option flag can be activated using --<LongName>.
 	// Either ShortName or LongName needs to be non-empty.
@@ -374,7 +373,7 @@ type Option struct {
 // prepended by walking up the option's group tree. Namespaces and the long name
 // itself are separated by the parser's namespace delimiter. If the long name is
 // empty an empty string is returned.
-func (option *Option) LongNameWithNamespace() string {
+func (option *Flag) LongNameWithNamespace() string {
 	if option.LongName == "" {
 		return ""
 	}
@@ -417,7 +416,7 @@ func (option *Option) LongNameWithNamespace() string {
 
 // String converts an option to a human friendly readable string describing the
 // option.
-func (option *Option) String() string {
+func (option *Flag) String() string {
 	if option.ShortName != 0 {
 		data := make([]byte, utf8.RuneLen(option.ShortName))
 		utf8.EncodeRune(data, option.ShortName)
@@ -440,14 +439,14 @@ func (option *Option) String() string {
 }
 
 // Value returns the option value as an any.
-func (option *Option) Value() any {
+func (option *Flag) Value() any {
 	return option.value.Interface()
 }
 
 // Set the value of an option to the specified value. An error will be returned
 // if the specified value could not be converted to the corresponding option
 // value type.
-func (option *Option) Set(value *string) error {
+func (option *Flag) Set(value *string) error {
 	kind := option.value.Type().Kind()
 
 	if internal.OneOf(kind, reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
@@ -484,7 +483,7 @@ func (option *Option) Set(value *string) error {
 	}
 }
 
-func (option *Option) setDefault(value *string) error {
+func (option *Flag) setDefault(value *string) error {
 	if option.preventDefault {
 		return nil
 	}
@@ -499,15 +498,15 @@ func (option *Option) setDefault(value *string) error {
 	return nil
 }
 
-func (option *Option) showInHelp() bool {
+func (option *Flag) showInHelp() bool {
 	return !option.Hidden && (option.ShortName != 0 || option.LongName != "")
 }
 
-func (option *Option) canArgument() bool {
+func (option *Flag) canArgument() bool {
 	return isInterface[Unmarshaler](option.value) != nil || !option.isBool()
 }
 
-func (option *Option) empty() {
+func (option *Flag) empty() {
 	if !option.isFunc() {
 		tp := option.value.Type()
 		zeroValue := fun.
@@ -519,7 +518,7 @@ func (option *Option) empty() {
 	}
 }
 
-func (option *Option) clearDefault() error {
+func (option *Flag) clearDefault() error {
 	if option.preventDefault {
 		return nil
 	}
@@ -556,7 +555,7 @@ func isInterface[I any](value reflect.Value) I {
 	return fun.Zero[I]()
 }
 
-func (option *Option) isBool() bool {
+func (option *Flag) isBool() bool {
 	for tp := option.value.Type(); ; tp = tp.Elem() {
 		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
 			return tp.Kind() == reflect.Bool ||
@@ -565,7 +564,7 @@ func (option *Option) isBool() bool {
 	}
 }
 
-func (option *Option) isSignedNumber() bool {
+func (option *Flag) isSignedNumber() bool {
 	for tp := option.value.Type(); ; tp = tp.Elem() {
 		if !internal.OneOf(tp.Kind(), reflect.Slice, reflect.Ptr) {
 			return internal.OneOf(tp.Kind(),
@@ -576,7 +575,7 @@ func (option *Option) isSignedNumber() bool {
 	}
 }
 
-func (option *Option) isFunc() bool {
+func (option *Flag) isFunc() bool {
 	return option.value.Type().Kind() == reflect.Func
 }
 
@@ -584,7 +583,7 @@ func typeof[T any]() reflect.Type {
 	return reflect.TypeOf((*T)(nil)).Elem()
 }
 
-func (option *Option) call(value *string) error {
+func (option *Flag) call(value *string) error {
 	var retval []reflect.Value
 	if value == nil {
 		retval = option.value.Call(nil)
@@ -608,7 +607,7 @@ func (option *Option) call(value *string) error {
 	return nil
 }
 
-func (option *Option) updateDefaultLiteral() string {
+func (option *Flag) updateDefaultLiteral() string {
 	defs := option.Default
 	switch {
 	case len(defs) == 0 && option.canArgument():
@@ -653,7 +652,7 @@ func shortAndLongName(shortName rune, longName string) string {
 	return ret.String()
 }
 
-func (option *Option) isValidValue(arg string) error {
+func (option *Flag) isValidValue(arg string) error {
 	if validator := isInterface[ValueValidator](option.value); validator != nil {
 		return validator.IsValidValue(arg)
 	}
@@ -716,8 +715,8 @@ type Usage interface {
 }
 
 type lookup struct {
-	shortNames map[string]*Option
-	longNames  map[string]*Option
+	shortNames map[string]*Flag
+	longNames  map[string]*Flag
 	commands   map[string]*Command
 }
 
@@ -782,7 +781,7 @@ func (c *Command) Find(name string) *Command {
 // FindOptionByLongName finds an option that is part of the command, or any of
 // its parent commands, by matching its long name (including the option
 // namespace).
-func (c *Command) FindOptionByLongName(longName string) (option *Option) {
+func (c *Command) FindOptionByLongName(longName string) (option *Flag) {
 	for option == nil && c != nil {
 		option = c.Group.findOptionByLongName(longName)
 
@@ -795,7 +794,7 @@ func (c *Command) FindOptionByLongName(longName string) (option *Option) {
 // FindOptionByShortName finds an option that is part of the command, or any of
 // its parent commands, by matching its long name (including the option
 // namespace).
-func (c *Command) FindOptionByShortName(shortName rune) (option *Option) {
+func (c *Command) FindOptionByShortName(shortName rune) (option *Flag) {
 	for option == nil && c != nil {
 		option = c.Group.findOptionByShortName(shortName)
 
@@ -920,7 +919,7 @@ func (c *Command) scan() error {
 	return c.scanType(c.scanSubcommandHandler(c.Group))
 }
 
-func (c *Command) eachOption(yield func(*Command, *Group, *Option)) {
+func (c *Command) eachOption(yield func(*Command, *Group, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
 		return c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
@@ -1000,23 +999,23 @@ func makeLookupTable(c *Command) lookup {
 			func(c *Command) iter.Seq[*Group] {
 				return c.eachGroup
 			}),
-		func(g *Group) iter.Seq[*Option] {
+		func(g *Group) iter.Seq[*Flag] {
 			return iter.FromMany(g.options...)
 		})
 
 	return lookup{
 		shortNames: toDict(
-			opts.Filter(func(o *Option) bool {
+			opts.Filter(func(o *Flag) bool {
 				return o.ShortName != 0
 			}),
-			func(o *Option) (string, *Option) {
+			func(o *Flag) (string, *Flag) {
 				return string(o.ShortName), o
 			}),
 		longNames: toDict(
-			opts.Filter(func(o *Option) bool {
+			opts.Filter(func(o *Flag) bool {
 				return o.LongName != ""
 			}),
-			func(o *Option) (string, *Option) {
+			func(o *Flag) (string, *Flag) {
 				return o.LongNameWithNamespace(), o
 			}),
 		commands: toDict(
@@ -1071,7 +1070,7 @@ type Group struct {
 	parent any
 
 	// All the options in the group
-	options []*Option
+	options []*Flag
 
 	// All the subgroups
 	groups []*Group
@@ -1104,7 +1103,7 @@ func (g *Group) AddGroup(shortDescription, longDescription string, data any) (*G
 }
 
 // AddOption adds a new option to this group.
-func (g *Group) AddOption(option *Option, data any) {
+func (g *Group) AddOption(option *Flag, data any) {
 	option.value = reflect.ValueOf(data)
 	option.group = g
 	g.options = append(g.options, option)
@@ -1124,11 +1123,11 @@ func (g *Group) Find(shortDescription string) *Group {
 	return ret
 }
 
-func (g *Group) findOption(matcher func(*Option) bool) *Option {
+func (g *Group) findOption(matcher func(*Flag) bool) *Flag {
 	option, _ := iter.
 		FlatMap(iter.
 			Seq[*Group](g.eachGroup),
-			func(gg *Group) iter.Seq[*Option] {
+			func(gg *Group) iter.Seq[*Flag] {
 				return iter.FromMany(gg.options...)
 			}).
 		Filter(matcher).
@@ -1138,22 +1137,22 @@ func (g *Group) findOption(matcher func(*Option) bool) *Option {
 
 // findOptionByLongName finds an option that is part of the group, or any of its
 // subgroups, by matching its long name (including the option namespace).
-func (g *Group) findOptionByLongName(longName string) *Option {
-	return g.findOption(func(option *Option) bool {
+func (g *Group) findOptionByLongName(longName string) *Flag {
+	return g.findOption(func(option *Flag) bool {
 		return option.LongNameWithNamespace() == longName
 	})
 }
 
 // findOptionByShortName finds an option that is part of the group, or any of
 // its subgroups, by matching its short name.
-func (g *Group) findOptionByShortName(shortName rune) *Option {
-	return g.findOption(func(option *Option) bool {
+func (g *Group) findOptionByShortName(shortName rune) *Flag {
+	return g.findOption(func(option *Flag) bool {
 		return option.ShortName == shortName
 	})
 }
 
 func (g *Group) showInHelp() bool {
-	return !g.Hidden && fun.Any(g.options, func(opt *Option) bool {
+	return !g.Hidden && fun.Any(g.options, func(opt *Flag) bool {
 		return opt.showInHelp()
 	})
 }
@@ -1251,7 +1250,7 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		choices := mtag.GetMany("choice")
 		hidden := !isStringFalsy(mtag.Get("hidden"))
 
-		option := &Option{
+		option := &Flag{
 			Description:      description,
 			ShortName:        short,
 			LongName:         longname,
@@ -1284,8 +1283,8 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 }
 
 func (g *Group) checkForDuplicateFlags() *Error {
-	shortNames := make(map[rune]*Option)
-	longNames := make(map[string]*Option)
+	shortNames := make(map[rune]*Flag)
+	longNames := make(map[string]*Flag)
 	var duplicateError *Error
 	g.eachGroup(func(g *Group) bool {
 		for _, option := range g.options {
@@ -1531,7 +1530,7 @@ func wrapText(s string, l int, prefix string) string {
 	return ret
 }
 
-func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Option, info alignmentInfo) {
+func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentInfo) {
 	if option.Hidden {
 		return
 	}
@@ -1881,7 +1880,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		return nil, p.internalError
 	}
 
-	p.eachOption(func(c *Command, g *Group, option *Option) {
+	p.eachOption(func(c *Command, g *Group, option *Flag) {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
@@ -1966,7 +1965,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 	}
 
 	if s.err == nil {
-		p.eachOption(func(c *Command, g *Group, option *Option) {
+		p.eachOption(func(c *Command, g *Group, option *Flag) {
 			err := option.clearDefault()
 			if err != nil {
 				if _, ok := err.(*Error); !ok {
@@ -2008,7 +2007,7 @@ func (p *parseState) pop() string {
 }
 
 func (p *parseState) checkRequired(parser *Parser) {
-	var required []*Option
+	var required []*Flag
 	for c := parser.Command; c != nil; c = c.Active {
 		c.eachGroup(func(g *Group) bool {
 			for _, option := range g.options {
@@ -2066,7 +2065,7 @@ func (p *parseState) checkRequired(parser *Parser) {
 		return
 	}
 
-	names := internal.Map(func(k *Option) string {
+	names := internal.Map(func(k *Flag) string {
 		return "`" + k.String() + "'"
 	}, required...)
 	sort.Strings(names)
@@ -2145,7 +2144,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 	return nil
 }
 
-func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
+func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bool, argument *string) (err error) {
 	switch {
 	case !option.canArgument():
 		if argument != nil {

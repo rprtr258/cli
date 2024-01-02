@@ -80,7 +80,7 @@ func wrapError(err error) *Error {
 	}
 }
 
-func marshalError(option *Option, err error) *Error {
+func marshalError(option *Flag, err error) *Error {
 	valueType := option.value.Type()
 	return &Error{
 		Kind: ErrMarshal,

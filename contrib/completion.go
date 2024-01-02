@@ -124,7 +124,7 @@ func (c *completion) complete(args []string) []Completion {
 		positional: c.parser.Command.args,
 		lookup:     makeLookupTable(c.parser.Command),
 	}
-	var opt *Option
+	var opt *Flag
 	for len(s.args) > 1 {
 		arg := s.pop()
 
@@ -139,7 +139,7 @@ func (c *completion) complete(args []string) []Completion {
 			optname, argument := splitFlag(prefix, optname, islong)
 
 			if argument == nil {
-				var o *Option
+				var o *Flag
 				canarg := true
 				if islong {
 					o = s.lookup.longNames[optname]
