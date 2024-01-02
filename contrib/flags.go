@@ -1753,14 +1753,14 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 		// When PassDoubleDash is set and we encounter a --, then
 		// simply append all the rest as arguments and break out
 		if p.Options&PassDoubleDash != 0 && arg == "--" {
-			_ = s.addArgs(s.args...)
+			s.addArgs(s.args...)
 			break
 		}
 
 		if !isFlag(arg) {
 			if p.Options&PassAfterNonOption != 0 && s.lookup.commands[arg] == nil {
 				// If PassAfterNonOption is set then all remaining arguments are considered positional
-				if s.addArgs(s.arg) {
+				if s.addArgs(s.arg); s.err == nil {
 					s.addArgs(s.args...)
 				}
 				break
@@ -1771,7 +1771,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 				s.positional = cmd.args
 				s.lookup = makeLookupTable(cmd)
 				s.command = cmd
-			} else if !s.addArgs(s.arg) {
+			} else if s.addArgs(s.arg); s.err != nil {
 				break
 			}
 
@@ -2054,12 +2054,12 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 	return nil
 }
 
-func (p *parseState) addArgs(args ...string) bool {
+func (p *parseState) addArgs(args ...string) {
 	for len(p.positional) > 0 && len(args) > 0 {
 		arg := p.positional[0]
 		if err := convert(args[0], arg.value, arg.tag); err != nil {
 			p.err = err
-			return false
+			return
 		}
 
 		if !isRemainingArg(arg.value) {
@@ -2070,5 +2070,4 @@ func (p *parseState) addArgs(args ...string) bool {
 	}
 
 	p.retargs = append(p.retargs, args...)
-	return true
 }
