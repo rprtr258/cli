@@ -162,7 +162,7 @@ func (c *completion) complete(args []string) []Completion {
 					opt = nil
 					c.skipPositional(s, len(s.args)-1)
 					break
-				} else if o != nil && o.canArgument() && !o.OptionalArgument && canarg {
+				} else if o != nil && o.canArgument() && !o.IsOptional && canarg {
 					if len(s.args) > 1 {
 						s.pop()
 					} else {

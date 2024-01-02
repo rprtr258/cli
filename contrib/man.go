@@ -88,8 +88,8 @@ func writeManPageOptions(wr io.Writer, grp *Group) {
 				fmt.Fprintf(wr, "\\fB\\-\\-%s\\fR", manQuote(opt.LongNameWithNamespace()))
 			}
 
-			if opt.ValueName != "" || opt.OptionalArgument {
-				if opt.OptionalArgument {
+			if opt.ValueName != "" || opt.IsOptional {
+				if opt.IsOptional {
 					fmt.Fprintf(wr, " [\\fI%s=%s\\fR]", manQuote(opt.ValueName), manQuote(strings.Join(internal.Map(strconv.Quote, opt.OptionalValue...), ", ")))
 				} else {
 					fmt.Fprintf(wr, " \\fI%s\\fR", manQuote(opt.ValueName))

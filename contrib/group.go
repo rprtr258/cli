@@ -325,7 +325,7 @@ type Flag struct {
 	// When no argument to the flag is specified on the command line, the
 	// value of OptionalValue will be set in the field this option represents.
 	// This is only valid for non-boolean options.
-	OptionalArgument bool
+	IsOptional bool
 
 	// The optional value of the option.
 	// The optional value is used when the option flag is marked as having an OptionalArgument.
@@ -1251,17 +1251,17 @@ func (g *Group) scanStruct(realval reflect.Value, sfield *reflect.StructField, h
 		hidden := !isStringFalsy(mtag.Get("hidden"))
 
 		option := &Flag{
-			Description:      description,
-			ShortName:        short,
-			LongName:         longname,
-			Default:          def,
-			OptionalArgument: optional,
-			OptionalValue:    optionalValue,
-			Required:         required,
-			ValueName:        valueName,
-			DefaultMask:      defaultMask,
-			Choices:          choices,
-			Hidden:           hidden,
+			Description:   description,
+			ShortName:     short,
+			LongName:      longname,
+			Default:       def,
+			IsOptional:    optional,
+			OptionalValue: optionalValue,
+			Required:      required,
+			ValueName:     valueName,
+			DefaultMask:   defaultMask,
+			Choices:       choices,
+			Hidden:        hidden,
 
 			group: g,
 
@@ -2179,7 +2179,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 		if err == nil {
 			err = option.Set(&arg)
 		}
-	case option.OptionalArgument:
+	case option.IsOptional:
 		option.empty()
 
 		for _, v := range option.OptionalValue {
@@ -2207,7 +2207,7 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	}
 
 	// Only long options that are required can consume an argument from the argument list
-	return p.parseOption(s, name, option, !option.OptionalArgument, argument)
+	return p.parseOption(s, name, option, !option.IsOptional, argument)
 }
 
 func (p *Parser) splitShortConcatArg(s *parseState, optname string) (optname_ string, arg_ *string) {
@@ -2239,7 +2239,7 @@ func (p *Parser) parseShort(s *parseState, optname string, argument *string) err
 
 		// Only the last short argument can consume an argument from
 		// the arguments list, and only if it's non optional
-		canarg := i+utf8.RuneLen(c) == len(optname) && !option.OptionalArgument
+		canarg := i+utf8.RuneLen(c) == len(optname) && !option.IsOptional
 		if err := p.parseOption(s, shortname, option, canarg, argument); err != nil {
 			return err
 		}
