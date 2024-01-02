@@ -123,51 +123,47 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 		}).
 		ForEach(func(command *Command) {
 			name := internal.Iverson(name != "", name+" ") + command.Name
-			writeManPageCommand(w, name, usagePrefix, command)
+			fmt.Fprintf(w, ".SS %s\n", name)
+			fmt.Fprintln(w, command.Group.ShortDescription)
+
+			if command.Group.LongDescription != "" {
+				fmt.Fprintln(w, "")
+
+				cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
+
+				if strings.HasPrefix(command.Group.LongDescription, cmdstart) {
+					fmt.Fprintf(w, "The \\fI%s\\fP command", manQuote(command.Name))
+
+					formatForMan(w, command.Group.LongDescription[len(cmdstart):])
+					fmt.Fprintln(w, "")
+				} else {
+					formatForMan(w, command.Group.LongDescription)
+					fmt.Fprintln(w, "")
+				}
+			}
+
+			pre := usagePrefix + " " + command.Name
+
+			var usage string
+			if us, ok := command.Group.data.(Usage); ok {
+				usage = us.Usage()
+			} else if command.hasHelpOptions() {
+				usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
+			}
+
+			nextPrefix := pre
+			if usage != "" {
+				fmt.Fprintf(w, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
+				nextPrefix = pre + " " + usage
+			}
+
+			if len(command.Aliases) > 0 {
+				fmt.Fprintf(w, "\n\\fBAliases\\fP: %s\n\n", manQuote(strings.Join(command.Aliases, ", ")))
+			}
+
+			writeManPageOptions(w, command.Group)
+			writeManPageSubcommands(w, name, nextPrefix, visibleCommands(command.commands))
 		})
-}
-
-func writeManPageCommand(w io.Writer, name, usagePrefix string, command *Command) {
-	fmt.Fprintf(w, ".SS %s\n", name)
-	fmt.Fprintln(w, command.Group.ShortDescription)
-
-	if command.Group.LongDescription != "" {
-		fmt.Fprintln(w, "")
-
-		cmdstart := fmt.Sprintf("The %s command", manQuote(command.Name))
-
-		if strings.HasPrefix(command.Group.LongDescription, cmdstart) {
-			fmt.Fprintf(w, "The \\fI%s\\fP command", manQuote(command.Name))
-
-			formatForMan(w, command.Group.LongDescription[len(cmdstart):])
-			fmt.Fprintln(w, "")
-		} else {
-			formatForMan(w, command.Group.LongDescription)
-			fmt.Fprintln(w, "")
-		}
-	}
-
-	pre := usagePrefix + " " + command.Name
-
-	var usage string
-	if us, ok := command.Group.data.(Usage); ok {
-		usage = us.Usage()
-	} else if command.hasHelpOptions() {
-		usage = fmt.Sprintf("[%s-OPTIONS]", command.Name)
-	}
-
-	nextPrefix := pre
-	if usage != "" {
-		fmt.Fprintf(w, "\n\\fBUsage\\fP: %s %s\n.TP\n", manQuote(pre), manQuote(usage))
-		nextPrefix = pre + " " + usage
-	}
-
-	if len(command.Aliases) > 0 {
-		fmt.Fprintf(w, "\n\\fBAliases\\fP: %s\n\n", manQuote(strings.Join(command.Aliases, ", ")))
-	}
-
-	writeManPageOptions(w, command.Group)
-	writeManPageSubcommands(w, name, nextPrefix, visibleCommands(command.commands))
 }
 
 // WriteManPage writes a basic man page in groff format to the specified writer.
