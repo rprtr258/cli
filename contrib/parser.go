@@ -456,18 +456,20 @@ func (p *parseState) estimateCommand() error {
 		}
 	}
 
-	var msg string
-	if len(cmdnames) == 1 {
-		msg = fmt.Sprintf("Please specify the %s command", cmdnames[0])
-	} else if len(cmdnames) > 1 {
-		msg = fmt.Sprintf("Please specify one command of: %s or %s",
-			strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-			cmdnames[len(cmdnames)-1])
-	}
-
 	return &Error{
-		Kind:    ErrCommandRequired,
-		Message: msg,
+		Kind: ErrCommandRequired,
+		Message: func() string {
+			switch {
+			case len(cmdnames) == 1:
+				return fmt.Sprintf("Please specify the %s command", cmdnames[0])
+			case len(cmdnames) > 1:
+				return fmt.Sprintf("Please specify one command of: %s or %s",
+					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+					cmdnames[len(cmdnames)-1])
+			default:
+				return ""
+			}
+		}(),
 	}
 }
 
