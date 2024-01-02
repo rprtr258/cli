@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"os"
-	"path/filepath"
 	"reflect"
 	"sort"
 	"strings"
@@ -43,7 +42,7 @@ func Run(data any, args ...string) error {
 // was specified in the command line arguments, the special error type ErrHelp
 // is returned with help text to print.
 func RunContext(ctx context.Context, data any, args ...string) error {
-	appname := filepath.Base(os.Args[0])
+	appname := args[0]
 	p := newParser(appname, data)
 	args = args[1:] // throw off executable name
 
