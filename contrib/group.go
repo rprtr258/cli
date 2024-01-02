@@ -16,6 +16,7 @@ import (
 	"github.com/rprtr258/cli/internal"
 	"github.com/rprtr258/fun"
 	"github.com/rprtr258/fun/iter"
+	"github.com/samber/lo"
 )
 
 // Arg represents a positional argument on the command line.
@@ -1990,18 +1991,18 @@ func (s *parseState) checkRequired(p *Parser) {
 		var reqnames []string
 		for _, arg := range s.positional {
 			if isRemaining := isRemainingArg(arg.value); !isRemaining && s.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1 {
-				if !isRemaining {
+				switch {
+				case !isRemaining:
 					reqnames = append(reqnames, "`"+arg.Name+"`")
-				} else if arg.value.Len() < arg.Required {
-					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
-				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
-					reqnames = append(reqnames, "`"+arg.Name+func() string {
-						if arg.RequiredMaximum == 0 {
-							return " (zero arguments)"
-						} else {
-							return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
-						}
-					}()+"`")
+				case arg.value.Len() < arg.Required:
+					reqnames = append(reqnames, "`"+arg.Name+
+						" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+
+						")`")
+				case arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum:
+					desc := lo.If(arg.RequiredMaximum == 0, " (zero arguments)").ElseF(func() string {
+						return " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")"
+					})
+					reqnames = append(reqnames, "`"+arg.Name+desc+"`")
 				}
 			}
 		}
