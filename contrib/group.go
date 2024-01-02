@@ -2153,47 +2153,45 @@ func (p *parseState) checkRequired(parser *Parser) {
 	}
 }
 
-func (s *parseState) reterr(commandHandler func(Commander, []string) error) error {
-	if s.err != nil {
-		return s.err
+func (p *parseState) reterr(commandHandler func(Commander, []string) error) error {
+	if p.err != nil {
+		return p.err
 	}
 
-	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
-		return s.estimateCommand()
-	}
+	if len(p.command.commands) != 0 && !p.command.SubcommandsOptional {
+		cmdnames := internal.Map(func(v *Command) string {
+			return v.Name
+		}, visibleCommands(p.command.commands)...)
 
-	if cmd, ok := s.command.data.(Commander); ok {
-		if commandHandler != nil {
-			return commandHandler(cmd, s.retargs)
+		if len(p.retargs) != 0 {
+			c, l := getClosest(p.retargs[0], cmdnames)
+			return &Error{
+				Kind: ErrUnknownCommand,
+				Message: fmt.Sprintf("Unknown command `%s'", p.retargs[0]) + func() string {
+					switch {
+					case l*2 < len(c):
+						return fmt.Sprintf(", did you mean `%s'?", c)
+					case len(cmdnames) == 1:
+						return fmt.Sprintf(". You should use the %s command", cmdnames[0])
+					case len(cmdnames) > 1:
+						return fmt.Sprintf(". Please specify one command of: %s or %s",
+							strings.Join(cmdnames[:len(cmdnames)-1], ", "),
+							cmdnames[len(cmdnames)-1])
+					default:
+						return ""
+					}
+				}(),
+			}
 		}
 
-		return cmd.Execute(s.retargs)
-	}
-
-	if commandHandler != nil {
-		return commandHandler(nil, s.retargs)
-	}
-
-	return nil
-}
-
-func (p *parseState) estimateCommand() error {
-	cmdnames := internal.Map(func(v *Command) string {
-		return v.Name
-	}, visibleCommands(p.command.commands)...)
-
-	if len(p.retargs) != 0 {
-		c, l := getClosest(p.retargs[0], cmdnames)
 		return &Error{
-			Kind: ErrUnknownCommand,
-			Message: fmt.Sprintf("Unknown command `%s'", p.retargs[0]) + func() string {
+			Kind: ErrCommandRequired,
+			Message: func() string {
 				switch {
-				case l*2 < len(c):
-					return fmt.Sprintf(", did you mean `%s'?", c)
 				case len(cmdnames) == 1:
-					return fmt.Sprintf(". You should use the %s command", cmdnames[0])
+					return fmt.Sprintf("Please specify the %s command", cmdnames[0])
 				case len(cmdnames) > 1:
-					return fmt.Sprintf(". Please specify one command of: %s or %s",
+					return fmt.Sprintf("Please specify one command of: %s or %s",
 						strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 						cmdnames[len(cmdnames)-1])
 				default:
@@ -2203,21 +2201,19 @@ func (p *parseState) estimateCommand() error {
 		}
 	}
 
-	return &Error{
-		Kind: ErrCommandRequired,
-		Message: func() string {
-			switch {
-			case len(cmdnames) == 1:
-				return fmt.Sprintf("Please specify the %s command", cmdnames[0])
-			case len(cmdnames) > 1:
-				return fmt.Sprintf("Please specify one command of: %s or %s",
-					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
-					cmdnames[len(cmdnames)-1])
-			default:
-				return ""
-			}
-		}(),
+	if cmd, ok := p.command.data.(Commander); ok {
+		if commandHandler != nil {
+			return commandHandler(cmd, p.retargs)
+		}
+
+		return cmd.Execute(p.retargs)
 	}
+
+	if commandHandler != nil {
+		return commandHandler(nil, p.retargs)
+	}
+
+	return nil
 }
 
 func (p *Parser) parseOption(s *parseState, name string, option *Option, canarg bool, argument *string) (err error) {
