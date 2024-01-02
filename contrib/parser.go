@@ -381,11 +381,13 @@ func (p *parseState) checkRequired(parser *Parser) {
 				if arg.value.Len() < arg.Required {
 					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
 				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
+					var reqname string
 					if arg.RequiredMaximum == 0 {
-						reqnames = append(reqnames, "`"+arg.Name+" (zero arguments)`")
+						reqname = "`" + arg.Name + " (zero arguments)`"
 					} else {
-						reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" argument"+internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len()))+")`")
+						reqname = "`" + arg.Name + " (at most " + fmt.Sprint(arg.RequiredMaximum) + " argument" + internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len())) + ")`"
 					}
+					reqnames = append(reqnames, reqname)
 				}
 			} else {
 				reqnames = append(reqnames, "`"+arg.Name+"`")
