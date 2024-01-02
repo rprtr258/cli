@@ -2048,8 +2048,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		s.checkRequired(p)
 	}
 
-	reterr := s.reterr(p.CommandHandler)
-	if reterr != nil {
+	if reterr := s.reterr(p.CommandHandler); reterr != nil {
 		return func() []string {
 			if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
 				return append([]string{s.arg}, s.args...)
