@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path"
 	"reflect"
@@ -1610,12 +1609,12 @@ func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Option, info alignment
 			desc = fmt.Sprintf("%s (default: %v)", option.Description, def)
 		}
 
-		_, _ = io.WriteString(w, wrapText(desc,
+		_, _ = w.WriteString(wrapText(desc,
 			info.terminalColumns-descstart,
 			strings.Repeat(" ", descstart)))
 	}
 
-	_, _ = io.WriteString(w, "\n")
+	_, _ = w.WriteString("\n")
 }
 
 // WriteHelp writes a help message containing all the possible options and
