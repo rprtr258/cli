@@ -434,9 +434,7 @@ func (option *Flag) Value() any {
 // if the specified value could not be converted to the corresponding option
 // value type.
 func (option *Flag) Set(value *string) error {
-	kind := option.value.Type().Kind()
-
-	if internal.OneOf(kind, reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
+	if internal.OneOf(option.value.Type().Kind(), reflect.Map, reflect.Slice) && option.clearReferenceBeforeSet {
 		option.empty()
 	}
 
