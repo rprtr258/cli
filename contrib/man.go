@@ -138,7 +138,7 @@ func writeManPageSubcommands(w io.Writer, name, usagePrefix string, commands []*
 				} else {
 					formatForMan(w, command.Group.LongDescription)
 				}
-				fmt.Fprintln(w, "")
+				fmt.Fprintln(w)
 			}
 
 			pre := usagePrefix + " " + command.Name
