@@ -75,14 +75,6 @@ func (c *completion) completeOptionNames(s *parseState, prefix, match string, sh
 	return results
 }
 
-func (c *completion) completeNamesForLongPrefix(s *parseState, prefix, match string) []Completion {
-	return c.completeOptionNames(s, prefix, match, false)
-}
-
-func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match string) []Completion {
-	return c.completeOptionNames(s, prefix, match, true)
-}
-
 func (c *completion) completeCommands(s *parseState, match string) []Completion {
 	return internal.FilterMap(func(cmd *Command) (Completion, bool) {
 		return Completion{
@@ -219,7 +211,7 @@ func (c *completion) complete(args []string) []Completion {
 
 			return c.completeValue(opt.value, prefix+optname+"=", *argument)
 		case islong:
-			return c.completeNamesForLongPrefix(s, prefix, optname)
+			return c.completeOptionNames(s, prefix, optname, false)
 		default:
 			return c.completeNamesForShortPrefix(s, prefix, optname)
 		}
@@ -230,6 +222,10 @@ func (c *completion) complete(args []string) []Completion {
 	default:
 		return nil
 	}
+}
+
+func (c *completion) completeNamesForShortPrefix(s *parseState, prefix, match string) []Completion {
+	return c.completeOptionNames(s, prefix, match, true)
 }
 
 func (c *completion) print(w io.Writer, items []Completion) {
