@@ -1932,9 +1932,8 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 				break
 			}
 
-			// Note: this also sets s.err, so we can just check for
-			// nil here and use s.err later
-			if p.parseNonOption(s) != nil {
+			// Note: this also sets s.err, so we can just check for nil here and use s.err later
+			if !p.parseNonOption(s) {
 				break
 			}
 
@@ -2273,9 +2272,9 @@ func (p *parseState) addArgs(args ...string) error {
 	return nil
 }
 
-func (p *Parser) parseNonOption(s *parseState) error {
+func (p *Parser) parseNonOption(s *parseState) bool {
 	if len(s.positional) > 0 || len(s.command.commands) == 0 || len(s.retargs) > 0 {
-		return s.addArgs(s.arg)
+		return s.addArgs(s.arg) == nil
 	}
 
 	if cmd := s.lookup.commands[s.arg]; cmd != nil {
@@ -2283,15 +2282,15 @@ func (p *Parser) parseNonOption(s *parseState) error {
 		s.positional = cmd.args
 		s.lookup = makeLookupTable(cmd)
 		s.command = cmd
-		return nil
+		return true
 	}
 
 	if !s.command.SubcommandsOptional {
 		_ = s.addArgs(s.arg)
-		return newErrorf(ErrUnknownCommand, "Unknown command `%s'", s.arg)
+		return false
 	}
 
-	return s.addArgs(s.arg)
+	return s.addArgs(s.arg) == nil
 }
 
 func (p *Parser) showBuiltinHelp() error {
