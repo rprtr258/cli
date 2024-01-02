@@ -30,31 +30,6 @@ type completion struct {
 	parser *Parser
 }
 
-// Filename is a string alias which provides filename completion.
-type Filename string
-
-func completionsWithoutDescriptions(items []string) []Completion {
-	ret := make([]Completion, len(items))
-
-	for i, v := range items {
-		ret[i].Item = v
-	}
-
-	return ret
-}
-
-// Complete returns a list of existing files with the given
-// prefix.
-func (f *Filename) Complete(match string) []Completion {
-	ret, _ := filepath.Glob(match + "*")
-	if len(ret) == 1 {
-		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
-			ret[0] += "/"
-		}
-	}
-	return completionsWithoutDescriptions(ret)
-}
-
 func (c *completion) skipPositional(s *parseState, n int) {
 	if n >= len(s.positional) {
 		s.positional = nil
@@ -271,4 +246,28 @@ func (c *completion) print(w io.Writer, items []Completion) {
 		}
 		fmt.Fprintln(w)
 	}
+}
+
+// Filename is a string alias which provides filename completion.
+type Filename string
+
+func completionsWithoutDescriptions(items []string) []Completion {
+	return internal.Map(func(v string) Completion {
+		return Completion{
+			Item:        v,
+			Description: "",
+		}
+	}, items...)
+}
+
+// Complete returns a list of existing files with the given
+// prefix.
+func (f *Filename) Complete(match string) []Completion {
+	ret, _ := filepath.Glob(match + "*")
+	if len(ret) == 1 {
+		if info, err := os.Stat(ret[0]); err == nil && info.IsDir() {
+			ret[0] += "/"
+		}
+	}
+	return completionsWithoutDescriptions(ret)
 }
