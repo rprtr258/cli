@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -207,7 +207,7 @@ func TestCompletion(t *testing.T) {
 
 	for name, test := range completionTests {
 		t.Run(name, func(t *testing.T) {
-			items := internal.Map(func(v Completion) string {
+			items := fun.Map[string](func(v Completion) string {
 				return v.Item
 			}, c.complete(test.Args)...)
 

@@ -10,6 +10,7 @@ import (
 	"unicode/utf8"
 
 	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 )
 
 // Completion is a type containing information of a completion.
@@ -105,7 +106,7 @@ func (c *completion) completeValue(value reflect.Value, prefix, match string) []
 		}
 	}
 
-	return internal.Map(func(v Completion) Completion {
+	return fun.Map[Completion](func(v Completion) Completion {
 		return Completion{
 			Item:        prefix + v.Item,
 			Description: v.Description,
@@ -259,7 +260,7 @@ func (f *Filename) Complete(prefix string) []Completion {
 		}
 	}
 
-	return internal.Map(func(v string) Completion {
+	return fun.Map[Completion](func(v string) Completion {
 		return Completion{
 			Item:        v,
 			Description: "",

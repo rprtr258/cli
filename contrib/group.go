@@ -1598,9 +1598,9 @@ func (p *Parser) WriteHelp() string {
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
 				scommands := "command"
 				if visibleCommands := visibleCommands(allcmd.commands); len(visibleCommands) <= 3 {
-					scommands = strings.Join(internal.Map(func(subc *Command) string {
+					scommands = internal.Join(func(subc *Command) string {
 						return subc.Name
-					}, visibleCommands...), " | ")
+					}, " | ", visibleCommands...)
 				}
 
 				co, cc := "<", ">"
@@ -2021,7 +2021,7 @@ func (s *parseState) checkRequired(p *Parser) {
 		return
 	}
 
-	names := internal.Map(func(k *Flag) string {
+	names := fun.Map[string](func(k *Flag) string {
 		return "`" + k.String() + "'"
 	}, required...)
 	sort.Strings(names)
@@ -2045,7 +2045,7 @@ func (p *parseState) reterr(commandHandler func(Commander, []string) error) erro
 	}
 
 	if len(p.command.commands) != 0 && !p.command.SubcommandsOptional {
-		cmdnames := internal.Map(func(v *Command) string {
+		cmdnames := fun.Map[string](func(v *Command) string {
 			return v.Name
 		}, visibleCommands(p.command.commands)...)
 

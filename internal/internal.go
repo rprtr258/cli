@@ -22,14 +22,6 @@ func Or[T comparable](x T, ys ...T) T {
 	return res
 }
 
-func Map[T, R any](f func(T) R, xs ...T) []R {
-	ret := make([]R, len(xs))
-	for i, v := range xs {
-		ret[i] = f(v)
-	}
-	return ret
-}
-
 func MaxBy[T any, R cmp.Ordered](f func(T) R, xs ...T) R {
 	if len(xs) == 0 {
 		var zero R
