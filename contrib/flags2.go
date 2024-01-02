@@ -198,8 +198,24 @@ func RunContext(ctx context.Context, data any, args ...string) error {
 		}
 	}
 
-	if reterr := s.reterr(); reterr != nil {
-		return reterr
+	if s.err != nil {
+		return s.err
+	}
+
+	if len(s.command.commands) != 0 && !s.command.SubcommandsOptional {
+		cmdnames := fun.Map[string](func(v *Command) string {
+			return v.Name
+		}, visibleCommands(s.command.commands)...)
+
+		if len(s.retargs) != 0 {
+			return newUnknownCommandError(s.retargs[0], cmdnames)
+		}
+
+		return newCommandRequiredError(cmdnames)
+	}
+
+	if cmd, ok := s.command.Flags.data.(Commander); ok {
+		return cmd.Execute(s.retargs)
 	}
 
 	return nil
