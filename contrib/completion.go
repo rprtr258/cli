@@ -251,15 +251,6 @@ func (c *completion) print(w io.Writer, items []Completion) {
 // Filename is a string alias which provides filename completion.
 type Filename string
 
-func completionsWithoutDescriptions(items []string) []Completion {
-	return internal.Map(func(v string) Completion {
-		return Completion{
-			Item:        v,
-			Description: "",
-		}
-	}, items...)
-}
-
 // Complete returns a list of existing files with the given prefix.
 func (f *Filename) Complete(prefix string) []Completion {
 	ret, _ := filepath.Glob(prefix + "*")
@@ -268,5 +259,10 @@ func (f *Filename) Complete(prefix string) []Completion {
 			ret[0] += "/"
 		}
 	}
-	return completionsWithoutDescriptions(ret)
+	return internal.Map(func(v string) Completion {
+		return Completion{
+			Item:        v,
+			Description: "",
+		}
+	}, ret...)
 }
