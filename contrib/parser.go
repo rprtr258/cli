@@ -557,7 +557,6 @@ func (p *Parser) splitShortConcatArg(s *parseState, optname string) (optname_ st
 	}
 
 	first := string(c)
-
 	if option := s.lookup.shortNames[first]; option != nil && option.canArgument() {
 		arg := optname[n:]
 		return first, &arg
