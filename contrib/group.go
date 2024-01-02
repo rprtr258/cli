@@ -1054,7 +1054,7 @@ type Group struct {
 
 	// A long description of the group. The long
 	// description is primarily used to present information on commands
-	// (Command embeds Group) in the built-in generated help and man pages.
+	// in the built-in generated help and man pages.
 	LongDescription string
 
 	// The namespace of the group
