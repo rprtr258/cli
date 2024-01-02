@@ -367,43 +367,45 @@ func (p *parseState) checkRequired(parser *Parser) {
 	}
 
 	if len(required) == 0 {
-		if len(p.positional) > 0 {
-			var reqnames []string
-			for _, arg := range p.positional {
-				if argRequired := !isRemainingArg(arg.value) && p.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
-					continue
-				}
+		if len(p.positional) == 0 {
+			return
+		}
 
-				if isRemainingArg(arg.value) {
-					if arg.value.Len() < arg.Required {
-						reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
-					} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
-						if arg.RequiredMaximum == 0 {
-							reqnames = append(reqnames, "`"+arg.Name+" (zero arguments)`")
-						} else {
-							reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" argument"+internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len()))+")`")
-						}
+		var reqnames []string
+		for _, arg := range p.positional {
+			if argRequired := !isRemainingArg(arg.value) && p.command.ArgsRequired || arg.Required != -1 || arg.RequiredMaximum != -1; !argRequired {
+				continue
+			}
+
+			if isRemainingArg(arg.value) {
+				if arg.value.Len() < arg.Required {
+					reqnames = append(reqnames, "`"+arg.Name+" (at least "+fmt.Sprint(arg.Required)+" argument"+internal.Iverson(arg.Required > 1, "s, but got only "+fmt.Sprint(arg.value.Len()))+")`")
+				} else if arg.RequiredMaximum != -1 && arg.value.Len() > arg.RequiredMaximum {
+					if arg.RequiredMaximum == 0 {
+						reqnames = append(reqnames, "`"+arg.Name+" (zero arguments)`")
+					} else {
+						reqnames = append(reqnames, "`"+arg.Name+" (at most "+fmt.Sprintf("%d", arg.RequiredMaximum)+" argument"+internal.Iverson(arg.RequiredMaximum > 1, "s, but got "+fmt.Sprint(arg.value.Len()))+")`")
 					}
-				} else {
-					reqnames = append(reqnames, "`"+arg.Name+"`")
 				}
-			}
-			if len(reqnames) == 0 {
-				return
-			}
-
-			var msg string
-			if len(reqnames) == 1 {
-				msg = fmt.Sprintf("the required argument %s was not provided", reqnames[0])
 			} else {
-				msg = fmt.Sprintf("the required arguments %s and %s were not provided",
-					strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
+				reqnames = append(reqnames, "`"+arg.Name+"`")
 			}
+		}
+		if len(reqnames) == 0 {
+			return
+		}
 
-			p.err = &Error{
-				Kind:    ErrRequired,
-				Message: msg,
-			}
+		var msg string
+		if len(reqnames) == 1 {
+			msg = fmt.Sprintf("the required argument %s was not provided", reqnames[0])
+		} else {
+			msg = fmt.Sprintf("the required arguments %s and %s were not provided",
+				strings.Join(reqnames[:len(reqnames)-1], ", "), reqnames[len(reqnames)-1])
+		}
+
+		p.err = &Error{
+			Kind:    ErrRequired,
+			Message: msg,
 		}
 
 		return
