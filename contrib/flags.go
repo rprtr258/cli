@@ -2063,24 +2063,16 @@ func (p *Parser) parseLong(s *parseState, name string, argument *string) error {
 	return p.parseOption(s, name, option, !option.IsOptional, argument)
 }
 
-func (p *Parser) splitShortConcatArg(s *parseState, optname string) (optname_ string, arg_ *string) {
-	c, n := utf8.DecodeRuneInString(optname)
-	if n == len(optname) {
-		return optname, nil
-	}
-
-	first := string(c)
-	if option := s.lookup.shortNames[first]; option != nil && option.canArgument() {
-		arg := optname[n:]
-		return first, &arg
-	}
-
-	return optname, nil
-}
-
 func (p *Parser) parseShort(s *parseState, optname string, argument *string) error {
 	if argument == nil {
-		optname, argument = p.splitShortConcatArg(s, optname)
+		c, n := utf8.DecodeRuneInString(optname)
+		if n != len(optname) {
+			first := string(c)
+			if option := s.lookup.shortNames[first]; option != nil && option.canArgument() {
+				arg := optname[n:]
+				optname, argument = first, &arg
+			}
+		}
 	}
 
 	for i, c := range optname {
