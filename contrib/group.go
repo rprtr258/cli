@@ -1547,7 +1547,7 @@ func wrapText(s string, l int, prefix string) string {
 	return ret
 }
 
-func (p *Parser) writeHelpOption(writer io.Writer, option *Option, info alignmentInfo) {
+func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Option, info alignmentInfo) {
 	if option.Hidden {
 		return
 	}
@@ -1590,11 +1590,11 @@ func (p *Parser) writeHelpOption(writer io.Writer, option *Option, info alignmen
 	}
 
 	written := line.Len()
-	_, _ = line.WriteTo(writer)
+	_, _ = line.WriteTo(w)
 
 	if option.Description != "" {
 		dw := descstart - written
-		_, _ = io.WriteString(writer, strings.Repeat(" ", dw))
+		_, _ = w.WriteString(strings.Repeat(" ", dw))
 
 		var def string
 		if option.DefaultMask != "" {
@@ -1610,12 +1610,12 @@ func (p *Parser) writeHelpOption(writer io.Writer, option *Option, info alignmen
 			desc = fmt.Sprintf("%s (default: %v)", option.Description, def)
 		}
 
-		_, _ = io.WriteString(writer, wrapText(desc,
+		_, _ = io.WriteString(w, wrapText(desc,
 			info.terminalColumns-descstart,
 			strings.Repeat(" ", descstart)))
 	}
 
-	_, _ = io.WriteString(writer, "\n")
+	_, _ = io.WriteString(w, "\n")
 }
 
 // WriteHelp writes a help message containing all the possible options and

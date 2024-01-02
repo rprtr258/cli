@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -553,9 +552,7 @@ func TestHelpDefaultMask(t *testing.T) {
 		}
 		assert.NoError(t, err)
 		h := &bytes.Buffer{}
-		w := bufio.NewWriter(h)
-		p.writeHelpOption(w, p.FindOptionByShortName('v'), p.getAlignmentInfo())
-		w.Flush()
+		p.writeHelpOption(h, p.FindOptionByShortName('v'), p.getAlignmentInfo())
 		assert.Contains(t, h.String(), test.present)
 	}
 }
