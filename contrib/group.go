@@ -1383,18 +1383,6 @@ func (a *alignmentInfo) descriptionStart() int {
 		internal.Iverson(a.hasValueName, 3)
 }
 
-// WroteHelp is a helper to test the error from ParseArgs() to
-// determine if the help message was written. It is safe to
-// call without first checking that error is nil.
-func WroteHelp(err error) bool {
-	if err == nil { // No error
-		return false
-	}
-
-	flagError, ok := err.(*Error)
-	return ok && flagError.Kind == ErrHelp
-}
-
 // A Parser provides command line option parsing. It can contain several
 // option groups each with their own set of options.
 type Parser struct {

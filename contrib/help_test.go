@@ -2,7 +2,6 @@ package flags
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"runtime"
 	"testing"
@@ -554,28 +553,5 @@ func TestHelpDefaultMask(t *testing.T) {
 		h := &bytes.Buffer{}
 		p.writeHelpOption(h, p.FindOptionByShortName('v'), p.getAlignmentInfo())
 		assert.Contains(t, h.String(), test.present)
-	}
-}
-
-func TestWroteHelp(t *testing.T) {
-	for name, test := range map[string]struct {
-		err    error
-		isHelp bool
-	}{
-		"No error":    {err: nil, isHelp: false},
-		"Plain error": {err: errors.New("an error"), isHelp: false},
-		"ErrUnknown": {err: &Error{
-			Kind:    ErrUnknown,
-			Message: "an error",
-		}, isHelp: false},
-		"ErrHelp": {err: &Error{
-			Kind:    ErrHelp,
-			Message: "an error",
-		}, isHelp: true},
-	} {
-		t.Run(name, func(t *testing.T) {
-			res := WroteHelp(test.err)
-			assert.Equal(t, test.isHelp, res)
-		})
 	}
 }
