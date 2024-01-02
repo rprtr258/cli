@@ -21,7 +21,6 @@ type Point struct {
 
 func (p *Point) UnmarshalFlag(value string) error {
 	parts := strings.Split(value, ",")
-
 	if len(parts) != 2 {
 		return errors.New("expected two numbers separated by a ,")
 	}
