@@ -116,7 +116,7 @@ func TestDefaults(t *testing.T) {
 		},
 	} {
 		var opts defaultOptions
-		_, err := ParseArgs(&opts, test.args...)
+		_, err := NewParser(&opts, Default).ParseArgs(test.args...)
 		assert.NoError(t, err)
 
 		if opts.Slice == nil {

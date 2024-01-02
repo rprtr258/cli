@@ -94,7 +94,7 @@ func TestDuplicateShortFlags(t *testing.T) {
 		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
 	}
 
-	_, err := ParseArgs(&opts,
+	_, err := NewParser(&opts, Default).ParseArgs(
 		"--verbose",
 		"-v", "123",
 		"-v", "456",
@@ -110,7 +110,7 @@ func TestDuplicateLongFlags(t *testing.T) {
 		Test2 []string `short:"b" long:"testing" description:"Test 2."`
 	}
 
-	_, err := ParseArgs(&opts, "--testing")
+	_, err := NewParser(&opts, Default).ParseArgs("--testing")
 	assert.Error(t, err)
 	err2 := err.(*Error)
 	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
