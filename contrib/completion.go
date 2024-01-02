@@ -28,7 +28,7 @@ type Completer interface {
 }
 
 type completion struct {
-	parser *Parser
+	cmd *Command
 }
 
 func (c *completion) skipPositional(s *parseState, n int) {
@@ -113,9 +113,9 @@ func (c *completion) complete(args []string) []Completion {
 
 	s := &parseState{
 		args:       args,
-		command:    c.parser.Command,
-		positional: c.parser.Command.args,
-		lookup:     makeLookupTable(c.parser.Command),
+		command:    c.cmd,
+		positional: c.cmd.args,
+		lookup:     makeLookupTable(c.cmd),
 	}
 	var opt *Flag
 	for len(s.args) > 1 {

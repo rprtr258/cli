@@ -1440,7 +1440,7 @@ func (c *Command) addGroup(shortDescription, longDescription string, data any) *
 }
 
 func (p *Parser) printCompletions(args ...string) {
-	comp := &completion{parser: p}
+	comp := &completion{cmd: p.Command}
 	comp.print(os.Stdout, comp.complete(args))
 }
 
