@@ -143,13 +143,11 @@ func (c *completion) complete(args []string) []Completion {
 		args = []string{""}
 	}
 
-	positional, lookup := fillParseState(c.parser.Command)
-
 	s := &parseState{
 		args:       args,
 		command:    c.parser.Command,
-		positional: positional,
-		lookup:     lookup,
+		positional: c.parser.Command.args,
+		lookup:     fillParseState(c.parser.Command),
 	}
 	var opt *Option
 	for len(s.args) > 1 {
@@ -206,7 +204,8 @@ func (c *completion) complete(args []string) []Completion {
 					s.positional = s.positional[1:]
 				}
 			} else if cmd, ok := s.lookup.commands[arg]; ok {
-				s.positional, s.lookup = fillParseState(cmd)
+				s.positional = cmd.args
+				s.lookup = fillParseState(cmd)
 				s.command = cmd
 			}
 
