@@ -81,7 +81,7 @@ func TestUnmarshalPositionalError(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	_, err := NewParser(&opts, Default).ParseArgs("invalid")
+	_, err := NewParser(&opts, Default).Run("invalid")
 	assert.Error(t, err)
 	assert.EqualError(t, err, "`invalid' is not a valid value, please specify `yes' or `no'")
 }

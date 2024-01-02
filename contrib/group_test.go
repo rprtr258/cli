@@ -34,7 +34,7 @@ func TestGroupAdd(t *testing.T) {
 	g, err := p.Command.AddGroup("Grouped Options", "", &grp)
 	assert.NoError(t, err)
 
-	ret, err := p.ParseArgs("-v", "-g", "rest")
+	ret, err := p.Run("-v", "-g", "rest")
 	assert.NoError(t, err)
 
 	assert.Equal(t, ret, []string{"rest"})
@@ -94,7 +94,7 @@ func TestDuplicateShortFlags(t *testing.T) {
 		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
 	}
 
-	_, err := NewParser(&opts, Default).ParseArgs(
+	_, err := NewParser(&opts, Default).Run(
 		"--verbose",
 		"-v", "123",
 		"-v", "456",
@@ -110,7 +110,7 @@ func TestDuplicateLongFlags(t *testing.T) {
 		Test2 []string `short:"b" long:"testing" description:"Test 2."`
 	}
 
-	_, err := NewParser(&opts, Default).ParseArgs("--testing")
+	_, err := NewParser(&opts, Default).Run("--testing")
 	assert.Error(t, err)
 	err2 := err.(*Error)
 	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
@@ -173,7 +173,7 @@ func TestAddOptionNonOptional(t *testing.T) {
 		LongName: "test",
 	}, &opts.Test)
 
-	_, err := p.ParseArgs("--test")
+	_, err := p.Run("--test")
 	assert.NoError(t, err)
 	assert.True(t, opts.Test)
 }

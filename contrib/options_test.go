@@ -11,7 +11,7 @@ func TestPassDoubleDash(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	ret, err := NewParser(&opts, PassDoubleDash).ParseArgs("-v", "--", "-v", "-g")
+	ret, err := NewParser(&opts, PassDoubleDash).Run("-v", "--", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"-v", "-g"}, ret)
@@ -22,7 +22,7 @@ func TestPassAfterNonOption(t *testing.T) {
 		Value bool `short:"v"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{"arg", "-v", "-g"}, ret)
@@ -37,7 +37,7 @@ func TestPassAfterNonOptionWithPositional(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "arg", "-v", "-g")
+	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "arg", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{}, ret)
@@ -53,7 +53,7 @@ func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "1", "2", "3")
+	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "1", "2", "3")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.Equal(t, []string{}, ret)
@@ -86,7 +86,7 @@ func TestPassAfterNonOptionWithPositionalIntFail(t *testing.T) {
 		},
 	} {
 		p := NewParser(&opts, PassAfterNonOption)
-		ret, err := p.ParseArgs(test.opts...)
+		ret, err := p.Run(test.opts...)
 		assert.Error(t, err)
 		assert.ErrorContains(t, err, test.errContains)
 		assert.Equal(t, ret, test.ret)

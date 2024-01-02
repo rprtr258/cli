@@ -155,7 +155,7 @@ func TestCommandEstimate(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.ParseArgs()
+	_, err := p.Run()
 	assert.Equal(t, &Error{
 		Kind:    ErrCommandRequired,
 		Message: "Please specify one command of: remove or add",
@@ -170,7 +170,7 @@ func TestCommandEstimate2(t *testing.T) {
 	}{}
 
 	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("rmive")
+	_, err := p.Run("rmive")
 	assert.Equal(t, &Error{
 		Kind:    ErrUnknownCommand,
 		Message: "Unknown command `rmive', did you mean `remove'?",
@@ -229,7 +229,7 @@ func TestCommandAdd(t *testing.T) {
 	c, err := p.Command.AddCommand("cmd", "", "", &cmd)
 	assert.NoError(t, err)
 
-	ret, err := p.ParseArgs("-v", "cmd", "-g", "rest")
+	ret, err := p.Run("-v", "cmd", "-g", "rest")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"rest"}, ret)
 	assert.True(t, opts.Value)
@@ -328,7 +328,7 @@ func TestSubcommandsOptional(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.Command.SubcommandsOptional = true
 
-	_, err := p.ParseArgs("-v")
+	_, err := p.Run("-v")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 }
@@ -343,7 +343,7 @@ func TestSubcommandsOptionalAfterNonCommand(t *testing.T) {
 	p := NewParser(&opts, None)
 	p.Command.SubcommandsOptional = true
 
-	retargs, err := p.ParseArgs("nocmd", "remove")
+	retargs, err := p.Run("nocmd", "remove")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"nocmd", "remove"}, retargs)
 }
@@ -416,7 +416,7 @@ func TestCommandPassAfterNonOption(t *testing.T) {
 		Value bool   `short:"v"`
 		Foo   fooCmd `command:"foo"`
 	}{}
-	ret, err := NewParser(&opts, PassAfterNonOption).ParseArgs("-v", "foo", "-f", "bar", "-v", "-g")
+	ret, err := NewParser(&opts, PassAfterNonOption).Run("-v", "foo", "-f", "bar", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Foo.Flag)
@@ -437,7 +437,7 @@ func TestCommandPassAfterNonOptionWithPositional(t *testing.T) {
 		Bar   barCmd `command:"bar"`
 	}{}
 	p := NewParser(&opts, PassAfterNonOption)
-	ret, err := p.ParseArgs("-v", "bar", "-f", "baz", "-v", "-g")
+	ret, err := p.Run("-v", "bar", "-f", "baz", "-v", "-g")
 	assert.NoError(t, err)
 	assert.True(t, opts.Value)
 	assert.True(t, opts.Bar.Flag)

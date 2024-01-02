@@ -82,7 +82,7 @@ func TestHelp(t *testing.T) {
 	p := NewNamedParser("TestHelp", HelpFlag)
 	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs("--help")
+	_, err := p.Run("--help")
 	var expected string
 	if runtime.GOOS == "windows" {
 		expected = `Usage:
@@ -311,7 +311,7 @@ func TestHelpCommand(t *testing.T) {
 	p := NewNamedParser("TestHelpCommand", HelpFlag)
 	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
-	_, err := p.ParseArgs("command", "--help")
+	_, err := p.Run("command", "--help")
 	var expected string
 	if runtime.GOOS == "windows" {
 		expected = `Usage:
@@ -371,7 +371,7 @@ func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
 	assert.Len(t, cmdHidden.Group.options, 2)
 
 	// which help we ask for explicitly
-	_, err = p.ParseArgs("hidden", "--help")
+	_, err = p.Run("hidden", "--help")
 	assert.Equal(t, &Error{
 		Kind:    ErrHelp,
 		Message: "",
@@ -443,7 +443,7 @@ Help Options:
 		p := NewNamedParser("TestHelpDefaults", HelpFlag)
 		_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
-		_, err := p.ParseArgs(test.Args...)
+		_, err := p.Run(test.Args...)
 		assert.Equal(t, &Error{
 			Kind:    ErrHelp,
 			Message: test.Output,
@@ -459,7 +459,7 @@ func TestHelpRestArgs(t *testing.T) {
 	p := NewNamedParser("TestHelpDefaults", HelpFlag)
 	_, _ = p.Command.AddGroup("Application Options", "The application options", &opts)
 
-	retargs, err := p.ParseArgs("-h", "-v", "rest")
+	retargs, err := p.Run("-h", "-v", "rest")
 	assert.Error(t, err)
 	assert.Equal(t, retargs, []string{"-v", "rest"})
 }
@@ -545,7 +545,7 @@ func TestHelpDefaultMask(t *testing.T) {
 
 	for _, test := range tests {
 		p := NewParser(test.opts, HelpFlag)
-		_, err := p.ParseArgs("-h")
+		_, err := p.Run("-h")
 		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
 			err = nil
 		}

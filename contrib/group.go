@@ -1844,7 +1844,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 	return p
 }
 
-// ParseArgs parses the command line arguments according to the option groups that
+// Run parses the command line arguments according to the option groups that
 // were added to the parser. On successful parsing of the arguments, the
 // remaining, non-option, arguments (if any) are returned. The returned error
 // indicates a parsing error and can be used with PrintError to display
@@ -1855,7 +1855,7 @@ func NewNamedParser(appname string, options Options) *Parser {
 // automatically printed if the PrintErrors option is enabled.
 // Furthermore, the special error type ErrHelp is returned.
 // It is up to the caller to exit the program if so desired.
-func (p *Parser) ParseArgs(args ...string) ([]string, error) {
+func (p *Parser) Run(args ...string) ([]string, error) {
 	if p.internalError != nil {
 		return nil, p.internalError
 	}

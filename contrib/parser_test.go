@@ -116,7 +116,7 @@ func TestDefaults(t *testing.T) {
 		},
 	} {
 		var opts defaultOptions
-		_, err := NewParser(&opts, Default).ParseArgs(test.args...)
+		_, err := NewParser(&opts, Default).Run(test.args...)
 		assert.NoError(t, err)
 
 		if opts.Slice == nil {
@@ -185,9 +185,9 @@ func TestUnquoting(t *testing.T) {
 
 			var err error
 			if delimiter {
-				_, err = p.ParseArgs("--str="+test.arg, "--strnot="+test.arg)
+				_, err = p.Run("--str="+test.arg, "--strnot="+test.arg)
 			} else {
-				_, err = p.ParseArgs("--str", test.arg, "--strnot", test.arg)
+				_, err = p.Run("--str", test.arg, "--strnot", test.arg)
 			}
 
 			if test.err == nil {
@@ -392,7 +392,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 
 	// Parse args containing some unknown flags, verify that
 	// our callback can handle all of them
-	_, err := p.ParseArgs("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
+	_, err := p.Run("--flag1=stuff", "--unknownFlag1", "blah", "--unknownFlag2", "--unknownFlag3=baz", "--flag2=foo")
 	assert.NoError(t, err)
 	assert.Equal(t, opts.Flag1, "stuff")
 	assert.Equal(t, opts.Flag2, "foo")
@@ -401,7 +401,7 @@ func TestUnknownFlagHandler(t *testing.T) {
 	assert.True(t, unknownFlag2)
 
 	// Parse args with unknown flags that callback doesn't handle, verify it returns error
-	_, err = p.ParseArgs("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
+	_, err = p.Run("--flag1=stuff", "--unknownFlagX", "blah", "--flag2=foo")
 	assert.Error(t, err)
 }
 
@@ -453,7 +453,7 @@ func TestCommandHandlerNoCommand(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.ParseArgs("arg1", "arg2")
+	_, err := parser.Run("arg1", "arg2")
 	assert.NoError(t, err)
 	assert.True(t, executed)
 	assert.Nil(t, executedCommand)
@@ -478,7 +478,7 @@ func TestCommandHandler(t *testing.T) {
 		return nil
 	}
 
-	_, err := parser.ParseArgs("cmd", "arg1", "arg2")
+	_, err := parser.Run("cmd", "arg1", "arg2")
 	assert.NoError(t, err)
 	assert.True(t, executed)
 	assert.NotNil(t, executedCommand)

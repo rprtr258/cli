@@ -233,7 +233,7 @@ func TestParserCompletion(t *testing.T) {
 				comp.print(&buf, items)
 			}
 
-			_, err := p.ParseArgs(test.Args...)
+			_, err := p.Run(test.Args...)
 			assert.NoError(t, err)
 
 			got := strings.Split(buf.String(), "\n")
