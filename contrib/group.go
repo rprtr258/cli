@@ -2048,28 +2048,7 @@ func (p *Parser) ParseArgs(args ...string) ([]string, error) {
 		s.checkRequired(p)
 	}
 
-	reterr := func() error {
-		switch {
-		case s.err != nil:
-			return s.err
-		case len(s.command.commands) != 0 && !s.command.SubcommandsOptional:
-			return s.estimateCommand()
-		default:
-			if cmd, ok := s.command.data.(Commander); ok {
-				if p.CommandHandler != nil {
-					return p.CommandHandler(cmd, s.retargs)
-				}
-
-				return cmd.Execute(s.retargs)
-			}
-
-			if p.CommandHandler != nil {
-				return p.CommandHandler(nil, s.retargs)
-			}
-
-			return nil
-		}
-	}()
+	reterr := s.reterr(p.CommandHandler)
 	if reterr != nil {
 		return func() []string {
 			if ourErr, ok := reterr.(*Error); !ok || ourErr.Kind != ErrHelp {
@@ -2172,6 +2151,29 @@ func (p *parseState) checkRequired(parser *Parser) {
 					strings.Join(names[:len(names)-1], ", "), names[len(names)-1])
 			}
 		}(),
+	}
+}
+
+func (s *parseState) reterr(commandHandler func(Commander, []string) error) error {
+	switch {
+	case s.err != nil:
+		return s.err
+	case len(s.command.commands) != 0 && !s.command.SubcommandsOptional:
+		return s.estimateCommand()
+	default:
+		if cmd, ok := s.command.data.(Commander); ok {
+			if commandHandler != nil {
+				return commandHandler(cmd, s.retargs)
+			}
+
+			return cmd.Execute(s.retargs)
+		}
+
+		if commandHandler != nil {
+			return commandHandler(nil, s.retargs)
+		}
+
+		return nil
 	}
 }
 
