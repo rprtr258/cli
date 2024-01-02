@@ -2274,11 +2274,7 @@ func (p *parseState) addArgs(args ...string) error {
 }
 
 func (p *Parser) parseNonOption(s *parseState) error {
-	if len(s.positional) > 0 {
-		return s.addArgs(s.arg)
-	}
-
-	if len(s.command.commands) == 0 || len(s.retargs) > 0 {
+	if len(s.positional) > 0 || len(s.command.commands) == 0 || len(s.retargs) > 0 {
 		return s.addArgs(s.arg)
 	}
 
