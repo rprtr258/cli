@@ -1670,6 +1670,13 @@ func (p *Parser) WriteHelp() string {
 			}
 
 			if allcmd.Active == nil && len(allcmd.commands) > 0 {
+				scommands := "command"
+				if len(visibleCommands(allcmd.commands)) <= 3 {
+					scommands = strings.Join(internal.Map(func(subc *Command) string {
+						return subc.Name
+					}, visibleCommands(allcmd.commands)...), " | ")
+				}
+
 				var co, cc string
 				if allcmd.SubcommandsOptional {
 					co, cc = "[", "]"
@@ -1677,12 +1684,6 @@ func (p *Parser) WriteHelp() string {
 					co, cc = "<", ">"
 				}
 
-				scommands := "command"
-				if len(visibleCommands(allcmd.commands)) <= 3 {
-					scommands = strings.Join(internal.Map(func(subc *Command) string {
-						return subc.Name
-					}, visibleCommands(allcmd.commands)...), " | ")
-				}
 				fmt.Fprint(w, " "+co+scommands+cc)
 			}
 		}
