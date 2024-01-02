@@ -951,10 +951,10 @@ func makeLookupTable(c *Command) lookup {
 // for options.
 var ErrNotPointerToStruct = errors.New("provided data is not a pointer to struct")
 
-// Group represents an option group. Option groups can be used to logically
-// group options together under a description. Groups are only used to provide
-// more structure to options both for the user (as displayed in the help message)
-// and for you, since groups can be nested.
+// Group represents an option group.
+// Option groups can be used to logically group options together under a description.
+// Groups are only used to provide more structure to options both for the user
+// (as displayed in the help message) and for you, since groups can be nested.
 type Group struct {
 	// A short description of the group.
 	// The short description is primarily used in the built-in generated help message
