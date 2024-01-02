@@ -20,6 +20,21 @@ import (
 	"github.com/rprtr258/fun/iter"
 )
 
+// Arg represents a positional argument on the command line.
+type Arg struct {
+	Name            string // Name of the positional argument (used in the help)
+	Description     string // Description of the positional argument (used in the help)
+	Required        int    // minimal number of required positional arguments
+	RequiredMaximum int    // maximum number of required positional arguments
+
+	value reflect.Value
+	tag   multiTag
+}
+
+func isRemainingArg(value reflect.Value) bool {
+	return value.Type().Kind() == reflect.Slice
+}
+
 // Marshaler is the interface implemented by types that can marshal themselves
 // to a string representation of the flag.
 type Marshaler interface {

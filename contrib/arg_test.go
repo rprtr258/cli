@@ -8,8 +8,7 @@ import (
 
 func TestPositional(t *testing.T) {
 	opts := struct {
-		Value bool `short:"v"`
-
+		Value      bool `short:"v"`
 		Positional struct {
 			Command  int
 			Filename string
@@ -17,8 +16,7 @@ func TestPositional(t *testing.T) {
 		} `positional-args:"yes" required:"yes"`
 	}{}
 
-	p := NewParser(&opts, Default)
-	ret, err := p.ParseArgs("10", "arg_test.go", "a", "b")
+	ret, err := NewParser(&opts, Default).ParseArgs("10", "arg_test.go", "a", "b")
 	assert.NoError(t, err)
 	assert.Equal(t, 10, opts.Positional.Command)
 	assert.Equal(t, "arg_test.go", opts.Positional.Filename)
@@ -80,8 +78,7 @@ func TestPositionalRequiredRest2Fail(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("rest1")
+	_, err := NewParser(&opts, None).ParseArgs("rest1")
 	assert.Equal(t, &Error{
 		Kind:    ErrRequired,
 		Message: "the required argument `Rest (at least 2 arguments, but got only 1)` was not provided",
@@ -96,8 +93,7 @@ func TestPositionalRequiredRest2Pass(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("rest1", "rest2", "rest3")
+	_, err := NewParser(&opts, None).ParseArgs("rest1", "rest2", "rest3")
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"rest1", "rest2", "rest3"}, opts.Positional.Rest)
 }
@@ -110,8 +106,7 @@ func TestPositionalRequiredRestRangeFail(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("rest1", "rest2", "rest3")
+	_, err := NewParser(&opts, None).ParseArgs("rest1", "rest2", "rest3")
 	assert.Equal(t, &Error{
 		Kind:    ErrRequired,
 		Message: "the required argument `Rest (at most 2 arguments, but got 3)` was not provided",
@@ -126,8 +121,7 @@ func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
 		} `positional-args:"yes"`
 	}{}
 
-	p := NewParser(&opts, None)
-	_, err := p.ParseArgs("some", "thing")
+	_, err := NewParser(&opts, None).ParseArgs("some", "thing")
 	assert.Equal(t, &Error{
 		Kind:    ErrRequired,
 		Message: "the required argument `Rest (zero arguments)` was not provided",
