@@ -1261,12 +1261,12 @@ func (p *Parser) writeHelpOption(w *bytes.Buffer, option *Flag, info alignmentIn
 	_, _ = w.WriteString("\n")
 }
 
-// WriteHelp writes a help message containing all the possible options and
+// writeHelp writes a help message containing all the possible options and
 // their descriptions to the provided writer. Note that the HelpFlag parser
 // option provides a convenient way to add a -h/--help option group to the
 // command line parser which will automatically show the help messages using
 // this method.
-func (p *Parser) WriteHelp() string {
+func (p *Parser) writeHelp() string {
 	aligninfo := p.getAlignmentInfo()
 
 	cmd := p.Command
@@ -1526,7 +1526,7 @@ func (p *Parser) RunContext(ctx context.Context, args ...string) error {
 		option.clearReferenceBeforeSet = true
 		option.defaultLiteral = option.updateDefaultLiteral()
 	})
-	p.Command.addHelpGroups(p.WriteHelp)
+	p.Command.addHelpGroups(p.writeHelp)
 
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		p.printCompletions(args...)

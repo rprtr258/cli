@@ -379,7 +379,7 @@ Long hidden command description
 [hidden command arguments]
   <positional-foo>:         positional foo
 `
-	assert.Equal(t, _expected, p.WriteHelp())
+	assert.Equal(t, _expected, p.writeHelp())
 }
 
 func TestHelpDefaults(t *testing.T) {
