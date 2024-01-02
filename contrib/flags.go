@@ -744,7 +744,9 @@ func (c *Command) find(name string) *Command {
 // (including the option namespace)
 func (c *Command) findOptionByLongName(longName string) *Flag {
 	for ; c != nil; c, _ = c.Group.parent.(*Command) {
-		if option := c.Group.findOptionByLongName(longName); option != nil {
+		if option := c.Group.findOption(func(option *Flag) bool {
+			return option.LongNameWithNamespace() == longName
+		}); option != nil {
 			return option
 		}
 	}
@@ -1089,14 +1091,6 @@ func (g *Group) findOption(matcher func(*Flag) bool) *Flag {
 		Filter(matcher).
 		Head()
 	return option
-}
-
-// findOptionByLongName finds an option that is part of the group, or any of its
-// subgroups, by matching its long name (including the option namespace).
-func (g *Group) findOptionByLongName(longName string) *Flag {
-	return g.findOption(func(option *Flag) bool {
-		return option.LongNameWithNamespace() == longName
-	})
 }
 
 func (g *Group) showInHelp() bool {
