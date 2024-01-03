@@ -3,6 +3,7 @@ package flags
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"reflect"
 	"sort"
@@ -107,10 +108,21 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 		switch {
 		// flag
 		case fieldT.Tag.Get("short") != "" || fieldT.Tag.Get("long") != "":
-			shortname, ok := fieldT.Tag.Lookup("short")
-			shortnameRunes := []rune(shortname)
-			if ok && len(shortnameRunes) != 1 {
-				return nil, fmt.Errorf("short flag must be single character, but was %s", fieldT.Tag.Get("short"))
+			shortname, err := func() (rune, error) {
+				raw, ok := fieldT.Tag.Lookup("short")
+				if !ok {
+					return 0, nil
+				}
+
+				runes := []rune(raw)
+				if len(runes) != 1 {
+					return 0, fmt.Errorf("short flag must be single character, but was %s", raw)
+				}
+
+				return runes[0], nil
+			}()
+			if err != nil {
+				return nil, err
 			}
 
 			longname, ok := fieldT.Tag.Lookup("long")
@@ -122,7 +134,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			switch fieldT.Type.Kind() {
 			case reflect.Bool: // TODO: or *bool or []bool
 				flag = Flag{
-					shortname: shortnameRunes[0],
+					shortname: shortname,
 					longname:  longname,
 					isbool:    true,
 					minCount:  0,
@@ -134,13 +146,30 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				}
 			case reflect.String: // TODO: or *string
 				flag = Flag{
-					shortname: shortnameRunes[0],
+					shortname: shortname,
 					longname:  longname,
 					isbool:    false,
 					minCount:  1,
 					maxCount:  1,
 					valuesetter: func(s []string) error {
 						fieldV.SetString(s[0])
+						return nil
+					},
+				}
+			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64: // TODO: or pointer to
+				flag = Flag{
+					shortname: shortname,
+					longname:  longname,
+					isbool:    false,
+					minCount:  1,
+					maxCount:  1,
+					valuesetter: func(s []string) error {
+						x, err := strconv.ParseUint(s[0], 10, 64)
+						if err != nil {
+							return err
+						}
+
+						fieldV.SetUint(x)
 						return nil
 					},
 				}
@@ -407,6 +436,7 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 				}
 			}
 		} else {
+			log.Printf("%#v\n", f)
 			if len(f.values) < f.minCount {
 				return &Error{
 					Kind:    ErrExpectedArgument,
