@@ -119,17 +119,32 @@ func TestRun_leafHasNoExecute(t *testing.T) {
 	)
 }
 
-// func TestCommandFlagOrder2(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			G bool `short:"g"`
-// 		} `command:"cmd"`
-// 	}{}
+func TestRun_subcommand_extraArgs(t *testing.T) {
+	type Opts struct {
+		testCommander[Opts]
 
-// 	assertSuccess(t, &opts, "cmd", "-v", "-g")
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.Command.G)
+		Value   bool                 `short:"v"`
+		Command optsSimpleSubcommand `command:"cmd"`
+	}
+
+	assertFail[Opts](t,
+		`extraneous positional arguments found: ["-v", "-g"]`,
+		"cmd", "-v", "-g",
+	)
+}
+
+// func TestRun_subcommand_extraArg(t *testing.T) {
+// 	type Opts struct {
+// 		testCommander[Opts]
+
+// 		Value   bool                 `short:"v"`
+// 		Command optsSimpleSubcommand `command:"cmd"`
+// 	}
+
+// 	assertFail[Opts](t,
+// 		`extraneous positional arguments found: ["-v"]`,
+// 		"cmd", "-g", "-v",
+// 	)
 // }
 
 // func TestCommandFlagOrderSub(t *testing.T) {
