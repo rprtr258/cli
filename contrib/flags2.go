@@ -94,6 +94,21 @@ func newCommand[T any]() (Command, error) {
 	flags := []Flag{}
 	posArgs := []PositionalArg{}
 
+	for i := 0; i < typ.NumField(); i++ {
+		field := typ.Field(i)
+
+		if !field.IsExported() {
+			continue
+		}
+
+		switch {
+		case field.Tag.Get("flag") == "":
+			continue
+		default:
+			return fun.Zero[Command](), fmt.Errorf("unsupported field %s", field.Name)
+		}
+	}
+
 	return Command{
 		subcommands: subcommands,
 		flags:       flags,
