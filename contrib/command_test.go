@@ -37,11 +37,25 @@ func TestRun_CommandInline(t *testing.T) {
 func TestNewCommand_CommandInline(t *testing.T) {
 	cmd, err := newCommand[optsCommandInline]()
 	assert.NoError(t, err)
+
+	// null to be able to compare the rest
+	for i := range cmd.flags {
+		cmd.flags[i].valuesetter = nil
+	}
 	cmd.posArgsRest.valuesetter = nil
 	cmd.execute = nil
+
 	want := Command{
 		subcommands: map[string]Command{},
-		flags:       []Flag{},
+		flags: []Flag{
+			{
+				shortname: 'v',
+				longname:  "",
+				isbool:    true,
+				minCount:  0,
+				maxCount:  1,
+			},
+		},
 		posArgs:     []PositionalArg{},
 		posArgsRest: PositionalArgsRest{},
 	}

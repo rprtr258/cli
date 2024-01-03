@@ -102,8 +102,40 @@ func newCommand[T any]() (Command, error) {
 		}
 
 		switch {
-		case field.Tag.Get("flag") == "":
-			continue
+		// flag
+		case field.Tag.Get("short") != "" || field.Tag.Get("long") != "":
+			shortname, ok := field.Tag.Lookup("short")
+			shortnameRunes := []rune(shortname)
+			if ok && len(shortnameRunes) != 1 {
+				return fun.Zero[Command](), fmt.Errorf("short flag must be single character, but was %s", field.Tag.Get("short"))
+			}
+
+			longname, ok := field.Tag.Lookup("long")
+			if ok && len(longname) <= 1 {
+				return fun.Zero[Command](), fmt.Errorf("long flag must be at least two characters, but was %s", field.Tag.Get("long"))
+			}
+
+			var flag Flag
+			switch field.Type.Kind() {
+			case reflect.Bool: // TODO: or *bool
+				flag = Flag{
+					shortname: shortnameRunes[0],
+					longname:  longname,
+					isbool:    true,
+					minCount:  0,
+					maxCount:  1,
+					valuesetter: func(s []string) error {
+						reflect.ValueOf(&t).Elem().FieldByName(field.Name).SetBool(true)
+						return nil
+					},
+				}
+			default:
+				return fun.Zero[Command](), fmt.Errorf("unknown field %s type: %s", field.Name, field.Type.String())
+			}
+			flags = append(flags, flag)
+		// command
+		case field.Tag.Get("command") != "":
+			// TODO: implement
 		default:
 			return fun.Zero[Command](), fmt.Errorf("unsupported field %s", field.Name)
 		}
