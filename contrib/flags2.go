@@ -95,7 +95,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 	subcommands := map[string]*Command{}
 	flags := []Flag{}
 	posArgs := []PositionalArg{}
-
+	var posArgsRest PositionalArgsRest
 	for i := 0; i < typ.NumField(); i++ {
 		fieldT := typ.Field(i)
 		fieldV := v.Field(i)
@@ -153,8 +153,25 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			for _, alias := range aliases {
 				subcommands[alias] = subcmd
 			}
+			// positional args
+		case fieldT.Tag.Get("positional-args") == "yes":
+			switch {
+			case fieldT.Type.Kind() == reflect.Slice && fieldT.Type.Elem().Kind() == reflect.String:
+				posArgsRest = PositionalArgsRest{
+					name:        "",
+					description: "",
+					mincount:    0,
+					defined:     true,
+					valuesetter: func(s []string) error {
+						fieldV.Set(reflect.ValueOf(s))
+						return nil
+					},
+				}
+			default:
+				return nil, fmt.Errorf("unsupported positional-args field %s with type %s", fieldT.Name, fieldT.Type.String())
+			}
 		default:
-			return nil, fmt.Errorf("unsupported field %s", fieldT.Name)
+			return nil, fmt.Errorf("unsupported field %s with tags %q", fieldT.Name, string(fieldT.Tag))
 		}
 	}
 
@@ -181,16 +198,8 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 		subcommands: subcommands,
 		flags:       flags,
 		posArgs:     posArgs,
-		posArgsRest: PositionalArgsRest{
-			name:        "",
-			description: "",
-			mincount:    0,
-			defined:     false,
-			valuesetter: func([]string) error {
-				return nil
-			},
-		},
-		execute: executeFn,
+		posArgsRest: posArgsRest,
+		execute:     executeFn,
 	}, nil
 }
 
@@ -334,7 +343,11 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		cmd.posArgs[i].value = arg
 	}
 
-	if len(args) >= len(cmd.posArgs) {
+	if len(args) > len(cmd.posArgs) {
+		if !cmd.posArgsRest.defined {
+			return fmt.Errorf("extraneous positional arguments found: [%s]", internal.Join(strconv.Quote, ", ", args[len(cmd.posArgs):]...))
+		}
+
 		cmd.posArgsRest.values = args[len(cmd.posArgs):]
 	}
 
@@ -374,6 +387,12 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 					return err
 				}
 			}
+		}
+	}
+
+	if cmd.posArgsRest.defined {
+		if err := cmd.posArgsRest.valuesetter(cmd.posArgsRest.values); err != nil {
+			return fmt.Errorf("set posArgsRest: %w", err)
 		}
 	}
 

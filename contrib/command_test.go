@@ -222,30 +222,26 @@ func TestCommandEstimate2(t *testing.T) {
 	)
 }
 
-// type testCommand struct {
-// 	G        bool `short:"g"`
-// 	Executed bool
-// 	EArgs    []string
-// }
+type optsSeven struct {
+	G    bool     `short:"g"`
+	Args []string `positional-args:"yes"`
+}
 
-// func (c *testCommand) Execute(args []string) error {
-// 	c.Executed = true
-// 	c.EArgs = args
-// 	return nil
-// }
+func (x optsSeven) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestCommandExecute(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool        `short:"v"`
-// 		Command testCommand `command:"cmd"`
-// 	}{}
+func Test_subcommands_posArgs(t *testing.T) {
+	type Opts struct {
+		Command optsSeven `command:"cmd"`
+	}
 
-// 	assertSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.Command.Executed)
-// 	assert.True(t, opts.Command.G)
-// 	assert.Equal(t, []string{"a", "b"}, opts.Command.EArgs)
-// }
+	assertSuccess[Opts](t,
+		func(x optsSeven) {
+			assert.True(t, x.G)
+			assert.Equal(t, []string{"a", "b"}, x.Args)
+		},
+		"cmd", "-g", "a", "b",
+	)
+}
 
 // func TestCommandClosest(t *testing.T) {
 // 	opts := struct {
