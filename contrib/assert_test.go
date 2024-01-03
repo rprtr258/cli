@@ -8,16 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type testCommander[T any] struct{}
-
-func (c testCommander[T]) Execute(ctx context.Context) error {
-	// uintptr(&c) == uintptr(&opts)
-	// since testCommander must be embedded first,
-	// so we can just do reinterpret cast
-	fromCtx(ctx)(*(*T)(unsafe.Pointer(&c)))
-	return nil
-}
-
 type contextKey struct{}
 
 var _contextKey = contextKey{}
@@ -33,6 +23,16 @@ func fromCtx(ctx context.Context) func(any) {
 	}
 
 	return f
+}
+
+type testCommander[T any] struct{}
+
+func (c testCommander[T]) Execute(ctx context.Context) error {
+	// uintptr(&c) == uintptr(&opts)
+	// since testCommander must be embedded first,
+	// so we can just do reinterpret cast
+	fromCtx(ctx)(*(*T)(unsafe.Pointer(&c)))
+	return nil
 }
 
 func assertSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {

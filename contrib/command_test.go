@@ -44,19 +44,19 @@ func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 	)
 }
 
-// func TestRun_extraFlag(t *testing.T) {
-// 	type opts struct {
-// 		testCommander[opts]
+func TestRun_extraFlag(t *testing.T) {
+	type opts struct {
+		testCommander[opts]
 
-// 		Value   bool                 `short:"v"`
-// 		Command optsSimpleSubcommand `command:"cmd"`
-// 	}
+		Value   bool                 `short:"v"`
+		Command optsSimpleSubcommand `command:"cmd"`
+	}
 
-// 	assertFail[opts](t,
-// 		`extraneous positional arguments found: ["-g", "cmd"]`,
-// 		"-v", "-g", "cmd",
-// 	)
-// }
+	assertFail[opts](t,
+		`extraneous positional arguments found: ["-g", "cmd"]`,
+		"-v", "-g", "cmd",
+	)
+}
 
 func TestNewCommand_CommandInline(t *testing.T) {
 	cmd, err := newCommand[optsFirst]()
