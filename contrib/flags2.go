@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/rprtr258/cli/internal"
@@ -317,8 +318,11 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 
 	if len(args) > len(cmd.posArgs) && !cmd.posArgsRest.defined {
 		return &Error{ // TODO: separate error types
-			Kind:    ErrExpectedArgument,
-			Message: fmt.Sprintf("extraneous positional arguments found: %#v", args[len(cmd.posArgs):]),
+			Kind: ErrExpectedArgument,
+			Message: fmt.Sprintf(
+				"extraneous positional arguments found: [%s]",
+				internal.Join(strconv.Quote, ", ", args[len(cmd.posArgs):]...),
+			),
 		}
 	}
 

@@ -27,9 +27,6 @@ func (opts optsFirst) Execute(ctx context.Context) error {
 }
 
 func TestRun_first_subcommand(t *testing.T) {
-	// TODO: passed -v flag and [cmd, -g] as positionals, though no positionals expected
-	// assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
-
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
@@ -42,9 +39,6 @@ func TestRun_first_subcommand(t *testing.T) {
 }
 
 func TestRun_first_command(t *testing.T) {
-	// TODO: passed -v flag and [cmd, -g] as positionals, though no positionals expected
-	// assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
-
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
@@ -58,7 +52,10 @@ func TestRun_first_command(t *testing.T) {
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 	// TODO: assert error
-	assert.Error(t, RunContext[optsFirst](context.Background(), "x", "-v", "cmd", "-g"))
+	assert.EqualError(t,
+		RunContext[optsFirst](context.Background(), "x", "-v", "cmd", "-g"),
+		`extraneous positional arguments found: ["cmd", "-g"]`,
+	)
 }
 
 func TestNewCommand_CommandInline(t *testing.T) {
