@@ -206,7 +206,7 @@ func TestCommandEstimate(t *testing.T) {
 	}
 
 	assertFail[optsSix](t,
-		"no command specified, expected one of: add, remove",
+		"Please specify one command of: add or remove",
 	)
 }
 

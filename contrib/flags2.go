@@ -269,11 +269,8 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 			return newUnknownCommandError(args[0], keys)
 		}
 
-		return &Error{
-			Kind: ErrCommandRequired,
-			// TODO: squash subcommands aliases, print suggestion based on distance
-			Message: "no command specified, expected one of: " + strings.Join(keys, ", "),
-		}
+		// TODO: squash subcommands aliases, print suggestion based on distance
+		return newCommandRequiredError(keys)
 	}
 
 	// parse arguments, including flags and positional arguments, which means
