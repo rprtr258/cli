@@ -94,11 +94,9 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	assert.Equal(t, want, cmd)
 }
 
-func Test_second(t *testing.T) {
+func TestRun_leafHasNoExecute(t *testing.T) {
 	type optsSecond struct {
-		Value bool                 `short:"v"`
-		C1    struct{}             `command:"c1"`
-		C2    optsSimpleSubcommand `command:"c2"`
+		C1 struct{} `command:"c1"`
 	}
 
 	assertFail[optsSecond](t,
@@ -106,6 +104,19 @@ func Test_second(t *testing.T) {
 		"-v",
 	)
 }
+
+// func TestRun_leafHasNoExecute(t *testing.T) {
+// 	type optsSecond struct {
+// 		Value bool                 `short:"v"`
+// 		C1    struct{}             `command:"c1"`
+// 		C2    optsSimpleSubcommand `command:"c2"`
+// 	}
+
+// 	assertFail[optsSecond](t,
+// 		`parse subcommand c1: command struct {} is leaf command, but no Execute function defined`,
+// 		"-v",
+// 	)
+// }
 
 // func TestCommandFlagOrder1(t *testing.T) {
 // 	opts := struct {
