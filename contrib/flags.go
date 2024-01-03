@@ -481,17 +481,6 @@ import "bytes"
 // 	return value.Type().Kind() == reflect.Slice
 // }
 
-// // Commander is an interface which can be implemented by any command added in
-// // the options. When implemented, the Execute method will be called for the last
-// // specified (sub)command providing the remaining command line arguments.
-// type Commander interface {
-// 	// Execute will be called for the last active (sub)command. The
-// 	// args argument contains the remaining command line arguments. The
-// 	// error that Execute returns will be eventually passed out of the
-// 	// Parse method of the Parser.
-// 	Execute(args []string) error
-// }
-
 // // Usage is an interface which can be implemented to show a custom usage string
 // // in the help message shown for a command.
 // type Usage interface {

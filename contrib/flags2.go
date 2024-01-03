@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"reflect"
 	"strings"
 
 	"github.com/rprtr258/cli/internal"
@@ -23,6 +24,17 @@ type Unmarshaler interface {
 	// UnmarshalFlag unmarshals a string value representation to the flag
 	// value (which therefore needs to be a pointer receiver).
 	UnmarshalFlag(value string) error
+}
+
+// Commander is an interface which can be implemented by any command added in
+// the options. When implemented, the Execute method will be called for the last
+// specified (sub)command providing the remaining command line arguments.
+type Commander interface {
+	// Execute will be called for the last active (sub)command.
+	// The args argument contains the remaining command line arguments.
+	// The error that Execute returns will be eventually passed out of the
+	// Parse method of the Parser.
+	Execute(context.Context) error
 }
 
 // Flag information. Contains a description of the flag, short and
@@ -72,7 +84,41 @@ type Command struct {
 }
 
 func newCommand[T any]() (Command, error) {
-	return Command{}, fmt.Errorf("not implemented")
+	var t T
+	typ := reflect.TypeOf(t)
+	if typ.Kind() != reflect.Struct {
+		return fun.Zero[Command](), fmt.Errorf("%s is %s, expected struct", typ.String(), typ.Kind().String())
+	}
+
+	subcommands := make(map[string]Command)
+	flags := []Flag{}
+	posArgs := []PositionalArg{}
+
+	execute := func() func(context.Context) error {
+		if commander, ok := any(t).(Commander); ok {
+			return func(ctx context.Context) error {
+				return commander.Execute(ctx)
+			}
+		}
+		return nil
+	}()
+
+	posArgsRest := PositionalArgsRest{
+		name:        "",
+		description: "",
+		mincount:    0,
+		valuesetter: func([]string) error {
+			return nil
+		},
+	}
+
+	return Command{
+		subcommands: subcommands,
+		flags:       flags,
+		posArgs:     posArgs,
+		posArgsRest: posArgsRest,
+		execute:     execute,
+	}, nil
 }
 
 func (p *Command) printCompletions(args ...string) {
