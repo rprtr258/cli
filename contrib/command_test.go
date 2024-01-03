@@ -1,7 +1,6 @@
 package flags
 
 import (
-	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,21 +12,11 @@ type optsSimpleSubcommand struct {
 	G bool `short:"g"`
 }
 
-func (opts optsSimpleSubcommand) Execute(ctx context.Context) error {
-	fromCtx(ctx)(opts)
-	return nil
-}
-
 type optsFirst struct {
 	testCommander[optsFirst]
 
 	Value   bool                 `short:"v"`
 	Command optsSimpleSubcommand `command:"cmd"`
-}
-
-func (opts optsFirst) Execute(ctx context.Context) error {
-	fromCtx(ctx)(opts)
-	return nil
 }
 
 func TestRun_first_subcommand(t *testing.T) {
