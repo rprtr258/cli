@@ -27,25 +27,28 @@ func (opts optsFirst) Execute(ctx context.Context) error {
 }
 
 func TestRun_first_subcommand(t *testing.T) {
-	called, err := testRun[optsFirst](t, func(opts optsFirstSubcommand) {
-		assert.True(t, opts.G)
-	}, "x", "cmd", "-g")
-	assert.True(t, called)
-	assert.NoError(t, err)
+	testSuccess[optsFirst](t,
+		func(opts optsFirstSubcommand) {
+			assert.True(t, opts.G)
+		},
+		"x", "cmd", "-g",
+	)
 }
 
 func TestRun_first_command(t *testing.T) {
-	called, err := testRun[optsFirst](t, func(opts optsFirst) {
-		assert.True(t, opts.Value)
-	}, "x", "-v")
-	assert.True(t, called)
-	assert.NoError(t, err)
+	testSuccess[optsFirst](t,
+		func(opts optsFirst) {
+			assert.True(t, opts.Value)
+		},
+		"x", "-v",
+	)
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
-	called, err := testRun[optsFirst, struct{}](t, nil, "x", "-v", "cmd", "-g")
-	assert.False(t, called)
-	assert.EqualError(t, err, `extraneous positional arguments found: ["cmd", "-g"]`)
+	testFail[optsFirst](t,
+		`extraneous positional arguments found: ["cmd", "-g"]`,
+		"x", "-v", "cmd", "-g",
+	)
 }
 
 func TestNewCommand_CommandInline(t *testing.T) {
