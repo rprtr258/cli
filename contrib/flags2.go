@@ -96,7 +96,6 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 	for i := 0; i < typ.NumField(); i++ {
 		fieldT := typ.Field(i)
 		fieldV := v.Field(i)
-		fmt.Println(fieldT.Name, fieldV.Type().String(), fieldV.CanSet())
 
 		if !fieldT.IsExported() {
 			continue
@@ -126,9 +125,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					minCount:  0,
 					maxCount:  1,
 					valuesetter: func(s []string) error {
-						fmt.Println("  xdd", fieldT.Name, fieldV.Type().String(), fieldV.CanSet(), fieldV.Interface())
 						fieldV.SetBool(true)
-						fmt.Println("  2 xdd", fieldT.Name, fieldV.Type().String(), fieldV.CanSet(), fieldV.Interface())
 						return nil
 					},
 				}
@@ -188,10 +185,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 }
 
 func newCommand[T any]() (*Command, error) {
-	t := new(T)
-	c, e := newCommandImpl(reflect.ValueOf(t).Elem())
-	fmt.Printf("%#v\n", *t)
-	return c, e
+	return newCommandImpl(reflect.ValueOf(new(T)).Elem())
 }
 
 func (p *Command) printCompletions(args ...string) {
