@@ -94,30 +94,26 @@ func newCommand[T any]() (Command, error) {
 	flags := []Flag{}
 	posArgs := []PositionalArg{}
 
-	execute := func() func(context.Context) error {
-		if commander, ok := any(t).(Commander); ok {
-			return func(ctx context.Context) error {
-				return commander.Execute(ctx)
-			}
-		}
-		return nil
-	}()
-
-	posArgsRest := PositionalArgsRest{
-		name:        "",
-		description: "",
-		mincount:    0,
-		valuesetter: func([]string) error {
-			return nil
-		},
-	}
-
 	return Command{
 		subcommands: subcommands,
 		flags:       flags,
 		posArgs:     posArgs,
-		posArgsRest: posArgsRest,
-		execute:     execute,
+		posArgsRest: PositionalArgsRest{
+			name:        "",
+			description: "",
+			mincount:    0,
+			valuesetter: func([]string) error {
+				return nil
+			},
+		},
+		execute: func() func(context.Context) error {
+			if commander, ok := any(t).(Commander); ok {
+				return func(ctx context.Context) error {
+					return commander.Execute(ctx)
+				}
+			}
+			return nil
+		}(),
 	}, nil
 }
 
