@@ -2,12 +2,9 @@ package flags
 
 import (
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/samber/lo"
-
-	"github.com/rprtr258/cli/internal"
 )
 
 // ErrorKind represents the type of error.
@@ -86,12 +83,12 @@ func marshalError(option *Flag, err error) *Error {
 		return e
 	}
 
-	valueType := option.value.Type()
+	// valueType := option.value.Type()
 	return &Error{
 		Kind: ErrMarshal,
-		Message: "invalid argument for flag `" + option.String() + "'" +
-			internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
-			": " + err.Error(),
+		// Message: "invalid argument for flag `" + option.String() + "'" +
+		// 	internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
+		// 	": " + err.Error(),
 	}
 }
 

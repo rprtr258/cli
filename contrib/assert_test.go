@@ -1,19 +1,22 @@
 package flags
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func assertParserSuccess(t *testing.T, data any, args ...string) {
+func assertNoError[T any](t *testing.T, args ...string) {
 	t.Helper()
 
-	assert.NoError(t, Run(data, args...))
+	ctx := context.WithValue(context.Background(), _contextKey, t)
+	assert.NoError(t, RunContext[T](ctx, args...))
 }
 
-func assertParseFail(t *testing.T, errWant *Error, data any, args ...string) {
+func assertEqual[T any](t *testing.T, errWant *Error, args ...string) {
 	t.Helper()
 
-	assert.Equal(t, errWant, Run(data, args...))
+	ctx := context.WithValue(context.Background(), _contextKey, t)
+	assert.Equal(t, errWant, RunContext[T](ctx, args...))
 }
