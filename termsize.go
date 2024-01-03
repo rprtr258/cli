@@ -1,7 +1,7 @@
 //go:build !windows && !plan9 && !appengine && !wasm
 // +build !windows,!plan9,!appengine,!wasm
 
-package flags
+package cli
 
 import (
 	"golang.org/x/sys/unix"

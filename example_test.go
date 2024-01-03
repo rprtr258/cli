@@ -1,5 +1,5 @@
 // Example of use of the flags package.
-package flags
+package cli
 
 // import (
 // 	"fmt"

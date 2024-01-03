@@ -1,5 +1,5 @@
 /*
-Package flags provides an extensive command line option parser.
+package cli provides an extensive command line option parser.
 The flags package is similar in functionality to the go built-in flag package
 but provides more options and uses reflection to provide a convenient and
 succinct way of specifying command line options.
@@ -221,4 +221,4 @@ of a type which does so is the flags.Filename type, an alias of string
 allowing simple filename completion. A slice or array argument value
 whose element type implements flags.Completer will also be completed.
 */
-package flags
+package cli

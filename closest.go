@@ -1,4 +1,4 @@
-package flags
+package cli
 
 // TODO: OPTIMIZE: less memory could be used
 func dist(s, t string) int {

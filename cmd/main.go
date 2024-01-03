@@ -7,7 +7,7 @@ import (
 
 	"github.com/kr/pretty"
 
-	cli "github.com/rprtr258/cli/contrib"
+	"github.com/rprtr258/cli"
 )
 
 type Filename string
