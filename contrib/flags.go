@@ -550,14 +550,14 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 				if len(f.values) < f.minCount {
 					return &Error{
 						Kind:    ErrExpectedArgument,
-						Message: fmt.Sprintf("too few arguments for flag %s, minimum %d required", f.show(), f.minCount),
+						Message: fmt.Sprintf("too few arguments, minimum %d required", f.minCount),
 					}
 				}
 
 				if f.maxCount != -1 && len(f.values) > f.maxCount {
 					return &Error{
 						Kind:    ErrExpectedArgument,
-						Message: fmt.Sprintf("too many arguments for flag %s, maximum %d expected", f.show(), f.maxCount),
+						Message: fmt.Sprintf("too many arguments, maximum %d expected", f.maxCount),
 					}
 				}
 
