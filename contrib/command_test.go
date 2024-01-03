@@ -12,14 +12,14 @@ type optsSimpleSubcommand struct {
 	G bool `short:"g"`
 }
 
+type optsFirst struct {
+	testCommander[optsFirst]
+
+	Value   bool                 `short:"v"`
+	Command optsSimpleSubcommand `command:"cmd"`
+}
+
 func TestRun_first_subcommand(t *testing.T) {
-	type optsFirst struct {
-		testCommander[optsFirst]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
 	assertSuccess[optsFirst](t,
 		func(opts optsSimpleSubcommand) {
 			assert.True(t, opts.G)
@@ -29,13 +29,6 @@ func TestRun_first_subcommand(t *testing.T) {
 }
 
 func TestRun_first_command(t *testing.T) {
-	type optsFirst struct {
-		testCommander[optsFirst]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
 	assertSuccess[optsFirst](t,
 		func(opts optsFirst) {
 			assert.True(t, opts.Value)
@@ -45,13 +38,6 @@ func TestRun_first_command(t *testing.T) {
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
-	type optsFirst struct {
-		testCommander[optsFirst]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
 	assertFail[optsFirst](t,
 		`extraneous positional arguments found: ["cmd", "-g"]`,
 		"-v", "cmd", "-g",
@@ -59,13 +45,6 @@ func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 }
 
 func TestNewCommand_CommandInline(t *testing.T) {
-	type optsFirst struct {
-		testCommander[optsFirst]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
 	cmd, err := newCommand[optsFirst]()
 	assert.NoError(t, err)
 
