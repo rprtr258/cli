@@ -44,9 +44,31 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	}
 	cmd.posArgsRest.valuesetter = nil
 	cmd.execute = nil
+	for i, subcmd := range cmd.subcommands {
+		for i := range subcmd.flags {
+			subcmd.flags[i].valuesetter = nil
+		}
+		cmd.subcommands[i].posArgsRest.valuesetter = nil
+		subcmd.execute = nil
+	}
 
-	want := Command{
-		subcommands: map[string]Command{},
+	want := &Command{
+		subcommands: map[string]*Command{
+			"cmd": {
+				subcommands: map[string]*Command{},
+				flags: []Flag{
+					{
+						shortname: 'g',
+						longname:  "",
+						isbool:    true,
+						minCount:  0,
+						maxCount:  1,
+					},
+				},
+				posArgs:     []PositionalArg{},
+				posArgsRest: PositionalArgsRest{},
+			},
+		},
 		flags: []Flag{
 			{
 				shortname: 'v',

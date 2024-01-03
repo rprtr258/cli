@@ -76,47 +76,47 @@ type PositionalArgsRest struct {
 }
 
 type Command struct {
-	subcommands map[string]Command // name,aliases... -> subcommand
+	subcommands map[string]*Command // name,aliases... -> subcommand
 	flags       []Flag
 	posArgs     []PositionalArg
 	posArgsRest PositionalArgsRest
 	execute     func(context.Context) error
 }
 
-func newCommand[T any]() (Command, error) {
-	var t T
-	typ := reflect.TypeOf(t)
+func newCommandImpl(v reflect.Value) (*Command, error) {
+	typ := v.Type()
 	if typ.Kind() != reflect.Struct {
-		return fun.Zero[Command](), fmt.Errorf("%s is %s, expected struct", typ.String(), typ.Kind().String())
+		return nil, fmt.Errorf("%s is %s, expected struct", typ.String(), typ.Kind().String())
 	}
 
-	subcommands := make(map[string]Command)
+	subcommands := map[string]*Command{}
 	flags := []Flag{}
 	posArgs := []PositionalArg{}
 
 	for i := 0; i < typ.NumField(); i++ {
-		field := typ.Field(i)
+		fieldT := typ.Field(i)
+		fieldV := v.Field(i)
 
-		if !field.IsExported() {
+		if !fieldT.IsExported() {
 			continue
 		}
 
 		switch {
 		// flag
-		case field.Tag.Get("short") != "" || field.Tag.Get("long") != "":
-			shortname, ok := field.Tag.Lookup("short")
+		case fieldT.Tag.Get("short") != "" || fieldT.Tag.Get("long") != "":
+			shortname, ok := fieldT.Tag.Lookup("short")
 			shortnameRunes := []rune(shortname)
 			if ok && len(shortnameRunes) != 1 {
-				return fun.Zero[Command](), fmt.Errorf("short flag must be single character, but was %s", field.Tag.Get("short"))
+				return nil, fmt.Errorf("short flag must be single character, but was %s", fieldT.Tag.Get("short"))
 			}
 
-			longname, ok := field.Tag.Lookup("long")
+			longname, ok := fieldT.Tag.Lookup("long")
 			if ok && len(longname) <= 1 {
-				return fun.Zero[Command](), fmt.Errorf("long flag must be at least two characters, but was %s", field.Tag.Get("long"))
+				return nil, fmt.Errorf("long flag must be at least two characters, but was %s", fieldT.Tag.Get("long"))
 			}
 
 			var flag Flag
-			switch field.Type.Kind() {
+			switch fieldT.Type.Kind() {
 			case reflect.Bool: // TODO: or *bool
 				flag = Flag{
 					shortname: shortnameRunes[0],
@@ -125,23 +125,37 @@ func newCommand[T any]() (Command, error) {
 					minCount:  0,
 					maxCount:  1,
 					valuesetter: func(s []string) error {
-						reflect.ValueOf(&t).Elem().FieldByName(field.Name).SetBool(true)
+						fieldV.SetBool(true)
 						return nil
 					},
 				}
 			default:
-				return fun.Zero[Command](), fmt.Errorf("unknown field %s type: %s", field.Name, field.Type.String())
+				return nil, fmt.Errorf("unknown field %s type: %s", fieldT.Name, fieldT.Type.String())
 			}
 			flags = append(flags, flag)
 		// command
-		case field.Tag.Get("command") != "":
-			// TODO: implement
+		case fieldT.Tag.Get("command") != "":
+			name := fieldT.Tag.Get("command")
+			aliases := []string{}
+			if tagAliases, ok := fieldT.Tag.Lookup("aliases"); ok {
+				aliases = strings.Split(tagAliases, ",")
+			}
+
+			subcmd, err := newCommandImpl(fieldV)
+			if err != nil {
+				return nil, fmt.Errorf("parse subcommand %s: %w", name, err)
+			}
+
+			subcommands[name] = subcmd
+			for _, alias := range aliases {
+				subcommands[alias] = subcmd
+			}
 		default:
-			return fun.Zero[Command](), fmt.Errorf("unsupported field %s", field.Name)
+			return nil, fmt.Errorf("unsupported field %s", fieldT.Name)
 		}
 	}
 
-	return Command{
+	return &Command{
 		subcommands: subcommands,
 		flags:       flags,
 		posArgs:     posArgs,
@@ -154,7 +168,7 @@ func newCommand[T any]() (Command, error) {
 			},
 		},
 		execute: func() func(context.Context) error {
-			if commander, ok := any(t).(Commander); ok {
+			if commander, ok := v.Interface().(Commander); ok {
 				return func(ctx context.Context) error {
 					return commander.Execute(ctx)
 				}
@@ -162,6 +176,11 @@ func newCommand[T any]() (Command, error) {
 			return nil
 		}(),
 	}, nil
+}
+
+func newCommand[T any]() (*Command, error) {
+	var t T
+	return newCommandImpl(reflect.ValueOf(t))
 }
 
 func (p *Command) printCompletions(args ...string) {
