@@ -173,6 +173,23 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 						return nil
 					},
 				}
+			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64: // TODO: or pointer to
+				flag = Flag{
+					shortname: shortname,
+					longname:  longname,
+					isbool:    false,
+					minCount:  1,
+					maxCount:  1,
+					valuesetter: func(s []string) error {
+						x, err := strconv.ParseInt(s[0], 10, 64)
+						if err != nil {
+							return err
+						}
+
+						fieldV.SetInt(x)
+						return nil
+					},
+				}
 			default:
 				return nil, fmt.Errorf("unknown field %s type: %s", fieldT.Name, fieldT.Type.String())
 			}
