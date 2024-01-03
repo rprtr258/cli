@@ -131,22 +131,38 @@ func TestRun_subcommand_extraArg(t *testing.T) {
 	)
 }
 
-// func TestCommandFlagOrderSub(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			G          bool `short:"g"`
-// 			SubCommand struct {
-// 				B bool `short:"b"`
-// 			} `command:"sub"`
-// 		} `command:"cmd"`
-// 	}{}
+type optsThirdCmdSub struct {
+	B bool `short:"b"`
+}
 
-// 	assertSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.Command.G)
-// 	assert.True(t, opts.Command.SubCommand.B)
-// }
+func (x optsThirdCmdSub) Execute(ctx context.Context) error {
+	return fromCtx(ctx)(x)
+}
+
+type optsThirdCmd struct {
+	G          bool            `short:"g"`
+	SubCommand optsThirdCmdSub `command:"sub"`
+}
+
+func (x optsThirdCmd) Execute(ctx context.Context) error {
+	return fromCtx(ctx)(x)
+}
+
+type optsThird struct {
+	Value   bool         `short:"v"`
+	Command optsThirdCmd `command:"cmd"`
+}
+
+func (x optsThird) Execute(ctx context.Context) error {
+	return fromCtx(ctx)(x)
+}
+
+func Test_third_subsubcommandExtraArgs(t *testing.T) {
+	assertFail[optsThird](t,
+		`extraneous positional arguments found: ["-v", "-g"]`,
+		"cmd", "sub", "-b", "-v", "-g",
+	)
+}
 
 // func TestCommandFlagOverride1(t *testing.T) {
 // 	opts := struct {
