@@ -1,7 +1,7 @@
 .PHONY: lint
 lint:
-	gotestsum --format dots-v2 ./...
+	gocritic check -enableAll ./...
 
-.PHONY: check_crosscompile
-check_crosscompile:
-	./contrib/check_crosscompile.sh
+.PHONY: test
+test:
+	gotestsum --format dots-v2 ./...
