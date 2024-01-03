@@ -174,18 +174,14 @@ func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
 	)
 }
 
-// func TestCommandFlagOverride2(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			Value bool `short:"v"`
-// 		} `command:"cmd"`
-// 	}{}
-
-// 	assertSuccess(t, &opts, "cmd", "-v")
-// 	assert.False(t, opts.Value)
-// 	assert.True(t, opts.Command.Value)
-// }
+func Test_fourth_flag(t *testing.T) {
+	assertSuccess[optsFourth](t,
+		func(x optsFourth) {
+			assert.True(t, x.Value)
+		},
+		"-v",
+	)
+}
 
 // func TestCommandFlagOverrideSub(t *testing.T) {
 // 	opts := struct {
