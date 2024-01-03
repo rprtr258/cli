@@ -44,6 +44,20 @@ func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 	)
 }
 
+// func TestRun_extraFlag(t *testing.T) {
+// 	type opts struct {
+// 		testCommander[opts]
+
+// 		Value   bool                 `short:"v"`
+// 		Command optsSimpleSubcommand `command:"cmd"`
+// 	}
+
+// 	assertFail[opts](t,
+// 		`extraneous positional arguments found: ["-g", "cmd"]`,
+// 		"-v", "-g", "cmd",
+// 	)
+// }
+
 func TestNewCommand_CommandInline(t *testing.T) {
 	cmd, err := newCommand[optsFirst]()
 	assert.NoError(t, err)
@@ -104,20 +118,6 @@ func TestRun_leafHasNoExecute(t *testing.T) {
 		"-v",
 	)
 }
-
-// func TestCommandFlagOrder1(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			G bool `short:"g"`
-// 		} `command:"cmd"`
-// 	}{}
-
-// 	assertFail(t, &Error{
-// 		Kind:    ErrUnknownFlag,
-// 		Message: "unknown flag `g'",
-// 	}, &opts, "-v", "-g", "cmd")
-// }
 
 // func TestCommandFlagOrder2(t *testing.T) {
 // 	opts := struct {
