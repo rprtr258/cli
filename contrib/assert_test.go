@@ -3,7 +3,6 @@ package flags
 import (
 	"context"
 	"testing"
-	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -16,23 +15,17 @@ func toCtx(ctx context.Context, runTest func(any)) context.Context {
 	return context.WithValue(ctx, _contextKey, runTest)
 }
 
-func fromCtx(ctx context.Context) func(any) {
+func fromCtx(ctx context.Context) func(any) error {
 	f, ok := ctx.Value(_contextKey).(func(any))
 	if !ok {
 		panic("no test function found while expected")
 	}
 
-	return f
-}
-
-type testCommander[T any] struct{}
-
-func (c testCommander[T]) Execute(ctx context.Context) error {
-	// uintptr(&c) == uintptr(&opts)
-	// since testCommander must be embedded first,
-	// so we can just do reinterpret cast
-	fromCtx(ctx)(*(*T)(unsafe.Pointer(&c)))
-	return nil
+	return func(a any) error {
+		f(a)
+		// save some lines
+		return nil
+	}
 }
 
 func assertSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {

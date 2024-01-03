@@ -1,22 +1,27 @@
 package flags
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 type optsSimpleSubcommand struct {
-	testCommander[optsSimpleSubcommand]
-
 	G bool `short:"g"`
 }
 
-type optsFirst struct {
-	testCommander[optsFirst]
+func (x optsSimpleSubcommand) Execute(ctx context.Context) error {
+	return fromCtx(ctx)(x)
+}
 
+type optsFirst struct {
 	Value   bool                 `short:"v"`
 	Command optsSimpleSubcommand `command:"cmd"`
+}
+
+func (x optsFirst) Execute(ctx context.Context) error {
+	return fromCtx(ctx)(x)
 }
 
 func TestRun_first_subcommand(t *testing.T) {
@@ -45,14 +50,7 @@ func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 }
 
 func TestRun_extraFlag(t *testing.T) {
-	type opts struct {
-		testCommander[opts]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
-	assertFail[opts](t,
+	assertFail[optsFirst](t,
 		`extraneous positional arguments found: ["-g", "cmd"]`,
 		"-v", "-g", "cmd",
 	)
@@ -120,32 +118,18 @@ func TestRun_leafHasNoExecute(t *testing.T) {
 }
 
 func TestRun_subcommand_extraArgs(t *testing.T) {
-	type Opts struct {
-		testCommander[Opts]
-
-		Value   bool                 `short:"v"`
-		Command optsSimpleSubcommand `command:"cmd"`
-	}
-
-	assertFail[Opts](t,
+	assertFail[optsFirst](t,
 		`extraneous positional arguments found: ["-v", "-g"]`,
 		"cmd", "-v", "-g",
 	)
 }
 
-// func TestRun_subcommand_extraArg(t *testing.T) {
-// 	type Opts struct {
-// 		testCommander[Opts]
-
-// 		Value   bool                 `short:"v"`
-// 		Command optsSimpleSubcommand `command:"cmd"`
-// 	}
-
-// 	assertFail[Opts](t,
-// 		`extraneous positional arguments found: ["-v"]`,
-// 		"cmd", "-g", "-v",
-// 	)
-// }
+func TestRun_subcommand_extraArg(t *testing.T) {
+	assertFail[optsFirst](t,
+		`extraneous positional arguments found: ["-v"]`,
+		"cmd", "-g", "-v",
+	)
+}
 
 // func TestCommandFlagOrderSub(t *testing.T) {
 // 	opts := struct {
