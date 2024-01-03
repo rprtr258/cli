@@ -25,6 +25,8 @@ func fromCtx(ctx context.Context) func(any) {
 }
 
 func testSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
+	t.Helper()
+
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
@@ -36,28 +38,12 @@ func testSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
 }
 
 func testFail[T any](t *testing.T, errString string, args ...string) {
+	t.Helper()
+
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
 	})
 	assert.EqualError(t, RunContext[T](ctx, args...), errString)
 	assert.Equal(t, 0, called)
-}
-
-func assertNoError[T any](t *testing.T, args ...string) {
-	t.Helper()
-
-	args = append([]string{"x"}, args...)
-
-	ctx := context.WithValue(context.Background(), _contextKey, t)
-	assert.NoError(t, RunContext[T](ctx, args...))
-}
-
-func assertEqual[T any](t *testing.T, errWant *Error, args ...string) {
-	t.Helper()
-
-	args = append([]string{"x"}, args...)
-
-	ctx := context.WithValue(context.Background(), _contextKey, t)
-	assert.Equal(t, errWant, RunContext[T](ctx, args...))
 }
