@@ -11,18 +11,14 @@ type optsSimpleSubcommand struct {
 	G bool `short:"g"`
 }
 
-func (x optsSimpleSubcommand) Execute(ctx context.Context) error {
-	return fromCtx(ctx)(x)
-}
+func (x optsSimpleSubcommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 type optsFirst struct {
 	Value   bool                 `short:"v"`
 	Command optsSimpleSubcommand `command:"cmd"`
 }
 
-func (x optsFirst) Execute(ctx context.Context) error {
-	return fromCtx(ctx)(x)
-}
+func (x optsFirst) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 func TestRun_first_subcommand(t *testing.T) {
 	assertSuccess[optsFirst](t,
@@ -135,27 +131,21 @@ type optsThirdCmdSub struct {
 	B bool `short:"b"`
 }
 
-func (x optsThirdCmdSub) Execute(ctx context.Context) error {
-	return fromCtx(ctx)(x)
-}
+func (x optsThirdCmdSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 type optsThirdCmd struct {
 	G          bool            `short:"g"`
 	SubCommand optsThirdCmdSub `command:"sub"`
 }
 
-func (x optsThirdCmd) Execute(ctx context.Context) error {
-	return fromCtx(ctx)(x)
-}
+func (x optsThirdCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 type optsThird struct {
 	Value   bool         `short:"v"`
 	Command optsThirdCmd `command:"cmd"`
 }
 
-func (x optsThird) Execute(ctx context.Context) error {
-	return fromCtx(ctx)(x)
-}
+func (x optsThird) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 func Test_third_subsubcommandExtraArgs(t *testing.T) {
 	assertFail[optsThird](t,
@@ -164,18 +154,25 @@ func Test_third_subsubcommandExtraArgs(t *testing.T) {
 	)
 }
 
-// func TestCommandFlagOverride1(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			Value bool `short:"v"`
-// 		} `command:"cmd"`
-// 	}{}
+type optsFourthCmd struct {
+	Value bool `short:"v"`
+}
 
-// 	assertSuccess(t, &opts, "-v", "cmd")
-// 	assert.True(t, opts.Value)
-// 	assert.False(t, opts.Command.Value)
-// }
+func (x optsFourthCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsFourth struct {
+	Value   bool          `short:"v"`
+	Command optsFourthCmd `command:"cmd"`
+}
+
+func (x optsFourth) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
+	assertFail[optsFourth](t,
+		`extraneous positional arguments found: ["cmd"]`,
+		"-v", "cmd",
+	)
+}
 
 // func TestCommandFlagOverride2(t *testing.T) {
 // 	opts := struct {
