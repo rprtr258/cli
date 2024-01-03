@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -262,10 +263,12 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	}
 
 	if cmd.execute == nil {
+		keys := fun.Keys(cmd.subcommands)
+		sort.Strings(keys)
 		return &Error{
 			Kind: ErrCommandRequired,
 			// TODO: squash subcommands aliases, print suggestion based on distance
-			Message: "no command specified, expected one of: " + strings.Join(fun.Keys(cmd.subcommands), ", "),
+			Message: "no command specified, expected one of: " + strings.Join(keys, ", "),
 		}
 	}
 
