@@ -43,11 +43,9 @@ func TestRun_first_command(t *testing.T) {
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
-	// TODO: assert error
-	assert.EqualError(t,
-		RunContext[optsFirst](context.Background(), "x", "-v", "cmd", "-g"),
-		`extraneous positional arguments found: ["cmd", "-g"]`,
-	)
+	called, err := testRun[optsFirst, struct{}](t, nil, "x", "-v", "cmd", "-g")
+	assert.False(t, called)
+	assert.EqualError(t, err, `extraneous positional arguments found: ["cmd", "-g"]`)
 }
 
 func TestNewCommand_CommandInline(t *testing.T) {
