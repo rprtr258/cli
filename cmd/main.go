@@ -22,7 +22,7 @@ type Opts struct {
 	PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
 	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
 	Filename    Filename       `long:"filename" description:"A filename"`
-	Args        []string       `rest`
+	Args        []string       `positional-args:"yes"`
 }
 
 func (x Opts) Execute(context.Context) error {
@@ -33,6 +33,6 @@ func (x Opts) Execute(context.Context) error {
 func main() {
 	err := cli.Run[Opts](os.Args...)
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "err:", err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }

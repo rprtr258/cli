@@ -3,7 +3,6 @@ package flags
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 	"reflect"
 	"sort"
@@ -87,6 +86,38 @@ type Command struct {
 	execute     func(context.Context) error
 }
 
+func parseValue(s string, typ reflect.Type) (reflect.Value, error) {
+	switch {
+	case typ.Kind() == reflect.Bool:
+		value := fun.Contains(s, "yes", "true", "1")
+		return reflect.ValueOf(value), nil
+	case typ.Kind() == reflect.String:
+		return reflect.ValueOf(s), nil
+	case typ.Kind() == reflect.Pointer && typ.Elem().Kind() == reflect.String:
+		value := reflect.New(typ.Elem())
+		value.Elem().SetString(s)
+		return value, nil
+	case fun.Contains(typ.Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64):
+		x, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+
+		return reflect.ValueOf(x), nil
+	case typ.Kind() == reflect.Ptr && fun.Contains(typ.Elem().Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64):
+		x, err := strconv.ParseInt(s, 10, 64)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+
+		value := reflect.New(typ.Elem())
+		value.Elem().SetInt(x)
+		return value, nil
+	default:
+		return reflect.Value{}, fmt.Errorf("can't parse type: %s", typ.String())
+	}
+}
+
 func newCommandImpl(v reflect.Value) (*Command, error) {
 	typ := v.Type()
 	if typ.Kind() != reflect.Struct {
@@ -166,7 +197,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					valuesetter: func(s []string) error {
 						x, err := strconv.ParseUint(s[0], 10, 64)
 						if err != nil {
-							return err
+							return fmt.Errorf("parse value, expected uint: %w", err)
 						}
 
 						fieldV.SetUint(x)
@@ -174,7 +205,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					},
 				}
 			case fun.Contains(fieldT.Type.Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64) ||
-				fieldT.Type.Kind() == reflect.Ptr && fun.Contains(fieldT.Type.Elem().Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64): // TODO: or pointer to
+				fieldT.Type.Kind() == reflect.Ptr && fun.Contains(fieldT.Type.Elem().Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64):
 				flag = Flag{
 					shortname: shortname,
 					longname:  longname,
@@ -182,16 +213,59 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					minCount:  1,
 					maxCount:  1,
 					valuesetter: func(s []string) error {
-						x, err := strconv.ParseInt(s[0], 10, 64)
+						value, err := parseValue(s[0], fieldT.Type)
 						if err != nil {
-							return err
+							return fmt.Errorf("parse value, expected int: %w", err)
 						}
 
-						if fieldT.Type.Kind() == reflect.Ptr {
-							fieldV.Set(reflect.New(fieldT.Type.Elem()))
-							fieldV.Elem().SetInt(x)
+						fieldV.Set(value)
+						return nil
+					},
+				}
+			case fieldT.Type.Kind() == reflect.Slice &&
+				(fieldT.Type.Elem().Kind() == reflect.String ||
+					fieldT.Type.Elem().Kind() == reflect.Pointer && fieldT.Type.Elem().Elem().Kind() == reflect.String):
+				flag = Flag{
+					shortname: shortname,
+					longname:  longname,
+					isbool:    false,
+					minCount:  0,
+					maxCount:  -1,
+					valuesetter: func(s []string) error {
+						if fieldT.Type.Elem().Kind() == reflect.Pointer {
+							fieldV.Set(reflect.ValueOf(fun.Map[*string](fun.Ptr[string], s...)))
 						} else {
-							fieldV.SetInt(x)
+							fieldV.Set(reflect.ValueOf(s))
+						}
+						return nil
+					},
+				}
+			case fieldT.Type.Kind() == reflect.Map:
+				flag = Flag{
+					shortname: shortname,
+					longname:  longname,
+					isbool:    false,
+					minCount:  0,
+					maxCount:  -1,
+					valuesetter: func(s []string) error {
+						fieldV.Set(reflect.MakeMap(fieldT.Type))
+						for _, kv := range s {
+							kv := strings.SplitN(kv, ":", 2)
+							if len(kv) != 2 {
+								return fmt.Errorf("invalid key-value pair %q, must be key:value", kv)
+							}
+
+							key, err := parseValue(kv[0], fieldT.Type.Key())
+							if err != nil {
+								return fmt.Errorf("invalid key in key-value pair %q: %w", kv, err)
+							}
+
+							value, err := parseValue(kv[1], fieldT.Type.Elem())
+							if err != nil {
+								return fmt.Errorf("invalid value in key-value pair %q: %w", kv, err)
+							}
+
+							fieldV.SetMapIndex(key, value)
 						}
 						return nil
 					},
@@ -445,40 +519,54 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	// filled arguments values, now time to call all setters and validate all of that
 
 	for _, f := range cmd.flags {
-		if f.isbool {
-			if len(f.values) > 1 {
-				return &Error{
-					Kind:    ErrDuplicatedFlag,
-					Message: fmt.Sprintf("bool flag %#v specified too many times, expected at most 1", f),
+		if err := func() error {
+			if f.isbool {
+				if len(f.values) > 1 {
+					return &Error{
+						Kind:    ErrDuplicatedFlag,
+						Message: fmt.Sprintf("bool flag %#v specified too many times, expected at most 1", f),
+					}
+				}
+
+				if len(f.values) == 1 {
+					if err := f.valuesetter(f.values); err != nil {
+						return err
+					}
+				}
+			} else {
+				if len(f.values) < f.minCount {
+					return &Error{
+						Kind:    ErrExpectedArgument,
+						Message: fmt.Sprintf("too few arguments for flag %#v, minimum %d required", f, f.minCount),
+					}
+				}
+
+				if f.maxCount != -1 && len(f.values) > f.maxCount {
+					return &Error{
+						Kind:    ErrExpectedArgument,
+						Message: fmt.Sprintf("too many arguments for flag %#v, maximum %d expected", f, f.maxCount),
+					}
+				}
+
+				if f.values != nil {
+					if err := f.valuesetter(f.values); err != nil {
+						return err
+					}
 				}
 			}
 
-			if len(f.values) == 1 {
-				if err := f.valuesetter(f.values); err != nil {
-					return err
-				}
+			return nil
+		}(); err != nil {
+			var flagrepr string
+			switch {
+			case f.shortname != 0 && f.longname != "":
+				flagrepr = fmt.Sprintf("-%c/--%s", f.shortname, f.longname)
+			case f.shortname != 0:
+				flagrepr = fmt.Sprintf("-%c", f.shortname)
+			case f.longname != "":
+				flagrepr = fmt.Sprintf("--%s", f.longname)
 			}
-		} else {
-			log.Printf("%#v\n", f)
-			if len(f.values) < f.minCount {
-				return &Error{
-					Kind:    ErrExpectedArgument,
-					Message: fmt.Sprintf("too few arguments for flag %#v, minimum %d required", f, f.minCount),
-				}
-			}
-
-			if len(f.values) > f.maxCount {
-				return &Error{
-					Kind:    ErrExpectedArgument,
-					Message: fmt.Sprintf("too many arguments for flag %#v, maximum %d expected", f, f.maxCount),
-				}
-			}
-
-			if f.values != nil {
-				if err := f.valuesetter(f.values); err != nil {
-					return err
-				}
-			}
+			return fmt.Errorf("invalid %s flag value: %w", flagrepr, err)
 		}
 	}
 
