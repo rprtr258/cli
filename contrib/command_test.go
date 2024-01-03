@@ -27,15 +27,11 @@ func (opts optsFirst) Execute(ctx context.Context) error {
 }
 
 func TestRun_first_subcommand(t *testing.T) {
-	called := 0
-	ctx := toCtx(context.Background(), func(a any) {
-		called++
-		assert.IsType(t, optsFirstSubcommand{}, a)
-		opts := a.(optsFirstSubcommand)
+	called, err := testRun[optsFirst](t, func(opts optsFirstSubcommand) {
 		assert.True(t, opts.G)
-	})
-	assert.NoError(t, RunContext[optsFirst](ctx, "x", "cmd", "-g"))
-	assert.Equal(t, 1, called)
+	}, "x", "cmd", "-g")
+	assert.True(t, called)
+	assert.NoError(t, err)
 }
 
 func TestRun_first_command(t *testing.T) {

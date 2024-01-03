@@ -24,15 +24,15 @@ func fromCtx(ctx context.Context) func(any) {
 	return f
 }
 
-func testRun[T any](t *testing.T, runTest func(opts T)) (bool, error) {
+func testRun[T, R any](t *testing.T, runTest func(opts R), args ...string) (bool, error) {
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
-		assert.IsType(t, *new(T), a)
-		runTest(a.(T))
+		assert.IsType(t, *new(R), a)
+		runTest(a.(R))
 	})
 	assert.LessOrEqual(t, called, 1)
-	return called == 1, RunContext[optsFirst](ctx, "x", "cmd", "-g")
+	return called == 1, RunContext[T](ctx, args...)
 }
 
 func assertNoError[T any](t *testing.T, args ...string) {
