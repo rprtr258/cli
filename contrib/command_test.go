@@ -199,35 +199,16 @@ func Test_fourth_altSubcommandFlag(t *testing.T) {
 	)
 }
 
-// func TestCommandFlagOverrideSub2(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			Value      bool `short:"v"`
-// 			SubCommand struct {
-// 				G bool `short:"g"`
-// 			} `command:"sub"`
-// 		} `command:"cmd"`
-// 	}{}
+func TestCommandEstimate(t *testing.T) {
+	type optsSix struct {
+		Cmd1 optsSimpleSubcommand `command:"remove"`
+		Cmd2 optsSimpleSubcommand `command:"add"`
+	}
 
-// 	assertSuccess(t, &opts, "cmd", "sub", "-v")
-// 	assert.False(t, opts.Value)
-// 	assert.True(t, opts.Command.Value)
-// }
-
-// func TestCommandEstimate(t *testing.T) {
-// 	opts := struct {
-// 		Value bool     `short:"v"`
-// 		Cmd1  struct{} `command:"remove"`
-// 		Cmd2  struct{} `command:"add"`
-// 	}{}
-
-// 	err := Run(&opts)
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrCommandRequired,
-// 		Message: "Please specify one command of: remove or add",
-// 	}, err)
-// }
+	assertFail[optsSix](t,
+		"no command specified, expected one of: remove, add",
+	)
+}
 
 // func TestCommandEstimate2(t *testing.T) {
 // 	opts := struct {
