@@ -369,10 +369,6 @@ func newCommand[T any]() (*Command, error) {
 	return newCommandImpl(reflect.ValueOf(new(T)).Elem())
 }
 
-func (p *Command) writeHelp() string {
-	return ""
-}
-
 // Completion is a type containing information of a completion.
 type Completion struct {
 	Item        string // The completed item
