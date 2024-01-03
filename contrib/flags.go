@@ -57,6 +57,19 @@ type Flag struct {
 	values []string
 }
 
+func (f Flag) show() string {
+	switch {
+	case f.shortname != 0 && f.longname != "":
+		return fmt.Sprintf("-%c/--%s", f.shortname, f.longname)
+	case f.shortname != 0:
+		return fmt.Sprintf("-%c", f.shortname)
+	case f.longname != "":
+		return fmt.Sprintf("--%s", f.longname)
+	default:
+		return ""
+	}
+}
+
 type PositionalArg struct {
 	name        string // Name of the positional argument (used in the help)
 	description string // Description of the positional argument (used in the help)
@@ -537,14 +550,14 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 				if len(f.values) < f.minCount {
 					return &Error{
 						Kind:    ErrExpectedArgument,
-						Message: fmt.Sprintf("too few arguments for flag %#v, minimum %d required", f, f.minCount),
+						Message: fmt.Sprintf("too few arguments for flag %s, minimum %d required", f.show(), f.minCount),
 					}
 				}
 
 				if f.maxCount != -1 && len(f.values) > f.maxCount {
 					return &Error{
 						Kind:    ErrExpectedArgument,
-						Message: fmt.Sprintf("too many arguments for flag %#v, maximum %d expected", f, f.maxCount),
+						Message: fmt.Sprintf("too many arguments for flag %s, maximum %d expected", f.show(), f.maxCount),
 					}
 				}
 
@@ -557,16 +570,7 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 
 			return nil
 		}(); err != nil {
-			var flagrepr string
-			switch {
-			case f.shortname != 0 && f.longname != "":
-				flagrepr = fmt.Sprintf("-%c/--%s", f.shortname, f.longname)
-			case f.shortname != 0:
-				flagrepr = fmt.Sprintf("-%c", f.shortname)
-			case f.longname != "":
-				flagrepr = fmt.Sprintf("--%s", f.longname)
-			}
-			return fmt.Errorf("invalid %s flag value: %w", flagrepr, err)
+			return fmt.Errorf("invalid %s flag value: %w", f.show(), err)
 		}
 	}
 
