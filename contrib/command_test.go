@@ -7,22 +7,12 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type contextKey struct{}
-
-var _contextKey = contextKey{}
-
-func tFromCtx(ctx context.Context) *testing.T {
-	return ctx.Value(_contextKey).(*testing.T)
-}
-
 type optsCommandInlineCommand struct {
 	G bool `short:"g"`
 }
 
 func (opts optsCommandInlineCommand) Execute(ctx context.Context) error {
-	t := tFromCtx(ctx)
-	assert.True(t, opts.G)
-	// TODO: assert called once
+	fromCtx(ctx)(opts)
 	return nil
 }
 
@@ -32,16 +22,23 @@ type optsCommandInline struct {
 }
 
 func (opts optsCommandInline) Execute(ctx context.Context) error {
-	t := tFromCtx(ctx)
-	// must never be called
-	assert.False(t, true, "must not be called")
+	fromCtx(ctx)(opts)
 	return nil
 }
 
 func TestRun_CommandInline(t *testing.T) {
 	// TODO: passed -v flag and [cmd, -g] as positionals, though no positionals expected
 	// assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
-	assertNoError[optsCommandInline](t, "cmd", "-g")
+
+	called := 0
+	ctx := toCtx(context.Background(), func(a any) {
+		called++
+		assert.IsType(t, optsCommandInlineCommand{}, a)
+		opts := a.(optsCommandInlineCommand)
+		assert.True(t, opts.G)
+	})
+	assert.NoError(t, RunContext[optsCommandInline](ctx, "x", "cmd", "-g"))
+	assert.Equal(t, 1, called)
 }
 
 func TestNewCommand_CommandInline(t *testing.T) {
