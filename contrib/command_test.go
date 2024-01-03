@@ -8,6 +8,8 @@ import (
 )
 
 type optsSimpleSubcommand struct {
+	testCommander[optsSimpleSubcommand]
+
 	G bool `short:"g"`
 }
 
@@ -17,6 +19,8 @@ func (opts optsSimpleSubcommand) Execute(ctx context.Context) error {
 }
 
 type optsFirst struct {
+	testCommander[optsFirst]
+
 	Value   bool                 `short:"v"`
 	Command optsSimpleSubcommand `command:"cmd"`
 }
@@ -105,11 +109,6 @@ type optsSecond struct {
 	Value bool                 `short:"v"`
 	C1    struct{}             `command:"c1"`
 	C2    optsSimpleSubcommand `command:"c2"`
-}
-
-func (opts optsSecond) Execute(ctx context.Context) error {
-	fromCtx(ctx)(opts)
-	return nil
 }
 
 // func Test_second(t *testing.T) {
