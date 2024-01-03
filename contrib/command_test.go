@@ -48,7 +48,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	cmd, err := newCommand[optsFirst]()
 	assert.NoError(t, err)
 
-	// null to be able to compare the rest
+	// zero out function pointers to be able to compare the rest
 	for i := range cmd.flags {
 		cmd.flags[i].valuesetter = nil
 	}
