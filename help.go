@@ -20,82 +20,125 @@ func helpFlag(f Flag) string {
 	}
 }
 
-func (p *Command) writeHelp() string {
-	p.posArgs = append(p.posArgs, PositionalArg{
+func (c *Command) writeHelp(fullCommandName string) string {
+	c.posArgs = append(c.posArgs, PositionalArg{
 		name:        "name",
 		description: "Who we say hello to",
 	})
 	return scuf.NewString(func(b scuf.Buffer) {
-		// usage line
-		b.
-			String("Usage: ").
-			String("kubectl", scuf.FgHiBlue).
-			SPC().
-			String("[OPTIONS]", scuf.FgHiYellow).
-			SPC().
-			String("[ARGUMENTS]", scuf.FgHiMagenta)
+		// usage
+		b.String("Usage: ")
+		b.String(fullCommandName, scuf.FgHiBlue)
+		if len(c.subcommands) > 0 {
+			b.SPC().String("[COMMAND]", scuf.FgHiRed)
+		}
+		if len(c.flags) > 0 {
+			b.SPC().String("[FLAGS]", scuf.FgHiYellow)
+		}
+		if len(c.posArgs) > 0 {
+			b.SPC().String("[ARGUMENTS]", scuf.FgHiMagenta)
+		}
+		if c.posArgsRest.defined {
+			b.SPC().String("[REST...]", scuf.FgHiMagenta)
+		}
+
 		// description
 		b.
 			NL().
 			NL().
 			String("Print a friendly greeting")
+
+		// subcommands
+		if len(c.subcommands) > 0 {
+			subcommandsPreLen := 0
+			for subcommandName := range c.subcommands {
+				subcommandsPreLen = max(subcommandsPreLen, len(subcommandName))
+			}
+			subcommandsPreLen += 4
+			b.
+				NL().
+				NL().
+				String("Commands:").
+				NL().
+				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
+					for name, subc := range c.subcommands {
+						yield(func(b scuf.Buffer) {
+							b.
+								TAB().
+								String(name, scuf.FgHiRed).
+								SPC().
+								String("string", scuf.FgHiGreen).
+								RepeatByte(' ', subcommandsPreLen-len(name)).
+								String(fmt.Sprintf("%#v", subc)).
+								NL()
+						})
+					}
+					return true
+				})
+		}
+
 		// positional args
-		argsPreLen := internal.MaxBy(func(a PositionalArg) int {
-			return 1 + len(a.name) + 1 + 1 + len("string")
-		}, p.posArgs...) + 4
-		b.
-			NL().
-			NL().
-			String("Arguments:").
-			NL().
-			Iter(func(yield func(func(scuf.Buffer)) bool) bool {
-				for _, a := range p.posArgs {
-					yield(func(b scuf.Buffer) {
-						b.
-							TAB().
-							Styled(func(b scuf.Buffer) {
-								b.InBytePair('[', ']', func(b scuf.Buffer) {
-									b.String(a.name)
-								})
-							}, scuf.FgHiMagenta).
-							SPC().
-							String("string", scuf.FgHiGreen).
-							RepeatByte(' ', argsPreLen-1-len(a.name)-1-1-len("string")).
-							String(a.description).
-							NL()
-					})
-				}
-				return true
-			})
+		if len(c.posArgs) > 0 {
+			argsPreLen := internal.MaxBy(func(a PositionalArg) int {
+				return 1 + len(a.name) + 1 + 1 + len("string")
+			}, c.posArgs...) + 4
+			b.
+				NL().
+				NL().
+				String("Arguments:").
+				NL().
+				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
+					for _, a := range c.posArgs {
+						yield(func(b scuf.Buffer) {
+							b.
+								TAB().
+								Styled(func(b scuf.Buffer) {
+									b.InBytePair('[', ']', func(b scuf.Buffer) {
+										b.String(a.name)
+									})
+								}, scuf.FgHiMagenta).
+								SPC().
+								String("string", scuf.FgHiGreen).
+								RepeatByte(' ', argsPreLen-1-len(a.name)-1-1-len("string")).
+								String(a.description).
+								NL()
+						})
+					}
+					return true
+				})
+		}
+
 		// flags
-		flagsPreLen := internal.MaxBy(func(f Flag) int {
-			return len(helpFlag(f))
-		}, p.flags...) + 4
-		b.
-			NL().
-			String("Options:").
-			NL().
-			Iter(func(yield func(func(scuf.Buffer)) bool) bool {
-				for _, f := range p.flags {
-					yield(func(b scuf.Buffer) {
-						b.
-							TAB()
-						if f.shortname != 0 {
-							b.String("-"+string(f.shortname), scuf.FgHiYellow)
-						}
-						if f.shortname != 0 && f.longname != "" {
-							b.String(", ")
-						}
-						if f.longname != "" {
-							b.String("--"+f.longname, scuf.FgHiYellow)
-						}
-						b.
-							RepeatByte(' ', flagsPreLen-len(helpFlag(f))).
-							String("short is " + string(f.shortname) + ", long is " + f.longname).
-							NL()
-					})
-				}
-				return true
-			})
+		if len(c.flags) > 0 {
+			flagsPreLen := internal.MaxBy(func(f Flag) int {
+				return len(helpFlag(f))
+			}, c.flags...) + 4
+			b.
+				NL().
+				String("Flags:").
+				NL().
+				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
+					for _, f := range c.flags {
+						yield(func(b scuf.Buffer) {
+							b.
+								TAB()
+							if f.shortname != 0 {
+								b.String("-"+string(f.shortname), scuf.FgHiYellow)
+							}
+							if f.shortname != 0 && f.longname != "" {
+								b.String(", ")
+							}
+							if f.longname != "" {
+								b.String("--"+f.longname, scuf.FgHiYellow)
+							}
+							b.
+								RepeatByte(' ', flagsPreLen-len(helpFlag(f))).
+								String("short is " + string(f.shortname) + ", long is " + f.longname).
+								NL()
+						})
+					}
+					return true
+				})
+		}
 	})
 }

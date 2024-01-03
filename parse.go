@@ -4,8 +4,10 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"strconv"
+	"strings"
 
 	"github.com/rprtr258/fun"
 
@@ -23,9 +25,25 @@ func Run[T any](args ...string) error {
 // was specified in the command line arguments, the special error type ErrHelp
 // is returned with help text to print.
 func RunContext[T any](ctx context.Context, args ...string) error {
-	cmd, err := newCommand[T]()
+	origcmd, err := newCommand[T]()
 	if err != nil {
 		return err
+	}
+
+	cmdname := args[0]
+	args = args[1:] // throw off executable name
+
+	// find appropriate subcommand
+	subcommands := []string{filepath.Base(cmdname)}
+	cmd := origcmd
+	for ; len(args) > 0; args = args[1:] {
+		subcommand, ok := cmd.subcommands[args[0]]
+		if !ok {
+			break
+		}
+
+		cmd = subcommand
+		subcommands = append(subcommands, args[0])
 	}
 
 	// add help flags to each subcommand
@@ -42,21 +60,10 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		},
 	})
 
-	args = args[1:] // throw off executable name
-
 	// check if we should just print completions, then exit
 	if _, ok := os.LookupEnv("GO_FLAGS_COMPLETION"); ok {
 		cmd.printCompletions(args...)
 		return nil
-	}
-
-	// find appropriate subcommand
-	for ; len(args) > 0; args = args[1:] {
-		if subcommand, ok := cmd.subcommands[args[0]]; ok {
-			cmd = subcommand
-		} else {
-			break
-		}
 	}
 
 	if cmd.execute == nil {
@@ -194,7 +201,7 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	if showHelp {
 		return &Error{
 			Kind:    ErrHelp,
-			Message: cmd.writeHelp(),
+			Message: cmd.writeHelp(strings.Join(subcommands, " ")),
 		}
 	}
 
