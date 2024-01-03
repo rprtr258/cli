@@ -131,8 +131,8 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			}
 
 			var flag Flag
-			switch fieldT.Type.Kind() {
-			case reflect.Bool: // TODO: or *bool or []bool
+			switch {
+			case fieldT.Type.Kind() == reflect.Bool: // TODO: or *bool or []bool
 				flag = Flag{
 					shortname: shortname,
 					longname:  longname,
@@ -144,7 +144,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 						return nil
 					},
 				}
-			case reflect.String: // TODO: or *string
+			case fieldT.Type.Kind() == reflect.String: // TODO: or *string
 				flag = Flag{
 					shortname: shortname,
 					longname:  longname,
@@ -156,7 +156,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 						return nil
 					},
 				}
-			case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64: // TODO: or pointer to
+			case fun.Contains(fieldT.Type.Kind(), reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64): // TODO: or pointer to
 				flag = Flag{
 					shortname: shortname,
 					longname:  longname,
@@ -173,7 +173,8 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 						return nil
 					},
 				}
-			case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64: // TODO: or pointer to
+			case fun.Contains(fieldT.Type.Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64) ||
+				fieldT.Type.Kind() == reflect.Ptr && fun.Contains(fieldT.Type.Elem().Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64): // TODO: or pointer to
 				flag = Flag{
 					shortname: shortname,
 					longname:  longname,
@@ -186,7 +187,12 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 							return err
 						}
 
-						fieldV.SetInt(x)
+						if fieldT.Type.Kind() == reflect.Ptr {
+							fieldV.Set(reflect.New(fieldT.Type.Elem()))
+							fieldV.Elem().SetInt(x)
+						} else {
+							fieldV.SetInt(x)
+						}
 						return nil
 					},
 				}
