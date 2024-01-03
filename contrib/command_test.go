@@ -154,11 +154,34 @@ func Test_third_subsubcommandExtraArgs(t *testing.T) {
 	)
 }
 
-type optsFourthCmd struct {
+type optsFourthSub struct {
 	Value bool `short:"v"`
 }
 
+func (x optsFourthSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsFourthCmd struct {
+	Value   bool          `short:"v"`
+	Command optsFourthSub `command:"sub"`
+}
+
 func (x optsFourthCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
+	assertFail[optsFourthCmd](t,
+		`extraneous positional arguments found: ["sub"]`,
+		"-v", "sub",
+	)
+}
+
+func Test_fourth_flag(t *testing.T) {
+	assertSuccess[optsFourthCmd](t,
+		func(x optsFourthCmd) {
+			assert.True(t, x.Value)
+		},
+		"-v",
+	)
+}
 
 type optsFourth struct {
 	Value   bool          `short:"v"`
@@ -167,38 +190,14 @@ type optsFourth struct {
 
 func (x optsFourth) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
-	assertFail[optsFourth](t,
-		`extraneous positional arguments found: ["cmd"]`,
-		"-v", "cmd",
-	)
-}
-
-func Test_fourth_flag(t *testing.T) {
+func Test_fourth_altSubcommandFlag(t *testing.T) {
 	assertSuccess[optsFourth](t,
-		func(x optsFourth) {
+		func(x optsFourthSub) {
 			assert.True(t, x.Value)
 		},
-		"-v",
+		"cmd", "sub", "-v",
 	)
 }
-
-// func TestCommandFlagOverrideSub(t *testing.T) {
-// 	opts := struct {
-// 		Value   bool `short:"v"`
-// 		Command struct {
-// 			Value      bool `short:"v"`
-// 			SubCommand struct {
-// 				Value bool `short:"v"`
-// 			} `command:"sub"`
-// 		} `command:"cmd"`
-// 	}{}
-
-// 	assertSuccess(t, &opts, "cmd", "sub", "-v")
-// 	assert.False(t, opts.Value)
-// 	assert.False(t, opts.Command.Value)
-// 	assert.True(t, opts.Command.SubCommand.Value)
-// }
 
 // func TestCommandFlagOverrideSub2(t *testing.T) {
 // 	opts := struct {
