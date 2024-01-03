@@ -37,15 +37,15 @@ func TestRun_CommandInline(t *testing.T) {
 func TestNewCommand_CommandInline(t *testing.T) {
 	cmd, err := newCommand[optsCommandInline]()
 	assert.NoError(t, err)
-	assert.Equal(t, Command{
+	cmd.posArgsRest.valuesetter = nil
+	cmd.execute = nil
+	want := Command{
 		subcommands: map[string]Command{},
 		flags:       []Flag{},
 		posArgs:     []PositionalArg{},
-		posArgsRest: PositionalArgsRest{
-			valuesetter: cmd.posArgsRest.valuesetter,
-		},
-		execute: cmd.execute,
-	}, cmd)
+		posArgsRest: PositionalArgsRest{},
+	}
+	assert.Equal(t, want, cmd)
 }
 
 // func TestCommandInlineMulti(t *testing.T) {
