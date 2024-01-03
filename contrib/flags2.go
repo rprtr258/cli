@@ -69,6 +69,7 @@ type PositionalArgsRest struct {
 	name        string // Name of the positional argument (used in the help)
 	description string // Description of the positional argument (used in the help)
 	mincount    int    // TODO: move to setter
+	defined     bool
 	valuesetter func([]string) error
 
 	// set during parsing
@@ -182,6 +183,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			name:        "",
 			description: "",
 			mincount:    0,
+			defined:     false,
 			valuesetter: func([]string) error {
 				return nil
 			},
@@ -310,6 +312,13 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		return &Error{ // TODO: separate error types
 			Kind:    ErrExpectedArgument,
 			Message: fmt.Sprintf("positional argument %s is required", cmd.posArgs[len(args)].name),
+		}
+	}
+
+	if len(args) > len(cmd.posArgs) && !cmd.posArgsRest.defined {
+		return &Error{ // TODO: separate error types
+			Kind:    ErrExpectedArgument,
+			Message: fmt.Sprintf("extraneous positional arguments found: %#v", args[len(cmd.posArgs):]),
 		}
 	}
 

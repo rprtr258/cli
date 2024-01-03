@@ -7,42 +7,62 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type optsCommandInlineCommand struct {
+type optsFirstSubcommand struct {
 	G bool `short:"g"`
 }
 
-func (opts optsCommandInlineCommand) Execute(ctx context.Context) error {
+func (opts optsFirstSubcommand) Execute(ctx context.Context) error {
 	fromCtx(ctx)(opts)
 	return nil
 }
 
-type optsCommandInline struct {
-	Value   bool                     `short:"v"`
-	Command optsCommandInlineCommand `command:"cmd"`
+type optsFirst struct {
+	Value   bool                `short:"v"`
+	Command optsFirstSubcommand `command:"cmd"`
 }
 
-func (opts optsCommandInline) Execute(ctx context.Context) error {
+func (opts optsFirst) Execute(ctx context.Context) error {
 	fromCtx(ctx)(opts)
 	return nil
 }
 
-func TestRun_CommandInline(t *testing.T) {
+func TestRun_first_subcommand(t *testing.T) {
 	// TODO: passed -v flag and [cmd, -g] as positionals, though no positionals expected
 	// assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
 
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
-		assert.IsType(t, optsCommandInlineCommand{}, a)
-		opts := a.(optsCommandInlineCommand)
+		assert.IsType(t, optsFirstSubcommand{}, a)
+		opts := a.(optsFirstSubcommand)
 		assert.True(t, opts.G)
 	})
-	assert.NoError(t, RunContext[optsCommandInline](ctx, "x", "cmd", "-g"))
+	assert.NoError(t, RunContext[optsFirst](ctx, "x", "cmd", "-g"))
 	assert.Equal(t, 1, called)
 }
 
+func TestRun_first_command(t *testing.T) {
+	// TODO: passed -v flag and [cmd, -g] as positionals, though no positionals expected
+	// assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
+
+	called := 0
+	ctx := toCtx(context.Background(), func(a any) {
+		called++
+		assert.IsType(t, optsFirst{}, a)
+		opts := a.(optsFirst)
+		assert.True(t, opts.Value)
+	})
+	assert.NoError(t, RunContext[optsFirst](ctx, "x", "-v"))
+	assert.Equal(t, 1, called)
+}
+
+func TestRun_first_commandExtraneousPositionals(t *testing.T) {
+	// TODO: assert error
+	assert.Error(t, RunContext[optsFirst](context.Background(), "x", "-v", "cmd", "-g"))
+}
+
 func TestNewCommand_CommandInline(t *testing.T) {
-	cmd, err := newCommand[optsCommandInline]()
+	cmd, err := newCommand[optsFirst]()
 	assert.NoError(t, err)
 
 	// null to be able to compare the rest

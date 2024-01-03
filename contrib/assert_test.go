@@ -16,7 +16,12 @@ func toCtx(ctx context.Context, runTest func(any)) context.Context {
 }
 
 func fromCtx(ctx context.Context) func(any) {
-	return ctx.Value(_contextKey).(func(any))
+	f, ok := ctx.Value(_contextKey).(func(any))
+	if !ok {
+		panic("no test function found while expected")
+	}
+
+	return f
 }
 
 func assertNoError[T any](t *testing.T, args ...string) {
