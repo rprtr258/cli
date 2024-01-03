@@ -265,6 +265,10 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	if cmd.execute == nil {
 		keys := fun.Keys(cmd.subcommands)
 		sort.Strings(keys)
+		if len(args) > 0 {
+			return newUnknownCommandError(args[0], keys)
+		}
+
 		return &Error{
 			Kind: ErrCommandRequired,
 			// TODO: squash subcommands aliases, print suggestion based on distance

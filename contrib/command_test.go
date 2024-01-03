@@ -210,19 +210,17 @@ func TestCommandEstimate(t *testing.T) {
 	)
 }
 
-// func TestCommandEstimate2(t *testing.T) {
-// 	opts := struct {
-// 		Value bool     `short:"v"`
-// 		Cmd1  struct{} `command:"remove"`
-// 		Cmd2  struct{} `command:"add"`
-// 	}{}
+func TestCommandEstimate2(t *testing.T) {
+	type optsSix struct {
+		Cmd1 optsSimpleSubcommand `command:"remove"`
+		Cmd2 optsSimpleSubcommand `command:"add"`
+	}
 
-// 	err := Run(&opts, "rmive")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrUnknownCommand,
-// 		Message: "Unknown command `rmive', did you mean `remove'?",
-// 	}, err)
-// }
+	assertFail[optsSix](t,
+		"Unknown command `rmive', did you mean `remove'?",
+		"rmive",
+	)
+}
 
 // type testCommand struct {
 // 	G        bool `short:"g"`
