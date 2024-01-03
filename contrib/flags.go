@@ -210,7 +210,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					valuesetter: func(s []string) error {
 						x, err := strconv.ParseUint(s[0], 10, 64)
 						if err != nil {
-							return fmt.Errorf("parse value, expected uint: %w", err)
+							return fmt.Errorf("expected uint, found %q", s[0])
 						}
 
 						fieldV.SetUint(x)
@@ -228,7 +228,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					valuesetter: func(s []string) error {
 						value, err := parseValue(s[0], fieldT.Type)
 						if err != nil {
-							return fmt.Errorf("parse value, expected int: %w", err)
+							return fmt.Errorf("expected int, found %q", s[0])
 						}
 
 						fieldV.Set(value)
