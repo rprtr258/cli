@@ -96,6 +96,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 	for i := 0; i < typ.NumField(); i++ {
 		fieldT := typ.Field(i)
 		fieldV := v.Field(i)
+		fmt.Println(fieldT.Name, fieldV.Type().String(), fieldV.CanSet())
 
 		if !fieldT.IsExported() {
 			continue
@@ -117,7 +118,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 
 			var flag Flag
 			switch fieldT.Type.Kind() {
-			case reflect.Bool: // TODO: or *bool
+			case reflect.Bool: // TODO: or *bool or []bool
 				flag = Flag{
 					shortname: shortnameRunes[0],
 					longname:  longname,
@@ -125,7 +126,9 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 					minCount:  0,
 					maxCount:  1,
 					valuesetter: func(s []string) error {
+						fmt.Println("  xdd", fieldT.Name, fieldV.Type().String(), fieldV.CanSet(), fieldV.Interface())
 						fieldV.SetBool(true)
+						fmt.Println("  2 xdd", fieldT.Name, fieldV.Type().String(), fieldV.CanSet(), fieldV.Interface())
 						return nil
 					},
 				}
@@ -155,6 +158,19 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 		}
 	}
 
+	var executeFn func(context.Context) error
+	if _, ok := v.Interface().(Commander); ok {
+		// NOTE: v.Interface intentionally repeated 2 time in order not to copy
+		// the value before any setters are called
+		executeFn = func(ctx context.Context) error {
+			return v.Interface().(Commander).Execute(ctx)
+		}
+	}
+
+	if (len(flags) > 0 || len(posArgs) > 0) && executeFn == nil {
+		return nil, fmt.Errorf("command %s has flags but not execute function defined", typ.String())
+	}
+
 	return &Command{
 		subcommands: subcommands,
 		flags:       flags,
@@ -167,20 +183,15 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				return nil
 			},
 		},
-		execute: func() func(context.Context) error {
-			if commander, ok := v.Interface().(Commander); ok {
-				return func(ctx context.Context) error {
-					return commander.Execute(ctx)
-				}
-			}
-			return nil
-		}(),
+		execute: executeFn,
 	}, nil
 }
 
 func newCommand[T any]() (*Command, error) {
-	var t T
-	return newCommandImpl(reflect.ValueOf(t))
+	t := new(T)
+	c, e := newCommandImpl(reflect.ValueOf(t).Elem())
+	fmt.Printf("%#v\n", *t)
+	return c, e
 }
 
 func (p *Command) printCompletions(args ...string) {
@@ -302,11 +313,11 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		}
 	}
 
-	for i, arg := range args {
+	for i, arg := range fun.Subslice(0, len(cmd.posArgs), args...) {
 		cmd.posArgs[i].value = arg
 	}
 
-	if len(args) > len(cmd.posArgs) {
+	if len(args) >= len(cmd.posArgs) {
 		cmd.posArgsRest.values = args[len(cmd.posArgs):]
 	}
 

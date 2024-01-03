@@ -10,12 +10,16 @@ import (
 func assertNoError[T any](t *testing.T, args ...string) {
 	t.Helper()
 
+	args = append([]string{"x"}, args...)
+
 	ctx := context.WithValue(context.Background(), _contextKey, t)
 	assert.NoError(t, RunContext[T](ctx, args...))
 }
 
 func assertEqual[T any](t *testing.T, errWant *Error, args ...string) {
 	t.Helper()
+
+	args = append([]string{"x"}, args...)
 
 	ctx := context.WithValue(context.Background(), _contextKey, t)
 	assert.Equal(t, errWant, RunContext[T](ctx, args...))
