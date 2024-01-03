@@ -1,10 +1,268 @@
 package flags
 
-// import (
-// 	"testing"
+import (
+	"context"
+	"testing"
 
-// 	"github.com/stretchr/testify/assert"
-// )
+	"github.com/stretchr/testify/assert"
+)
+
+type optsSimpleSubcommand struct {
+	G bool `short:"g"`
+}
+
+func (x optsSimpleSubcommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsFirst struct {
+	Value   bool                 `short:"v"`
+	Command optsSimpleSubcommand `command:"cmd"`
+}
+
+func (x optsFirst) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func TestRun_first_subcommand(t *testing.T) {
+	assertSuccess[optsFirst](t,
+		func(opts optsSimpleSubcommand) {
+			assert.True(t, opts.G)
+		},
+		"cmd", "-g",
+	)
+}
+
+func TestRun_first_command(t *testing.T) {
+	assertSuccess[optsFirst](t,
+		func(opts optsFirst) {
+			assert.True(t, opts.Value)
+		},
+		"-v",
+	)
+}
+
+func TestRun_first_commandExtraneousPositionals(t *testing.T) {
+	assertFail[optsFirst](t,
+		`extraneous positional arguments found: ["cmd", "-g"]`,
+		"-v", "cmd", "-g",
+	)
+}
+
+func TestRun_extraFlag(t *testing.T) {
+	assertFail[optsFirst](t,
+		`extraneous positional arguments found: ["-g", "cmd"]`,
+		"-v", "-g", "cmd",
+	)
+}
+
+func TestNewCommand_CommandInline(t *testing.T) {
+	cmd, err := newCommand[optsFirst]()
+	assert.NoError(t, err)
+
+	// zero out function pointers to be able to compare the rest
+	for i := range cmd.flags {
+		cmd.flags[i].valuesetter = nil
+	}
+	cmd.posArgsRest.valuesetter = nil
+	cmd.execute = nil
+	for i, subcmd := range cmd.subcommands {
+		for i := range subcmd.flags {
+			subcmd.flags[i].valuesetter = nil
+		}
+		cmd.subcommands[i].posArgsRest.valuesetter = nil
+		subcmd.execute = nil
+	}
+
+	want := &Command{
+		subcommands: map[string]*Command{
+			"cmd": {
+				subcommands: map[string]*Command{},
+				flags: []Flag{
+					{
+						shortname: 'g',
+						longname:  "",
+						isbool:    true,
+						minCount:  0,
+						maxCount:  1,
+					},
+				},
+				posArgs:     []PositionalArg{},
+				posArgsRest: PositionalArgsRest{},
+			},
+		},
+		flags: []Flag{
+			{
+				shortname: 'v',
+				longname:  "",
+				isbool:    true,
+				minCount:  0,
+				maxCount:  1,
+			},
+		},
+		posArgs:     []PositionalArg{},
+		posArgsRest: PositionalArgsRest{},
+	}
+	assert.Equal(t, want, cmd)
+}
+
+func TestRun_leafHasNoExecute(t *testing.T) {
+	type optsSecond struct {
+		C1 struct{} `command:"c1"`
+	}
+
+	assertFail[optsSecond](t,
+		`parse subcommand c1: command struct {} is leaf command, but no Execute function defined`,
+		"-v",
+	)
+}
+
+func TestRun_subcommand_extraArgs(t *testing.T) {
+	assertFail[optsFirst](t,
+		`extraneous positional arguments found: ["-v", "-g"]`,
+		"cmd", "-v", "-g",
+	)
+}
+
+func TestRun_subcommand_extraArg(t *testing.T) {
+	assertFail[optsFirst](t,
+		`extraneous positional arguments found: ["-v"]`,
+		"cmd", "-g", "-v",
+	)
+}
+
+type optsThirdCmdSub struct {
+	B bool `short:"b"`
+}
+
+func (x optsThirdCmdSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsThirdCmd struct {
+	G          bool            `short:"g"`
+	SubCommand optsThirdCmdSub `command:"sub"`
+}
+
+func (x optsThirdCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsThird struct {
+	Value   bool         `short:"v"`
+	Command optsThirdCmd `command:"cmd"`
+}
+
+func (x optsThird) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_third_subsubcommandExtraArgs(t *testing.T) {
+	assertFail[optsThird](t,
+		`extraneous positional arguments found: ["-v", "-g"]`,
+		"cmd", "sub", "-b", "-v", "-g",
+	)
+}
+
+type optsFourthSub struct {
+	Value bool `short:"v"`
+}
+
+func (x optsFourthSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type optsFourthCmd struct {
+	Value   bool          `short:"v"`
+	Command optsFourthSub `command:"sub"`
+}
+
+func (x optsFourthCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
+	assertFail[optsFourthCmd](t,
+		`extraneous positional arguments found: ["sub"]`,
+		"-v", "sub",
+	)
+}
+
+func Test_fourth_flag(t *testing.T) {
+	assertSuccess[optsFourthCmd](t,
+		func(x optsFourthCmd) {
+			assert.True(t, x.Value)
+		},
+		"-v",
+	)
+}
+
+type optsFourth struct {
+	Value   bool          `short:"v"`
+	Command optsFourthCmd `command:"cmd"`
+}
+
+func (x optsFourth) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_fourth_altSubcommandFlag(t *testing.T) {
+	assertSuccess[optsFourth](t,
+		func(x optsFourthSub) {
+			assert.True(t, x.Value)
+		},
+		"cmd", "sub", "-v",
+	)
+}
+
+func TestCommandEstimate(t *testing.T) {
+	type optsSix struct {
+		Cmd1 optsSimpleSubcommand `command:"remove"`
+		Cmd2 optsSimpleSubcommand `command:"add"`
+	}
+
+	assertFail[optsSix](t,
+		"Please specify one command of: add or remove",
+	)
+}
+
+func TestCommandEstimate2(t *testing.T) {
+	type optsSix struct {
+		Cmd1 optsSimpleSubcommand `command:"remove"`
+		Cmd2 optsSimpleSubcommand `command:"add"`
+	}
+
+	assertFail[optsSix](t,
+		"Unknown command `rmive', did you mean `remove'?",
+		"rmive",
+	)
+}
+
+type optsSeven struct {
+	G    bool     `short:"g"`
+	Args []string `positional-args:"yes"`
+}
+
+func (x optsSeven) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func Test_subcommands_posArgs(t *testing.T) {
+	type Opts struct {
+		Command optsSeven `command:"cmd"`
+	}
+
+	assertSuccess[Opts](t,
+		func(x optsSeven) {
+			assert.True(t, x.G)
+			assert.Equal(t, []string{"a", "b"}, x.Args)
+		},
+		"cmd", "-g", "a", "b",
+	)
+}
+
+type optsParse struct {
+	Verbose bool     `short:"v" long:"verbose" description:"Show verbose debug information"`
+	Name    string   `short:"n" long:"name" description:"A name"`
+	Args    []string `positional-args:"yes"`
+}
+
+func (x optsParse) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func TestParse(t *testing.T) {
+	assertSuccess[optsParse](t,
+		func(x optsParse) {
+			assert.Equal(t, optsParse{
+				Verbose: true,
+				Name:    "aboba",
+				Args:    []string{"xdd"},
+			}, x)
+		},
+		"--name", "aboba", "--verbose", "xdd",
+	)
+}
 
 // func TestGroupInline(t *testing.T) {
 // 	opts := struct {
