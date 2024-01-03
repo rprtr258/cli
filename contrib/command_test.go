@@ -7,18 +7,18 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-type optsFirstSubcommand struct {
+type optsSimpleSubcommand struct {
 	G bool `short:"g"`
 }
 
-func (opts optsFirstSubcommand) Execute(ctx context.Context) error {
+func (opts optsSimpleSubcommand) Execute(ctx context.Context) error {
 	fromCtx(ctx)(opts)
 	return nil
 }
 
 type optsFirst struct {
-	Value   bool                `short:"v"`
-	Command optsFirstSubcommand `command:"cmd"`
+	Value   bool                 `short:"v"`
+	Command optsSimpleSubcommand `command:"cmd"`
 }
 
 func (opts optsFirst) Execute(ctx context.Context) error {
@@ -27,8 +27,8 @@ func (opts optsFirst) Execute(ctx context.Context) error {
 }
 
 func TestRun_first_subcommand(t *testing.T) {
-	testSuccess[optsFirst](t,
-		func(opts optsFirstSubcommand) {
+	assertSuccess[optsFirst](t,
+		func(opts optsSimpleSubcommand) {
 			assert.True(t, opts.G)
 		},
 		"x", "cmd", "-g",
@@ -36,7 +36,7 @@ func TestRun_first_subcommand(t *testing.T) {
 }
 
 func TestRun_first_command(t *testing.T) {
-	testSuccess[optsFirst](t,
+	assertSuccess[optsFirst](t,
 		func(opts optsFirst) {
 			assert.True(t, opts.Value)
 		},
@@ -45,7 +45,7 @@ func TestRun_first_command(t *testing.T) {
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
-	testFail[optsFirst](t,
+	assertFail[optsFirst](t,
 		`extraneous positional arguments found: ["cmd", "-g"]`,
 		"x", "-v", "cmd", "-g",
 	)
@@ -101,16 +101,19 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	assert.Equal(t, want, cmd)
 }
 
-// func TestCommandInlineMulti(t *testing.T) {
-// 	opts := struct {
-// 		Value bool     `short:"v"`
-// 		C1    struct{} `command:"c1"`
-// 		C2    struct {
-// 			G bool `short:"g"`
-// 		} `command:"c2"`
-// 	}{}
+type optsSecond struct {
+	Value bool                 `short:"v"`
+	C1    struct{}             `command:"c1"`
+	C2    optsSimpleSubcommand `command:"c2"`
+}
 
-// 	assertNoError(t, &opts, "-v", "c2", "-g")
+func (opts optsSecond) Execute(ctx context.Context) error {
+	fromCtx(ctx)(opts)
+	return nil
+}
+
+// func Test_second(t *testing.T) {
+// 	assertSuccess[optsSecond](t, &opts, "-v", "c2", "-g")
 // 	assert.True(t, opts.Value)
 // 	assert.True(t, opts.C2.G)
 // }
@@ -123,7 +126,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertEqual(t, &Error{
+// 	assertFail(t, &Error{
 // 		Kind:    ErrUnknownFlag,
 // 		Message: "unknown flag `g'",
 // 	}, &opts, "-v", "-g", "cmd")
@@ -137,7 +140,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd", "-v", "-g")
+// 	assertSuccess(t, &opts, "cmd", "-v", "-g")
 // 	assert.True(t, opts.Value)
 // 	assert.True(t, opts.Command.G)
 // }
@@ -153,7 +156,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd", "sub", "-v", "-g", "-b")
+// 	assertSuccess(t, &opts, "cmd", "sub", "-v", "-g", "-b")
 // 	assert.True(t, opts.Value)
 // 	assert.True(t, opts.Command.G)
 // 	assert.True(t, opts.Command.SubCommand.B)
@@ -167,7 +170,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "-v", "cmd")
+// 	assertSuccess(t, &opts, "-v", "cmd")
 // 	assert.True(t, opts.Value)
 // 	assert.False(t, opts.Command.Value)
 // }
@@ -180,7 +183,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd", "-v")
+// 	assertSuccess(t, &opts, "cmd", "-v")
 // 	assert.False(t, opts.Value)
 // 	assert.True(t, opts.Command.Value)
 // }
@@ -196,7 +199,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd", "sub", "-v")
+// 	assertSuccess(t, &opts, "cmd", "sub", "-v")
 // 	assert.False(t, opts.Value)
 // 	assert.False(t, opts.Command.Value)
 // 	assert.True(t, opts.Command.SubCommand.Value)
@@ -213,7 +216,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd", "sub", "-v")
+// 	assertSuccess(t, &opts, "cmd", "sub", "-v")
 // 	assert.False(t, opts.Value)
 // 	assert.True(t, opts.Command.Value)
 // }
@@ -264,7 +267,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		Command testCommand `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "-v", "cmd", "-g", "a", "b")
+// 	assertSuccess(t, &opts, "-v", "cmd", "-g", "a", "b")
 // 	assert.True(t, opts.Value)
 // 	assert.True(t, opts.Command.Executed)
 // 	assert.True(t, opts.Command.G)
@@ -278,7 +281,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		Cmd2  struct{} `command:"add"`
 // 	}{}
 
-// 	assertEqual(t, &Error{
+// 	assertFail(t, &Error{
 // 		Kind:    ErrUnknownCommand,
 // 		Message: "Unknown command `addd', did you mean `add'?",
 // 	}, &opts, "-v", "addd")
@@ -312,7 +315,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
+// 	assertSuccess(t, &opts, "-v", "cmd", "-g", "nested", "--n", "n", "rest")
 // 	assert.Equal(t, []string{"rest"}, opts.Command.Nested.Args)
 // 	assert.True(t, opts.Value)
 // 	assert.True(t, opts.Command.G)
@@ -327,7 +330,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}
 
-// 	assertEqual[Opts](t, newErrorf(ErrRequired, "the required flag `%cv' was not specified", _defaultOptDelimiterShort), "cmd")
+// 	assertFail[Opts](t, newErrorf(ErrRequired, "the required flag `%cv' was not specified", _defaultOptDelimiterShort), "cmd")
 // }
 
 // func TestRequiredAllOnCommand(t *testing.T) {
@@ -339,7 +342,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertEqual(t, &Error{
+// 	assertFail(t, &Error{
 // 		Kind:    ErrRequired,
 // 		Message: fmt.Sprintf("the required flags `%smissing' and `%cv' were not specified", _defaultOptDelimiterLong, _defaultOptDelimiterShort),
 // 	}, &opts, "cmd")
@@ -352,7 +355,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cmd")
+// 	assertSuccess(t, &opts, "cmd")
 // 	assert.Equal(t, "value", opts.Command.G)
 // }
 
@@ -363,7 +366,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		Cmd2  struct{} `command:"add"`
 // 	}{}
 
-// 	assertEqual(t, &Error{
+// 	assertFail(t, &Error{
 // 		Kind:    ErrUnknownCommand,
 // 		Message: "Unknown command `nocmd'. Please specify one command of: remove or add",
 // 	}, &opts, "nocmd", "remove")
@@ -400,7 +403,7 @@ func TestNewCommand_CommandInline(t *testing.T) {
 // 		} `command:"cmd" alias:"cm"`
 // 	}{}
 
-// 	assertNoError(t, &opts, "cm")
+// 	assertSuccess(t, &opts, "cm")
 // 	assert.Equal(t, "value", opts.Command.G)
 // }
 

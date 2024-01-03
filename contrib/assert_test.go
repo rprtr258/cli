@@ -24,7 +24,7 @@ func fromCtx(ctx context.Context) func(any) {
 	return f
 }
 
-func testSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
+func assertSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
 	t.Helper()
 
 	called := 0
@@ -37,7 +37,7 @@ func testSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
 	assert.Equal(t, 1, called)
 }
 
-func testFail[T any](t *testing.T, errString string, args ...string) {
+func assertFail[T any](t *testing.T, errString string, args ...string) {
 	t.Helper()
 
 	called := 0
