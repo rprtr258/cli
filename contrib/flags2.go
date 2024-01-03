@@ -172,7 +172,7 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 		}
 
 		if len(subcommands) == 0 {
-			return nil, fmt.Errorf("command %s has no subcommands, but no Execute function defined", typ.String())
+			return nil, fmt.Errorf("command %s is leaf command, but no Execute function defined", typ.String())
 		}
 	}
 

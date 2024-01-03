@@ -24,7 +24,7 @@ func TestRun_first_subcommand(t *testing.T) {
 		func(opts optsSimpleSubcommand) {
 			assert.True(t, opts.G)
 		},
-		"x", "cmd", "-g",
+		"cmd", "-g",
 	)
 }
 
@@ -33,14 +33,14 @@ func TestRun_first_command(t *testing.T) {
 		func(opts optsFirst) {
 			assert.True(t, opts.Value)
 		},
-		"x", "-v",
+		"-v",
 	)
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
 	assertFail[optsFirst](t,
 		`extraneous positional arguments found: ["cmd", "-g"]`,
-		"x", "-v", "cmd", "-g",
+		"-v", "cmd", "-g",
 	)
 }
 
@@ -94,17 +94,18 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	assert.Equal(t, want, cmd)
 }
 
-type optsSecond struct {
-	Value bool                 `short:"v"`
-	C1    struct{}             `command:"c1"`
-	C2    optsSimpleSubcommand `command:"c2"`
-}
+func Test_second(t *testing.T) {
+	type optsSecond struct {
+		Value bool                 `short:"v"`
+		C1    struct{}             `command:"c1"`
+		C2    optsSimpleSubcommand `command:"c2"`
+	}
 
-// func Test_second(t *testing.T) {
-// 	assertSuccess[optsSecond](t, &opts, "-v", "c2", "-g")
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.C2.G)
-// }
+	assertFail[optsSecond](t,
+		`parse subcommand c1: command struct {} is leaf command, but no Execute function defined`,
+		"-v",
+	)
+}
 
 // func TestCommandFlagOrder1(t *testing.T) {
 // 	opts := struct {

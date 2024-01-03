@@ -38,6 +38,8 @@ func fromCtx(ctx context.Context) func(any) {
 func assertSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string) {
 	t.Helper()
 
+	args = append([]string{"x"}, args...)
+
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
 		called++
@@ -50,6 +52,8 @@ func assertSuccess[T, R any](t *testing.T, runTest func(opts R), args ...string)
 
 func assertFail[T any](t *testing.T, errString string, args ...string) {
 	t.Helper()
+
+	args = append([]string{"x"}, args...)
 
 	called := 0
 	ctx := toCtx(context.Background(), func(a any) {
