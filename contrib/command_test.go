@@ -35,15 +35,11 @@ func TestRun_first_subcommand(t *testing.T) {
 }
 
 func TestRun_first_command(t *testing.T) {
-	called := 0
-	ctx := toCtx(context.Background(), func(a any) {
-		called++
-		assert.IsType(t, optsFirst{}, a)
-		opts := a.(optsFirst)
+	called, err := testRun[optsFirst](t, func(opts optsFirst) {
 		assert.True(t, opts.Value)
-	})
-	assert.NoError(t, RunContext[optsFirst](ctx, "x", "-v"))
-	assert.Equal(t, 1, called)
+	}, "x", "-v")
+	assert.True(t, called)
+	assert.NoError(t, err)
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
