@@ -164,8 +164,14 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 		}
 	}
 
-	if (len(flags) > 0 || len(posArgs) > 0) && executeFn == nil {
-		return nil, fmt.Errorf("command %s has flags but not execute function defined", typ.String())
+	if executeFn == nil {
+		if len(flags) > 0 || len(posArgs) > 0 {
+			return nil, fmt.Errorf("command %s has flags but not Execute function defined", typ.String())
+		}
+
+		if len(subcommands) == 0 {
+			return nil, fmt.Errorf("command %s has no subcommands, but no Execute function defined", typ.String())
+		}
 	}
 
 	return &Command{
