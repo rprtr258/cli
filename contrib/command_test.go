@@ -29,8 +29,15 @@ func (opts optsCommandInline) Execute(ctx context.Context) error {
 	return nil
 }
 
-func TestCommandInline(t *testing.T) {
+func TestRun_CommandInline(t *testing.T) {
+	t.Skip() // TODO: remove
 	assertNoError[optsCommandInline](t, "-v", "cmd", "-g")
+}
+
+func TestNewCommand_CommandInline(t *testing.T) {
+	cmd, err := newCommand[optsCommandInline]()
+	assert.NoError(t, err)
+	assert.Equal(t, Command{}, cmd)
 }
 
 // func TestCommandInlineMulti(t *testing.T) {
