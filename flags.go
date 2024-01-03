@@ -90,6 +90,7 @@ type PositionalArgsRest struct {
 }
 
 type Command struct {
+	description string
 	subcommands map[string]*Command // name,aliases... -> subcommand
 	flags       []Flag
 	posArgs     []PositionalArg

@@ -25,6 +25,10 @@ func (c *Command) writeHelp(fullCommandName string) string {
 		name:        "name",
 		description: "Who we say hello to",
 	})
+	c.subcommands["get"] = &Command{
+		description: "Get entity",
+	}
+
 	return scuf.NewString(func(b scuf.Buffer) {
 		// usage
 		b.String("Usage: ")
@@ -59,18 +63,16 @@ func (c *Command) writeHelp(fullCommandName string) string {
 				NL().
 				NL().
 				String("Commands:").
-				NL().
 				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
 					for name, subc := range c.subcommands {
 						yield(func(b scuf.Buffer) {
 							b.
+								NL().
 								TAB().
 								String(name, scuf.FgHiRed).
 								SPC().
-								String("string", scuf.FgHiGreen).
 								RepeatByte(' ', subcommandsPreLen-len(name)).
-								String(fmt.Sprintf("%#v", subc)).
-								NL()
+								String(subc.description)
 						})
 					}
 					return true
@@ -86,11 +88,11 @@ func (c *Command) writeHelp(fullCommandName string) string {
 				NL().
 				NL().
 				String("Arguments:").
-				NL().
 				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
 					for _, a := range c.posArgs {
 						yield(func(b scuf.Buffer) {
 							b.
+								NL().
 								TAB().
 								Styled(func(b scuf.Buffer) {
 									b.InBytePair('[', ']', func(b scuf.Buffer) {
@@ -100,8 +102,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 								SPC().
 								String("string", scuf.FgHiGreen).
 								RepeatByte(' ', argsPreLen-1-len(a.name)-1-1-len("string")).
-								String(a.description).
-								NL()
+								String(a.description)
 						})
 					}
 					return true
@@ -114,6 +115,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 				return len(helpFlag(f))
 			}, c.flags...) + 4
 			b.
+				NL().
 				NL().
 				String("Flags:").
 				NL().
@@ -133,7 +135,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 							}
 							b.
 								RepeatByte(' ', flagsPreLen-len(helpFlag(f))).
-								String("short is " + string(f.shortname) + ", long is " + f.longname).
+								String(fmt.Sprintf("%v", f)).
 								NL()
 						})
 					}
