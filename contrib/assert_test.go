@@ -3,9 +3,20 @@ package flags
 import (
 	"context"
 	"testing"
+	"unsafe"
 
 	"github.com/stretchr/testify/assert"
 )
+
+type testCommander[T any] struct{}
+
+func (c testCommander[T]) Execute(ctx context.Context) error {
+	// uintptr(&c) == uintptr(&opts)
+	// since testCommander must be embedded first,
+	// so we can just do reinterpret cast
+	fromCtx(ctx)(*(*T)(unsafe.Pointer(&c)))
+	return nil
+}
 
 type contextKey struct{}
 
