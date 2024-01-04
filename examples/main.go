@@ -69,6 +69,24 @@ func (x cmdExample) Execute(context.Context) error {
 	return nil
 }
 
+type cmdImageList struct {
+	Verbose bool     `short:"v" long:"verbose" description:"Verbose output"`
+	Output  string   `short:"o" long:"output" description:"Output format" default:"json"`
+	Names   []string `positional-args:"yes" description:"Names of images to list"`
+}
+
+func (x cmdImageList) Execute(context.Context) error {
+	return nil
+}
+
+type cmdImage struct {
+	List cmdImageList `command:"list" alias:"ls" description:"List images"`
+}
+
+type cmdDocker struct {
+	Image cmdImage `command:"image" description:"Manage images"`
+}
+
 type cmdRoot struct {
 	// Example of verbosity with level
 	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
@@ -84,6 +102,7 @@ type cmdRoot struct {
 	Add     cmdAdd     `command:"add" description:"Add a file" long-description:"The add command adds a file to the repository. Use -a to add all files."`
 	Rm      cmdRm      `command:"rm" description:"Remove a file" long-description:"The rm command removes a file to the repository. Use -f to force removal of files."`
 	Example cmdExample `command:"example" description:"Command example with various flag types"`
+	Docker  cmdDocker  `command:"docker" description:"Manage Docker"`
 }
 
 func main() {
