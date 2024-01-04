@@ -10,8 +10,6 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-type Filename string
-
 type Opts struct {
 	Verbose     bool           `short:"v" long:"verbose" description:"Show verbose debug information"`
 	Offset      uint           `long:"offset" description:"Offset"`
@@ -21,7 +19,7 @@ type Opts struct {
 	PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
 	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
 	File        string         `short:"f" long:"file" description:"A file" value-name:"FILE"`
-	Filename    Filename       `long:"filename" description:"A filename"`
+	Filename    cli.Filename   `long:"filename" description:"A filename"`
 	Args        []string       `positional-args:"yes"`
 }
 
@@ -31,8 +29,7 @@ func (x Opts) Execute(context.Context) error {
 }
 
 func main() {
-	err := cli.Run[Opts](os.Args...)
-	if err != nil {
+	if err := cli.Run[Opts](os.Args...); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 	}
 }
