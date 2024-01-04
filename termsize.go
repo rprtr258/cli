@@ -1,11 +1,6 @@
-//go:build !windows && !plan9 && !appengine && !wasm
-// +build !windows,!plan9,!appengine,!wasm
-
 package cli
 
-import (
-	"golang.org/x/sys/unix"
-)
+import "golang.org/x/sys/unix"
 
 func getTerminalColumns() int {
 	ws, err := unix.IoctlGetWinsize(0, unix.TIOCGWINSZ)
