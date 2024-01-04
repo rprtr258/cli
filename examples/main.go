@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/kr/pretty"
+	"github.com/rprtr258/cli"
 	flags "github.com/rprtr258/cli"
 )
 
@@ -29,23 +31,41 @@ func (p Point) MarshalFlag() (string, error) {
 	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
 }
 
-type AddCommand struct {
+type cmdAdd struct {
 	All  bool     `short:"a" long:"all" description:"Add all files"`
 	Args []string `positional-args:"yes"`
 }
 
-func (x AddCommand) Execute(context.Context) error {
+func (x cmdAdd) Execute(context.Context) error {
 	fmt.Printf("Adding (all=%v): %#v\n", x.All, x.Args)
 	return nil
 }
 
-type RmCommand struct {
+type cmdRm struct {
 	Force bool     `short:"f" long:"force" description:"Force removal of files"`
 	Args  []string `positional-args:"yes"`
 }
 
-func (x RmCommand) Execute(context.Context) error {
+func (x cmdRm) Execute(context.Context) error {
 	fmt.Printf("Removing (force=%v): %#v\n", x.Force, x.Args)
+	return nil
+}
+
+type cmdExample struct {
+	Verbose     bool           `short:"v" long:"verbose" description:"Show verbose debug information"`
+	Offset      uint           `long:"offset" description:"Offset"`
+	Name        string         `short:"n" long:"name" description:"A name" required:"true"`
+	Ptr         *int           `short:"p" description:"A pointer to an integer"`
+	StringSlice []string       `short:"s" description:"A slice of strings"`
+	PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
+	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
+	File        string         `short:"f" long:"file" description:"A file" value-name:"FILE"`
+	Filename    cli.Filename   `long:"filename" description:"A filename"`
+	Args        []string       `positional-args:"yes"`
+}
+
+func (x cmdExample) Execute(context.Context) error {
+	pretty.Println(x)
 	return nil
 }
 
@@ -61,8 +81,9 @@ type Options struct {
 	// Example of custom type Marshal/Unmarshal
 	// Point Point `long:"point" description:"A x,y point" default:"1,2"`
 
-	Add AddCommand `command:"add" description:"Add a file" long-description:"The add command adds a file to the repository. Use -a to add all files."`
-	Rm  RmCommand  `command:"rm" description:"Remove a file" long-description:"The rm command removes a file to the repository. Use -f to force removal of files."`
+	Add     cmdAdd     `command:"add" description:"Add a file" long-description:"The add command adds a file to the repository. Use -a to add all files."`
+	Rm      cmdRm      `command:"rm" description:"Remove a file" long-description:"The rm command removes a file to the repository. Use -f to force removal of files."`
+	Example cmdExample `command:"example" description:"Command example with various flag types"`
 }
 
 func main() {
