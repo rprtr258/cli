@@ -1,11 +1,8 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"os"
-	"strconv"
-	"strings"
 
 	flags "github.com/rprtr258/cli"
 )
@@ -20,23 +17,9 @@ type Point struct {
 }
 
 func (p *Point) UnmarshalFlag(value string) error {
-	parts := strings.Split(value, ",")
-	if len(parts) != 2 {
-		return errors.New("expected two numbers separated by a ,")
+	if _, err := fmt.Sscanf(value, "%d,%d", &p.X, &p.Y); err != nil {
+		return fmt.Errorf(`expected two numbers separated by a comma, e.g. "10,20", but got %s`, value)
 	}
-
-	x, err := strconv.ParseInt(parts[0], 10, 32)
-	if err != nil {
-		return err
-	}
-
-	y, err := strconv.ParseInt(parts[1], 10, 32)
-	if err != nil {
-		return err
-	}
-
-	p.X = int(x)
-	p.Y = int(y)
 
 	return nil
 }
