@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"os"
 
@@ -29,34 +30,36 @@ func (p Point) MarshalFlag() (string, error) {
 }
 
 type AddCommand struct {
-	All bool `short:"a" long:"all" description:"Add all files"`
+	All  bool     `short:"a" long:"all" description:"Add all files"`
+	Args []string `positional-args:"yes"`
 }
 
-func (x *AddCommand) Execute(args []string) error {
-	fmt.Printf("Adding (all=%v): %#v\n", x.All, args)
+func (x AddCommand) Execute(context.Context) error {
+	fmt.Printf("Adding (all=%v): %#v\n", x.All, x.Args)
 	return nil
 }
 
 type RmCommand struct {
-	Force bool `short:"f" long:"force" description:"Force removal of files"`
+	Force bool     `short:"f" long:"force" description:"Force removal of files"`
+	Args  []string `positional-args:"yes"`
 }
 
-func (x *RmCommand) Execute(args []string) error {
-	fmt.Printf("Removing (force=%v): %#v\n", x.Force, args)
+func (x RmCommand) Execute(context.Context) error {
+	fmt.Printf("Removing (force=%v): %#v\n", x.Force, x.Args)
 	return nil
 }
 
 type Options struct {
 	// Example of verbosity with level
-	Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
+	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	// Example of optional value
-	User string `short:"u" long:"user" description:"User name" optional:"yes" optional-value:"pancake"`
+	// User string `short:"u" long:"user" description:"User name" optional:"yes" optional-value:"pancake"`
 	// Example of map with multiple default values
-	Users map[string]string `long:"users" description:"User e-mail map" default:"system:system@example.org" default:"admin:admin@example.org"`
+	// Users map[string]string `long:"users" description:"User e-mail map" default:"system:system@example.org" default:"admin:admin@example.org"`
 	// Example of option group
-	EditorOptions
+	// EditorOptions
 	// Example of custom type Marshal/Unmarshal
-	Point Point `long:"point" description:"A x,y point" default:"1,2"`
+	// Point Point `long:"point" description:"A x,y point" default:"1,2"`
 
 	Add AddCommand `command:"add" description:"Add a file" long-description:"The add command adds a file to the repository. Use -a to add all files."`
 	Rm  RmCommand  `command:"rm" description:"Remove a file" long-description:"The rm command removes a file to the repository. Use -f to force removal of files."`
