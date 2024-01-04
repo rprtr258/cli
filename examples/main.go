@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // import (
 // 	"errors"
 // 	"fmt"
@@ -44,6 +46,24 @@ package main
 // func (p Point) MarshalFlag() (string, error) {
 // 	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
 // }
+
+type AddCommand struct {
+	All bool `short:"a" long:"all" description:"Add all files"`
+}
+
+func (x *AddCommand) Execute(args []string) error {
+	fmt.Printf("Adding (all=%v): %#v\n", x.All, args)
+	return nil
+}
+
+type RmCommand struct {
+	Force bool `short:"f" long:"force" description:"Force removal of files"`
+}
+
+func (x *RmCommand) Execute(args []string) error {
+	fmt.Printf("Removing (force=%v): %#v\n", x.Force, args)
+	return nil
+}
 
 // type Options struct {
 // 	// Example of verbosity with level
