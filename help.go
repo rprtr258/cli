@@ -135,8 +135,14 @@ func (c *Command) writeHelp(fullCommandName string) string {
 							}
 							b.
 								RepeatByte(' ', flagsPreLen-len(helpFlag(f))).
-								String(fmt.Sprintf("%v", f)).
-								NL()
+								String(f.description)
+							if f.defaultValue != "" {
+								b.
+									String(", (default: ").
+									String(f.defaultValue).
+									String(")")
+							}
+							b.NL()
 						})
 					}
 					return true

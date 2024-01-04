@@ -42,8 +42,10 @@ type Commander interface {
 // flag is optional.
 type Flag struct {
 	// either shortname or longname must be set
-	shortname rune   // optional
-	longname  string // optional
+	shortname    rune   // optional
+	longname     string // optional
+	description  string // optional
+	defaultValue string // optional
 
 	// if isbool, minCount=0, maxCount=1, valuesetter is called w/ value to ignore,
 	// otherwise valuesetter called with all flag values
@@ -177,11 +179,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			switch {
 			case fieldT.Type.Kind() == reflect.Bool: // TODO: or *bool or []bool
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    true,
-					minCount:  0,
-					maxCount:  1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: "false",
+					isbool:       true,
+					minCount:     0,
+					maxCount:     1,
 					valuesetter: func(s []string) error {
 						fieldV.SetBool(true)
 						return nil
@@ -189,11 +193,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				}
 			case fieldT.Type.Kind() == reflect.String: // TODO: or *string
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    false,
-					minCount:  1,
-					maxCount:  1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: fieldT.Tag.Get("default"),
+					isbool:       false,
+					minCount:     1,
+					maxCount:     1,
 					valuesetter: func(s []string) error {
 						fieldV.SetString(s[0])
 						return nil
@@ -201,11 +207,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				}
 			case fun.Contains(fieldT.Type.Kind(), reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64): // TODO: or pointer to
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    false,
-					minCount:  1,
-					maxCount:  1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: fieldT.Tag.Get("default"),
+					isbool:       false,
+					minCount:     1,
+					maxCount:     1,
 					valuesetter: func(s []string) error {
 						x, err := strconv.ParseUint(s[0], 10, 64)
 						if err != nil {
@@ -219,11 +227,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 			case fun.Contains(fieldT.Type.Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64) ||
 				fieldT.Type.Kind() == reflect.Ptr && fun.Contains(fieldT.Type.Elem().Kind(), reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64):
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    false,
-					minCount:  1,
-					maxCount:  1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: fieldT.Tag.Get("default"),
+					isbool:       false,
+					minCount:     1,
+					maxCount:     1,
 					valuesetter: func(s []string) error {
 						value, err := parseValue(s[0], fieldT.Type)
 						if err != nil {
@@ -238,11 +248,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				(fieldT.Type.Elem().Kind() == reflect.String ||
 					fieldT.Type.Elem().Kind() == reflect.Pointer && fieldT.Type.Elem().Elem().Kind() == reflect.String):
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    false,
-					minCount:  0,
-					maxCount:  -1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: fieldT.Tag.Get("default"),
+					isbool:       false,
+					minCount:     0,
+					maxCount:     -1,
 					valuesetter: func(s []string) error {
 						if fieldT.Type.Elem().Kind() == reflect.Pointer {
 							fieldV.Set(reflect.ValueOf(fun.Map[*string](fun.Ptr[string], s...)))
@@ -254,11 +266,13 @@ func newCommandImpl(v reflect.Value) (*Command, error) {
 				}
 			case fieldT.Type.Kind() == reflect.Map:
 				flag = Flag{
-					shortname: shortname,
-					longname:  longname,
-					isbool:    false,
-					minCount:  0,
-					maxCount:  -1,
+					shortname:    shortname,
+					longname:     longname,
+					description:  fieldT.Tag.Get("description"),
+					defaultValue: fieldT.Tag.Get("default"),
+					isbool:       false,
+					minCount:     0,
+					maxCount:     -1,
 					valuesetter: func(s []string) error {
 						fieldV.Set(reflect.MakeMap(fieldT.Type))
 						for _, kv := range s {

@@ -49,11 +49,13 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	// add help flags to each subcommand
 	var showHelp bool
 	cmd.flags = append(cmd.flags, Flag{
-		shortname: 'h',
-		longname:  "help",
-		isbool:    true,
-		minCount:  0,
-		maxCount:  1,
+		shortname:    'h',
+		longname:     "help",
+		description:  "Print this help message",
+		defaultValue: "false",
+		isbool:       true,
+		minCount:     0,
+		maxCount:     1,
 		valuesetter: func([]string) error {
 			showHelp = true
 			return nil
