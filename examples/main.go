@@ -69,7 +69,7 @@ func (x cmdExample) Execute(context.Context) error {
 	return nil
 }
 
-type Options struct {
+type cmdRoot struct {
 	// Example of verbosity with level
 	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
 	// Example of optional value
@@ -87,7 +87,7 @@ type Options struct {
 }
 
 func main() {
-	if err := flags.Run[Options](os.Args...); err != nil {
+	if err := flags.Run[cmdRoot](os.Args...); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
