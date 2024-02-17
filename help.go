@@ -2,12 +2,15 @@ package cli
 
 import (
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/rprtr258/cli/internal"
+	"github.com/rprtr258/fun"
 	"github.com/rprtr258/scuf"
 )
 
-func helpFlag(f Flag) string {
+func helpFlag(f flag) string {
 	switch {
 	case f.shortname != 0 && f.longname != "":
 		return fmt.Sprintf("-%c, --%s", f.shortname, f.longname)
@@ -20,15 +23,7 @@ func helpFlag(f Flag) string {
 	}
 }
 
-func (c *Command) writeHelp(fullCommandName string) string {
-	c.posArgs = append(c.posArgs, PositionalArg{
-		name:        "name",
-		description: "Who we say hello to",
-	})
-	c.subcommands["get"] = &Command{
-		description: "Get entity",
-	}
-
+func (c *command) writeHelp(fullCommandName string) string {
 	return scuf.NewString(func(b scuf.Buffer) {
 		// usage
 		b.String("Usage: ")
@@ -42,7 +37,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 		if len(c.posArgs) > 0 {
 			b.SPC().String("[ARGUMENTS]", scuf.FgHiMagenta)
 		}
-		if c.posArgsRest.defined {
+		if c.posArgsRest.Valid {
 			b.SPC().String("[REST...]", scuf.FgHiMagenta)
 		}
 
@@ -50,7 +45,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 		b.
 			NL().
 			NL().
-			String("Print a friendly greeting")
+			String(c.description)
 
 		// subcommands
 		if len(c.subcommands) > 0 {
@@ -64,7 +59,10 @@ func (c *Command) writeHelp(fullCommandName string) string {
 				NL().
 				String("Commands:").
 				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
-					for name, subc := range c.subcommands {
+					keys := fun.Keys(c.subcommands)
+					sort.Strings(keys)
+					for _, name := range keys {
+						subc := c.subcommands[name]
 						yield(func(b scuf.Buffer) {
 							b.
 								NL().
@@ -81,7 +79,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 
 		// positional args
 		if len(c.posArgs) > 0 {
-			argsPreLen := internal.MaxBy(func(a PositionalArg) int {
+			argsPreLen := internal.MaxBy(func(a positionalArg) int {
 				return 1 + len(a.name) + 1 + 1 + len("string")
 			}, c.posArgs...) + 4
 			b.
@@ -111,7 +109,7 @@ func (c *Command) writeHelp(fullCommandName string) string {
 
 		// flags
 		if len(c.flags) > 0 {
-			flagsPreLen := internal.MaxBy(func(f Flag) int {
+			flagsPreLen := internal.MaxBy(func(f flag) int {
 				return len(helpFlag(f))
 			}, c.flags...) + 4
 			b.
@@ -135,11 +133,11 @@ func (c *Command) writeHelp(fullCommandName string) string {
 							}
 							b.
 								RepeatByte(' ', flagsPreLen-len(helpFlag(f))).
-								String(f.description)
-							if f.defaultValue != "" {
+								String(f.description.Value)
+							if len(f.defaultValue) > 0 {
 								b.
-									String(", (default: ").
-									String(f.defaultValue).
+									String(" (default: ").
+									String(strings.Join(f.defaultValue, ", ")).
 									String(")")
 							}
 							b.NL()

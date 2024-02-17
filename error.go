@@ -11,21 +11,17 @@ import (
 type ErrorKind int
 
 const (
-	ErrUnknown           ErrorKind = iota // ErrUnknown indicates a generic error.
-	ErrExpectedArgument                   // ErrExpectedArgument indicates that an argument was expected.
-	ErrUnknownFlag                        // ErrUnknownFlag indicates an unknown flag.
-	ErrUnknownGroup                       // ErrUnknownGroup indicates an unknown group.
-	ErrMarshal                            // ErrMarshal indicates a marshalling error while converting values.
-	ErrHelp                               // ErrHelp indicates that the built-in help was shown (the error contains the help message).
-	ErrNoArgumentForBool                  // ErrNoArgumentForBool indicates that an argument was given for a boolean flag (which don't not take any arguments).
-	ErrRequired                           // ErrRequired indicates that a required flag was not provided.
-	ErrShortNameTooLong                   // ErrShortNameTooLong indicates that a short flag name was specified, longer than one character.
-	ErrDuplicatedFlag                     // ErrDuplicatedFlag indicates that a short or long flag has been defined more than once
-	ErrTag                                // ErrTag indicates an error while parsing flag tags.
-	ErrCommandRequired                    // ErrCommandRequired indicates that a command was required but not specified
-	ErrUnknownCommand                     // ErrUnknownCommand indicates that an unknown command was specified.
-	ErrInvalidChoice                      // ErrInvalidChoice indicates an invalid option value which only allows a certain number of choices.
-	ErrInvalidTag                         // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
+	ErrUnknown          ErrorKind = iota // ErrUnknown indicates a generic error.
+	ErrExpectedArgument                  // ErrExpectedArgument indicates that an argument was expected.
+	ErrUnknownFlag                       // ErrUnknownFlag indicates an unknown flag.
+	ErrUnknownGroup                      // ErrUnknownGroup indicates an unknown group.
+	ErrHelp                              // ErrHelp indicates that the built-in help was shown (the error contains the help message).
+	ErrShortNameTooLong                  // ErrShortNameTooLong indicates that a short flag name was specified, longer than one character.
+	ErrDuplicatedFlag                    // ErrDuplicatedFlag indicates that a short or long flag has been defined more than once
+	ErrTag                               // ErrTag indicates an error while parsing flag tags.
+	ErrCommandRequired                   // ErrCommandRequired indicates that a command was required but not specified
+	ErrUnknownCommand                    // ErrUnknownCommand indicates that an unknown command was specified.
+	ErrInvalidTag                        // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 )
 
 func (e ErrorKind) String() string {
@@ -34,16 +30,12 @@ func (e ErrorKind) String() string {
 		Case(ErrExpectedArgument, "expected argument").
 		Case(ErrUnknownFlag, "unknown flag").
 		Case(ErrUnknownGroup, "unknown group").
-		Case(ErrMarshal, "marshal").
 		Case(ErrHelp, "help").
-		Case(ErrNoArgumentForBool, "no argument for bool").
-		Case(ErrRequired, "required").
 		Case(ErrShortNameTooLong, "short name too long").
 		Case(ErrDuplicatedFlag, "duplicated flag").
 		Case(ErrTag, "tag").
 		Case(ErrCommandRequired, "command required").
 		Case(ErrUnknownCommand, "unknown command").
-		Case(ErrInvalidChoice, "invalid choice").
 		Case(ErrInvalidTag, "invalid tag").
 		Default("unrecognized error type")
 }
@@ -78,28 +70,68 @@ func wrapError(err error) *Error {
 	}
 }
 
-func marshalError(option *Flag, err error) *Error {
-	if e, ok := err.(*Error); ok {
-		return e
+// TODO: OPTIMIZE: less memory could be used
+func dist(s, t string) int {
+	if s == "" {
+		return len(t)
 	}
 
-	// valueType := option.value.Type()
-	return &Error{
-		Kind: ErrMarshal,
-		// Message: "invalid argument for flag `" + option.String() + "'" +
-		// 	internal.Iverson(valueType.Kind() != reflect.Func, " (expected "+valueType.String()+")") +
-		// 	": " + err.Error(),
+	if t == "" {
+		return len(s)
 	}
+
+	w := len(t) + 1
+	buf := make([]int, (len(s)+1)*w)
+
+	dists := make([][]int, len(s)+1)
+	for i := range dists {
+		dists[i] = buf[w*i : w*(i+1)]
+		dists[i][0] = i
+	}
+
+	for j := range t {
+		dists[0][j] = j
+	}
+
+	for i, sc := range s {
+		for j, tc := range t {
+			if sc == tc {
+				dists[i+1][j+1] = dists[i][j]
+			} else {
+				dists[i+1][j+1] = min(
+					dists[i][j],
+					dists[i+1][j],
+					dists[i][j+1],
+				) + 1
+			}
+		}
+	}
+
+	return dists[len(s)][len(t)]
+}
+
+func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
+	if len(ss) == 0 {
+		return "", 0
+	}
+
+	closest, distMin := "", -1
+	for _, t := range ss {
+		if distCur := dist(s, t); distMin == -1 || distCur < distMin {
+			closest, distMin = t, distCur
+		}
+	}
+	return closest, distMin
 }
 
 func newUnknownCommandError(name string, cmdnames []string) error {
 	c, l := getClosest(name, cmdnames)
 	return &Error{
 		Kind: ErrUnknownCommand,
-		Message: fmt.Sprintf("Unknown command `%s'", name) + func() string {
+		Message: fmt.Sprintf("Unknown command %q", name) + func() string {
 			switch {
 			case l*2 < len(c):
-				return fmt.Sprintf(", did you mean `%s'?", c)
+				return fmt.Sprintf(", did you mean %s?", c)
 			case len(cmdnames) == 0:
 				return ""
 			case len(cmdnames) == 1:
@@ -117,7 +149,7 @@ func newCommandRequiredError(cmdnames []string) error {
 	return &Error{
 		Kind: ErrCommandRequired,
 		Message: lo.Switch[int, string](len(cmdnames)).
-			Case(0, "").
+			Case(0, "???").
 			CaseF(1, func() string {
 				return fmt.Sprintf("Please specify the %s command", cmdnames[0])
 			}).

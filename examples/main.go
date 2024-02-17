@@ -6,8 +6,9 @@ import (
 	"os"
 
 	"github.com/kr/pretty"
+
 	"github.com/rprtr258/cli"
-	flags "github.com/rprtr258/cli"
+	"github.com/rprtr258/cli/flags"
 )
 
 type EditorOptions struct {
@@ -60,7 +61,7 @@ type cmdExample struct {
 	PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
 	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
 	File        string         `short:"f" long:"file" description:"A file" value-name:"FILE"`
-	Filename    cli.Filename   `long:"filename" description:"A filename"`
+	Filename    flags.Filename `long:"filename" description:"A filename"`
 	Args        []string       `positional-args:"yes"`
 }
 
@@ -106,7 +107,7 @@ type cmdRoot struct {
 }
 
 func main() {
-	if err := flags.Run[cmdRoot](os.Args...); err != nil {
+	if err := cli.RunContext[cmdRoot](context.Background(), os.Args...); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}

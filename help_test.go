@@ -1,519 +1,189 @@
 package cli
 
-// import (
-// 	"bytes"
-// 	"fmt"
-// 	"runtime"
-// 	"testing"
-// 	"time"
-
-// 	"github.com/rprtr258/fun/iter"
-// 	"github.com/stretchr/testify/assert"
-// )
-
-// type helpOptions struct {
-// 	Verbose          []bool       `short:"v" long:"verbose" description:"Show verbose debug information"`
-// 	Call             func(string) `short:"c" description:"Call phone number"`
-// 	PtrSlice         []*string    `long:"ptrslice" description:"A slice of pointers to string"`
-// 	EmptyDescription bool         `long:"empty-description"`
-
-// 	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
-// 	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
-// 	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
-// 	EnvDefault1       string            `long:"env-default1" default:"Some value" description:"Test env-default1 value"`
-// 	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
-// 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
-// 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
-// 	Hidden            string            `long:"hidden" description:"Hidden option" hidden:"yes"`
-
-// 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name" hidden:"yes"`
-
-// 	StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
-// 	IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
-
-// 	HiddenGroup struct {
-// 		InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
-// 		Padder            bool   `long:"this-option-in-a-hidden-group-has-a-ridiculously-long-name"`
-// 	} `group" hidden:"yes"`
-
-// 	GroupWithOnlyHiddenOptions struct {
-// 		SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group" hidden:"yes"`
-// 	}
-
-// 	Sip struct {
-// 		Opt                  string `long:"opt" description:"This is a subgroup option"`
-// 		HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group" hidden:"yes"`
-// 		NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group" hidden:"false"`
-
-// 		Sap struct {
-// 			Opt string `long:"opt" description:"This is a subsubgroup option"`
-// 		}
-// 	}
-
-// 	Bommand struct {
-// 		Hidden bool `long:"hidden" description:"A hidden option" hidden:"yes"`
-// 	} `command:"bommand" description:"A command with only hidden options"`
-
-// 	Command struct {
-// 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
-// 	} `command:"command" alias:"cm" alias:"cmd" description:"A command"`
-
-// 	HiddenCommand struct {
-// 		ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
-// 	} `command:"hidden-command" description:"A hidden command" hidden:"yes"`
-
-// 	ParentCommand struct {
-// 		Opt        string `long:"opt" description:"This is a parent command option"`
-// 		SubCommand struct {
-// 			Opt string `long:"opt" description:"This is a sub command option"`
-// 		} `command:"sub" description:"A sub command"`
-// 	} `command:"parent" description:"A parent command"`
-
-// 	Args struct {
-// 		Filename     string  `positional-arg-name:"filename" description:"A filename with a long description to trigger line wrapping"`
-// 		Number       int     `positional-arg-name:"num" description:"A number"`
-// 		HiddenInHelp float32 `positional-arg-name:"hidden-in-help" required:"yes"`
-// 	} `positional-args:"yes"`
-// }
-
-// func TestHelp(t *testing.T) {
-// 	var opts helpOptions
-// 	err := Run(&opts, "--help")
-// 	var expected string
-// 	if runtime.GOOS == "windows" {
-// 		expected = `Usage:
-//   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
-
-// Application Options:
-//   /v, /verbose                              Show verbose debug information
-//   /c:                                       Call phone number
-//       /ptrslice:                            A slice of pointers to string
-//       /empty-description
-//       /default:                             Test default value (default:
-//                                             "Some\nvalue")
-//       /default-array:                       Test default array value (default:
-//                                             Some value, "Other\tvalue")
-//       /default-map:                         Testdefault map value (default:
-//                                             some:value, another:value)
-//       /env-default1:                        Test env-default1 value (default:
-//                                             Some value)
-//       /env-default2:                        Test env-default2 value
-//       /opt-with-arg-name:something          Option with named argument
-//       /opt-with-choices:choice[dog|cat]     Option with choices
-
-// Other Options:
-//   /s:                                       A slice of strings (default: some,
-//                                             value)
-//       /intmap:                              A map from string to int (default:
-//                                             a:1)
-
-// Subgroup:
-//       /sip.opt:                             This is a subgroup option
-//       /sip.not-hidden-inside-group:         Not hidden inside group
-
-// Subsubgroup:
-//       /sip.sap.opt:                         This is a subsubgroup option
-
-// Help Options:
-//   /?                                        Show this help message
-//   /h, /help                                 Show this help message
-
-// Arguments:
-//   filename:                                 A filename with a long description
-//                                             to trigger line wrapping
-//   num:                                      A number
-
-// Available commands:
-//   bommand  A command with only hidden options
-//   command  A command (aliases: cm, cmd)
-//   parent   A command with a sub command
-// `
-// 	} else {
-// 		expected = `Usage:
-//   TestHelp [OPTIONS] [filename] [num] hidden-in-help <bommand | command | parent>
-
-// Application Options:
-//   -v, --verbose                             Show verbose debug information
-//   -c=                                       Call phone number
-//       --ptrslice=                           A slice of pointers to string
-//       --empty-description
-//       --default=                            Test default value (default:
-//                                             "Some\nvalue")
-//       --default-array=                      Test default array value (default:
-//                                             Some value, "Other\tvalue")
-//       --default-map=                        Testdefault map value (default:
-//                                             some:value, another:value)
-//       --env-default1=                       Test env-default1 value (default:
-//                                             Some value)
-//       --env-default2=                       Test env-default2 value
-//       --opt-with-arg-name=something         Option with named argument
-//       --opt-with-choices=choice[dog|cat]    Option with choices
-
-// Other Options:
-//   -s=                                       A slice of strings (default: some,
-//                                             value)
-//       --intmap=                             A map from string to int (default:
-//                                             a:1)
-
-// Subgroup:
-//       --sip.opt=                            This is a subgroup option
-//       --sip.not-hidden-inside-group=        Not hidden inside group
-
-// Subsubgroup:
-//       --sip.sap.opt=                        This is a subsubgroup option
-
-// Help Options:
-//   -h, --help                                Show this help message
-
-// Arguments:
-//   filename:                                 A filename with a long description
-//                                             to trigger line wrapping
-//   num:                                      A number
-
-// Available commands:
-//   bommand         A command with only hidden options
-//   command,cm,cmd  A command
-//   parent          A parent command
-// `
-// 	}
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrHelp,
-// 		Message: expected,
-// 	}, err)
-// }
-
-// func TestMan(t *testing.T) {
-// 	tt := time.Now()
-
-// 	var buf bytes.Buffer
-// 	newParser("TestMan", &helpOptions{}).WriteManPage(&buf, tt)
-// 	got := buf.String()
-// 	expected := fmt.Sprintf(`.TH TestMan 1 "%s"
-// .SH NAME
-// TestMan \- Test manpage generation
-// .SH SYNOPSIS
-// \fBTestMan\fP [OPTIONS]
-// .SH DESCRIPTION
-// This is a somewhat \fBlonger\fP description of what this does.
-// With multiple lines.
-// .SH OPTIONS
-// .SS Application Options
-// The application options
-// .TP
-// \fB\fB\-v\fR, \fB\-\-verbose\fR\fP
-// Show verbose debug information
-// .TP
-// \fB\fB\-c\fR\fP
-// Call phone number
-// .TP
-// \fB\fB\-\-ptrslice\fR\fP
-// A slice of pointers to string
-// .TP
-// \fB\fB\-\-empty-description\fR\fP
-// .TP
-// \fB\fB\-\-default\fR <default: \fI"Some\\nvalue"\fR>\fP
-// Test default value
-// .TP
-// \fB\fB\-\-default-array\fR <default: \fI"Some value", "Other\\tvalue"\fR>\fP
-// Test default array value
-// .TP
-// \fB\fB\-\-default-map\fR <default: \fI"some:value", "another:value"\fR>\fP
-// Testdefault map value
-// .TP
-// \fB\fB\-\-env-default1\fR <default: \fI"Some value"\fR>\fP
-// Test env-default1 value
-// .TP
-// \fB\fB\-\-env-default2\fR\fP
-// Test env-default2 value
-// .TP
-// \fB\fB\-\-opt-with-arg-name\fR \fIsomething\fR\fP
-// Option with named argument
-// .TP
-// \fB\fB\-\-opt-with-choices\fR \fIchoice\fR\fP
-// Option with choices
-// .SS Other Options
-// .TP
-// \fB\fB\-s\fR <default: \fI"some", "value"\fR>\fP
-// A slice of strings
-// .TP
-// \fB\fB\-\-intmap\fR <default: \fI"a:1"\fR>\fP
-// A map from string to int
-// .SS Subgroup
-// .TP
-// \fB\fB\-\-sip.opt\fR\fP
-// This is a subgroup option
-// .TP
-// \fB\fB\-\-sip.not-hidden-inside-group\fR\fP
-// Not hidden inside group
-// .SS Subsubgroup
-// .TP
-// \fB\fB\-\-sip.sap.opt\fR\fP
-// This is a subsubgroup option
-// .SH COMMANDS
-// .SS bommand
-// A command with only hidden options
-
-// Longer \fBbommand\fP description
-// .SS command
-// A command
-
-// Longer \fBcommand\fP description
-
-// \fBUsage\fP: TestMan [OPTIONS] command [command-OPTIONS]
-// .TP
-
-// \fBAliases\fP: cm, cmd
-
-// .TP
-// \fB\fB\-\-extra-verbose\fR\fP
-// Use for extra verbosity
-// .SS parent
-// A parent command
-
-// Longer \fBparent\fP description
-
-// \fBUsage\fP: TestMan [OPTIONS] parent [parent-OPTIONS]
-// .TP
-// .TP
-// \fB\fB\-\-opt\fR\fP
-// This is a parent command option
-// .SS parent sub
-// A sub command
-
-// \fBUsage\fP: TestMan [OPTIONS] parent [parent-OPTIONS] sub [sub-OPTIONS]
-// .TP
-// .TP
-// \fB\fB\-\-opt\fR\fP
-// This is a sub command option
-// `, tt.Format("2 January 2006"))
-// 	assert.Equal(t, expected, got)
-// }
-
-// type helpCommandNoOptions struct {
-// 	Command struct{} `command:"command" description:"A command"`
-// }
-
-// func TestHelpCommand(t *testing.T) {
-// 	var opts helpCommandNoOptions
-// 	err := Run(&opts, "command", "--help")
-// 	var expected string
-// 	if runtime.GOOS == "windows" {
-// 		expected = `Usage:
-//   TestHelpCommand [OPTIONS] command
-
-// Help Options:
-//   /?              Show this help message
-//   /h, /help       Show this help message
-// `
-// 	} else {
-// 		expected = `Usage:
-//   TestHelpCommand [OPTIONS] command
-
-// Help Options:
-//   -h, --help      Show this help message
-// `
-// 	}
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrHelp,
-// 		Message: expected,
-// 	}, err)
-// }
-
-// func TestHiddenCommandNoBuiltinHelp(t *testing.T) {
-// 	// add a hidden command
-// 	var hiddenCmdOpts struct {
-// 		// add custom help group which is not listed in --help output
-// 		Help struct {
-// 			ShowHelp func() error `short:"h" long:"help"`
-// 		} `hidden:"yes" description:"Hidden flag description"`
-// 		Foo        bool `short:"f" long:"very-long-foo-option" description:"Very long foo description"`
-// 		Bar        bool `short:"b" description:"Option bar"`
-// 		Positional struct {
-// 			PositionalFoo string `positional-arg-name:"<positional-foo>" description:"positional foo"`
-// 		} `positional-args:"yes"`
-// 	}
-
-// 	// which help we ask for explicitly
-// 	err := Run(&hiddenCmdOpts, "hidden", "--help")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrHelp,
-// 		Message: "",
-// 	}, err)
-
-// 	const _expected = `Usage:
-//   TestHelpCommand hidden [hidden-OPTIONS] [<positional-foo>]
-
-// Long hidden command description
-
-// [hidden command arguments]
-//   <positional-foo>:         positional foo
-// `
-// 	// assert.Equal(t, _expected, p.writeHelp())
-// }
-
-// func TestHelpDefaults(t *testing.T) {
-// 	var expected string
-// 	if runtime.GOOS == "windows" {
-// 		expected = `Usage:
-//   TestHelpDefaults [OPTIONS]
-
-// Application Options:
-//       /with-default:               With default (default: default-value)
-//       /without-default:            Without default
-//       /with-programmatic-default:  With programmatic default (default:
-//                                    default-value)
-
-// Help Options:
-//   /?                               Show this help message
-//   /h, /help                        Show this help message
-// `
-// 	} else {
-// 		expected = `Usage:
-//   TestHelpDefaults [OPTIONS]
-
-// Application Options:
-//       --with-default=              With default (default: default-value)
-//       --without-default=           Without default
-//       --with-programmatic-default= With programmatic default (default:
-//                                    default-value)
-
-// Help Options:
-//   -h, --help                       Show this help message
-// `
-// 	}
-
-// 	for _, test := range []struct {
-// 		Args   []string
-// 		Output string
-// 	}{
-// 		{
-// 			Args:   []string{"-h"},
-// 			Output: expected,
-// 		},
-// 		{
-// 			Args:   []string{"--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
-// 			Output: expected,
-// 		},
-// 	} {
-// 		var opts struct {
-// 			WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
-// 			WithoutDefault          string `long:"without-default" description:"Without default"`
-// 			WithProgrammaticDefault string `long:"with-programmatic-default" description:"With programmatic default" default:"default-value"`
-// 		}
-
-// 		err := Run(&opts, test.Args...)
-// 		assert.Equal(t, &Error{
-// 			Kind:    ErrHelp,
-// 			Message: test.Output,
-// 		}, err)
-// 	}
-// }
-
-// func TestHelpRestArgs(t *testing.T) {
-// 	opts := struct {
-// 		Verbose bool     `short:"v"`
-// 		Args    []string `args`
-// 	}{}
-
-// 	err := Run(&opts, "-h", "-v", "rest")
-// 	assert.Error(t, err)
-// 	assert.Equal(t, []string{"-v", "rest"}, opts.Args)
-// }
-
-// func TestWrapText(t *testing.T) {
-// 	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-// 	got := wrapText(s, 60, "      ")
-// 	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-//       sed do eiusmod tempor incididunt ut labore et dolore magna
-//       aliqua. Ut enim ad minim veniam, quis nostrud exercitation
-//       ullamco laboris nisi ut aliquip ex ea commodo consequat.
-//       Duis aute irure dolor in reprehenderit in voluptate velit
-//       esse cillum dolore eu fugiat nulla pariatur. Excepteur sint
-//       occaecat cupidatat non proident, sunt in culpa qui officia
-//       deserunt mollit anim id est laborum.`
-// 	assert.Equal(t, got, _expected)
-// }
-
-// func TestWrapParagraph(t *testing.T) {
-// 	s := "Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.\n\n" +
-// 		"Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.\n\n" +
-// 		"Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur.\n\n" +
-// 		"Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n"
-// 	got := wrapText(s, 60, "      ")
-// 	const _expected = `Lorem ipsum dolor sit amet, consectetur adipisicing elit,
-//       sed do eiusmod tempor incididunt ut labore et dolore magna
-//       aliqua.
-
-//       Ut enim ad minim veniam, quis nostrud exercitation ullamco
-//       laboris nisi ut aliquip ex ea commodo consequat.
-
-//       Duis aute irure dolor in reprehenderit in voluptate velit
-//       esse cillum dolore eu fugiat nulla pariatur.
-
-//       Excepteur sint occaecat cupidatat non proident, sunt in
-//       culpa qui officia deserunt mollit anim id est laborum.
-// `
-// 	assert.Equal(t, got, _expected)
-// }
-
-// func TestHelpDefaultMask(t *testing.T) {
-// 	tests := []struct {
-// 		opts    any
-// 		present string
-// 	}{
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" default:"123" description:"V"`
-// 			}{},
-// 			present: "V (default: 123)\n",
-// 		},
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" default:"123" default-mask:"abc" description:"V"`
-// 			}{},
-// 			present: "V (default: abc)\n",
-// 		},
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" default:"123" default-mask:"-" description:"V"`
-// 			}{},
-// 			present: "V\n",
-// 		},
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" description:"V"`
-// 			}{Value: "123"},
-// 			present: "V (default: 123)\n",
-// 		},
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" default-mask:"abc" description:"V"`
-// 			}{Value: "123"},
-// 			present: "V (default: abc)\n",
-// 		},
-// 		{
-// 			opts: &struct {
-// 				Value string `short:"v" default-mask:"-" description:"V"`
-// 			}{Value: "123"},
-// 			present: "V\n",
-// 		},
-// 	}
-
-// 	for _, test := range tests {
-// 		p := newParser("", test.opts)
-// 		err := Run(test.opts, "-h")
-// 		if flagsErr, ok := err.(*Error); ok && flagsErr.Kind == ErrHelp {
-// 			err = nil
-// 		}
-// 		assert.NoError(t, err)
-// 		h := &bytes.Buffer{}
-// 		option, _ := iter.
-// 			FromMany(p.Flags.flags...).
-// 			Filter(func(f *Flag) bool {
-// 				return f.ShortName == 'v'
-// 			}).
-// 			Head()
-// 		p.writeHelpOption(h, option, p.getAlignmentInfo())
-// 		assert.Contains(t, h.String(), test.present)
-// 	}
-// }
+import (
+	"context"
+	"strings"
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
+
+type cmdBommand struct {
+	Hidden bool `long:"hidden" description:"A hidden option"`
+}
+
+func (x cmdBommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type cmdCommand struct {
+	ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
+}
+
+func (x cmdCommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type cmdHidden struct {
+	ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
+}
+
+func (x cmdHidden) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type cmdParentSub struct {
+	Opt string `long:"opt" description:"This is a sub command option"`
+}
+
+func (x cmdParentSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type cmdParent struct {
+	Opt        string       `long:"opt" description:"This is a parent command option"`
+	SubCommand cmdParentSub `command:"sub" description:"A sub command"`
+}
+
+func (x cmdParent) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+type cmdHelp struct {
+	Verbose          []bool    `short:"v" long:"verbose" description:"Show verbose debug information"`
+	PtrSlice         []*string `long:"ptrslice" description:"A slice of pointers to string"`
+	EmptyDescription bool      `long:"empty-description"`
+
+	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
+	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
+	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
+	EnvDefault1       string            `long:"env-default1" default:"Some value" description:"Test env-default1 value"`
+	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
+	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
+	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
+	Hidden            string            `long:"hidden" description:"Hidden option"`
+
+	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name"`
+
+	StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
+	IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
+
+	// TODO: get back when groups are implemented
+	// HiddenGroup struct {
+	// 	InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
+	// 	Padder            bool   `long:"this-option-in-a-hidden-group-has-a-ridiculously-long-name"`
+	// } `group:"Hidden group"`
+
+	// GroupWithOnlyHiddenOptions struct {
+	// 	SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group"`
+	// }
+
+	// Sip struct {
+	// 	Opt                  string `long:"opt" description:"This is a subgroup option"`
+	// 	HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group"`
+	// 	NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group"`
+
+	// 	Sap struct {
+	// 		Opt string `long:"opt" description:"This is a subsubgroup option"`
+	// 	}
+	// }
+
+	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden options"`
+	Command       cmdCommand `command:"command" alias:"cm" alias:"cmd" description:"A command"`
+	HiddenCommand cmdHidden  `command:"hidden-command" description:"A hidden command"`
+	ParentCommand cmdParent  `command:"parent" description:"A parent command"`
+
+	Args struct {
+		Filename     string  `positional-arg-name:"filename" description:"A filename with a long description to trigger line wrapping"`
+		Number       int     `positional-arg-name:"num" description:"A number"`
+		HiddenInHelp float32 `positional-arg-name:"hidden-in-help"`
+	} `positional-args:"yes"`
+}
+
+func (x cmdHelp) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func TestHelp(t *testing.T) {
+	err := RunContext[cmdHelp](context.Background(), "x", "--help")
+	require.Equal(t, &Error{
+		Kind: ErrHelp,
+		Message: strings.Join([]string{
+			"Usage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m \x1b[95m[ARGUMENTS]\x1b[0m",
+			"",
+			"",
+			"",
+			"Commands:",
+			"\t\x1b[91mbommand\x1b[0m            A command with only hidden options",
+			"\t\x1b[91mcommand\x1b[0m            A command",
+			"\t\x1b[91mhidden-command\x1b[0m     A hidden command",
+			"\t\x1b[91mparent\x1b[0m             A parent command",
+			"",
+			"Arguments:",
+			"\t\x1b[95m[Filename]\x1b[0m \x1b[92mstring\x1b[0m        A filename with a long description to trigger line wrapping",
+			"\t\x1b[95m[Number]\x1b[0m \x1b[92mstring\x1b[0m          A number",
+			"\t\x1b[95m[HiddenInHelp]\x1b[0m \x1b[92mstring\x1b[0m    ",
+			"",
+			"Flags:",
+			"\t\x1b[93m-v\x1b[0m, \x1b[93m--verbose\x1b[0m                                        Show verbose debug information",
+			"\t\x1b[93m--ptrslice\x1b[0m                                           A slice of pointers to string",
+			"\t\x1b[93m--empty-description\x1b[0m                                  ",
+			"\t\x1b[93m--default\x1b[0m                                            Test default value (default: Some\nvalue)",
+			"\t\x1b[93m--default-array\x1b[0m                                      Test default array value (default: Some value, Other\tvalue)",
+			"\t\x1b[93m--default-map\x1b[0m                                        Testdefault map value (default: some:value, another:value)",
+			"\t\x1b[93m--env-default1\x1b[0m                                       Test env-default1 value (default: Some value)",
+			"\t\x1b[93m--env-default2\x1b[0m                                       Test env-default2 value",
+			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  Option with named argument",
+			"\t\x1b[93m--opt-with-choices\x1b[0m                                   Option with choices",
+			"\t\x1b[93m--hidden\x1b[0m                                             Hidden option",
+			"\t\x1b[93m--this-hidden-option-has-a-ridiculously-long-name\x1b[0m    ",
+			"\t\x1b[93m-s\x1b[0m                                                   A slice of strings (default: some, value)",
+			"\t\x1b[93m--intmap\x1b[0m                                             A map from string to int (default: a:1)",
+			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m                                           Print this help message",
+			"",
+		}, "\n"),
+	}, err)
+}
+
+type helpCommandNoOptions struct {
+	Command cmdParentSub `command:"command" description:"A command"`
+}
+
+func TestHelpCommand(t *testing.T) {
+	err := RunContext[helpCommandNoOptions](context.Background(), "x", "command", "--help")
+	require.Equal(t, &Error{
+		Kind: ErrHelp,
+		Message: strings.Join([]string{
+			"Usage: \x1b[94mx command\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
+			"",
+			"A command",
+			"",
+			"Flags:",
+			"\t\x1b[93m--opt\x1b[0m         This is a sub command option",
+			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message",
+			"",
+		}, "\n"),
+	}, err)
+}
+
+type cmdHelpDefaults struct {
+	WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
+	WithoutDefault          string `long:"without-default" description:"Without default"`
+	WithProgrammaticDefault string `long:"with-programmatic-default" description:"With programmatic default" default:"default-value"`
+}
+
+func (x cmdHelpDefaults) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+
+func TestHelpDefaults(t *testing.T) {
+	for name, args := range map[string][]string{
+		"just help":  {"x", "-h"},
+		"some flags": {"x", "--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			err := RunContext[cmdHelpDefaults](context.Background(), args...)
+			require.Equal(t, &Error{
+				Kind: ErrHelp,
+				Message: strings.Join([]string{
+					"Usage: \x1b[94mx\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
+					"",
+					"",
+					"",
+					"Flags:",
+					"\t\x1b[93m--with-default\x1b[0m                 With default (default: default-value)",
+					"\t\x1b[93m--without-default\x1b[0m              Without default",
+					"\t\x1b[93m--with-programmatic-default\x1b[0m    With programmatic default (default: default-value)",
+					"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m                     Print this help message",
+					"",
+				}, "\n"),
+			}, err)
+		})
+	}
+}

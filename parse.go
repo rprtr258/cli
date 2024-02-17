@@ -14,19 +14,13 @@ import (
 	"github.com/rprtr258/cli/internal"
 )
 
-func Run[T any](args ...string) error {
-	return RunContext[T](context.Background(), args...)
-}
-
-// RunContext parses the command line arguments according to the data.
-// Error indicates parsing error.
-//
-// When the common help group has been added (AddHelp) and either -h or --help
-// was specified in the command line arguments, the special error type ErrHelp
-// is returned with help text to print.
+// RunContext parses the command line arguments according to the type.
+// Error indicates either parsing or execution error.
+// TODO: add root command description
 func RunContext[T any](ctx context.Context, args ...string) error {
 	origcmd, err := newCommand[T]()
 	if err != nil {
+		// TODO: return some ParseError type
 		return err
 	}
 
@@ -37,27 +31,27 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 	subcommands := []string{filepath.Base(cmdname)}
 	cmd := origcmd
 	for ; len(args) > 0; args = args[1:] {
-		subcommand, ok := cmd.subcommands[args[0]]
-		if !ok {
-			break
+		for k, subc := range cmd.subcommands {
+			if k == args[0] || fun.Contains(args[0], subc.aliases...) {
+				cmd = subc
+				subcommands = append(subcommands, args[0])
+				goto CONTINUE
+			}
 		}
-
-		cmd = subcommand
-		subcommands = append(subcommands, args[0])
+		break
+	CONTINUE:
 	}
 
 	// add help flags to each subcommand
-	var showHelp bool
-	cmd.flags = append(cmd.flags, Flag{
+	cmd.flags = append(cmd.flags, flag{
 		shortname:    'h',
 		longname:     "help",
-		description:  "Print this help message",
-		defaultValue: "false",
+		description:  fun.Optional("Print this help message", true),
+		defaultValue: nil,
 		isbool:       true,
 		minCount:     0,
 		maxCount:     1,
 		valuesetter: func([]string) error {
-			showHelp = true
 			return nil
 		},
 	})
@@ -68,27 +62,19 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		return nil
 	}
 
-	if cmd.execute == nil {
-		keys := fun.Keys(cmd.subcommands)
-		sort.Strings(keys)
-		if len(args) > 0 {
-			return newUnknownCommandError(args[0], keys)
-		}
-
-		// TODO: squash subcommands aliases, print suggestion based on distance
-		return newCommandRequiredError(keys)
-	}
-
-	// parse arguments, including flags and positional arguments, which means
-	// filling all value(s) fields
+	// parse arguments, including flags and positional arguments, which means filling all value(s) fields
 
 	// parse flags
+	// do not return flag error immediately since we can meet help flag which must be used instead
+	var flagErr error
 	for ; len(args) > 0; args = args[1:] {
 		arg := args[0]
 
-		// not a flag, start parsing positionals
-		if !isFlag(arg) {
-			break
+		if arg == "-h" || arg == "--help" {
+			return &Error{
+				Kind:    ErrHelp,
+				Message: cmd.writeHelp(strings.Join(subcommands, " ")),
+			}
 		}
 
 		// explicit start of positionals
@@ -97,7 +83,14 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 			break
 		}
 
-		curFlag, i, ok := fun.Index(func(f Flag) bool {
+		// not a flag, start parsing positionals
+		isFlag := len(arg) > 1 && arg[0] == '-' && arg[1] != '-' ||
+			len(arg) > 2 && arg[0] == '-' && arg[1] == '-' && arg[2] != '-'
+		if !isFlag {
+			break
+		}
+
+		curFlag, i, ok := fun.Index(func(f flag) bool {
 			return arg == "-"+string(f.shortname) ||
 				arg == "--"+f.longname
 		}, cmd.flags...)
@@ -105,47 +98,60 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 			break
 		}
 
-		if curFlag.isbool {
+		switch {
+		case curFlag.isbool:
 			cmd.flags[i].values = append(cmd.flags[i].values, "")
-		} else if len(args) > 1 {
+		case len(args) > 1:
 			args = args[1:]
 			cmd.flags[i].values = append(cmd.flags[i].values, args[0])
-		} else {
-			return &Error{
+		default:
+			flagErr = &Error{
 				Kind:    ErrExpectedArgument,
-				Message: fmt.Sprintf("expected argument for flag %s", curFlag.longname),
+				Message: fmt.Sprintf("expected argument for flag %s", curFlag.show()),
 			}
 		}
 	}
-
-	// parse positional args
-	if len(args) < len(cmd.posArgs) && cmd.posArgs[len(args)].isrequired {
-		return &Error{ // TODO: separate error types
-			Kind:    ErrExpectedArgument,
-			Message: fmt.Sprintf("positional argument %s is required", cmd.posArgs[len(args)].name),
-		}
+	if flagErr != nil {
+		// help flag not met, return flag error
+		return flagErr
 	}
 
-	if len(args) > len(cmd.posArgs) && !cmd.posArgsRest.defined {
+	if cmd.execute == nil {
+		keys := make([]string, 0, len(cmd.subcommands))
+		for k, subc := range cmd.subcommands {
+			keys = append(keys, k)
+			keys = append(keys, subc.aliases...)
+		}
+		sort.Strings(keys)
+		if len(args) > 0 {
+			return newUnknownCommandError(args[0], keys)
+		}
+
+		return newCommandRequiredError(keys)
+	}
+
+	// parse positional args
+	if len(args) < len(cmd.posArgs) {
 		return &Error{ // TODO: separate error types
 			Kind: ErrExpectedArgument,
 			Message: fmt.Sprintf(
-				"extraneous positional arguments found: [%s]",
-				internal.Join(strconv.Quote, ", ", args[len(cmd.posArgs):]...),
-			),
+				"positional arguments are missing: %s",
+				internal.Join(func(s positionalArg) string {
+					return s.name
+				}, ", ", cmd.posArgs[len(args):]...)),
 		}
 	}
 
-	for i, arg := range fun.Subslice(0, len(cmd.posArgs), args...) {
+	if cmd.posArgsRest.Valid {
+		cmd.posArgsRest.Value.values = args[len(cmd.posArgs):]
+	} else if len(args) > len(cmd.posArgs) {
+		return fmt.Errorf(
+			"extraneous positional arguments found: [%s]",
+			internal.Join(strconv.Quote, ", ", args[len(cmd.posArgs):]...))
+	}
+
+	for i, arg := range args[:len(cmd.posArgs)] {
 		cmd.posArgs[i].value = arg
-	}
-
-	if len(args) > len(cmd.posArgs) {
-		if !cmd.posArgsRest.defined {
-			return fmt.Errorf("extraneous positional arguments found: [%s]", internal.Join(strconv.Quote, ", ", args[len(cmd.posArgs):]...))
-		}
-
-		cmd.posArgsRest.values = args[len(cmd.posArgs):]
 	}
 
 	// filled arguments values, now time to call all setters and validate all of that
@@ -167,6 +173,13 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 				}
 			} else {
 				if len(f.values) < f.minCount {
+					if f.minCount == 1 {
+						return &Error{
+							Kind:    ErrExpectedArgument,
+							Message: "missing value",
+						}
+					}
+
 					return &Error{
 						Kind:    ErrExpectedArgument,
 						Message: fmt.Sprintf("too few arguments, minimum %d required", f.minCount),
@@ -180,8 +193,12 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 					}
 				}
 
-				if f.values != nil {
+				if len(f.values) > 0 {
 					if err := f.valuesetter(f.values); err != nil {
+						return err
+					}
+				} else if len(f.defaultValue) > 0 {
+					if err := f.valuesetter(f.defaultValue); err != nil {
 						return err
 					}
 				}
@@ -193,17 +210,15 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		}
 	}
 
-	if cmd.posArgsRest.defined {
-		if err := cmd.posArgsRest.valuesetter(cmd.posArgsRest.values); err != nil {
-			return fmt.Errorf("set posArgsRest: %w", err)
+	for _, arg := range cmd.posArgs {
+		if err := arg.valuesetter(arg.value); err != nil {
+			return fmt.Errorf("invalid %s positional argument value: %w", arg.name, err)
 		}
 	}
 
-	// TODO: use even in presence of errors in other flags
-	if showHelp {
-		return &Error{
-			Kind:    ErrHelp,
-			Message: cmd.writeHelp(strings.Join(subcommands, " ")),
+	if posArgsRest, ok := cmd.posArgsRest.Unpack(); ok {
+		if err := posArgsRest.valuesetter(posArgsRest.values); err != nil {
+			return fmt.Errorf("invalid rest of positional arguments: %w", err)
 		}
 	}
 

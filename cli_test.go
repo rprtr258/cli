@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -22,8 +23,8 @@ func (x optsFirst) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 func TestRun_first_subcommand(t *testing.T) {
 	assertSuccess[optsFirst](t,
-		func(opts optsSimpleSubcommand) {
-			assert.True(t, opts.G)
+		func(x optsSimpleSubcommand) {
+			assert.True(t, x.G)
 		},
 		"cmd", "-g",
 	)
@@ -31,8 +32,8 @@ func TestRun_first_subcommand(t *testing.T) {
 
 func TestRun_first_command(t *testing.T) {
 	assertSuccess[optsFirst](t,
-		func(opts optsFirst) {
-			assert.True(t, opts.Value)
+		func(x optsFirst) {
+			assert.True(t, x.Value)
 		},
 		"-v",
 	)
@@ -60,48 +61,48 @@ func TestNewCommand_CommandInline(t *testing.T) {
 	for i := range cmd.flags {
 		cmd.flags[i].valuesetter = nil
 	}
-	cmd.posArgsRest.valuesetter = nil
+	cmd.posArgsRest.Value.valuesetter = nil
 	cmd.execute = nil
 	for i, subcmd := range cmd.subcommands {
 		for i := range subcmd.flags {
 			subcmd.flags[i].valuesetter = nil
 		}
-		cmd.subcommands[i].posArgsRest.valuesetter = nil
+		cmd.subcommands[i].posArgsRest.Value.valuesetter = nil
 		subcmd.execute = nil
 	}
 
-	want := &Command{
-		subcommands: map[string]*Command{
+	want := &command{
+		subcommands: map[string]*command{
 			"cmd": {
-				subcommands: map[string]*Command{},
-				flags: []Flag{
+				subcommands: map[string]*command{},
+				flags: []flag{
 					{
 						shortname:    'g',
 						longname:     "",
-						description:  "",
-						defaultValue: "false",
+						description:  fun.Option[string]{},
+						defaultValue: nil,
 						isbool:       true,
 						minCount:     0,
 						maxCount:     1,
 					},
 				},
-				posArgs:     []PositionalArg{},
-				posArgsRest: PositionalArgsRest{},
+				posArgs:     []positionalArg{},
+				posArgsRest: fun.Option[positionalArgsRest]{},
 			},
 		},
-		flags: []Flag{
+		flags: []flag{
 			{
 				shortname:    'v',
 				longname:     "",
-				description:  "",
-				defaultValue: "false",
+				description:  fun.Option[string]{},
+				defaultValue: nil,
 				isbool:       true,
 				minCount:     0,
 				maxCount:     1,
 			},
 		},
-		posArgs:     []PositionalArg{},
-		posArgsRest: PositionalArgsRest{},
+		posArgs:     []positionalArg{},
+		posArgsRest: fun.Option[positionalArgsRest]{},
 	}
 	assert.Equal(t, want, cmd)
 }
@@ -112,7 +113,7 @@ func TestRun_leafHasNoExecute(t *testing.T) {
 	}
 
 	assertFail[optsSecond](t,
-		`parse subcommand c1: command struct {} is leaf command, but no Execute function defined`,
+		`parse subcommand c1: command struct {} is leaf command, but no Execute method defined`,
 		"-v",
 	)
 }
@@ -221,7 +222,7 @@ func TestCommandEstimate2(t *testing.T) {
 	}
 
 	assertFail[optsSix](t,
-		"Unknown command `rmive', did you mean `remove'?",
+		`Unknown command "rmive", did you mean remove?`,
 		"rmive",
 	)
 }
@@ -268,320 +269,251 @@ func TestParse(t *testing.T) {
 	)
 }
 
-// func TestGroupInline(t *testing.T) {
-// 	opts := struct {
-// 		Value bool `short:"v"`
-// 		G     bool `short:"g"`
-// 	}{}
+type cmdTestGroupInline struct {
+	Value bool `short:"v"`
+	G     bool `short:"g"`
+}
 
-// 	assertNoError(t, &opts, "-v", "-g")
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.G)
-// }
+func (x cmdTestGroupInline) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestGroupAdd(t *testing.T) {
-// 	opts := struct {
-// 		Value bool     `short:"v"`
-// 		G     bool     `short:"g"`
-// 		Args  []string `args`
-// 	}{}
+func TestGroupInline(t *testing.T) {
+	assertSuccess[cmdTestGroupInline](t, func(x cmdTestGroupInline) {
+		assert.True(t, x.Value)
+		assert.True(t, x.G)
+	}, "-v", "-g")
+}
 
-// 	err := Run(&opts, "-v", "-g", "rest")
-// 	assert.NoError(t, err)
+type cmdTestGroupAdd struct {
+	Value bool     `short:"v"`
+	G     bool     `short:"g"`
+	Args  []string `positional-args:"yes"`
+}
 
-// 	assert.Equal(t, []string{"rest"}, opts.Args)
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.G)
-// }
+func (x cmdTestGroupAdd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestGroupNestedInline(t *testing.T) {
-// 	opts := struct {
-// 		Value bool     `short:"v"`
-// 		G     bool     `short:"g"`
-// 		N     string   `long:"n"`
-// 		Args  []string `args`
-// 	}{}
+func TestGroupAdd(t *testing.T) {
+	assertSuccess[cmdTestGroupAdd](t, func(x cmdTestGroupAdd) {
+		assert.Equal(t, []string{"rest"}, x.Args)
+		assert.True(t, x.Value)
+		assert.True(t, x.G)
+	}, "-v", "-g", "rest")
+}
 
-// 	assertNoError(t, &opts, "-v", "-g", "--n", "n", "rest")
-// 	assert.Equal(t, []string{"rest"}, opts.Args)
-// 	assert.True(t, opts.Value)
-// 	assert.True(t, opts.G)
-// 	assert.Equal(t, opts.N, "n")
-// }
+type cmdTestGroupNestedInline struct {
+	Value bool     `short:"v"`
+	G     bool     `short:"g"`
+	Nah   string   `long:"nah"`
+	Args  []string `positional-args:"yes"`
+}
 
-// func TestGroupNestedInlineNamespace(t *testing.T) {
-// 	opts := struct {
-// 		Opt       string   `long:"opt"`
-// 		SipOpt    string   `long:"sip.opt"`
-// 		SipSapOpt string   `long:"sip.sap.opt"`
-// 		Args      []string `args`
-// 	}{}
+func (x cmdTestGroupNestedInline) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 	assertNoError(t, &opts, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
-// 	assert.Equal(t, []string{"rest"}, opts.Args)
-// 	assert.Equal(t, opts.Opt, "a")
-// 	assert.Equal(t, opts.SipOpt, "b")
-// 	assert.Equal(t, opts.SipSapOpt, "c")
-// }
+func TestGroupNestedInline(t *testing.T) {
+	assertSuccess[cmdTestGroupNestedInline](t, func(x cmdTestGroupNestedInline) {
+		assert.Equal(t, []string{"rest"}, x.Args)
+		assert.True(t, x.Value)
+		assert.True(t, x.G)
+		assert.Equal(t, x.Nah, "n")
+	}, "-v", "-g", "--nah", "n", "rest")
+}
 
-// func TestDuplicateShortFlags(t *testing.T) {
-// 	var opts struct {
-// 		Verbose   []bool   `short:"v" long:"verbose" description:"Show verbose debug information"`
-// 		Variables []string `short:"v" long:"variable" description:"Set a variable value."`
-// 	}
+type cmdTestNestedInlineNamespace struct {
+	Opt       string   `long:"opt"`
+	SipOpt    string   `long:"sip.opt"`
+	SipSapOpt string   `long:"sip.sap.opt"`
+	Args      []string `positional-args:"yes"`
+}
 
-// 	err := Run(&opts,
-// 		"--verbose",
-// 		"-v", "123",
-// 		"-v", "456",
-// 	)
-// 	assert.Error(t, err)
-// 	err2 := err.(*Error)
-// 	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
-// }
+func (x cmdTestNestedInlineNamespace) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestDuplicateLongFlags(t *testing.T) {
-// 	var opts struct {
-// 		Test1 []bool   `short:"a" long:"testing" description:"Test 1"`
-// 		Test2 []string `short:"b" long:"testing" description:"Test 2."`
-// 	}
+func TestGroupNestedInlineNamespace(t *testing.T) {
+	assertSuccess[cmdTestNestedInlineNamespace](t, func(x cmdTestNestedInlineNamespace) {
+		assert.Equal(t, []string{"rest"}, x.Args)
+		assert.Equal(t, x.Opt, "a")
+		assert.Equal(t, x.SipOpt, "b")
+		assert.Equal(t, x.SipSapOpt, "c")
+	}, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
+}
 
-// 	err := Run(&opts, "--testing")
-// 	assert.Error(t, err)
-// 	err2 := err.(*Error)
-// 	assert.Equal(t, ErrDuplicatedFlag, err2.Kind)
-// }
+type cmdBoolFlag struct {
+	Test bool `long:"test"`
+}
 
-// func TestAddOptionNonOptional(t *testing.T) {
-// 	var opts struct {
-// 		Test bool `long:"test"`
-// 	}
+func (x cmdBoolFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 	err := Run(&opts, "--test")
-// 	assert.NoError(t, err)
-// 	assert.True(t, opts.Test)
-// }
+func TestBoolFlag(t *testing.T) {
+	assertSuccess[cmdBoolFlag](t, func(x cmdBoolFlag) {
+		assert.False(t, x.Test)
+	})
+	assertSuccess[cmdBoolFlag](t, func(x cmdBoolFlag) {
+		assert.True(t, x.Test)
+	}, "--test")
+}
 
-// func TestLong(t *testing.T) {
-// 	t.Run("Long", func(t *testing.T) {
-// 		opts := struct {
-// 			Value bool `long:"value"`
-// 		}{}
+type cmdStringFlag struct {
+	Test string `long:"value"`
+}
 
-// 		assertNoError(t, &opts, "--value")
-// 		assert.True(t, opts.Value)
-// 	})
+func (x cmdStringFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 	t.Run("LongArg", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value"`
-// 		}{}
+func TestStringFlag(t *testing.T) {
+	assertSuccess[cmdStringFlag](t, func(x cmdStringFlag) {
+		assert.Equal(t, "value", x.Test)
+	}, "--value", "value")
+}
 
-// 		assertNoError(t, &opts, "--value", "value")
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
+type cmdStringDefaultFlag struct {
+	Test string `long:"value" default:"uuh"`
+}
 
-// 	t.Run("LongArgEqual", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value"`
-// 		}{}
+func (x cmdStringDefaultFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 		assertNoError(t, &opts, "--value=value")
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
+func TestStringDefaultFlagValueProvided(t *testing.T) {
+	assertSuccess[cmdStringDefaultFlag](t, func(x cmdStringDefaultFlag) {
+		assert.Equal(t, "value", x.Test)
+	}, "--value", "value")
+}
 
-// 	t.Run("LongDefault", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value" default:"value"`
-// 		}{}
+func TestStringDefaultFlagValueNotProvided(t *testing.T) {
+	assertSuccess[cmdStringDefaultFlag](t, func(x cmdStringDefaultFlag) {
+		assert.Equal(t, "uuh", x.Test)
+	})
+}
 
-// 		assertNoError(t, &opts)
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
+type cmdStringOptionalFlag struct {
+	Test *string `long:"value"`
+}
 
-// 	t.Run("LongOptional", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value" optional:"yes" optional-value:"value"`
-// 		}{}
+func (x cmdStringOptionalFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 		assertNoError(t, &opts, "--value")
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
+func TestStringOptionalFlagValueProvided(t *testing.T) {
+	assertSuccess[cmdStringOptionalFlag](t, func(x cmdStringOptionalFlag) {
+		assert.Equal(t, "value", *x.Test)
+	}, "--value", "value")
+}
 
-// 	t.Run("LongOptionalArg", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value" optional:"yes" optional-value:"value"`
-// 		}{}
+func TestStringOptionalFlagValueNotProvided(t *testing.T) {
+	assertSuccess[cmdStringOptionalFlag](t, func(x cmdStringOptionalFlag) {
+		assert.Nil(t, x.Test)
+	})
+}
 
-// 		assertNoError(t, &opts, "--value", "no")
-// 		// assert.Equal(t, []string{"no"}, ret)
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
+func TestUnknown(t *testing.T) {
+	assertFail[cmdStringOptionalFlag](t,
+		`extraneous positional arguments found: ["-f"]`,
+		"-f")
+}
 
-// 	t.Run("LongOptionalArgEqual", func(t *testing.T) {
-// 		opts := struct {
-// 			Value string `long:"value" optional:"yes" optional-value:"value"`
-// 		}{}
+type cmdFlagsInPositionals struct {
+	Verbose bool     `short:"v"`
+	Args    []string `positional-args:"yes"`
+}
 
-// 		assertNoError(t, &opts, "--value=value", "no")
-// 		// assert.Equal(t, []string{"no"}, ret)
-// 		assert.Equal(t, "value", opts.Value)
-// 	})
-// }
+func (x cmdFlagsInPositionals) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestUnknown(t *testing.T) {
-// 	t.Run("UnknownFlags", func(t *testing.T) {
-// 		opts := struct {
-// 			Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-// 		}{}
+func TestFlagsInPositionals(t *testing.T) {
+	assertSuccess[cmdFlagsInPositionals](t, func(x cmdFlagsInPositionals) {
+		assert.False(t, x.Verbose)
+		assert.Equal(t, []string{"hello", "world", "-v", "--foo", "bar", "--verbose", "-f"}, x.Args)
+	}, "hello", "world", "-v", "--foo", "bar", "--verbose", "-f")
+}
 
-// 		err := Run(&opts, "-f")
-// 		assert.Error(t, err)
-// 	})
+type cmdPositionals struct {
+	Verbose    bool `short:"v"`
+	Positional struct {
+		Command  int
+		Filename string
+		Rest     []string
+	} `positional-args:"yes"`
+}
 
-// 	t.Run("IgnoreUnknownFlags", func(t *testing.T) {
-// 		opts := struct {
-// 			Verbose []bool   `short:"v" long:"verbose" description:"Verbose output"`
-// 			Args    []string `args`
-// 		}{}
+func (x cmdPositionals) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// 		err := Run(&opts,
-// 			"hello",
-// 			"world",
-// 			"-v",
-// 			"--foo=bar",
-// 			"--verbose",
-// 			"-f",
-// 		)
-// 		assert.NoError(t, err)
-// 		assert.Len(t, opts.Verbose, 0)
-// 		assert.Equal(t, []string{
-// 			"hello",
-// 			"world",
-// 			"-v",
-// 			"--foo=bar",
-// 			"--verbose",
-// 			"-f",
-// 		}, opts.Args)
-// 	})
-// }
+func TestPositional(t *testing.T) {
+	assertSuccess[cmdPositionals](t, func(x cmdPositionals) {
+		assert.Equal(t, 10, x.Positional.Command)
+		assert.Equal(t, "arg_test.go", x.Positional.Filename)
+		assert.Equal(t, []string{"a", "b"}, x.Positional.Rest)
+	}, "10", "arg_test.go", "a", "b")
+}
 
-// func TestPositional(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Command  int
-// 			Filename string
-// 			Rest     []string
-// 		} `positional-args:"yes" required:"yes"`
-// 	}{}
+func TestPositionalMissing(t *testing.T) {
+	assertFail[cmdPositionals](t,
+		`positional arguments are missing: Filename`,
+		"10")
+}
 
-// 	err := Run(&opts, "10", "arg_test.go", "a", "b")
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, 10, opts.Positional.Command)
-// 	assert.Equal(t, "arg_test.go", opts.Positional.Filename)
-// 	assert.Equal(t, []string{"a", "b"}, opts.Positional.Rest)
-// }
+func TestPositionalRequiredRest1Fail(t *testing.T) {
+	t.Skip()
 
-// func TestPositionalRequired(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Command  int
-// 			Filename string
-// 			Rest     []string
-// 		} `positional-args:"yes" required:"yes"`
-// 	}{}
+	type cmd struct {
+		Value      bool `short:"v"`
+		Positional struct {
+			// TODO: test using custom field for rest, that checks that at least 1 arg is provided
+			Rest []string
+		} `positional-args:"yes"`
+	}
 
-// 	err := Run(&opts, "10")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrRequired,
-// 		Message: "the required argument `Filename` was not provided",
-// 	}, err)
-// }
+	assertFail[cmd](t,
+		`the required argument "Rest (at least 1 argument)" was not provided`,
+	)
+}
 
-// func TestPositionalRequiredRest1Fail(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"yes"`
-// 		} `positional-args:"yes"`
-// 	}{}
+type cmdRest1 struct {
+	Verbose    bool `short:"v"`
+	Positional struct {
+		Rest []string
+	} `positional-args:"yes"`
+}
 
-// 	err := Run(&opts)
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrRequired,
-// 		Message: "the required argument `Rest (at least 1 argument)` was not provided",
-// 	}, err)
-// }
+func (x cmdRest1) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
-// func TestPositionalRequiredRest1Pass(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"yes"`
-// 		} `positional-args:"yes"`
-// 	}{}
+func TestRest1(t *testing.T) {
+	assertSuccess[cmdRest1](t, func(x cmdRest1) {
+		assert.Equal(t, []string{"rest1"}, x.Positional.Rest)
+		assert.False(t, x.Verbose)
+	}, "rest1")
+}
 
-// 	err := Run(&opts, "rest1")
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, []string{"rest1"}, opts.Positional.Rest)
-// }
+func TestPositionalRequiredRest2Fail(t *testing.T) {
+	t.Skip()
 
-// func TestPositionalRequiredRest2Fail(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"2"`
-// 		} `positional-args:"yes"`
-// 	}{}
+	type cmd struct {
+		Value      bool `short:"v"`
+		Positional struct {
+			// TODO: test using custom field for rest, that checks that at least 2 args are provided
+			Rest []string
+		} `positional-args:"yes"`
+	}
 
-// 	err := Run(&opts, "rest1")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrRequired,
-// 		Message: "the required argument `Rest (at least 2 arguments, but got only 1)` was not provided",
-// 	}, err)
-// }
+	assertFail[cmd](t,
+		`the required argument "Rest (at least 2 arguments, but got only 1)" was not provided`,
+		"rest1")
+	assertSuccess[cmd](t, func(x cmd) {
+		assert.Equal(t, []string{"rest1", "rest2", "rest3"}, x.Positional.Rest)
+	}, "rest1", "rest2", "rest3")
+}
 
-// func TestPositionalRequiredRest2Pass(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"2"`
-// 		} `positional-args:"yes"`
-// 	}{}
+func TestPositionalRequiredRestRangeFail(t *testing.T) {
+	t.Skip()
 
-// 	err := Run(&opts, "rest1", "rest2", "rest3")
-// 	assert.NoError(t, err)
-// 	assert.Equal(t, []string{"rest1", "rest2", "rest3"}, opts.Positional.Rest)
-// }
+	type cmd struct {
+		Value      bool `short:"v"`
+		Positional struct {
+			// TODO: test using custom field for rest, that checks that at 1-2 args are provided
+			Rest []string
+		} `positional-args:"yes"`
+	}
 
-// func TestPositionalRequiredRestRangeFail(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"1-2"`
-// 		} `positional-args:"yes"`
-// 	}{}
+	assert.Fail(t,
+		`the required argument "Rest (at most 2 arguments, but got 3)" was not provided`,
+		"rest1", "rest2", "rest3")
+}
 
-// 	err := Run(&opts, "rest1", "rest2", "rest3")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrRequired,
-// 		Message: "the required argument `Rest (at most 2 arguments, but got 3)` was not provided",
-// 	}, err)
-// }
+func TestShortTooLong(t *testing.T) {
+	type opts struct {
+		Value bool `short:"vv"`
+	}
 
-// func TestPositionalRequiredRestRangeEmptyFail(t *testing.T) {
-// 	opts := struct {
-// 		Value      bool `short:"v"`
-// 		Positional struct {
-// 			Rest []string `required:"0-0"`
-// 		} `positional-args:"yes"`
-// 	}{}
-
-// 	err := Run(&opts, "some", "thing")
-// 	assert.Equal(t, &Error{
-// 		Kind:    ErrRequired,
-// 		Message: "the required argument `Rest (zero arguments)` was not provided",
-// 	}, err)
-// }
+	assertFail[opts](t, `parse flag "Value": scan short name: must be single character, but was "vv"`)
+}
