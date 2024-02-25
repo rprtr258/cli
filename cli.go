@@ -788,7 +788,7 @@ func newCommandImpl(tags reflect.StructTag, v reflect.Value) (*command, error) {
 		posArgsRest: posArgsRest,
 		execute:     executeFn,
 		description: tags.Get("description"),
-		aliases:     mt["aliases"],
+		aliases:     mt["alias"],
 	}, nil
 }
 

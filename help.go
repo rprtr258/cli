@@ -50,10 +50,15 @@ func (c *command) writeHelp(fullCommandName string) string {
 		// subcommands
 		if len(c.subcommands) > 0 {
 			subcommandsPreLen := 0
-			for subcommandName := range c.subcommands {
-				subcommandsPreLen = max(subcommandsPreLen, len(subcommandName))
+			for subcommandName, subc := range c.subcommands {
+				aliasesLen := 0
+				for _, alias := range subc.aliases {
+					aliasesLen += len(alias) + 1
+				}
+
+				subcommandsPreLen = max(subcommandsPreLen, len(subcommandName)+aliasesLen)
 			}
-			subcommandsPreLen += 4
+			subcommandsPreLen += 2
 			b.
 				NL().
 				NL().
@@ -61,15 +66,30 @@ func (c *command) writeHelp(fullCommandName string) string {
 				Iter(func(yield func(func(scuf.Buffer)) bool) bool {
 					keys := fun.Keys(c.subcommands)
 					sort.Strings(keys)
+
 					for _, name := range keys {
 						subc := c.subcommands[name]
+
+						aliasesLen := 0
+						for _, alias := range subc.aliases {
+							aliasesLen += len(alias) + 1
+						}
+
 						yield(func(b scuf.Buffer) {
 							b.
 								NL().
 								TAB().
 								String(name, scuf.FgHiRed).
+								Iter(func(yield func(func(scuf.Buffer)) bool) bool {
+									for _, alias := range subc.aliases {
+										yield(func(b scuf.Buffer) {
+											b.Bytes(',').String(alias, scuf.FgRed)
+										})
+									}
+									return true
+								}).
 								SPC().
-								RepeatByte(' ', subcommandsPreLen-len(name)).
+								RepeatByte(' ', subcommandsPreLen-len(name)-aliasesLen).
 								String(subc.description)
 						})
 					}

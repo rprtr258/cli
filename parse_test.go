@@ -387,7 +387,7 @@ func TestRootHelp(t *testing.T) {
 		"",
 		"",
 		"Commands:",
-		"\t\x1b[91msub\x1b[0m     ",
+		"\t\x1b[91msub\x1b[0m   ",
 		"",
 		"Flags:",
 		"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message",
