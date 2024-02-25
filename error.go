@@ -13,14 +13,10 @@ type ErrorKind int
 const (
 	ErrUnknown          ErrorKind = iota // ErrUnknown indicates a generic error.
 	ErrExpectedArgument                  // ErrExpectedArgument indicates that an argument was expected.
-	ErrUnknownFlag                       // ErrUnknownFlag indicates an unknown flag.
-	ErrUnknownGroup                      // ErrUnknownGroup indicates an unknown group.
 	ErrHelp                              // ErrHelp indicates that the built-in help was shown (the error contains the help message).
 	ErrShortNameTooLong                  // ErrShortNameTooLong indicates that a short flag name was specified, longer than one character.
 	ErrDuplicatedFlag                    // ErrDuplicatedFlag indicates that a short or long flag has been defined more than once
 	ErrTag                               // ErrTag indicates an error while parsing flag tags.
-	ErrCommandRequired                   // ErrCommandRequired indicates that a command was required but not specified
-	ErrUnknownCommand                    // ErrUnknownCommand indicates that an unknown command was specified.
 	ErrInvalidTag                        // ErrInvalidTag indicates an invalid tag or invalid use of an existing tag
 )
 
@@ -28,14 +24,10 @@ func (e ErrorKind) String() string {
 	return lo.Switch[ErrorKind, string](e).
 		Case(ErrUnknown, "unknown").
 		Case(ErrExpectedArgument, "expected argument").
-		Case(ErrUnknownFlag, "unknown flag").
-		Case(ErrUnknownGroup, "unknown group").
 		Case(ErrHelp, "help").
 		Case(ErrShortNameTooLong, "short name too long").
 		Case(ErrDuplicatedFlag, "duplicated flag").
 		Case(ErrTag, "tag").
-		Case(ErrCommandRequired, "command required").
-		Case(ErrUnknownCommand, "unknown command").
 		Case(ErrInvalidTag, "invalid tag").
 		Default("unrecognized error type")
 }
@@ -124,10 +116,17 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 	return closest, distMin
 }
 
-func newUnknownCommandError(name string, cmdnames []string) error {
+func newHelpError(cmd *command, subcommands []string) error {
+	return &Error{
+		Kind:    ErrHelp,
+		Message: cmd.writeHelp(strings.Join(subcommands, " ")),
+	}
+}
+
+func newUnknownCommandError(cmd *command, subcommands []string, name string, cmdnames []string) error {
 	c, l := getClosest(name, cmdnames)
 	return &Error{
-		Kind: ErrUnknownCommand,
+		Kind: ErrHelp,
 		Message: fmt.Sprintf("Unknown command %q", name) + func() string {
 			switch {
 			case l*2 < len(c):
@@ -141,13 +140,13 @@ func newUnknownCommandError(name string, cmdnames []string) error {
 					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 					cmdnames[len(cmdnames)-1])
 			}
-		}(),
+		}() + "\n" + cmd.writeHelp(strings.Join(subcommands, " ")),
 	}
 }
 
-func newCommandRequiredError(cmdnames []string) error {
+func newCommandRequiredError(cmd *command, subcommands []string, cmdnames []string) error {
 	return &Error{
-		Kind: ErrCommandRequired,
+		Kind: ErrHelp,
 		Message: lo.Switch[int, string](len(cmdnames)).
 			Case(0, "???").
 			CaseF(1, func() string {
@@ -157,6 +156,6 @@ func newCommandRequiredError(cmdnames []string) error {
 				return fmt.Sprintf("Please specify one command of: %s or %s",
 					strings.Join(cmdnames[:len(cmdnames)-1], ", "),
 					cmdnames[len(cmdnames)-1])
-			}),
+			}) + "\n" + cmd.writeHelp(strings.Join(subcommands, " ")),
 	}
 }

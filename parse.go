@@ -7,7 +7,6 @@ import (
 	"path/filepath"
 	"sort"
 	"strconv"
-	"strings"
 
 	"github.com/rprtr258/fun"
 
@@ -71,10 +70,7 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		arg := args[0]
 
 		if arg == "-h" || arg == "--help" {
-			return &Error{
-				Kind:    ErrHelp,
-				Message: cmd.writeHelp(strings.Join(subcommands, " ")),
-			}
+			return newHelpError(cmd, subcommands)
 		}
 
 		// explicit start of positionals
@@ -124,10 +120,10 @@ func RunContext[T any](ctx context.Context, args ...string) error {
 		}
 		sort.Strings(keys)
 		if len(args) > 0 {
-			return newUnknownCommandError(args[0], keys)
+			return newUnknownCommandError(cmd, subcommands, args[0], keys)
 		}
 
-		return newCommandRequiredError(keys)
+		return newCommandRequiredError(cmd, subcommands, keys)
 	}
 
 	// parse positional args
