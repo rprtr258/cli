@@ -7,7 +7,7 @@ import (
 
 type Filename string
 
-func (f *Filename) Set(s string) error {
+func (f *Filename) UnmarshalFlag(s string) error {
 	// TODO: if s == "-" use stdin
 
 	if stat, err := os.Stat(s); os.IsNotExist(err) {
