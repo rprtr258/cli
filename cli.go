@@ -174,6 +174,16 @@ type command struct {
 }
 
 func parseValue(s string, typ reflect.Type) (reflect.Value, error) {
+	// custom flag
+	if _, ok := reflect.New(typ).Interface().(CustomFlag); ok {
+		resV := reflect.New(typ)
+		if err := resV.Interface().(CustomFlag).UnmarshalFlag(s); err != nil {
+			return reflect.Value{}, fmt.Errorf("parse custom flag value: %w", err)
+		}
+
+		return resV.Elem(), nil
+	}
+
 	// standard library types
 	if typ.String() == "time.Duration" {
 		x, err := time.ParseDuration(s)
