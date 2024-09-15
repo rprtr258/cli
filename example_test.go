@@ -8,12 +8,12 @@ import (
 )
 
 type cmdRoot struct {
-	// Slice of bool will append 'true' each time the option
+	// Slice of bool will append 'true' each time the fun.Option
 	// is encountered (can be set multiple times, like -vvv)
 	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 	// Example of automatic marshalling to desired type (uint)
 	Offset uint `long:"offset" description:"Offset"`
-	// Example of a callback, called each time the option is found.
+	// Example of a callback, called each time the fun.Option is found.
 	Call func(string) `short:"c" description:"Call phone number"`
 	// Example of a required flag
 	Name string `short:"n" long:"name" description:"A name" required:"true"`
@@ -65,7 +65,7 @@ func (x cmdRoot) Execute(context.Context) error {
 }
 
 func Example() {
-	err := RunContext[cmdRoot](context.Background(),
+	err := Run[cmdRoot](context.Background(),
 		// some fake arguments to parse
 		"-vv",
 		"--offset=5",

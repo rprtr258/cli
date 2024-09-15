@@ -7,44 +7,44 @@ go-flags: a go library for parsing command line arguments
 
 This library provides similar functionality to the builtin flag library of go, but provides much more functionality and nicer formatting. From the documentation:
 
-package cli provides an extensive command line option parser. The flags package is similar in functionality to the go builtin flag package but provides more options and uses reflection to provide a convenient and succinct way of specifying command line options.
+package cli provides an extensive command line fun.Option parser. The flags package is similar in functionality to the go builtin flag package but provides more fun.Options and uses reflection to provide a convenient and succinct way of specifying command line fun.Options.
 
 ## Supported features
 The following features are supported:
-- Options with short names: `-v`
-- Options with long names: `--verbose`
-- Options with and without arguments (`bool` vs any other type)
-- Options with optional arguments and default values
-- Multiple option groups each containing a set of options
+- fun.Options with short names: `-v`
+- fun.Options with long names: `--verbose`
+- fun.Options with and without arguments (`bool` vs any other type)
+- fun.Options with fun.Optional arguments and default values
+- Multiple fun.Option groups each containing a set of fun.Options
 - Generate and print well-formatted help message
 - Passing remaining command line arguments after `--`
-- Supports multiple short options: `-aux`
+- Supports multiple short fun.Options: `-aux`
 - Supports all primitive and standard library go types: `string`, `int{8..64}`, `uint{8..64}`, `float`, `time.Duration`, etc.
 - Supports maps
 
 
 ## Basic usage
-The flags package uses structs, reflection and struct field tags to allow users to specify command line options. This results in very simple and concise specification of your application options. For example:
+The flags package uses structs, reflection and struct field tags to allow users to specify command line fun.Options. This results in very simple and concise specification of your application fun.Options. For example:
 
 ```go
-type Options struct {
+type fun.Options struct {
 	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 }
 ```
 
-This specifies one option with a short name `-v` and a long name `--verbose`. When either `-v` or `--verbose` is found on the command line, a `true` value will be appended to the `Verbose` field. e.g. when specifying `-vvv`, the resulting value of `Verbose` will be `{true, true, true}`.
+This specifies one fun.Option with a short name `-v` and a long name `--verbose`. When either `-v` or `--verbose` is found on the command line, a `true` value will be appended to the `Verbose` field. e.g. when specifying `-vvv`, the resulting value of `Verbose` will be `{true, true, true}`.
 
 ## Example
 ```go
 type cmdRoot struct {
-	// Slice of bool will append 'true' each time the option
+	// Slice of bool will append 'true' each time the fun.Option
 	// is encountered (can be set multiple times, like -vvv)
 	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
 
 	// Example of automatic marshalling to desired type (uint)
 	Offset uint `long:"offset" description:"Offset"`
 
-	// Example of a callback, called each time the option is found.
+	// Example of a callback, called each time the fun.Option is found.
 	Call func(string) `short:"c" description:"Call phone number"`
 
 	// Example of a required flag
@@ -116,19 +116,19 @@ if err != nil {
 }
 ```
 
-Slice options work exactly the same as primitive type options, except that whenever the option is encountered, a value is appended to the slice.
+Slice fun.Options work exactly the same as primitive type fun.Options, except that whenever the fun.Option is encountered, a value is appended to the slice.
 
-Map options from string to primitive type are also supported. On the command line, you specify the value for such an option as `key:value`. For example
+Map fun.Options from string to primitive type are also supported. On the command line, you specify the value for such an fun.Option as `key:value`. For example
 
 ```go
-type Options struct {
+type fun.Options struct {
 	AuthorInfo string[string] `short:"a"`
 }
 ```
 
 Then, the `AuthorInfo` map can be filled with something like `-a name:Jesse -a "surname:van den Kieboom"`.
 
-Finally, for full control over the conversion between command line argument values and options, user defined types can choose to implement the Marshaler and Unmarshaler interfaces.
+Finally, for full control over the conversion between command line argument values and fun.Options, user defined types can choose to implement the Marshaler and Unmarshaler interfaces.
 
 
 ## Available field tags
@@ -155,13 +155,13 @@ flag.
 ## Commands
 Commands are often used in monolithic applications that support various commands or actions. Take git for example, all of the add, commit, checkout, etc. are called commands. Using commands you can easily separate multiple functions of your application.
 
-To specify a command add a struct field to your options struct annotated with the `command:"command-name"` tag.
+To specify a command add a struct field to your fun.Options struct annotated with the `command:"command-name"` tag.
 
 Use `alias:"alias-name"` tag to add aliases for command.
 
 When parsing ends and there is an active command and that command implements the Commander interface, then its Execute method will be run with the remaining command line arguments.
 
-Command structs can have options which become valid to parse after the command has been specified on the command line, in addition to the options of all the parent commands. I.e. considering a `-v` flag on the parser and an add command, the following are equivalent:
+Command structs can have fun.Options which become valid to parse after the command has been specified on the command line, in addition to the fun.Options of all the parent commands. I.e. considering a `-v` flag on the parser and an add command, the following are equivalent:
 
 ```bash
 ./app -v add
@@ -200,6 +200,6 @@ _completion_example() {
 complete -F _completion_example completion-example
 ```
 
-Completion requires the parser option PassDoubleDash and is therefore enforced if the environment variable `GO_FLAGS_COMPLETION` is set.
+Completion requires the parser fun.Option PassDoubleDash and is therefore enforced if the environment variable `GO_FLAGS_COMPLETION` is set.
 
 Customized completion for argument values is supported by implementing the `flags.Completer` interface for the argument value type. An example of a type which does so is the `flags.Filename` type, an alias of string allowing simple filename completion. A slice or array argument value whose element type implements `flags.Completer` will also be completed.

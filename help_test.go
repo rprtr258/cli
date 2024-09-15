@@ -9,7 +9,7 @@ import (
 )
 
 type cmdBommand struct {
-	Hidden bool `long:"hidden" description:"A hidden option"`
+	Hidden bool `long:"hidden" description:"A hidden fun.Option"`
 }
 
 func (x cmdBommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
@@ -27,13 +27,13 @@ type cmdHidden struct {
 func (x cmdHidden) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 type cmdParentSub struct {
-	Opt string `long:"opt" description:"This is a sub command option"`
+	Opt string `long:"opt" description:"This is a sub command fun.Option"`
 }
 
 func (x cmdParentSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 type cmdParent struct {
-	Opt        string       `long:"opt" description:"This is a parent command option"`
+	Opt        string       `long:"opt" description:"This is a parent command fun.Option"`
 	SubCommand cmdParentSub `command:"sub" description:"A sub command"`
 }
 
@@ -51,7 +51,7 @@ type cmdHelp struct {
 	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
-	Hidden            string            `long:"hidden" description:"Hidden option"`
+	Hidden            string            `long:"hidden" description:"Hidden fun.Option"`
 
 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name"`
 
@@ -69,16 +69,16 @@ type cmdHelp struct {
 	// }
 
 	// Sip struct {
-	// 	Opt                  string `long:"opt" description:"This is a subgroup option"`
+	// 	Opt                  string `long:"opt" description:"This is a subgroup fun.Option"`
 	// 	HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group"`
 	// 	NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group"`
 
 	// 	Sap struct {
-	// 		Opt string `long:"opt" description:"This is a subsubgroup option"`
+	// 		Opt string `long:"opt" description:"This is a subsubgroup fun.Option"`
 	// 	}
 	// }
 
-	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden options"`
+	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden fun.Options"`
 	Command       cmdCommand `command:"command" alias:"cm" alias:"cmd" description:"A command"`
 	HiddenCommand cmdHidden  `command:"hidden-command" description:"A hidden command"`
 	ParentCommand cmdParent  `command:"parent" description:"A parent command"`
@@ -93,16 +93,16 @@ type cmdHelp struct {
 func (x cmdHelp) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 func TestHelp(t *testing.T) {
-	err := RunContext[cmdHelp](context.Background(), "x", "--help")
+	err := Run[cmdHelp](context.Background(), "x", "--help")
 	require.Equal(t, &Error{
 		Kind: ErrHelp,
-		Message: strings.Join([]string{
+		Message strings.Join([]string{
 			"Usage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m \x1b[95m[ARGUMENTS]\x1b[0m",
 			"",
 			"",
 			"",
 			"Commands:",
-			"\t\x1b[91mbommand\x1b[0m          A command with only hidden options",
+			"\t\x1b[91mbommand\x1b[0m          A command with only hidden fun.Options",
 			"\t\x1b[91mcommand\x1b[0m,\x1b[31mcm\x1b[0m,\x1b[31mcmd\x1b[0m   A command",
 			"\t\x1b[91mhidden-command\x1b[0m   A hidden command",
 			"\t\x1b[91mparent\x1b[0m           A parent command",
@@ -121,9 +121,9 @@ func TestHelp(t *testing.T) {
 			"\t\x1b[93m--default-map\x1b[0m                                        Testdefault map value (default: some:value, another:value)",
 			"\t\x1b[93m--env-default1\x1b[0m                                       Test env-default1 value (default: Some value)",
 			"\t\x1b[93m--env-default2\x1b[0m                                       Test env-default2 value",
-			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  Option with named argument",
-			"\t\x1b[93m--opt-with-choices\x1b[0m                                   Option with choices",
-			"\t\x1b[93m--hidden\x1b[0m                                             Hidden option",
+			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  fun.Option with named argument",
+			"\t\x1b[93m--opt-with-choices\x1b[0m                                   fun.Option with choices",
+			"\t\x1b[93m--hidden\x1b[0m                                             Hidden fun.Option",
 			"\t\x1b[93m--this-hidden-option-has-a-ridiculously-long-name\x1b[0m    ",
 			"\t\x1b[93m-s\x1b[0m                                                   A slice of strings (default: some, value)",
 			"\t\x1b[93m--intmap\x1b[0m                                             A map from string to int (default: a:1)",
@@ -138,16 +138,16 @@ type helpCommandNoOptions struct {
 }
 
 func TestHelpCommand(t *testing.T) {
-	err := RunContext[helpCommandNoOptions](context.Background(), "x", "command", "--help")
+	err := Run[helpCommandNoOptions](context.Background(), "x", "command", "--help")
 	require.Equal(t, &Error{
 		Kind: ErrHelp,
-		Message: strings.Join([]string{
+		Message strings.Join([]string{
 			"Usage: \x1b[94mx command\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
 			"",
 			"A command",
 			"",
 			"Flags:",
-			"\t\x1b[93m--opt\x1b[0m         This is a sub command option",
+			"\t\x1b[93m--opt\x1b[0m         This is a sub command fun.Option",
 			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message",
 			"",
 		}, "\n"),
@@ -168,10 +168,10 @@ func TestHelpDefaults(t *testing.T) {
 		"some flags": {"x", "--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
 	} {
 		t.Run(name, func(t *testing.T) {
-			err := RunContext[cmdHelpDefaults](context.Background(), args...)
+			err := Run[cmdHelpDefaults](context.Background(), args...)
 			require.Equal(t, &Error{
 				Kind: ErrHelp,
-				Message: strings.Join([]string{
+				Message strings.Join([]string{
 					"Usage: \x1b[94mx\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
 					"",
 					"",

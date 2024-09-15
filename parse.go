@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -13,10 +12,10 @@ import (
 	"github.com/rprtr258/cli/internal"
 )
 
-// RunContext parses the command line arguments according to the type.
+// Run parses the command line arguments according to the type.
 // Error indicates either parsing or execution error.
 // TODO: add root command description
-func RunContext[T any](ctx context.Context, args ...string) error {
+func Run[T any](args ...string) error {
 	origcmd, err := newCommand[T]()
 	if err != nil {
 		// TODO: return some ParseError type

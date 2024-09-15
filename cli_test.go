@@ -6,48 +6,48 @@ import (
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
-type optsSimpleSubcommand struct {
-	G bool `short:"g"`
+func assertSuccess[T any](t *testing.T, parser FlagParser[T], expected T, args ...string) {
+	t.Helper()
+	ctx := newContext(args...)
+	got, err := parser.run(ctx).unpack()
+	require.NoError(t, err)
+	require.Equal(t, expected, got)
 }
 
-func (x optsSimpleSubcommand) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
+func assertFail[T any](t *testing.T, parser FlagParser[T], expected string, args ...string) {
+	t.Helper()
+	ctx := newContext(args...)
+	_, err := parser.run(ctx).unpack()
+	require.EqualError(t, err, expected)
+}
+
+var optsSimpleSubcommand = Bool("g")
+
+func TestRun_first_subcommand(t *testing.T) {
+	assertSuccess(t, optsSimpleSubcommand, true, "-g")
+}
 
 type optsFirst struct {
 	Value   bool                 `short:"v"`
 	Command optsSimpleSubcommand `command:"cmd"`
 }
 
-func (x optsFirst) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
-func TestRun_first_subcommand(t *testing.T) {
-	assertSuccess[optsFirst](t,
-		func(x optsSimpleSubcommand) {
-			assert.True(t, x.G)
-		},
-		"cmd", "-g",
-	)
-}
-
 func TestRun_first_command(t *testing.T) {
-	assertSuccess[optsFirst](t,
-		func(x optsFirst) {
-			assert.True(t, x.Value)
-		},
-		"-v",
-	)
+	assertSuccess(t, optsFirst, true, "-v")
 }
 
 func TestRun_first_commandExtraneousPositionals(t *testing.T) {
-	assertFail[optsFirst](t,
+	assertFail(t, optsFirst,
 		`extraneous positional arguments found: ["cmd", "-g"]`,
 		"-v", "cmd", "-g",
 	)
 }
 
 func TestRun_extraFlag(t *testing.T) {
-	assertFail[optsFirst](t,
+	assertFail(t, optsFirst,
 		`extraneous positional arguments found: ["-g", "cmd"]`,
 		"-v", "-g", "cmd",
 	)
@@ -516,4 +516,101 @@ func TestShortTooLong(t *testing.T) {
 	}
 
 	assertFail[opts](t, `parse flag "Value": scan short name: must be single character, but was "vv"`)
+}
+
+use crateargsArg;
+
+#[test]
+#[cfg(any(windows, unix))]
+fn wtf_shenanigans_1() {
+    use crateargs{split_os_argument, Arg, ArgType};
+    use stdffistring;
+
+    for (i_c, prefix) in [
+        (ArgTypeShort, "f"),
+        (ArgTypeLong, "foo"),
+        (ArgTypeLong, "口水鸡"),
+    ] {
+        i_prefix := stringfrom(prefix);
+        let i_suffix;
+        #[cfg(windows)]
+        {
+            use stdoswindowsffistringExt;
+            i_suffix = stringfrom_wide(&[0x0066, 0x006f, 0xD800, 0x006f]);
+        }
+        #[cfg(not(windows))]
+        {
+            use stdosunixffistringExt;
+            i_suffix = stringfrom_vec(vec![0x66, 0x6f, 0xD8, 0x6f]);
+        }
+
+        os_string := stringnew();
+        switch i_c {
+            ArgTypeShortos_string.push("-"),
+            ArgTypeLongos_string.push("--"),
+        }
+        os_string.push(&i_prefix);
+        os_string.push("=");
+        os_string.push(&i_suffix);
+
+        let (o_c, o_prefix, o_suffix) = split_os_argument(&os_string).unwrap();
+        assert_eq!(i_c, o_c);
+        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
+        assert_eq!(ArgArgWord(i_suffix), o_suffix.unwrap());
+    }
+}
+
+#[test]
+fn wtf_shenanigans_2() {
+    use crateargs{split_os_argument, split_os_argument_fallback, ArgType};
+    use stdffistring;
+
+    for (i_c, prefix) in [
+        (ArgTypeShort, "f"),
+        (ArgTypeLong, "foo"),
+        (ArgTypeLong, "口水鸡"),
+    ] {
+        i_prefix := stringfrom(prefix);
+        i_suffix := stringfrom("口水鸡");
+
+        os_string := stringnew();
+        switch i_c {
+            ArgTypeShortos_string.push("-"),
+            ArgTypeLongos_string.push("--"),
+        }
+        os_string.push(&i_prefix);
+        os_string.push("=");
+        os_string.push(&i_suffix);
+
+        let (o_c, o_prefix, o_suffix) = split_os_argument(&os_string).unwrap();
+        assert_eq!(i_c, o_c);
+        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
+        assert_eq!(ArgArgWord(i_suffix), o_suffix.unwrap());
+
+        let (o_c, o_prefix, o_suffix) = split_os_argument_fallback(&os_string).unwrap();
+        assert_eq!(i_c, o_c);
+        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
+        assert_eq!(ArgArgWord(i_suffix), o_suffix.unwrap());
+    }
+}
+
+#[test]
+fn fallback_with_strange_args_produces_same_results() {
+    use crateargs{split_os_argument, split_os_argument_fallback};
+    s := stdffistringfrom("-Obits=2048");
+    r1 := split_os_argument(&s);
+    r2 := split_os_argument_fallback(&s);
+    assert_eq!(r1, r2);
+}
+
+#[test]
+fn de_yoda() {
+    use bpaf*;
+    parser := construct(a(short('a').switch()), b(short('b').switch())).to_options();
+
+    r := parser.run_inner(&[]).unwrap();
+    assert_eq!(r, (false, false));
+
+    r := parser.run_inner(&["-a", "-b"]).unwrap();
+    assert_eq!(r, (true, true));
 }

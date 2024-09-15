@@ -161,7 +161,7 @@ func TestNoDefaultsForBools(t *testing.T) {
 		DefaultBool bool `short:"d" default:"true"`
 	}
 
-	assertFail[cmd](t, `parse flag "DefaultBool": bool flag cannot have default value, since then it always will be true`)
+	assertFail[cmd](t, `parse flag "DefaultBool" bool flag cannot have default value, since then it always will be true`)
 }
 
 type flagString struct {
@@ -259,7 +259,7 @@ func (x cmdEnum) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 func TestEnum(t *testing.T) {
 	assertFail[cmdEnum](t,
 		`invalid --choose flag value: allowed values: v1, v2`,
-		// "Invalid value `invalid' for option `--choose'. Allowed values are: v1 or v2",
+		// "Invalid value `invalid' for fun.Option `--choose'. Allowed values are: v1 or v2",
 		"--choose", "invalid")
 	assertSuccess[cmdEnum](t,
 		func(x cmdEnum) {

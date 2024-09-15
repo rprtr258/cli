@@ -91,11 +91,11 @@ type cmdDocker struct {
 type cmdRoot struct {
 	// Example of verbosity with level
 	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-	// Example of optional value
-	// User string `short:"u" long:"user" description:"User name" optional:"yes" optional-value:"pancake"`
+	// Example of fun.Optional value
+	// User string `short:"u" long:"user" description:"User name" fun.Optional:"yes" fun.Optional-value:"pancake"`
 	// Example of map with multiple default values
 	// Users map[string]string `long:"users" description:"User e-mail map" default:"system:system@example.org" default:"admin:admin@example.org"`
-	// Example of option group
+	// Example of fun.Option group
 	// EditorOptions
 	// Example of custom type Marshal/Unmarshal
 	// Point Point `long:"point" description:"A x,y point" default:"1,2"`
@@ -107,7 +107,7 @@ type cmdRoot struct {
 }
 
 func main() {
-	if err := cli.RunContext[cmdRoot](context.Background(), os.Args...); err != nil {
+	if err := cli.Run[cmdRoot](context.Background(), os.Args...); err != nil {
 		fmt.Fprintln(os.Stderr, err.Error())
 		os.Exit(1)
 	}
