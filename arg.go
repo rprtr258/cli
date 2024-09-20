@@ -6,9 +6,9 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// / Preprocessed command line argument
+// Preprocessed command line argument
 // /
-// / [`string`] in Short/Long correspond to orignal command line item used for errors
+// [`string`] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
 	os_str string
 	value  func(
@@ -125,28 +125,28 @@ const (
 	ArgTypeLong  ArgType = true
 )
 
-// / split [`string`] into argument specific bits
+// split [`string`] into argument specific bits
 // /
-// / takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
-// / "--" - type, "name" - name, must be representable as utf8, "=" - fun.Optional, "value" - flag
+// takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
+// "--" - type, "name" - name, must be representable as utf8, "=" - fun.Optional, "value" - flag
 // /
-// / dashes and equals sign are low codepoint values and - can look for them literally in a string.
-// / This probably means not supporting dashes with diacritics, but that's okay
+// dashes and equals sign are low codepoint values and - can look for them literally in a string.
+// This probably means not supporting dashes with diacritics, but that's okay
 // /
-// / name must be valid utf8 after conversion and must not include `=`
+// name must be valid utf8 after conversion and must not include `=`
 // /
-// / argument is fun.Optional and can be non valid utf8.
+// argument is fun.Optional and can be non valid utf8.
 // /
-// / The idea is to split the [`string`] into opaque parts by looking only at the parts simple parts
-// / and let stdlib to handle the decoding of those parts.
+// The idea is to split the [`string`] into opaque parts by looking only at the parts simple parts
+// and let stdlib to handle the decoding of those parts.
 // /
-// / performance wise this (at least on unix) works some small number percentage slower than the
-// / previous version
+// performance wise this (at least on unix) works some small number percentage slower than the
+// previous version
 // /
 // /
-// / Notation -fbar is ambigous and could mean either `-f -b -a -r` or `-f=bar`, resolve it into
-// / [`ArgAmbiguity`] and let subparser disambiguate it later depending on available short flag and
-// / arguments
+// Notation -fbar is ambigous and could mean either `-f -b -a -r` or `-f=bar`, resolve it into
+// [`ArgAmbiguity`] and let subparser disambiguate it later depending on available short flag and
+// arguments
 func split_os_argument(input string) (ArgType, string, fun.Option[Arg], bool) {
 	// but in either case dashes and equals are just literal values just with different width
 	const DASH = '-'

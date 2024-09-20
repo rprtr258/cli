@@ -5,7 +5,7 @@ func StateFrom(value []string)  Self {
             msg := fun.Invalid();
             res := Stateconstruct(args, nil, nil, &msg);
             if fun.Valid(err) := &msg {
-                panic!("Couldn't construct state: {:?}/{:?}", err, res);
+                panic("Couldn't construct state: %#v/%#v", err, res);
             }
             return res
     }
@@ -166,6 +166,6 @@ func StateFrom(value []string)  Self {
     func ambiguity_towards_default() {
         // AKA unresolved
         a := Statefrom(&["-abc"]);
-        is_ambig := matches!(a.peek(), fun.Valid(ArgWord(_)));
+        is_ambig := matches(a.peek(), fun.Valid(ArgWord(_)));
         assert!(is_ambig);
     }

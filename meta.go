@@ -1,6 +1,12 @@
 package cli
 
-type Meta= func(
+import (
+	"fmt"
+
+	"github.com/rprtr258/fun"
+)
+
+type Meta = func(
 	// All arguments listed in a vector must be present
 	And func([]Meta),
 	// One of arguments listed in a vector must be present
@@ -31,327 +37,357 @@ type Meta= func(
 
 func MetaAnd(xs []Meta) Meta {
 	return func(And, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _, _, _ func(Meta, Doc), _ func(Meta)) {
-        if And != nil {
-            And(xs)
-        }
-    }
+		if And != nil {
+			And(xs)
+		}
+	}
 }
 
 // to get stdmemtake to work
-impl Default for Meta {
-    func default()Self {
-        MetaSkip
-    }
+func DefaultMeta() Meta {
+	return MetaSkip
 }
 
 // MetaStrict should bubble up to one of 3 places:
 // - top level
 // - one of "and" elements
 // - one of "or" elements
-#[derive(Debug, Clone, Copy)]
-enum StrictNorm {
-    // starting at the top and looking for Strict inside
-    Pull,
-    Push,
-    // Already accounted for one, can strip the rest
-    Strip,
+type StrictNorm func(
+	// starting at the top and looking for Strict inside
+	Pull func(),
+	Push func(),
+	// Already accounted for one, can strip the rest
+	Strip func(),
+)
+
+func (self *StrictNorm) push() {
+	self(
+		func() { *self = StrictNormPush },
+		nil,
+		nil,
+	)
 }
 
-impl StrictNorm {
-    func push(*self) {
-        switch *self {
-            StrictNormPull*self = StrictNormPush,
-            StrictNormPush | StrictNormStrip{}
-        }
-    }
+// Used by normalization function to collapse duplicated commands.
+// It seems to be fine to strip section information but not anything else
+func (self Meta) is_command() bool {
+	res := false
+	self(
+		nil,
+		nil,
+		nil,
+		nil,
+		nil,
+		func(i Item) {
+			i(nil, nil, func(string, fun.Option[byte], fun.Option[Doc], Meta, Info) { res = true }, nil, nil)
+		},
+		nil,
+		func(m Meta, _ Doc) { res = m.is_command() },
+		nil,
+		nil,
+		nil,
+		nil,
+	)
+	return res
 }
 
-impl Meta {
-    // Used by normalization function to collapse duplicated commands.
-    // It seems to be fine to strip section information but not anything else
-    func is_command(&self)bool {
-        switch self {
-            MetaItem(i)matches!(i.as_ref(), ItemCommand { .. }),
-            MetaSubsection(m, _)m.is_command(),
-            _false,
-        }
-    }
-
-    // do a nested invariant check
-    pub(crate) func positional_invariant_check(&self, verbose bool) {
-        func go(meta: &Meta, is_pos: &mut bool, v bool) {
-            switch meta {
-                MetaAnd(xs){
-                    for x in xs {
-                        go(x, is_pos, v);
-                    }
-                }
-                MetaOr(xs){
-                    out := *is_pos;
-                    for x in xs {
-                        this_pos := *is_pos;
-                        go(x, &mut this_pos, v);
-                        out |= this_pos;
-                    }
-                    *is_pos = out;
-                }
-                MetaItem(i){
-                    switch (*is_pos, i.is_pos()) {
-                        (true, true) | (false, false){}
-                        (true, false){
-                            panic!("bpaf usage BUG: all positional and command items must be placed in the right \
-                        most position of the structure or tuple they are in but {:?} breaks this rule. \
-                        See bpaf documentation for `positional` for details.", i);
-                        }
-                        (false, true){
-                            *is_pos = true;
-                        }
-                    }
-                    if let ItemCommand { meta, .. } = &**i {
-                        command_pos := false;
-                        if v {
-                            println!("Checking\n{:#?}", meta);
-                        }
-                        go(meta, &mut command_pos, v);
-                    }
-                }
-                MetaAdjacent(m){
-                    if fun.Valid(i) := Metafirst_item(m) {
-                        if i.is_pos() {
-                            go(m, is_pos, v);
-                        } else {
-                            inner := false;
-                            go(m, &mut inner, v);
-                        }
-                    }
-                }
-                MetaOptional(m)
-                | MetaRequired(m)
-                | MetaMany(m)
-                | MetaCustomUsage(m, _)
-                | MetaSubsection(m, _)
-                | MetaStrict(m)
-                | MetaSuffix(m, _)go(m, is_pos, v),
-                MetaSkip{}
-            }
-        }
-        is_pos := false;
-        if verbose {
-            println!("Checking\n{:#?}", self);
-        }
-        go(self, &mut is_pos, verbose);
-    }
-
-    pub(crate) func normalized(&self, for_usage bool)Meta {
-        m := self;
-        norm := StrictNormPull;
-        m.normalize(for_usage, &mut norm);
-        // stip outer () around meta unless inner
-        if MetaRequired(i) := m {
-            m = *i;
-        }
-        if matches!(m, MetaOr(_)) {
-            m = MetaRequired(Boxnew(m));
-        }
-        if matches!(norm, StrictNormPush) {
-            m = MetaStrict(Boxnew(m));
-        }
-        m
-    }
-
-    // Used by adjacent parsers since it inherits behavior of the front item
-    pub(crate) func first_item(meta: &Meta)Option[&Item] {
-        switch meta {
-            MetaAnd(xs)xs.first().and_then(Selffirst_item),
-            MetaItem(item)fun.Valid(item),
-            MetaSkip | MetaOr(_)fun.Invalid(),
-            MetaOptional(x)
-            | MetaStrict(x)
-            | MetaRequired(x)
-            | MetaAdjacent(x)
-            | MetaMany(x)
-            | MetaSubsection(x, _)
-            | MetaSuffix(x, _)
-            | MetaCustomUsage(x, _)Selffirst_item(x),
-        }
-    }
-
-    // Normalize meta info for display as usage. Required propagates outwards
-    func normalize(*self, for_usage bool, norm: &mut StrictNorm) {
-        func normalize_vec(
-            xs: &mut Vec<Meta>,
-            for_usage bool,
-            norm: &mut StrictNorm,
-            or bool,
-        )Option[Meta] {
-            final_norm := *norm;
-            for m in xs.iter_mut() {
-                this_norm := *norm;
-                m.normalize(for_usage, &mut this_norm);
-                let target: &mut StrictNorm = if or { &mut final_norm } else { norm };
-
-                switch (*target, this_norm) {
-                    (_, StrictNormPull) | (StrictNormStrip, _){}
-                    (StrictNormPull, StrictNormPush){
-                        *m = MetaStrict(Boxnew(stdmemtake(m)));
-                        *target = StrictNormStrip;
-                    }
-                    _{
-                        *target = this_norm;
-                    }
-                }
-            }
-            xs.retain(|m| !matches!(m, MetaSkip));
-
-            *norm = final_norm;
-
-            switch xs.len() {
-                0fun.Valid(MetaSkip),
-                1fun.Valid(xs.remove(0)),
-                _fun.Invalid(),
-            }
-        }
-
-        switch self {
-            MetaAnd(xs){
-                if fun.Valid(replacement) := normalize_vec(xs, for_usage, norm, false) {
-                    *self = replacement;
-                }
-            }
-            // or should have either () or [] around it
-            MetaOr(xs){
-                if fun.Valid(replacement) := normalize_vec(xs, for_usage, norm, true) {
-                    *self = replacement;
-                } else {
-                    saw_cmd := false;
-                    // drop all the commands apart from the first one
-                    xs.retain(|m| {
-                        is_cmd := m.is_command();
-                        keep := !(is_cmd && saw_cmd);
-                        saw_cmd |= is_cmd;
-                        keep
-                    });
-                    switch xs.len() {
-                        0*self = MetaSkip,
-                        1*self = xs.remove(0),
-                        _*self = MetaRequired(Boxnew(stdmemtake(self))),
-                    }
-                }
-            }
-            MetaOptional(m){
-                m.normalize(for_usage, norm);
-                if matches!(**m, MetaSkip) {
-                    // fun.Optional(Skip)Skip
-                    *self = MetaSkip;
-                } else if let MetaRequired(mm) | MetaOptional(mm) = m.as_mut() {
-                    // fun.Optional(Required(m))fun.Optional(m)
-                    // fun.Optional(Optional(m))fun.Optional(m)
-                    *m = stdmemtake(mm);
-                } else if MetaMany(many) := m.as_mut() {
-                    // fun.Optional(Many(Required(m)))Many(Optional(m))
-                    if MetaRequired(x) := many.as_mut() {
-                        *self = MetaMany(Boxnew(MetaOptional(stdmemtake(x))));
-                    }
-                }
-            }
-            MetaRequired(m){
-                m.normalize(for_usage, norm);
-                if matches!(**m, MetaSkip) {
-                    // Required(Skip)Skip
-                    *self = MetaSkip;
-                } else if matches!(**m, MetaAnd(_) | MetaOr(_)) {
-                    // keep () around composite parsers
-                } else {
-                    // and strip them elsewhere
-                    *self = stdmemtake(m);
-                }
-            }
-            MetaMany(m){
-                m.normalize(for_usage, norm);
-                if matches!(**m, MetaSkip) {
-                    *self = MetaSkip;
-                }
-            }
-            MetaAdjacent(m) | MetaSubsection(m, _) | MetaSuffix(m, _){
-                m.normalize(for_usage, norm);
-                *self = stdmemtake(m);
-            }
-            MetaItem(i)i.normalize(for_usage),
-            MetaSkip{
-                // nothing to do with items and skip just bubbles upwards
-            }
-            MetaCustomUsage(m, u){
-                m.normalize(for_usage, norm);
-                // strip CustomUsage if we are not in usage so writer can simply render it
-                if for_usage {
-                    if u.is_empty() {
-                        *self = MetaSkip;
-                    }
-                } else {
-                    *self = stdmemtake(m);
-                }
-            }
-            MetaStrict(m){
-                m.normalize(for_usage, norm);
-                norm.push();
-                *self = stdmemtake(m);
-            }
-        }
-    }
+// do a nested invariant check
+func (self Meta) positional_invariant_check(verbose bool) {
+	GO := func(meta Meta, is_pos *bool, v bool) {
+		meta(
+			func(xs []Meta) {
+				for _, x := range xs {
+					GO(x, is_pos, v)
+				}
+			},
+			func(xs []Meta) {
+				out := *is_pos
+				for _, x := range xs {
+					this_pos := *is_pos
+					GO(x, &this_pos, v)
+					out |= this_pos
+				}
+				*is_pos = out
+			},
+			func(Meta) { GO(m, is_pos, v) },
+			func(Meta) { GO(m, is_pos, v) },
+			func(m Meta) {
+				if i, ok := Metafirst_item(m).Unpack(); ok {
+					if i.is_pos() {
+						GO(m, is_pos, v)
+					} else {
+						inner := false
+						GO(m, &inner, v)
+					}
+				}
+			},
+			func(i Item) {
+				switch {
+				case *is_pos == i.is_pos():
+				case *is_pos:
+					panic(fmt.Sprintf(`bpaf usage BUG: all positional and command items must be placed in the right most position of the structure or tuple they are in but %#v breaks this rule. See bpaf documentation for "positional" for details.`, i))
+				case i.is_pos():
+					*is_pos = true
+				}
+				i(nil, nil, func(_ string, _ fun.Option[byte], _ fun.Option[Doc], meta Meta, _ Info) {
+					command_pos := false
+					if v {
+						fmt.Printf("Checking\n%#v\n", meta)
+					}
+					GO(meta, &command_pos, v)
+				}, nil, nil)
+			},
+			func(Meta) { GO(m, is_pos, v) },
+			func(Meta) { GO(m, is_pos, v) },
+			func(Meta) { GO(m, is_pos, v) },
+			func() {},
+			func(Meta, Doc) { GO(m, is_pos, v) },
+			func(Meta) { GO(m, is_pos, v) },
+		)
+	}
+	is_pos := false
+	if verbose {
+		fmt.Printf("Checking\n%#v\n", self)
+	}
+	GO(self, &is_pos, verbose)
 }
 
-impl From<Item> for Meta {
-    func from(value: Item)Self {
-        MetaItem(Boxnew(value))
-    }
+func (self Meta) normalized(for_usage bool) Meta {
+	m := self
+	norm := StrictNormPull
+	m.normalize(for_usage, &norm)
+	// stip outer () around meta unless inner
+	m(nil, nil, nil, func(i Meta) { m = i }, nil, nil, nil, nil, nil, nil, nil)
+	m(nil, func([]Meta) { m = MetaRequired(m) }, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	norm(nil, func() { m = MetaStrict(m) }, nil)
+	return m
 }
 
-impl Meta {
-    func alts(self, to: &mut Vec<Meta>) {
-        switch self {
-            MetaOr(mut xs)to.append(&mut xs),
-            MetaSkip{}
-            metato.push(meta),
-        }
-    }
+// Used by adjacent parsers since it inherits behavior of the front item
+func first_item(meta Meta) Option[Item] {
+	res := fun.Invalid[Item]()
+	meta(
+		func(xs []Meta) { res = xs.first().and_then(Selffirst_item) },
+		nil,
+		func(x Meta) { res = Metafirst_item(x) },
+		func(x Meta) { res = Metafirst_item(x) },
+		func(x Meta) { res = Metafirst_item(x) },
+		nil,
+		func(x Meta) { res = Metafirst_item(x) },
+		func(x Meta, _ Doc) { res = Metafirst_item(x) },
+		func(x Meta, _ Doc) { res = Metafirst_item(x) },
+		nil,
+		func(x Meta, _ Doc) { res = Metafirst_item(x) },
+		func(x Meta, _ Doc) { res = Metafirst_item(x) },
+	)
+	return res
+}
 
-    pub(crate) func or(self, other: Meta)Self {
-        res := Vecnew();
-        self.alts(&mut res);
-        other.alts(&mut res);
-        switch res.len() {
-            0MetaSkip,
-            1res.remove(0),
-            _MetaOr(res),
-        }
-    }
+// Normalize meta info for display as usage. Required propagates outwards
+func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
+	normalize_vec := func(
+		xs *[]Meta,
+		for_usage bool,
+		norm *StrictNorm,
+		or bool,
+	) Option[Meta] {
+		final_norm := *norm
+		for i := range *xs {
+			this_norm := *norm
+			xs[i].normalize(for_usage, &this_norm)
+			var target *StrictNorm = fun.IF(or, &final_norm, norm)
+			// switch (*target, this_norm) {
+			//     (_, StrictNormPull) | (StrictNormStrip, _){}
+			//     (StrictNormPull, StrictNormPush){
+			//         *m = MetaStrict(stdmemtake(m));
+			//         *target = StrictNormStrip;
+			//     }
+			//     _{
+			//         *target = this_norm;
+			//     }
+			// }
+		}
+		xs = fun.Filter(xs, func(m) { return !matches(m, MetaSkip) })
 
-    // collect different kinds of short names for disambiguation
-    pub(crate) func collect_shorts(&self, flags: &mut Vec<char>, args: &mut Vec<char>) {
-        switch self {
-            MetaAnd(xs) | MetaOr(xs){
-                for x in xs {
-                    x.collect_shorts(flags, args);
-                }
-            }
-            MetaItem(m)switch &**m {
-                ItemAny { .. } | ItemPositional { .. }{}
-                ItemCommand { meta, .. }{
-                    meta.collect_shorts(flags, args);
-                }
-                ItemFlag { shorts, .. }flags.extend(shorts),
-                ItemArgument { shorts, .. }args.extend(shorts),
-            },
-            MetaCustomUsage(m, _)
-            | MetaRequired(m)
-            | MetaOptional(m)
-            | MetaAdjacent(m)
-            | MetaSubsection(m, _)
-            | MetaSuffix(m, _)
-            | MetaMany(m){
-                m.collect_shorts(flags, args);
-            }
-            MetaSkip | MetaStrict(_){}
-        }
-    }
+		*norm = final_norm
+
+		switch xs.len() {
+		case 0:
+			return fun.Valid(MetaSkip)
+		case 1:
+			return fun.Valid(xs.remove(0))
+		default:
+			return fun.Invalid()
+		}
+	}
+
+	self(
+		func(xs []Meta) {
+			if replacement, ok := normalize_vec(xs, for_usage, norm, false); ok {
+				*self = replacement
+			}
+		},
+		// or should have either () or [] around it
+		func(xs []Meta) {
+			if replacement, ok := normalize_vec(xs, for_usage, norm, true); ok {
+				*self = replacement
+			} else {
+				saw_cmd := false
+				// drop all the commands apart from the first one
+				xs = fun.Filter(func(m Meta) {
+					is_cmd := m.is_command()
+					keep := !(is_cmd && saw_cmd)
+					saw_cmd |= is_cmd
+					keep
+				}, xs...)
+				switch xs.len() {
+				case 0:
+					*self = MetaSkip
+				case 1:
+					*self = xs.remove(0)
+				default:
+					*self = MetaRequired(Boxnew(stdmemtake(self)))
+				}
+			}
+		},
+		func(m Meta) {
+			m.normalize(for_usage, norm)
+			m(
+				nil,
+				nil,
+				func(mm Meta) { *m = stdmemtake(mm) },
+				func(mm Meta) { *m = stdmemtake(mm) },
+				nil,
+				nil,
+				func(many Meta) {
+					many(nil, nil, nil, func(x Meta) { *self = MetaMany(Boxnew(MetaOptional(stdmemtake(x)))) }, nil, nil, nil, nil, nil)
+				},
+				nil,
+				nil,
+				func() { *self = MetaSkip },
+				nil,
+				nil,
+			)
+		},
+		func(m Meta) {
+			m.normalize(for_usage, norm)
+			if matches(**m, MetaSkip) {
+				// Required(Skip)Skip
+				*self = MetaSkip
+			} else if matches(**m, MetaAnd(_)|MetaOr(_)) {
+				// keep () around composite parsers
+			} else {
+				// and strip them elsewhere
+				*self = stdmemtake(m)
+			}
+		},
+		func(m Meta) {
+			m.normalize(for_usage, norm)
+			*self = stdmemtake(m)
+		},
+		func(i Item) { i.normalize(for_usage) },
+		func(m Meta) {
+			m.normalize(for_usage, norm)
+			if matches(**m, MetaSkip) {
+				*self = MetaSkip
+			}
+		},
+		func(m Meta, _ Doc) {
+			m.normalize(for_usage, norm)
+			*self = stdmemtake(m)
+		},
+		func(m Meta, _ Doc) {
+			m.normalize(for_usage, norm)
+			*self = stdmemtake(m)
+		},
+		nil, // nothing to do with items and skip just bubbles upwards
+		func(m Meta, u Doc) {
+			m.normalize(for_usage, norm)
+			// strip CustomUsage if we are not in usage so writer can simply render it
+			if for_usage {
+				if u.is_empty() {
+					*self = MetaSkip
+				}
+			} else {
+				*self = stdmemtake(m)
+			}
+		},
+		func(m Meta) {
+			m.normalize(for_usage, norm)
+			norm.push()
+			*self = stdmemtake(m)
+		},
+	)
+}
+
+func MetaFromItem(value Item) Meta {
+	return MetaItem(Boxnew(value))
+}
+
+func (self Meta) alts(to *[]Meta) {
+	self(
+		func() { to.push(meta) },
+		func(xs) { to.append(&xs) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+		nil,
+		func() { to.push(meta) },
+		func() { to.push(meta) },
+	)
+}
+
+func (self Meta) or(other Meta) Self {
+	res := Vecnew()
+	self.alts(&res)
+	other.alts(&res)
+	switch res.len() {
+	case 0:
+		MetaSkip
+	case 1:
+		res.remove(0)
+	default:
+		MetaOr(res)
+	}
+}
+
+// collect different kinds of short names for disambiguation
+func (self Meta) collect_shorts(flags *[]byte, args *[]byte) {
+	self(
+		func(xs []Meta) {
+			for _, x := range xs {
+				x.collect_shorts(flags, args)
+			}
+		},
+		func(xs []Meta) {
+			for _, x := range xs {
+				x.collect_shorts(flags, args)
+			}
+		},
+		func(m Meta) { m.collect_shorts(flags, args) },
+		func(m Meta) { m.collect_shorts(flags, args) },
+		func(m Meta) { m.collect_shorts(flags, args) },
+		func(m Item) {
+			m(
+				nil, nil,
+				func(_ string, _ fun.Option[byte], _ fun.Option[Doc], meta Meta, _ Info) {
+					meta.collect_shorts(flags, args)
+				},
+				func(_ ShortLong, shorts []byte, _ fun.Option[string], _ fun.Option[Doc]) { flags.extend(shorts) },
+				func(_ ShortLong, shorts []byte, _ Metavar, _ fun.Option[string], _ fun.Option[Doc]) {
+					args.extend(shorts)
+				},
+			)
+		},
+		func(m Meta) { m.collect_shorts(flags, args) },
+		func(m Meta, _ Doc) { m.collect_shorts(flags, args) },
+		func(m Meta, _ Doc) { m.collect_shorts(flags, args) },
+		nil,
+		func(m Meta) { m.collect_shorts(flags, args) },
+		nil,
+	)
 }

@@ -1,23 +1,33 @@
 package cli
 
-import "github.com/rprtr258/fun"
+import (
+	"fmt"
+	"strings"
 
-struct Shell(string);
+	"github.com/rprtr258/fun"
+)
 
-impl stdfmtDisplay for Shell {
-    func fmt(&self, f: &mut stdfmtFormatter)stdfmtResult {
-        use stdfmtWrite;
-        f.write_char('\'')?;
-        for c in self.0.chars() {
-            if c == '\'' {
-                f.write_str("'\\''")
-            } else {
-                f.write_char(c)
-            }?
-        }
-        f.write_char('\'')?;
-        Ok(struct{}{})
-    }
+type Shell string
+
+func (self Shell) fmt(f *stdfmtFormatter) error {
+	if _, err := f.write_char('\''); err != nil {
+		return err
+	}
+	for _, c := range self {
+		if c == '\'' {
+			if _, err := f.write_str("'\\''"); err != nil {
+				return err
+			}
+		} else {
+			if _, err := f.write_char(c); err != nil {
+				return err
+			}
+		}
+	}
+	if _, err := f.write_char('\''); err != nil {
+		return err
+	}
+	return nil
 }
 
 type ShellComp func(
@@ -67,264 +77,290 @@ type ShellComp func(
 
 // Parser that inserts static shell completion into bpaf's dynamic shell completion
 
-pub struct ParseCompShell<P> {
-    pub(crate) inner: P,
-    pub(crate) op: cratecomplete_shellShellComp,
+type ParseCompShell [P]struct {
+	inner P
+	op    ShellComp
 }
 
+func eval[P Parser[T]](self ParseCompShell[P], args *State) Result[T] {
+	// same as with ParseComp the goal is to replace metavars added by inner parser
+	// with a completion that would call a bash script.
+	// unlike ParseComp we don't care if inner parser succeeds
 
-impl<P, T> Parser<T> for ParseCompShell<P>
-where
-    P: Parser<T> + Sized,
-{
-    func eval(&self, args: &mut State)Result[T, Error] {
-        // same as with ParseComp the goal is to replace metavars added by inner parser
-        // with a completion that would call a bash script.
-        // unlike ParseComp we don't care if inner parser succeeds
+	// stash old completions
+	comp_items := Vecnew()
+	args.swap_comps_with(&comp_items)
 
-        // stash old completions
-        comp_items := Vecnew();
-        args.swap_comps_with(&mut comp_items);
+	res := self.inner.eval(args)
 
-        res := self.inner.eval(args);
+	// at this point comp_items contains values added by the inner parser
+	args.swap_comps_with(&comp_items)
 
-        // at this point comp_items contains values added by the inner parser
-        args.swap_comps_with(&mut comp_items);
+	depth := args.depth()
+	if comp, ok := args.comp_mut().Unpack(); ok {
+		for _, ci := range comp_items {
+			if is_argument, ok := ci.is_metavar().Unpack(); ok {
+				comp.push_shell(self.op, is_argument, depth)
+			} else {
+				comp.push_comp(ci)
+			}
+		}
+	}
 
-        depth := args.depth();
-        if fun.Valid(comp) := args.comp_mut() {
-            for ci in comp_items {
-                if fun.Valid(is_argument) := ci.is_metavar() {
-                    comp.push_shell(self.op, is_argument, depth);
-                } else {
-                    comp.push_comp(ci);
-                }
-            }
-        }
-
-        res
-    }
-
-    func meta(&self)Meta {
-        self.inner.meta()
-    }
+	return res
 }
 
-pub(crate) func render_zsh(
-    items: &[ShowComp],
-    ops: &[ShellComp],
-    full_lit string,
-)Result[String, stdfmtError] {
-    use stdfmtWrite;
-    res := Stringnew();
-
-    if items.is_empty() && ops.is_empty() {
-        return Ok(format!("compadd -- {}\n", full_lit));
-    }
-
-    for op in ops {
-        switch op {
-            ShellCompFile { mask: fun.Invalid() }writeln!(res, "_files"),
-            ShellCompFile { mask: fun.Valid(mask) }writeln!(res, "_files -g {}", Shell(mask)),
-            ShellCompDir { mask: fun.Invalid() }writeln!(res, "_files -/"),
-            ShellCompDir { mask: fun.Valid(mask) }writeln!(res, "_files -/ -g {}", Shell(mask)),
-            ShellCompRaw { zsh, .. }writeln!(res, "{}", zsh),
-            ShellCompNothingOk(struct{}{}),
-        }?;
-    }
-
-    if items.len() == 1 {
-        if items[0].subst.is_empty() {
-            writeln!(res, "compadd -- {}", Shell(items[0].pretty.as_str()))?;
-            writeln!(res, "compadd ''")?;
-            return Ok(res);
-        } else {
-            return Ok(format!("compadd -- {}\n", Shell(items[0].subst.as_str())));
-        }
-    }
-    writeln!(res, "local -a descr")?;
-
-    for item in items {
-        writeln!(res, "descr=({})", Shell(&item.to_string()))?;
-        //        writeln!(res, "args=(\"{}\")", item.subst)?;
-        if fun.Valid(group) := &item.extra.group {
-            writeln!(
-                res,
-                "compadd -l -d descr -V {} -X {} -- {}",
-                Shell(group),
-                Shell(group),
-                Shell(&item.subst),
-            )?;
-        } else {
-            // it seems sorting as well as not sorting is done in a group,
-            // by default group contains just one element so and `-o nosort`
-            // does nothing, while `-V whatever` stops sorting...
-            writeln!(
-                res,
-                "compadd -l -V nosort -d descr -- {}",
-                Shell(&item.subst)
-            )?;
-        }
-    }
-    Ok(res)
+func meta[P Parser[T]](self ParseCompShell[P]) Meta {
+	return self.inner.meta()
 }
 
-pub(crate) func render_bash(
-    items: &[ShowComp],
-    ops: &[ShellComp],
-    full_lit string,
-)Result[String, stdfmtError] {
-    // Bash is strange when it comes to completion - rather than taking
-    // a glob - _filedir takes an extension which it later to include uppercase
-    // version as well and to include "*." in front. For compatibility with
-    // zsh and other shells - this code strips "*." from the beginning....
-    //
-    // Second difference between bash and zsh is that if you are trying to
-    // allow for multiple extensions zsh takes a sane "*.(foo|bar|baz)" approach,
-    // while bash wants it to be "@(foo|bar|baz)"
-    //
-    // This doesn't cover all the possible masks, I suspect that the right way of
-    // handling this would be ignoring the shell machinery and handling masks on the
-    // Rust side... But for now try this
-    //
-    func bashmask(i string)Cow<str> {
-        i := i.strip_prefix("*.").unwrap_or(i);
+func render_zsh(
+	items []ShowComp,
+	ops []ShellComp,
+	full_lit string,
+) Result[string, error] {
+	res := Stringnew()
 
-        if i.starts_with('(') {
-            CowOwned(format!("@{}", i))
-        } else {
-            CowBorrowed(i)
-        }
-    }
+	if items.is_empty() && ops.is_empty() {
+		return Ok(fmt.Sprintf("compadd -- {}\n", full_lit))
+	}
 
-    use stdfmtWrite;
-    res := Stringnew();
+	for _, op := range ops {
+		var err error
+		op(
+			func(mask fun.Option[string]) {
+				if mask, ok := mask.Unpack(); ok {
+					_, err = fmt.Fprintln(res, "_files -g {}", Shell(mask))
+				} else {
+					_, err = fmt.Fprintln(res, "_files")
+				}
+			},
+			func(mask fun.Option[string]) {
+				if mask, ok := mask.Unpack(); ok {
+					_, err = fmt.Fprintln(res, "_files -/ -g {}", Shell(mask))
+				} else {
+					_, err = fmt.Fprintln(res, "_files -/")
+				}
+			},
+			func(
+				_ string,
+				zsh string,
+				_ string,
+				_ string,
+			) {
+				_, err = fmt.Fprintln(res, "{}", zsh)
+			},
+			nil,
+		)
+		if err != nil {
+			return err
+		}
+	}
 
-    if items.is_empty() && ops.is_empty() {
-        return Ok(format!("COMPREPLY+=({})\n", Shell(full_lit)));
-    }
+	if items.len() == 1 {
+		if items[0].subst.is_empty() {
+			if _, err := fmt.Fprintln(res, "compadd -- {}", Shell(items[0].pretty.as_str())); err != nil {
+				return err
+			}
+			if _, err := fmt.Fprintln(res, "compadd ''"); err != nil {
+				return err
+			}
+			return res, nil
+		} else {
+			return fmt.Sprintf("compadd -- {}\n", Shell(items[0].subst.as_str())), nil
+		}
+	}
+	if _, err := fmt.Fprintln(res, "local -a descr"); err != nil {
+		return err
+	}
 
-    init := "local cur prev words cword ; _init_completion || return ;";
-    for op in ops {
-        switch op {
-            ShellCompFile { mask: fun.Invalid() }write!(res, "{} _filedir", init),
-            ShellCompFile { mask: fun.Valid(mask) }{
-                writeln!(res, "{} _filedir {}", init, Shell(&bashmask(mask)))
-            }
-            ShellCompDir { mask: fun.Invalid() }write!(res, "{} _filedir -d", init),
-            ShellCompDir { mask: fun.Valid(mask) }{
-                writeln!(res, "{} _filedir -d {}", init, Shell(&bashmask(mask)))
-            }
-            ShellCompRaw { bash, .. }writeln!(res, "{}", bash),
-            ShellCompNothingOk(struct{}{}),
-        }?;
-    }
-
-    if items.len() == 1 {
-        if items[0].subst.is_empty() {
-            writeln!(res, "COMPREPLY+=( {} '')", Shell(&items[0].pretty))?;
-        } else {
-            writeln!(res, "COMPREPLY+=( {} )\n", Shell(&items[0].subst))?;
-        }
-
-        return Ok(res);
-    }
-    prev := "";
-    for item in items.iter() {
-        if fun.Valid(group) := &item.extra.group {
-            if prev != group {
-                prev = group;
-                writeln!(res, "COMPREPLY+=({})", Shell(group))?;
-            }
-        }
-        writeln!(res, "COMPREPLY+=({})", Shell(&item.to_string()))?;
-    }
-
-    Ok(res)
+	for _, item := range items {
+		if _, err := fmt.Fprintln(res, "descr=({})", Shell(&item.to_string())); err != nil {
+			return err
+		}
+		//        fmt.Fprintln(res, "args=(\"{}\")", item.subst)?;
+		if group, ok := item.extra.group.Unpack(); ok {
+			if _, err := fmt.Fprintln(
+				res,
+				"compadd -l -d descr -V {} -X {} -- {}",
+				Shell(group),
+				Shell(group),
+				Shell(&item.subst),
+			); err != nil {
+				return err
+			}
+		} else {
+			// it seems sorting as well as not sorting is done in a group,
+			// by default group contains just one element so and `-o nosort`
+			// does nothing, while `-V whatever` stops sorting...
+			if _, err := fmt.Fprintln(
+				res,
+				"compadd -l -V nosort -d descr -- {}",
+				Shell(&item.subst),
+			); err != nil {
+				return err
+			}
+		}
+	}
+	Ok(res)
 }
 
-pub(crate) func render_test(
-    items: &[ShowComp],
-    ops: &[ShellComp],
-    lit string,
-)Result[String, stdfmtError] {
-    use stdfmtWrite;
+func render_bash(
+	items []ShowComp,
+	ops []ShellComp,
+	full_lit string,
+) Result[string, error] {
+	// Bash is strange when it comes to completion - rather than taking
+	// a glob - _filedir takes an extension which it later to include uppercase
+	// version as well and to include "*." in front. For compatibility with
+	// zsh and other shells - this code strips "*." from the beginning....
+	//
+	// Second difference between bash and zsh is that if you are trying to
+	// allow for multiple extensions zsh takes a sane "*.(foo|bar|baz)" approach,
+	// while bash wants it to be "@(foo|bar|baz)"
+	//
+	// This doesn't cover all the possible masks, I suspect that the right way of
+	// handling this would be ignoring the shell machinery and handling masks on the
+	// Rust side... But for now try this
+	//
+	bashmask := func(i string) string {
+		i := i.strip_prefix("*.").unwrap_or(i)
 
-    if items.is_empty() && ops.is_empty() {
-        return Ok(format!("{}\n", lit));
-    }
+		if i.starts_with('(') {
+			return fmt.Sprintf("@{}", i)
+		} else {
+			return i
+		}
+	}
 
-    if items.len() == 1 && ops.is_empty() && !items[0].subst.is_empty() {
-        return Ok(items[0].subst);
-    }
+	res := Stringnew()
 
-    res := Stringnew();
-    for op in items {
-        writeln!(
-            res,
-            "{}\t{}\t{}\t{}",
-            op.subst,
-            op.pretty,
-            op.extra.group.as_deref().unwrap_or(""),
-            op.extra.help.as_deref().unwrap_or("")
-        )?;
-    }
-    writeln!(res)?;
-    for op in ops {
-        writeln!(res, "{:?}", op)?;
-    }
+	if items.is_empty() && ops.is_empty() {
+		return Ok(fmt.Sprintf("COMPREPLY+=({})\n", Shell(full_lit)))
+	}
 
-    Ok(res)
+	init := "local cur prev words cword ; _init_completion || return ;"
+	for _, op := range ops {
+		op(
+			func(mask fun.Option[string]) {
+				if mask, ok := mask.Unpack(); ok {
+					fmt.Fprintln(res, "{} _filedir {}", init, Shell(&bashmask(mask)))
+				} else {
+					fmt.Fprintf(res, "{} _filedir", init)
+				}
+			},
+			func(mask fun.Option[string]) {
+				if mask, ok := mask.Unpack(); ok {
+					fmt.Fprintln(res, "{} _filedir -d {}", init, Shell(&bashmask(mask)))
+				} else {
+					fmt.Fprintf(res, "{} _filedir -d", init)
+				}
+			},
+			func(bash string, _ string, _ string, _ string) { fmt.Fprintln(res, "{}", bash) },
+			nil,
+		)
+	}
+
+	if items.len() == 1 {
+		if items[0].subst.is_empty() {
+			fmt.Fprintln(res, "COMPREPLY+=( {} '')", Shell(&items[0].pretty))
+		} else {
+			fmt.Fprintln(res, "COMPREPLY+=( {} )\n", Shell(&items[0].subst))
+		}
+
+		return Ok(res)
+	}
+	prev := ""
+	for _, item := range items.iter() {
+		if group, ok := item.extra.group.Unpack(); ok {
+			if prev != group {
+				prev = group
+				fmt.Fprintln(res, "COMPREPLY+=({})", Shell(group))
+			}
+		}
+		fmt.Fprintln(res, "COMPREPLY+=({})", Shell(&item.to_string()))
+	}
+
+	Ok(res)
 }
 
-pub(crate) func render_fish(
-    items: &[ShowComp],
-    ops: &[ShellComp],
-    full_lit string,
-    app string,
-)Result[String, stdfmtError] {
-    use stdfmtWrite;
-    res := Stringnew();
-    if items.is_empty() && ops.is_empty() {
-        return Ok(format!("complete -c {} --arguments={}", app, full_lit));
-    }
-    shared := if ops.is_empty() { "-f " } else { "" };
-    for item in items.iter().rev().filter(|i| !i.subst.is_empty()) {
-        write!(res, "complete -c {} {}", app, shared)?;
-        if fun.Valid(long) := item.subst.strip_prefix("--") {
-            write!(res, "--long-option {} ", long)?;
-        } else if fun.Valid(short) := item.subst.strip_prefix('-') {
-            write!(res, "--short-option {} ", short)?;
-        } else {
-            write!(res, "-a {} ", item.subst)?;
-        }
-        if fun.Valid(help) := item.extra.help.as_deref() {
-            write!(res, "-d {:?}", help)?;
-        }
-        writeln!(res)?;
-    }
+func render_test(
+	items []ShowComp,
+	ops []ShellComp,
+	lit string,
+) Result[string, stdfmtError] {
+	if items.is_empty() && ops.is_empty() {
+		return Ok(fmt.Sprintf("{}\n", lit))
+	}
 
-    Ok(res)
+	if items.len() == 1 && ops.is_empty() && !items[0].subst.is_empty() {
+		return Ok(items[0].subst)
+	}
+
+	res := Stringnew()
+	for _, op := range items {
+		fmt.Fprintln(
+			res,
+			"{}\t{}\t{}\t{}",
+			op.subst,
+			op.pretty,
+			op.extra.group.as_deref().unwrap_or(""),
+			op.extra.help.as_deref().unwrap_or(""),
+		)
+	}
+	fmt.Fprintln(res)
+	for _, op := range ops {
+		fmt.Fprintln(res, "%#v", op)
+	}
+
+	Ok(res)
 }
 
-pub(crate) func render_simple(items: &[ShowComp])Result[String, stdfmtError] {
-    use stdfmtWrite;
-    res := Stringnew();
-    if items.len() == 1 {
-        writeln!(res, "{}", items[0].subst)?;
-    } else {
-        for item in items {
-            if fun.Valid(descr) := item.extra.help.as_deref() {
-                writeln!(
-                    res,
-                    "{}\t{}",
-                    item.subst,
-                    descr.split('\n').next().unwrap_or("")
-                )
-            } else {
-                writeln!(res, "{}", item.subst)
-            }?;
-        }
-    }
-    Ok(res)
+func render_fish(
+	items []ShowComp,
+	ops []ShellComp,
+	full_lit string,
+	app string,
+) Result[string, stdfmtError] {
+	res := Stringnew()
+	if items.is_empty() && ops.is_empty() {
+		return Ok(fmt.Sprintf("complete -c {} --arguments={}", app, full_lit))
+	}
+	shared := fun.IF(ops.is_empty(), "-f ", "")
+	for _, item := range items.iter().rev().filter(func(i) bool { return !i.subst.is_empty() }) {
+		fmt.Fprintf(res, "complete -c {} {}", app, shared)
+		if long, ok := item.subst.strip_prefix("--").Unpack(); ok {
+			fmt.Fprintf(res, "--long-option {} ", long)
+		} else if short, ok := item.subst.strip_prefix('-').Unpack(); ok {
+			fmt.Fprintf(res, "--short-option {} ", short)
+		} else {
+			fmt.Fprintf(res, "-a {} ", item.subst)
+		}
+		if help, ok := item.extra.help.Unpack(); ok {
+			fmt.Fprintf(res, "-d %#v", help)
+		}
+		fmt.Fprintln(res)
+	}
+
+	Ok(res)
+}
+
+func render_simple(items []ShowComp) string {
+	var res strings.Builder
+	if len(items) == 1 {
+		fmt.Fprintln(&res, items[0].subst)
+	} else {
+		for _, item := range items {
+			if descr, ok := item.extra.help.Unpack(); ok {
+				fmt.Fprintln(&res,
+					"{}\t{}",
+					item.subst,
+					strings.Split(descr, "\n").next().unwrap_or(""),
+				)
+			} else {
+				fmt.Fprintln(&res, item.subst)
+			}
+		}
+	}
+	return res.String()
 }

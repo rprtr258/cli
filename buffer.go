@@ -219,7 +219,7 @@ type TokenText struct {
 	style Style
 }
 
-type Token = func(
+type Token func(
 	func(Text TokenText),
 	func(BlockStart Block),
 	func(BlockEnd Block),

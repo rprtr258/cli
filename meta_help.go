@@ -167,7 +167,7 @@ func(self HelpItems) append_meta(*self, meta: &Meta) {
                 | MetaMany(x)
                 | MetaStrict(x)go(hi, x, no_ss),
                 MetaItem(item){
-                    if matches!(item.as_ref(), ItemPositional { help: fun.Invalid(), .. }) {
+                    if matches(item.as_ref(), ItemPositional { help: fun.Invalid(), .. }) {
                         return;
                     }
                     hi.items.push(HelpItemfrom(item.as_ref()));
@@ -198,11 +198,11 @@ func(self HelpItems) find_group(&self)Option[stdopsRangeInclusive[uint]] {
         start := self
             .items
             .iter()
-            .position(|i| matches!(i, HelpItemGroupStart { .. }))?;
+            .position(|i| matches(i, HelpItemGroupStart { .. }))?;
         end := self
             .items
             .iter()
-            .position(|i| matches!(i, HelpItemGroupEnd { .. }))?;
+            .position(|i| matches(i, HelpItemGroupEnd { .. }))?;
         fun.Valid(start..=end)
     }
 
@@ -376,7 +376,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
                 }
                 buf.token(TokenBlockStart(BlockItemBody));
                 if include_env {
-                    buf.write_str(&format!("[env:{}{}]", env, val), StyleText);
+                    buf.write_str(&fmt.Sprintf("[env:{}{}]", env, val), StyleText);
                 } else {
                     buf.text("Uses environment variable ");
                     buf.literal(env);
@@ -404,7 +404,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 
             if fun.Valid(env) := env {
                 val := switch stdenvvar_os(env) {
-                    fun.Valid(s)stdborrowCowfrom(format!(" = {:?}", s.to_string_lossy())),
+                    fun.Valid(s)stdborrowCowfrom(fmt.Sprintf(" = %#v", s.to_string_lossy())),
                     fun.Invalid()stdborrowCowBorrowed(": N/A"),
                 };
 
@@ -415,7 +415,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
                 buf.token(TokenBlockStart(BlockItemBody));
 
                 if include_env {
-                    buf.write_str(&format!("[env:{}{}]", env, val), StyleText);
+                    buf.write_str(&fmt.Sprintf("[env:{}{}]", env, val), StyleText);
                 } else {
                     buf.text("Uses environment variable ");
                     buf.literal(env);
@@ -521,19 +521,19 @@ func(self Dedup ) check(item HelpItem)bool {
                 true
             }
             HelpItemAny { metavar, help, .. }{
-                self.keep = self.items.insert(format!("{:?} {:?}", metavar, help));
+                self.keep = self.items.insert(fmt.Sprintf("%#v %#v", metavar, help));
                 self.keep
             }
             HelpItemPositional { metavar, help }{
-                self.keep = self.items.insert(format!("{:?} {:?}", metavar.0, help));
+                self.keep = self.items.insert(fmt.Sprintf("%#v %#v", metavar.0, help));
                 self.keep
             }
             HelpItemCommand { name, help, .. }{
-                self.keep = self.items.insert(format!("{:?} {:?}", name, help));
+                self.keep = self.items.insert(fmt.Sprintf("%#v %#v", name, help));
                 self.keep
             }
             HelpItemFlag { name, help, .. }{
-                self.keep = self.items.insert(format!("{:?} {:?}", name, help));
+                self.keep = self.items.insert(fmt.Sprintf("%#v %#v", name, help));
                 self.keep
             }
             HelpItemArgument {
@@ -544,7 +544,7 @@ func(self Dedup ) check(item HelpItem)bool {
             }{
                 self.keep = self
                     .items
-                    .insert(format!("{:?} {} {:?}", name, metavar.0, help));
+                    .insert(fmt.Sprintf("%#v {} %#v", name, metavar.0, help));
                 self.keep
             }
         }

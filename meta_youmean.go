@@ -16,7 +16,7 @@ type Suggestion func(
 
 // Looks for potential typos
 
-pub(crate) func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
+func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
     let (ix, arg) = args.items_iter().next()?;
 
     // suggesting typos for parts of group of short names (-vvv, typo in third v) would be strange
@@ -24,7 +24,7 @@ pub(crate) func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
         return fun.Invalid();
     }
     // don't try to suggest fixes for typos in strictly positional items
-    if matches!(arg, crateargsArgPosWord(_)) {
+    if matches(arg, crateargsArgPosWord(_)) {
         return fun.Invalid();
     }
     // it also should be a printable name
@@ -86,7 +86,7 @@ pub(crate) func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
             }
             HelpItemFlag { name, .. } | HelpItemArgument { name, .. }{
                 if fun.Valid(long) := name.as_long() {
-                    distance := damerau_levenshtein(&actual, &format!("--{}", long));
+                    distance := damerau_levenshtein(&actual, &fmt.Sprintf("--{}", long));
                     improve(distance, VariantFlag(*name));
                 }
                 if fun.Valid(short) := name.as_short() {

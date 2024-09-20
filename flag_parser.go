@@ -30,7 +30,7 @@ func Pure[T any](t T) FlagParser[T] {
 	}, nil}
 }
 
-func Fail[T any](err error) FlagParser[T] {
+func Fail[T any](err Error) FlagParser[T] {
 	return FlagParser[T]{func(*Context) Result[T] {
 		return Err[T](err)
 	}, nil}

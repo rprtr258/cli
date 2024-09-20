@@ -12,21 +12,21 @@ package cli
 //! primitive flag parser produces one of two values. User can combine several short flags in a single
 //! invocation: `-a -b -c` is the same as `-abc`.
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
 //!
 //! ## Required flag
 //!
 //! Similar to `flag`, but instead of falling back to the second value required flag parser would
 //! fail. Mostly useful in combination with other parsers, created with [`NamedArgreq_flag`].
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
 //!
 //! ## Switch
 //!
 //! A special case of a flag that gets decoded into a `bool`, mostly serves as a convenient
 //! shortcut to `.flag(true, false)`. Created with [`NamedArgswitch`].
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
 //!
 //! ## Argument
 //!
@@ -35,14 +35,14 @@ package cli
 //! literal can't start with `-` unless separated from the flag with `=`. For short flags value
 //! can follow immediately: `-fbar`.
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
 //!
 //! ## Positional
 //!
 //! A positional argument with no additonal name, for example in `vim main.rs` `main.rs`
 //! is a positional argument. Can't start with `-`, created with [`positional`].
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 //!
 //! ## Any
 //!
@@ -50,8 +50,8 @@ package cli
 //! isn't restricted to positional looking structure and would consume any items as they appear on
 //! a command line. Can be useful to collect anything unused to pass to other applications.
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
-#![cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
 //!
 //! ## Command
 //!
@@ -59,21 +59,8 @@ package cli
 //! string. For example `cargo build` invokes command `"build"` and after `"build"` `cargo`
 //! starts accepting values it won't accept otherwise
 //!
-#![cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
+// #![cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
 //!
-use std{ffistring, markerPhantomData, strFromStr};
-
-use crate{
-    args{Arg, State},
-    error{Message, MissingItem},
-    from_os_strparse_os_str,
-    itemShortLong,
-    meta_helpMetavar,
-    Doc, Error, Item, Meta, fun.OptionParser, Parser,
-};
-
-#[cfg(doc)]
-use crate{any, command, env, long, positional, short};
 
 // A named thing used to create [`flag`](NamedArgflag), [`switch`](NamedArgswitch) or
 // [`argument`](NamedArgargument)
@@ -87,7 +74,7 @@ use crate{any, command, env, long, positional, short};
 // [`help`](NamedArghelp) repeatedly to build a desired set of names then transform it into
 // a parser using `flag`, `switch` or `positional`.
 //
-#[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_combine.md"))]
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_combine.md"))]
 //
 // # Derive usage
 //
@@ -104,43 +91,41 @@ use crate{any, command, env, long, positional, short};
 // 5. If `env(arg)` annotation is present - in addition to long/short names derived according to
 //    rules 1..3 `bpaf` would also parse environment variable `arg` which can be a string literal
 //    or an expression.
-#[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_derive.md"))]
-#[derive(Clone, Debug)]
-pub struct NamedArg {
-    pub(crate) short: Vec<char>,
-    pub(crate) long: Vec<string>,
-    pub(crate) env: Vec<string>,
-    pub(crate) help: fun.Option[Doc],
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_derive.md"))]
+type NamedArg struct{
+    short[]byte
+    long[]string
+    env[]string
+    help fun.Option[Doc]
 }
 
-impl NamedArg {
-    pub(crate) func flag_item(&self)Option[Item] {
-        fun.Valid(ItemFlag {
-            name: ShortLongtry_from(self).ok()?,
+func(self NamedArg) flag_item()Option[Item] {
+    x,ok:=ShortLongtry_from(self).ok().Unpack()
+    if !ok{
+        return fun.Invalid()
+    }
+        return fun.Valid(ItemFlag {
+            name: x,
             help: self.help,
             env: self.env.first().copied(),
             shorts: self.short,
         })
     }
-}
 
-impl NamedArg {
     // Add a short name to a flag/switch/argument
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-    #[must_use]
-    func short(mut self, short: char)Self {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
+func(self *NamedArg) short( short byte)Self {
         self.short.push(short);
-        self
+        return self
     }
 
     // Add a long name to a flag/switch/argument
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-    #[must_use]
-    func long(mut self, long string)Self {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
+func(self *NamedArg) long( long string)Self {
         self.long.push(long);
-        self
+        return self
     }
 
     // Environment variable fallback
@@ -156,11 +141,10 @@ impl NamedArg {
     // ```console
     // $ NO_COLOR=1 app --do-something
     // ```
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-    #[must_use]
-    func env(mut self, variable string)Self {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
+func(self *NamedArg) env( variable string)NamedArg {
         self.env.push(variable);
-        self
+        return *self
     }
 
     // Add a help message to a `flag`/`switch`/`argument`
@@ -174,14 +158,10 @@ impl NamedArg {
     // You can pass anything that can be converted into [`Doc`], if you are not using
     // documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
-    #[must_use]
-    func help<M>(mut self, help: M)Self
-    where
-        M: Into<Doc>,
-    {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
+func(self *NamedArg) help( help Doc)NamedArg {
         self.help = fun.Valid(help.into());
-        self
+        return *self
     }
 
     // Simple boolean flag
@@ -193,23 +173,18 @@ impl NamedArg {
     // have other consumer annotations ([`flag`](NamedArgflag),
     // [`argument`](NamedArgargument), etc).
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
-    #[must_use]
-    func switch(self)ParseFlag<bool> {
-        build_flag_parser(true, fun.Valid(false), self)
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
+func(self NamedArg) Switch(self)ParseFlag[bool] {
+        return build_flag_parser(true, fun.Valid(false), self)
     }
 
     // Flag with custom present/absent values
     //
     // More generic version of [`switch`](NamedArgswitch) that can use arbitrary type instead of
     // [`bool`].
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
-    #[must_use]
-    func flag<T>(self, present: T, absent: T)ParseFlag<T>
-    where
-        T: Clone ,
-    {
-        build_flag_parser(present, fun.Valid(absent), self)
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
+func flag[T any](self NamedArg,present T, absent T)ParseFlag[T] {
+        return build_flag_parser(present, fun.Valid(absent), self)
     }
 
     // Required flag with custom value
@@ -221,13 +196,9 @@ impl NamedArg {
     // In derive style API `bpaf` would transform field-less enum variants into a parser
     // that accepts one of it's variant names as `req_flag`. Additionally `bpaf` handles `()`
     // fields as `req_flag`.
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
-    #[must_use]
-    func req_flag<T>(self, present: T)impl Parser<T>
-    where
-        T: Clone ,
-    {
-        build_flag_parser(present, fun.Invalid(), self)
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
+func req_flag[T any](self NamedArg,present T)Parser[T] {
+        return build_flag_parser(present, fun.Invalid(), self)
     }
 
     // Argument
@@ -245,29 +216,23 @@ impl NamedArg {
     // usually in capital letters. For example for an abstract file parameter it could be
     // `"FILE"`, for a username - `"USER"`, etc.
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
     //
     // You can further restrict it using [`adjacent`](ParseArgumentadjacent)
-    #[must_use]
-    func argument<T>(self, metavar string)ParseArgument<T>
-    where
-        T: FromStr ,
-    {
-        build_argument(self, metavar)
+func argument[T FromStr](self NamedArg,metavar string)ParseArgument[T]{
+        return build_argument(self, metavar)
     }
 
     // `adjacent` requires for the argument to be present in the same word as the flag:
     // `-f bar` - no, `-fbar` or `-f=bar` - yes.
-    pub(crate) func matches_arg(&self, arg: &Arg, adjacent bool)bool {
+func(self NamedArg) matches_arg(arg Arg, adjacent bool)bool {
         switch arg {
-            ArgShort(s, is_adj, _)self.short.contains(s) && (!adjacent || *is_adj),
-            ArgLong(l, is_adj, _)self.long.contains(&l.as_str()) && (!adjacent || *is_adj),
-            ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)false,
+            // ArgShort(s, is_adj, _)self.short.contains(s) && (!adjacent || *is_adj),
+            // ArgLong(l, is_adj, _)self.long.contains(&l.as_str()) && (!adjacent || *is_adj),
+            // ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)false,
         }
     }
-}
 
-impl<T> fun.OptionParser<T> {
     // Parse a subcommand
     //
     // Subcommands allow to use a totally independent parser inside a current one. Inner parser
@@ -296,38 +261,32 @@ impl<T> fun.OptionParser<T> {
     // You can attach a single visible short alias and multiple hiddden short and long aliases
     // using [`short`](ParseCommandshort) and [`long`](ParseCommandlong) methods.
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
     //
     // To represent multiple possible commands it is convenient to use enums
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/command_enum.md"))]
-    #[must_use]
-    func command(self, name string)ParseCommand<T>
-    where
-
-    {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/command_enum.md"))]
+func(self OptionParser[T]) command(name string)ParseCommand[T] {
         ParseCommand {
-            longs: vec![name],
+            longs: []string{name},
             shorts: Vecnew(),
-            help: self.short_descr().map(Intointo),
+            help: self.short_descr().Map(Intointo),
             subparser: self,
             adjacent: false,
         }
     }
-}
 
 // Builder structure for the [`command`]
 //
 // Created with [`command`], implements parser for the inner structure, gives access to [`help`](ParseCommandhelp).
-pub struct ParseCommand<T> {
-    pub(crate) longs: Vec<string>,
-    pub(crate) shorts: Vec<char>,
+type ParseCommand[T any]struct {
+    longs[]string
+    shorts[]byte
     // short help!
-    pub(crate) help: fun.Option[Doc],
-    pub(crate) subparser: fun.OptionParser<T>,
-    pub(crate) adjacent bool,
+    help fun.Option[Doc]
+    subparser SomeParser[T]
+    adjacent bool
 }
 
-impl<P> ParseCommand<P> {
     // Add a brief description to a command
     //
     // `bpaf` uses this description along with the command name
@@ -374,32 +333,26 @@ impl<P> ParseCommand<P> {
     // Available commands:
     //     mystery  This command performs a mystery operation
     // ```
-    #[must_use]
-    func help<M>(mut self, help: M)Self
-    where
-        M: Into<Doc>,
-    {
+func(self *ParseCommand[P]) help( help Doc)ParseCommand[P] {
         self.help = fun.Valid(help.into());
-        self
+        return self
     }
 
     // Add a custom short alias for a command
     //
     // Behavior is similar to [`short`](NamedArgshort), only first short name is visible.
-    #[must_use]
-    func short(mut self, short: char)Self {
+func(self *ParseCommand[P]) short( short char)ParseCommand[P] {
         self.shorts.push(short);
-        self
+        return self
     }
 
     // Add a custom hidden long alias for a command
     //
     // Behavior is similar to [`long`](NamedArglong), but since you had to specify the first long
     // name when making the command - this one becomes a hidden alias.
-    #[must_use]
-    func long(mut self, long string)Self {
+func(self *ParseCommand[P]) long( long string)ParseCommand[P] {
         self.longs.push(long);
-        self
+        return self
     }
 
     // Allow for the command to succeed even if there are non consumed items present
@@ -418,25 +371,21 @@ impl<P> ParseCommand<P> {
     // while here in the second one the name and all the consumed items are adjacent to each other so
     // parsing will succeed.
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
-    #[must_use]
-    func adjacent(mut self)Self {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
+func(self *ParseCommand[P]) adjacent()ParseCommand[P] {
         self.adjacent = true;
         self
     }
-}
 
-impl<T> Parser<T> for ParseCommand<T> {
-    func eval(&self, args: &mut State)Result[T, Error] {
+// impl[T] Parser[T] for  {
+func(self ParseCommand[T]) eval(args* State)Result[T] {
         // used to avoid allocations for short names
         tmp := Stringnew();
-        if self.longs.iter().any(|long| args.take_cmd(long))
-            || self.shorts.iter().any(|s| {
+        if self.longs.iter().any(func(long) args.take_cmd(long)) || self.shorts.iter().any(func(s) {
                 tmp.clear();
                 tmp.push(*s);
                 args.take_cmd(&tmp)
-            })
-        {
+            }) {
 
             if args.touching_last_remove() {
                 // in completion mode prefer to autocomplete the command name vs going inside the
@@ -446,8 +395,8 @@ impl<T> Parser<T> for ParseCommand<T> {
                 return Err(Error(MessageMissing(Vecnew())));
             }
 
-            if fun.Valid(cur) := args.current {
-                args.set_scope(cur..args.scope().end);
+            if cur,ok := args.current.Unpack();ok {
+                args.set_scope(Range{cur,args.scope().end});
             }
 
             args.path.push(self.longs[0].to_string());
@@ -457,35 +406,31 @@ impl<T> Parser<T> for ParseCommand<T> {
                 // narrow down the scope to adjacently available elements
                 args.set_scope(args.adjacently_available_from(args.scope().start + 1));
 
-                switch self
-                    .subparser
-                    .run_subparser(args)
-                    .map_err(MessageParseFailure)
-                {
-                    Ok(ok){
+                ok,err:= self .
+                    subparser .
+                    run_subparser(args) .
+                    map_err(MessageParseFailure)
+                if err==nil{
                         args.set_scope(orig_args.scope());
                         Ok(ok)
-                    }
-                    Err(err){
+                    }else{
                         orig_scope := args.scope();
-                        if fun.Valid(narrow_scope) := args.adjacent_scope(&orig_args) {
+                        if narrow_scope,ok := args.adjacent_scope(&orig_args).Unpack();ok {
                             orig_args.set_scope(narrow_scope);
-                            if Ok(res) := self.subparser.run_subparser(&mut orig_args) {
+                            if res,err := self.subparser.run_subparser(&orig_args);err==nil {
                                 orig_args.set_scope(orig_scope);
-                                stdmemswap(&mut orig_args, args);
+                                stdmemswap(&orig_args, args);
                                 return Ok(res);
                             }
                         }
                         Err(Error(err))
                     }
-                }
             } else {
-                self.subparser
-                    .run_subparser(args)
-                    .map_err(|e| Error(MessageParseFailure(e)))
+                self.subparser .
+                    run_subparser(args) .
+                    map_err(func(e) Error(MessageParseFailure(e)))
             }
         } else {
-
             args.push_command(self.longs[0], self.shorts.first().copied(), &self.help);
 
             missing := MissingItem {
@@ -493,18 +438,16 @@ impl<T> Parser<T> for ParseCommand<T> {
                 position: args.scope().start,
                 scope: args.scope(),
             };
-            Err(Error(MessageMissing(vec![missing])))
+            Err(Error(MessageMissing([]string{missing})))
         }
     }
 
-    func meta(&self)Meta {
-        Metafrom(self.item())
+    func(self ParseCommand[T]) meta()Meta {
+        return Metafrom(self.item())
     }
-}
 
-impl<T> ParseCommand<T> {
-    func item(&self)Item {
-        ItemCommand {
+    func(self ParseCommand[T]) item()Item {
+        return ItemCommand {
             name: self.longs[0],
             short: self.shorts.first().copied(),
             help: self.help,
@@ -512,115 +455,89 @@ impl<T> ParseCommand<T> {
             info: Boxnew(self.subparser.info),
         }
     }
-}
 
-fn build_flag_parser<T>(present: T, absent: fun.Option[T>, named: NamedArg)ParseFlag<T]
-where
-    T: Clone ,
-{
-    ParseFlag {
+func build_flag_parser[T any](present T, absent fun.Option[T], named NamedArg)ParseFlag[T] {
+    return ParseFlag {
         present,
         absent,
         named,
     }
 }
 
-#[derive(Clone)]
 // Parser for a named switch, created with [`NamedArgflag`] or [`NamedArgswitch`]
-pub struct ParseFlag<T> {
-    present: T,
-    absent: fun.Option[T],
-    named: NamedArg,
+type ParseFlag[T] struct{
+    present T
+    absent fun.Option[T]
+    named NamedArg
 }
 
-impl<T: Clone > Parser<T> for ParseFlag<T> {
-    func eval(&self, args: &mut State)Result[T, Error] {
-        if args.take_flag(&self.named) || self.named.env.iter().find_map(stdenvvar_os).is_fun.Valid()
-        {
-
+// impl<T: Clone > Parser[T] for ParseFlag[T] {
+func(self ParseFlag[T]) eval(args* State)Result[T] {
+        if args.take_flag(&self.named) || self.named.env.iter().find_map(stdenvvar_os).is_fun.Valid() {
             if args.touching_last_remove() {
                 args.push_flag(&self.named);
             }
             Ok(self.present)
         } else {
-
             args.push_flag(&self.named);
-            switch &self.absent {
-                fun.Valid(ok)Ok(ok),
-                fun.Invalid(){
-                    if fun.Valid(item) := self.named.flag_item() {
+            if ok,okk:= self.absent.Unpack();okk {
+                Ok(ok)
+            }else{
+                    if item,ok := self.named.flag_item().Unpack();ok {
                         missing := MissingItem {
                             item,
                             position: args.scope().start,
                             scope: args.scope(),
                         };
-                        Err(Error(MessageMissing(vec![missing])))
-                    } else if fun.Valid(name) := self.named.env.first() {
+                        Err(Error(MessageMissing([]string{missing})))
+                    } else if name,ok := self.named.env.first().Unpack();ok {
                         Err(Error(MessageNoEnv(name)))
                     } else {
-                        todo!("no key!")
+                        panic(`todo!("no key!")`)
                     }
-                }
             }
         }
     }
 
-    func meta(&self)Meta {
-        if fun.Valid(item) := self.named.flag_item() {
+func(self ParseFlag[T]) meta()Meta {
+        if item,ok := self.named.flag_item().Unpack();ok {
             item.required(self.absent.is_fun.Invalid()())
         } else {
             MetaSkip
         }
     }
-}
 
-impl<T> ParseFlag<T> {
     // Add a help message to `flag`
     //
     // See [`NamedArghelp`]
-    #[must_use]
-    func help<M>(mut self, help: M)Self
-    where
-        M: Into<Doc>,
-    {
+func(self *ParseFlag[T]) help( help Doc)ParseFlag[T] {
         self.named.help = fun.Valid(help.into());
-        self
+        return self
     }
-}
 
-impl<T> ParseArgument<T> {
     // Add a help message to an `argument`
     //
     // See [`NamedArghelp`]
-    #[must_use]
-    func help<M>(mut self, help: M)Self
-    where
-        M: Into<Doc>,
-    {
+func(self *ParseArgument[T]) help( help Doc)ParseArgument[T] {
         self.named.help = fun.Valid(help.into());
-        self
+        return self
     }
-}
 
-fn build_argument<T>(named: NamedArg, metavar string)ParseArgument<T> {
-    ParseArgument {
+func build_argument[T any](named NamedArg, metavar string)ParseArgument[T] {
+    return ParseArgument {
         named,
         metavar,
-        ty: PhantomData,
         adjacent: false,
     }
 }
 
 // Parser for a named argument, created with [`argument`](NamedArgargument).
-#[derive(Clone)]
-pub struct ParseArgument<T> {
-    ty: PhantomData<T>,
-    named: NamedArg,
-    metavar string,
-    adjacent bool,
+type ParseArgument[T]struct {
+    named NamedArg
+    metavar string
+    adjacent bool
 }
 
-impl<T> ParseArgument<T> {
     // Restrict parsed arguments to have both flag and a value in the same word:
     //
     // In other words adjacent restricted `ParseArgument` would accept `--flag=value` or
@@ -629,16 +546,19 @@ impl<T> ParseArgument<T> {
     //
     // Should allow to parse some of the more unusual things
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_argument.md"))]
-    #[must_use]
-    func adjacent(mut self)Self {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_argument.md"))]
+func(self *ParseArgument[T]) adjacent()ParseArgument[T] {
         self.adjacent = true;
-        self
+        return self
     }
 
-    func item(&self)Option[Item] {
-        fun.Valid(ItemArgument {
-            name: ShortLongtry_from(&self.named).ok()?,
+func(self ParseArgument[T]) item()Option[Item] {
+    name,ok:=ShortLongtry_from(&self.named).ok().Unpack()
+    if !ok{
+        return fun.Invalid()
+    }
+        return fun.Valid(ItemArgument {
+            name: name,
             metavar: Metavar(self.metavar),
             env: self.named.env.first().copied(),
             help: self.named.help,
@@ -646,69 +566,68 @@ impl<T> ParseArgument<T> {
         })
     }
 
-    func take_argument(&self, args: &mut State)Result[string, Error] {
+func(self ParseArgument[T]) take_argument(args* State)Result[string, Error] {
         switch args.take_arg(&self.named, self.adjacent, Metavar(self.metavar)) {
-            Ok(fun.Valid(w)){
+            // Ok(fun.Valid(w)){
 
-                if args.touching_last_remove() {
-                    args.push_metavar(self.metavar, &self.named.help, true);
-                }
-                Ok(w)
-            }
-            Err(err){
+            //     if args.touching_last_remove() {
+            //         args.push_metavar(self.metavar, &self.named.help, true);
+            //     }
+            //     Ok(w)
+            // }
+            // Err(err){
 
-                args.push_argument(&self.named, self.metavar);
-                Err(err)
-            }
-            _{
+            //     args.push_argument(&self.named, self.metavar);
+            //     Err(err)
+            // }
+            // _{
 
-                args.push_argument(&self.named, self.metavar);
-                if fun.Valid(val) := self.named.env.iter().find_map(stdenvvar_os) {
-                    args.current = fun.Invalid();
-                    return Ok(val);
-                }
+            //     args.push_argument(&self.named, self.metavar);
+            //     if fun.Valid(val) := self.named.env.iter().find_map(stdenvvar_os) {
+            //         args.current = fun.Invalid();
+            //         return Ok(val);
+            //     }
 
-                if fun.Valid(item) := self.item() {
-                    missing := MissingItem {
-                        item,
-                        position: args.scope().start,
-                        scope: args.scope(),
-                    };
-                    Err(Error(MessageMissing(vec![missing])))
-                } else if fun.Valid(name) := self.named.env.first() {
-                    Err(Error(MessageNoEnv(name)))
-                } else {
-                    unreachable!()
-                }
-            }
-        }
-    }
-}
-
-impl<T> Parser<T> for ParseArgument<T>
-where
-    T: FromStr ,
-    <T as stdstrFromStr>Err: stdfmtDisplay,
-{
-    func eval(&self, args: &mut State)Result[T, Error] {
-        os := self.take_argument(args)?;
-        switch parse_os_str<T>(os) {
-            Ok(ok)Ok(ok),
-            Err(err)Err(Error(MessageParseFailed(args.current, err))),
+            //     if fun.Valid(item) := self.item() {
+            //         missing := MissingItem {
+            //             item,
+            //             position: args.scope().start,
+            //             scope: args.scope(),
+            //         };
+            //         Err(Error(MessageMissing(vec![missing])))
+            //     } else if fun.Valid(name) := self.named.env.first() {
+            //         Err(Error(MessageNoEnv(name)))
+            //     } else {
+            //         unreachable!()
+            //     }
+            // }
         }
     }
 
-    func meta(&self)Meta {
-        if fun.Valid(item) := self.item() {
+// impl[T] Parser[T] for ParseArgument[T]
+    // T: FromStr ,
+    // <T as stdstrFromStr>Err: stdfmtDisplay,
+func (self ParseArgument[T]) eval(args* State)Result[T] {
+        os,err := self.take_argument(args);
+        if err!=nil{
+            return err
+        }
+        switch parse_os_str[T](os) {
+            // Ok(ok)Ok(ok),
+            // Err(err)Err(Error(MessageParseFailed(args.current, err))),
+        }
+    }
+
+func (self ParseArgument[T]) meta()Meta {
+        if item,ok := self.item().Unpack();ok {
             Metafrom(item)
         } else {
             MetaSkip
         }
     }
-}
 
-pub(crate) func build_positional<T>(metavar string)ParsePositional<T> {
-    ParsePositional {
+func build_positional[T any](metavar string)ParsePositional[T] {
+    return ParsePositional {
         metavar,
         help: fun.Invalid(),
         position: PositionUnrestricted,
@@ -720,22 +639,18 @@ pub(crate) func build_positional<T>(metavar string)ParsePositional<T> {
 //
 // You can add extra information to positional parsers with [`help`](Selfhelp),
 // [`strict`](Selfstrict), or [`non_strict`](Selfnon_strict) on this struct.
-#[derive(Clone)]
-pub struct ParsePositional<T> {
-    metavar string,
-    help: fun.Option[Doc],
-    position: Position,
-    ty: PhantomData<T>,
+type ParsePositional[T] struct{
+    metavar string
+    help fun.Option[Doc]
+    position Position
 }
 
-#[derive(Copy, Clone, PartialEq, Eq)]
-enum Position {
-    Unrestricted,
-    Strict,
-    NonStrict,
-}
+type Position func(
+    Unrestricted func(),
+    Strict func(),
+    NonStrict func(),
+)
 
-impl<T> ParsePositional<T> {
     // Add a help message to a [`positional`] parser
     //
     // `bpaf` converts doc comments and string into help by following those rules:
@@ -747,12 +662,8 @@ impl<T> ParsePositional<T> {
     // You can pass anything that can be converted into [`Doc`], if you are not using
     // documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
     //
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
-    #[must_use]
-    func help<M>(mut self, help: M)Self
-    where
-        M: Into<Doc>,
-    {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
+func(self *ParsePositional[T]) help( help Doc)ParsePositional[T] {
         self.help = fun.Valid(help.into());
         self
     }
@@ -776,10 +687,8 @@ impl<T> ParsePositional<T> {
     //
     // `bpaf` allows to require user to pass `--` for positional items with `strict` annotation.
     // `bpaf` would display such positional elements differently in usage line as well.
-    #[cfg_attr(not(doctest), doc = include_str!("docs2/positional_strict.md"))]
-    #[must_use]
-    #[inline(always)]
-    func strict(mut self)ParsePositional<T> {
+    // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional_strict.md"))]
+func(self *ParsePositional[T]) strict()ParsePositional[T] {
         self.position = PositionStrict;
         self
     }
@@ -789,98 +698,93 @@ impl<T> ParsePositional<T> {
     // Ensures the parser always rejects "strict" positions to the right of the separator, `--`.
     // Essentially the inverse operation to [`ParsePositionalstrict`], which can be used to ensure
     // adjacent strict and nonstrict args never conflict with eachother.
-    #[must_use]
-    #[inline(always)]
-    func non_strict(mut self)Self {
+func(self *ParsePositional[T]) non_strict()ParsePositional[T] {
         self.position = PositionNonStrict;
-        self
+        return self
     }
 
-    #[inline(always)]
-    func meta(&self)Meta {
+func(self ParsePositional[T]) meta()Meta {
         meta := Metafrom(ItemPositional {
             metavar: Metavar(self.metavar),
             help: self.help,
         });
         switch self.position {
-            PositionStrictMetaStrict(Boxnew(meta)),
-            _meta,
+            // PositionStrictMetaStrict(Boxnew(meta)),
+            // _meta,
         }
     }
-}
 
-fn parse_pos_word(
-    args: &mut State,
-    metavar: Metavar,
-    help: &Option[Doc],
-    position: Position,
+func parse_pos_word(
+    args * State,
+    metavar Metavar,
+    help Option[Doc],
+    position Position,
 )Result[string, Error] {
     switch args.take_positional_word(metavar) {
-        Ok((ix, is_strict, word)){
-            switch position {
-                PositionStrict{
-                    if !is_strict {
+        // Ok((ix, is_strict, word)){
+        //     switch position {
+        //         PositionStrict{
+        //             if !is_strict {
 
-                        args.push_pos_sep();
-                        return Err(Error(MessageStrictPos(ix, metavar)));
-                    }
-                }
-                PositionNonStrict{
-                    if is_strict {
-                        return Err(Error(MessageNonStrictPos(ix, metavar)));
-                    }
-                }
-                PositionUnrestricted{}
-            }
+        //                 args.push_pos_sep();
+        //                 return Err(Error(MessageStrictPos(ix, metavar)));
+        //             }
+        //         }
+        //         PositionNonStrict{
+        //             if is_strict {
+        //                 return Err(Error(MessageNonStrictPos(ix, metavar)));
+        //             }
+        //         }
+        //         PositionUnrestricted{}
+        //     }
 
 
-            if args.touching_last_remove() && !args.check_no_pos_ahead() {
-                args.push_metavar(metavar.0, help, false);
-                args.set_no_pos_ahead();
-            }
-            Ok(word)
-        }
-        Err(err){
+        //     if args.touching_last_remove() && !args.check_no_pos_ahead() {
+        //         args.push_metavar(metavar.0, help, false);
+        //         args.set_no_pos_ahead();
+        //     }
+        //     Ok(word)
+        // }
+        // Err(err){
 
-            if !args.check_no_pos_ahead() {
-                args.push_metavar(metavar.0, help, false);
-                args.set_no_pos_ahead();
-            }
-            Err(err)
-        }
+        //     if !args.check_no_pos_ahead() {
+        //         args.push_metavar(metavar.0, help, false);
+        //         args.set_no_pos_ahead();
+        //     }
+        //     Err(err)
+        // }
     }
 }
 
-impl<T> Parser<T> for ParsePositional<T>
-where
-    T: FromStr ,
-    <T as stdstrFromStr>Err: stdfmtDisplay,
-{
-    func eval(&self, args: &mut State)Result[T, Error] {
-        os := parse_pos_word(args, Metavar(self.metavar), &self.help, self.position)?;
-        switch parse_os_str<T>(os) {
-            Ok(ok)Ok(ok),
-            Err(err)Err(Error(MessageParseFailed(args.current, err))),
+// impl[T] Parser[T] for ParsePositional[T]
+    // T: FromStr ,
+    // <T as stdstrFromStr>Err: stdfmtDisplay,
+func(self ParsePositional[T]) eval(args* State)Result[T] {
+        os,err := parse_pos_word(args, Metavar(self.metavar), &self.help, self.position);
+        if err!=nil{
+            return err
+        }
+        switch parse_os_str[T](os) {
+            // Ok(ok)Ok(ok),
+            // Err(err)Err(Error(MessageParseFailed(args.current, err))),
         }
     }
 
-    #[inline(always)]
-    func meta(&self)Meta {
+func(self ParsePositional[T]) meta()Meta {
         self.meta()
     }
-}
 
 // Consume an arbitrary value that satisfies a condition, created with [`any`], implements
 // [`anywhere`](ParseAnyanywhere).
-pub struct ParseAny<T> {
-    pub(crate) metavar: Doc,
-    pub(crate) help: fun.Option[Doc],
-    pub(crate) check: Box<dyn func(string)Option[T>],
-    pub(crate) anywhere bool,
+type ParseAny[T any] struct {
+    metavar Doc
+    help fun.Option[Doc]
+    check func(string)Option[T]
+    anywhere bool
 }
 
-impl<T> ParseAny<T> {
-    pub(crate) func item(&self)Item {
+func(self ParseAny[T])
+    func item(&self)Item {
         ItemAny {
             metavar: self.metavar,
             help: self.help,
@@ -890,18 +794,16 @@ impl<T> ParseAny<T> {
 
     // Add a help message to [`any`] parser.
     // See examples in [`any`]
-    #[must_use]
-    func help<M: Into<Doc>>(mut self, help: M)Self {
+func(self ParseAny[T]) help( help Doc)ParseAny[T] {
         self.help = fun.Valid(help.into());
-        self
+        return self
     }
 
     // Replace metavar with a custom value
     // See examples in [`any`]
-    #[must_use]
-    func metavar<M: Into<Doc>>(mut self, metavar: M)Self {
+func(self *ParseAny[T]) metavar( metavar Doc)ParseAny[T] {
         self.metavar = metavar.into();
-        self
+        return self
     }
 
     // Try to apply the parser to each unconsumed element instead of just the front one
@@ -911,15 +813,13 @@ impl<T> ParseAny<T> {
     // similar to argument parser.
     //
     // See examples in [`any`]
-    #[must_use]
-    func anywhere(mut self)Self {
+func(self *ParseAny[T]) anywhere()ParseAny[T] {
         self.anywhere = true;
-        self
+        return self
     }
-}
 
-impl<T> Parser<T> for ParseAny<T> {
-    func eval(&self, args: &mut State)Result[T, Error] {
+impl[T] Parser[T] for ParseAny[T] {
+    func eval(&self, args: &mut State)Result[T] {
         for (ix, x) in args.items_iter() {
             let (os, next) = switch x {
                 ArgShort(_, next, os) | ArgLong(_, next, os)(os, *next),

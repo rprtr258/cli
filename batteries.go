@@ -104,7 +104,7 @@ func verbose_by_slice(
 // value. This helps to preserve relative order of parsrs.
 // You can use similar approach to combine multiple flags accounting for their relative order.
 //
-// Parser returns `Optional<T>` value, you can add a fallback with [`map`](Parsermap) or turn
+// Parser returns `Optional[T]` value, you can add a fallback with [`map`](Parsermap) or turn
 // missing value info failure with a custom error message with [`parse`](Parserparse).
 //
 // # Example
@@ -172,7 +172,7 @@ func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 //
 //	...
 //	ArgHelp{
-//	    println!("{}", get_usage(parser()));
+//	    fmt.Println("{}", get_usage(parser()));
 //	    os.Exit(0);
 //	}
 //	...

@@ -12,70 +12,80 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// / All currently present command line parameters with fun.Valid extra metainfo
+// All currently present command line parameters with fun.Valid extra metainfo
 // /
-// / Use it for unit tests and manual parsing. For production use you would want to replace the
-// / program name with [`set_name`](Argsset_name), but for tests passing a slice of strings to
-// / [`run_inner`](crateOptionParserrun_inner) is usually more convenient.
+// Use it for unit tests and manual parsing. For production use you would want to replace the
+// program name with [`set_name`](Argsset_name), but for tests passing a slice of strings to
+// [`run_inner`](crateOptionParserrun_inner) is usually more convenient.
 // /
 // /
-// / The easiest way to create `Args` is by using its `From` instance.
-// / ```rust
-// / # use bpaf*;
-// / parser := short('f')
-// /     .switch()
-// /     .to_options();
-// / value := parser
-// /     .run_inner(Argsfrom(&["-f"]))
-// /     .unwrap();
-// / assert!(value);
+// The easiest way to create `Args` is by using its `From` instance.
+// ```rust
+// # use bpaf*;
+// parser := short('f')
+//
+//	.switch()
+//	.to_options();
+//
+// value := parser
+//
+//	.run_inner(Argsfrom(&["-f"]))
+//	.unwrap();
+//
+// assert!(value);
 // /
-// / // this also works
-// / value := parser.run_inner(&["-f"])
-// /     .unwrap();
-// / assert!(value);
-// / ```
+// // this also works
+// value := parser.run_inner(&["-f"])
+//
+//	.unwrap();
+//
+// assert!(value);
+// ```
 type Args struct {
 	items iter.Seq[string]
 	name  fun.Option[string]
 	c_rev fun.Option[uint]
 }
 
-// / Enable completions with custom output revision style
+// Enable completions with custom output revision style
 // /
-// / Use revision 0 if you want to test completion mechanism
+// Use revision 0 if you want to test completion mechanism
 // /
-// / ```rust
-// / # use bpaf*;
-// / parser := short('f').switch().to_options();
-// / // ask bpaf to produce more input from "-", for
-// / // suggesting new items use "" at the end
-// / r := parser.run_inner(Argsfrom(&["-"])
-// /     .set_comp(0))
-// /     .unwrap_err()
-// /     .unwrap_stdout();
-// / assert_eq!(r, "-f");
-// / ```
+// ```rust
+// # use bpaf*;
+// parser := short('f').switch().to_options();
+// // ask bpaf to produce more input from "-", for
+// // suggesting new items use "" at the end
+// r := parser.run_inner(Argsfrom(&["-"])
+//
+//	.set_comp(0))
+//	.unwrap_err()
+//	.unwrap_stdout();
+//
+// assert_eq!(r, "-f");
+// ```
 // /
-// / Note to self: shell passes "" as a parameter in situations like foo `--bar TAB`, bpaf
-// / completion stubs adopt this conventions add pass it along. This is needed so completer can
-// / tell the difference between `--bar` being completed or an argument to it in the example
-// / above.
+// Note to self: shell passes "" as a parameter in situations like foo `--bar TAB`, bpaf
+// completion stubs adopt this conventions add pass it along. This is needed so completer can
+// tell the difference between `--bar` being completed or an argument to it in the example
+// above.
 func (self *Args) set_comp(rev uint) *Args {
 	self.c_rev = fun.Valid(rev)
 	return self
 }
 
-// / Add an application name for args created from custom input
-// / ```rust
-// / # use bpaf*;
-// / parser := short('f').switch().to_options();
-// / r := parser
-// /     .run_inner(Argsfrom(&["--help"]).set_name("my_app"))
-// /     .unwrap_err()
-// /     .unwrap_stdout();
-// / # drop(r);
-// / ```
+// Add an application name for args created from custom input
+// ```rust
+// # use bpaf*;
+// parser := short('f').switch().to_options();
+// r := parser
+//
+//	.run_inner(Argsfrom(&["--help"]).set_name("my_app"))
+//	.unwrap_err()
+//	.unwrap_stdout();
+//
+// # drop(r);
+// ```
 func (self *Args) set_name(name string) *Args {
 	self.name = fun.Valid(name)
 	return self
@@ -89,7 +99,7 @@ func newArgs(value []string) Args {
 	}
 }
 
-// / Get a list of command line arguments from OS
+// Get a list of command line arguments from OS
 func current_args() Args {
 	name := os.Args[0]
 	return Args{
@@ -99,7 +109,7 @@ func current_args() Args {
 	}
 }
 
-// / Shows which branch of [`ParseOrElse`] parsed the argument
+// Shows which branch of [`ParseOrElse`] parsed the argument
 type ItemState func(
 	// Value is yet to be parsed
 	Unparsed func(),
@@ -214,7 +224,7 @@ type State struct {
 	comp fun.Option[Complete]
 
 	//        // A way to customize behavior for --help and error handling
-	//        pub(crate) improve_error: superImprove,
+	//        improve_error: superImprove,
 	// Describes scope current parser will be consuming elements from. Usually it will be
 	// considering the whole sequence of (unconsumed) arguments, but for "adjacent"
 	// scope starts on the right of the first consumed item and might end before the end
@@ -222,7 +232,7 @@ type State struct {
 	scope Range
 }
 
-// / Check if item at ixth position is still present (was not parsed)
+// Check if item at ixth position is still present (was not parsed)
 func (self State) present(ix uint) fun.Option[bool] {
 	if ix >= uint(len(self.item_state)) {
 		return fun.Invalid[bool]()
@@ -365,7 +375,7 @@ LOOP:
 	}
 }
 
-// / creates iterator over remaining elements
+// creates iterator over remaining elements
 func (self State) items_iter() ArgsIter {
 	return ArgsIter{
 		self,
@@ -392,7 +402,7 @@ func (self State) pick_winner(other State) (bool, fun.Option[uint]) {
 	return true, fun.Invalid[uint]()
 }
 
-// / find first saved conflict
+// find first saved conflict
 func (self State) conflict() fun.Option[Range] {
 	iter := self.items_iter()
 	ix, _, ok := iter.next()
@@ -428,8 +438,8 @@ func (self State) len() uint {
 	return self.remaining
 }
 
-// / Get an argument from a scope that was not consumed yet
-func (self State) get(ix uint) fun.Option[Arg] {
+// Get an argument from a scope that was not consumed yet
+func (self State) get(ix int) fun.Option[Arg] {
 	if self.scope.contains(ix) && self.item_state[ix].present() {
 		return fun.Valid(self.items[ix])
 	} else {
@@ -437,14 +447,14 @@ func (self State) get(ix uint) fun.Option[Arg] {
 	}
 }
 
-// / Check if parser performs autocompletion
+// Check if parser performs autocompletion
 // /
-// / used by construct macro
+// used by construct macro
 func (self State) is_comp() bool {
 	return self.comp.Valid
 }
 
-// / Narrow down scope of &self to adjacently consumed values compared to original.
+// Narrow down scope of &self to adjacently consumed values compared to original.
 func (self State) adjacent_scope(original State) fun.Option[Range] {
 	if len(self.items) == 0 {
 		return fun.Invalid[Range]()
@@ -470,7 +480,7 @@ func (self State) adjacent_scope(original State) fun.Option[Range] {
 	return fun.Invalid[Range]()
 }
 
-// / Get a scope for an adjacently available block of item starting at start
+// Get a scope for an adjacently available block of item starting at start
 func (self State) adjacently_available_from(start uint) Range {
 	span_size := uint(0)
 	for _, v := range self.item_state[start:] {
@@ -542,7 +552,7 @@ func (self State) ranges(item Item) ArgRangesIter {
 	return ArgRangesIter{self, width, 0}
 }
 
-// / Mark everything outside of `range` as removed
+// Mark everything outside of `range` as removed
 func (self *State) set_scope(scope Range) {
 	self.scope = scope
 	remaining := uint(0)
@@ -554,17 +564,17 @@ func (self *State) set_scope(scope Range) {
 	self.remaining = remaining
 }
 
-// / check if bpaf tries to complete last consumed element
+// check if bpaf tries to complete last consumed element
 func (self State) touching_last_remove() bool {
 	return self.comp.Valid && uint(len(self.items)-1) == self.current.OrDefault(math.MaxUint)
 }
 
 func (self *State) comp_mut() fun.Option[*Complete] {
-	return self.comp.as_mut()
+	return fun.Option[*Complete]{&self.comp.Value, self.comp.Valid}
 }
 
 func (self State) comp_ref() fun.Option[Complete] {
-	return self.comp.as_ref()
+	return self.comp
 }
 
 func (self *State) swap_comps(other *State) {
@@ -597,10 +607,10 @@ func (self State) take_arg(
 	named NamedArg,
 	adjacent bool,
 	metavar Metavar,
-) Result[fun.Option[string], Error] {
+) Result[fun.Option[string]] {
 	var key_ix int
 	var _arg Arg
-	if v, ok = self.items_iter().find(func(arg) { return named.matches_arg(arg[1], adjacent) }).Unpack(); ok {
+	if v, ok := self.items_iter().find(func(arg) { return named.matches_arg(arg[1], adjacent) }).Unpack(); ok {
 		key_ix, _arg = v[0], v[1]
 	} else {
 		return Ok(fun.Invalid())
@@ -621,7 +631,7 @@ func (self State) take_arg(
 	self.current = fun.Valid(val_ix)
 	self.remove(key_ix)
 	self.remove(val_ix)
-	Ok(fun.Valid(val))
+	return Ok(fun.Valid(val))
 }
 
 // gets first positional argument present

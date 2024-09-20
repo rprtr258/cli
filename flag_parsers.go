@@ -62,13 +62,6 @@ func Parse[T, R any](p FlagParser[T], f func(T) (R, error)) FlagParser[R] {
 	}, nil}
 }
 
-func Map[T, R any](
-	p FlagParser[T],
-	f func(T) R,
-) FlagParser[R] {
-	return Parse(p, func(t T) (R, error) { return f(t), nil })
-}
-
 func Map2[A, B, T any](
 	pa FlagParser[A],
 	pb FlagParser[B],
