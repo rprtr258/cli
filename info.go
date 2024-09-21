@@ -2,8 +2,6 @@ package cli
 
 import (
 	"os"
-
-	"github.com/rprtr258/fun"
 )
 
 // Information about the parser
@@ -23,11 +21,11 @@ type Info struct {
 
 func NewInfo() Info {
 	return Info{
-		version:         fun.Invalid(),
-		descr:           fun.Invalid(),
-		header:          fun.Invalid(),
-		footer:          fun.Invalid(),
-		usage:           fun.Invalid(),
+		version:         Invalid(),
+		descr:           Invalid(),
+		header:          Invalid(),
+		footer:          Invalid(),
+		usage:           Invalid(),
 		help_arg:        short('h').long("help").help("Prints help information"),
 		version_arg:     short('V').long("version").help("Prints version information"),
 		help_if_no_args: false,
@@ -105,15 +103,15 @@ func (self OptionParser[T]) run() T {
 //	        Ok(v)Valid(v),
 //	        Err(ParseFailureStdout(buf, full)){
 //	            fmt.Print("{}", buf.monochrome(full));
-//	            fun.Invalid()
+//	            Invalid()
 //	        }
 //	        Err(ParseFailureCompletion(msg)){
 //	            fmt.Print("{}", msg);
-//	            fun.Invalid()
+//	            Invalid()
 //	        }
 //	        Err(ParseFailureStderr(buf)){
 //	            fmt.Fprintln(os.Stderr, "{}", buf.monochrome(true));
-//	            fun.Invalid()
+//	            Invalid()
 //	        }
 //	    };
 //
@@ -191,7 +189,7 @@ func (self OptionParser[T]) run_inner(args Into[Args]) Result[T, ParseFailure] {
 	short_flags.extend(&self.info.help_arg.short)
 	short_flags.extend(&self.info.version_arg.short)
 	args := args.into()
-	err := fun.Invalid()
+	err := Invalid()
 	state := Stateconstruct(args, short_flags, short_args, &err)
 
 	// this only handles disambiguation failure in construct
@@ -617,7 +615,7 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 //
 // By default `bpaf` tries to parse command line fun.Options and displays the best possible
 // error it can come up with. If application requires a subcommand or some argument
-// and user specified fun.Invalid() - it might be a better experience for user to print
+// and user specified Invalid() - it might be a better experience for user to print
 // the help message.
 //
 // ```rust

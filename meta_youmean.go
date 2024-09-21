@@ -21,11 +21,11 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
 
     // suggesting typos for parts of group of short names (-vvv, typo in third v) would be strange
     if arg.os_str().is_empty() {
-        return fun.Invalid();
+        return Invalid();
     }
     // don't try to suggest fixes for typos in strictly positional items
     if matches(arg, crateargsArgPosWord(_)) {
-        return fun.Invalid();
+        return Invalid();
     }
     // it also should be a printable name
     actual := arg.to_string();
@@ -38,7 +38,7 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
     nested := HelpItemsdefault();
 
     // while scanning keep the closest match
-    best_switch := fun.Invalid();
+    best_switch := Invalid();
     best_dist := uintMAX;
     improve := |dist, val| {
         if best_dist > dist && dist > 0 && dist < 4 {
@@ -47,7 +47,7 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
         }
     };
 
-    nest := fun.Invalid();
+    nest := Invalid();
 
     for item in &hi.items {
         switch item {
@@ -113,7 +113,7 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
     } else {
         // skip confusing errors
         if best_dist == uintMAX {
-            return fun.Invalid();
+            return Invalid();
         }
         best_switch := best_match?;
 

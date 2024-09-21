@@ -55,58 +55,58 @@ func (self Doc) invalid(text string) {
 //
 // See [`Doc`] for usage examples
 func (self Doc) meta(meta MetaInfo, for_usage bool) {
-	self.write_meta(meta[0], for_usage)
+	self.write_meta(meta, for_usage)
 }
 
 // Append a `Doc` to [`Doc`]
 //
 // See [`Doc`] for usage examples
 func (self Doc) doc(buf Doc) {
-	self.tokens.push(TokenBlockStart(BlockInlineBlock))
-	self.tokens.extend(&buf.tokens)
-	self.payload.push_str(&buf.payload)
-	self.tokens.push(TokenBlockEnd(BlockInlineBlock))
+	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
+	self.tokens = append(self.tokens, buf.tokens...)
+	self.payload += buf.payload
+	self.tokens = append(self.tokens, TokenBlockEnd(BlockInlineBlock))
 }
 
 // Append a `Doc` to [`Doc`] for plaintext documents try to format
 // first line as a help section header
 func (self Doc) em_doc(buf Doc) {
-	self.tokens.push(TokenBlockStart(BlockInlineBlock))
+	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
 	if v, ok := buf.tokens.first().copied().Unpack(); ok {
-		bytes, style := v.bytes, v.stle
+		bytes := v.bytes
 		prefix := buf.payload[0:bytes]
-		if a, b, ok := strings.Cut(prefix, '\n'); ok {
+		if a, b, ok := strings.Cut(prefix, "\n"); ok {
 			self.emphasis(a)
-			self.tokens.push(TokenBlockStart(BlockSection3))
+			self.tokens = append(self.tokens, TokenBlockStart(BlockSection3))
 			self.text(b)
 
-			if buf.tokens.len() > 1 {
-				self.tokens.extend(buf.tokens[1:])
-				self.payload.push_str(&buf.payload[bytes:])
+			if len(buf.tokens) > 1 {
+				self.tokens = append(self.tokens, buf.tokens[1:]...)
+				self.payload += buf.payload[bytes:]
 			}
-			self.tokens.push(TokenBlockEnd(BlockSection3))
+			self.tokens = append(self.tokens, TokenBlockEnd(BlockSection3))
 		} else {
 			self.emphasis(prefix)
 		}
 	} else {
-		self.tokens.extend(&buf.tokens)
-		self.payload.push_str(&buf.payload)
+		self.tokens = append(self.tokens, buf.tokens...)
+		self.payload += buf.payload
 	}
 
-	self.tokens.push(TokenBlockEnd(BlockInlineBlock))
+	self.tokens = append(self.tokens, TokenBlockEnd(BlockInlineBlock))
 }
 
 func (self Doc) write_shortlong(name ShortLong) {
 	name(
-		func(s) {
+		func(s byte) {
 			self.write_char('-', StyleLiteral)
-			self.write_char(*s, StyleLiteral)
+			self.write_char(s, StyleLiteral)
 		},
-		func(l) {
+		func(l string) {
 			self.write_str("--", StyleLiteral)
 			self.write_str(l, StyleLiteral)
 		},
-		func(_, l) {
+		func(_ byte, l string) {
 			self.write_str("--", StyleLiteral)
 			self.write_str(l, StyleLiteral)
 		},
@@ -119,7 +119,7 @@ func (self Doc) write_item(item Item) {
 			self.doc(metavar)
 		},
 		func(metavar Metavar, _ Option[Doc]) {
-			self.metavar(*metavar)
+			self.metavar(metavar)
 		},
 		func(string, Option[byte], Option[Doc], Meta, Info) {
 			self.write_str("COMMAND ...", StyleMetavar)
@@ -127,16 +127,17 @@ func (self Doc) write_item(item Item) {
 		func(name ShortLong, _ []byte, _ Option[string], _ Option[Doc]) {
 			self.write_shortlong(name)
 		},
-		func(name ShortLong, _ []byte, _ Metavar, _ Option[string], _ Option[Doc]) {
+		func(name ShortLong, _ []byte, metavar Metavar, _ Option[string], _ Option[Doc]) {
 			self.write_shortlong(name)
 			self.write_char('=', StyleText)
-			self.metavar(*metavar)
+			self.metavar(metavar)
 		},
 	)
 }
 
 func (self Doc) write_meta(meta Meta, for_usage bool) {
-	gO := func(meta Meta, f *Doc) {
+	var gO func(meta Meta, f *Doc)
+	gO = func(meta Meta, f *Doc) {
 		meta(
 			func(xs []Meta) {
 				for ix, x := range xs {
@@ -164,16 +165,16 @@ func (self Doc) write_meta(meta Meta, for_usage bool) {
 				gO(m, f)
 				f.write_str(")", StyleText)
 			},
-			func(i Item) { f.write_item(i) },
 			func(m Meta) {
 				gO(m, f)
 				f.write_str("...", StyleText)
 			},
+			func(i Item) { f.write_item(i) },
 			func(m Meta) { gO(m, f) },
 			func(m Meta, _ Doc) { gO(m, f) },
 			func(m Meta, _ Doc) { gO(m, f) },
 			func() { /* f.write_str("no parameters expected", StyleText), */ },
-			func(_, u Doc) { f.doc(u) },
+			func(_ Meta, u Doc) { f.doc(u) },
 			func(m Meta) {
 				f.write_str("--", StyleLiteral)
 				f.write_str(" ", StyleText)
@@ -340,8 +341,8 @@ func (self *Doc) write(input fmt.GoStringer, style Style) {
 
 func (self Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
-	// [metavar]"foo" + [metavar]"bar"[metavar]"foobar"
-	if n := len(self.tokens); n == 0 {
+	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
+	if n := len(self.tokens); n == 0 || !matches(self.tokens[n-1], TokenText) {
 		self.tokens = append(self.tokens, TokenText(lenn, style))
 	} else {
 		if self.tokens[n-1].style == style {

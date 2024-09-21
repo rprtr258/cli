@@ -2,6 +2,7 @@ package cli
 
 import (
 	"fmt"
+	"math"
 
 	"github.com/rprtr258/fun"
 )
@@ -98,7 +99,7 @@ type ParseSome[T any] struct {
 //
 // Can be useful to decide to skip parsing of some items on a command line
 // When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return fun.Invalid().
+// if it fails - `catch` would restore all the consumed values and return Invalid().
 //
 // There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
 // and [`ParseSome`], behavior should be identical for all of them.
@@ -122,7 +123,7 @@ func (self ParseSome[T]) eval(args *State) Result[[]T] {
 	}
 
 	if res.is_empty() {
-		return Err(Error(MessageParseValid(self.message)))
+		return Err[T](Error(MessageParseValid(self.message)))
 	} else {
 		return Ok(res)
 	}
@@ -144,7 +145,7 @@ type ParseCollect[T any] struct {
 //
 // Can be useful to decide to skip parsing of some items on a command line
 // When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return fun.Invalid().
+// if it fails - `catch` would restore all the consumed values and return Invalid().
 //
 // There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
 // and [`ParseSome`], behavior should be identical for all of them.
@@ -236,13 +237,13 @@ func (self ParseOrElse[T]) eval(args *State) Result[T] {
 	// all invocations of parsers rather than being inlined into each one.
 
 	// let (res_a, err_a) = switch self.this.eval(&mut args_a) {
-	//     Ok(ok)(Valid(ok), fun.Invalid()),
-	//     Err(err)(fun.Invalid(), Valid(err)),
+	//     Ok(ok)(Valid(ok), Invalid()),
+	//     Err(err)(Invalid(), Valid(err)),
 	// };
 
 	// let (res_b, err_b) = switch self.that.eval(&mut args_b) {
-	//     Ok(ok)(Valid(ok), fun.Invalid()),
-	//     Err(err)(fun.Invalid(), Valid(err)),
+	//     Ok(ok)(Valid(ok), Invalid()),
+	//     Err(err)(Invalid(), Valid(err)),
 	// };
 
 	// if this_or_that_picks_first(
@@ -284,7 +285,7 @@ func this_or_that_picks_first(
 	//         }
 	//         return switch err_b {
 	//             Valid(err)Err(err),
-	//             fun.Invalid()Ok(false),
+	//             Invalid()Ok(false),
 	//         };
 	//     }
 	//     stdcmpOrderingEqual{}
@@ -296,23 +297,23 @@ func this_or_that_picks_first(
 	//         }
 	//         return switch err_a {
 	//             Valid(err)Err(err),
-	//             fun.Invalid()Ok(true),
+	//             Invalid()Ok(true),
 	//         };
 	//     }
 	// }
 
 	// otherwise pick based on the left most or successful one
 	// res := switch (err_a, err_b) {
-	//     (fun.Invalid(), fun.Invalid()){
+	//     (Invalid(), Invalid()){
 	//         if args.len() == args_a.len() && args.len() == args_b.len() {
-	//             Ok((true, fun.Invalid()))
+	//             Ok((true, Invalid()))
 	//         } else {
 	//             Ok(args_a.pick_winner(args_b))
 	//         }
 	//     }
 	//     (Valid(e1), Valid(e2))Err(e1.combine_with(e2)),
 	//     // otherwise either a or b are success, true means a is success
-	//     (a_ok, _)Ok((a_ok.is_fun.Invalid()(), fun.Invalid())),
+	//     (a_ok, _)Ok((a_ok.is_Invalid()(), Invalid())),
 	// };
 
 	{
@@ -482,7 +483,7 @@ func (self *ParseFallback[P, T]) debug_fallback() ParseFallback[P, T] {
 // # If fallback function fails - no value will show up
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-func (self *ParseFallbackWith[T, P, F, E]) display_fallback() ParseFallbackWith[T, P, F, E] {
+func (self *ParseFallbackWith[T]) display_fallback() ParseFallbackWith[T] {
 	// if Ok(val) := (self.fallback)() {
 	//     self.value_str = fmt.Sprintf("[default: {}]", val);
 	// }
@@ -499,47 +500,46 @@ func (self *ParseFallbackWith[T, P, F, E]) display_fallback() ParseFallbackWith[
 // # If fallback function fails - no value will show up
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback.md"))]
-func (self *ParseFallbackWith[T, P, F, E]) debug_fallback() ParseFallbackWith[T, P, F, E] {
-	// if Ok(val) := (self.fallback)() {
-	//     self.value_str = fmt.Sprintf("[default: %#v]", val);
-	// }
-	self
+func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
+	val, err := self.fallback().unpack()
+	if err == nil {
+		self.value_str = fmt.Sprintf("[default: %#v]", val)
+	}
+	return self
 }
 
 // Parser fails with a message if check returns false, created with [`guard`](Parserguard).
-type ParseGuard[P, F any] struct {
-	inner   P
-	check   F
+type ParseGuard[T any] struct {
+	inner   Parser[T]
+	check   func(T) bool
 	message string
 }
 
 // impl<T, P, F> Parser[T] for ParseGuard<P, F>
-//
-//	P: Parser[T],
-//	F: func(&T)bool,
-func (self Parse[P, F]) eval(args *State) Result[T] {
-	// t := self.inner.eval(args)?;
-	if (self.check)(&t) {
-		Ok(t)
+func (self ParseGuard[T]) eval(args *State) Result[T] {
+	t, err := self.inner.eval(args).unpack()
+	if err != nil {
+		return Err[T](err)
+	}
+	if self.check(t) {
+		return Ok(t)
 	} else {
-		Err(Error(MessageGuardFailed(args.current, self.message)))
+		return Err[T](Error(MessageGuardFailed(args.current, self.message)))
 	}
 }
 
-func (self Parse[P, F]) meta() Meta {
-	self.inner.meta()
+func (self ParseGuard[T]) meta() Meta {
+	return self.inner.meta()
 }
 
 // Apply inner parser as many times as it succeeds while consuming something and return this
 // number
-type ParseCount[P, T any] struct {
-	inner P
+type ParseCount[T any] struct {
+	inner Parser[T]
 }
 
 // impl<T, P> Parser[uint] for ParseCount<P, T>
-//
-//	P: Parser[T],
-func (self ParseCount[P, T]) eval(args *State) Result[uint] {
+func (self ParseCount[T]) eval(args *State) Result[int] {
 	res := 0
 	current := args.len()
 	len := uintMAX
@@ -550,11 +550,11 @@ func (self ParseCount[P, T]) eval(args *State) Result[uint] {
 	//     }
 	//     current = args.len();
 	// }
-	Ok(res)
+	return Ok(res)
 }
 
-func (self ParseCount[P, T]) meta() Meta {
-	MetaMany(MetaOptional(self.inner.meta()))
+func (self ParseCount[T]) meta() Meta {
+	return MetaMany(MetaOptional(self.inner.meta()))
 }
 
 // Apply inner parser as many times as it succeeds while consuming something and return this number
@@ -564,15 +564,15 @@ type ParseLast[T any] struct {
 
 // impl<T, P> Parser[T] for ParseLast<P>
 func (self ParseLast[T]) eval(args *State) Result[T] {
-	last := fun.Invalid()
+	last := Invalid[T]()
 	current := args.len()
-	len := uintMAX
+	len := uint(math.MaxUint)
 	for {
-		val, ok := parse_option(&self.inner, &len, args, false)
-		if !ok {
+		val, err := parse_option(self.inner, &len, args, false).unpack()
+		if err != nil || !val.Valid {
 			break
 		}
-		last = Valid(val)
+		last = val
 		if current == args.len() {
 			break
 		}
@@ -589,11 +589,19 @@ func (self ParseLast[T]) meta() Meta {
 	return MetaMany(MetaRequired(self.inner.meta()))
 }
 
+// / Apply inner parser, return a value in `Some` if items requested by it are all present, restore
+// / and return `None` if any are missing. Created with [`optional`](Parser::optional). Implements
+// / [`catch`](ParseOptional::catch)
+type ParseOptional[T any] struct {
+	inner Parser[T]
+	catch bool
+}
+
 // Handle parse failures for fun.Optional parsers
 //
 // Can be useful to decide to skip parsing of some items on a command line.
 // When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return fun.Invalid().
+// if it fails - `catch` would restore all the consumed values and return Invalid().
 //
 // There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
 // and [`ParseSome`], behavior should be identical for all of them.
@@ -618,7 +626,7 @@ type ParseMany[T any] struct {
 //
 // Can be useful to decide to skip parsing of some items on a command line
 // When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return fun.Invalid().
+// if it fails - `catch` would restore all the consumed values and return Invalid().
 //
 // There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
 // and [`ParseSome`], behavior should be identical for all of them.
@@ -629,7 +637,7 @@ func (self *ParseMany[P]) Catch() *ParseMany[P] {
 }
 
 // try to parse
-func parse_Option[T any](
+func parse_option[T any](
 	parser Parser[T],
 	len *uint,
 	args *State,
@@ -643,10 +651,10 @@ func parse_Option[T any](
 	//         *len = args.len();
 	//         Valid(val)
 	//     } else {
-	//         fun.Invalid()
+	//         Invalid()
 	//     }),
 	//     Err(Error(err)){
-	//         // this is safe to return Ok(fun.Invalid()) in following scenarios
+	//         // this is safe to return Ok(Invalid()) in following scenarios
 	//         // when inner parser never consumed anything and
 	//         // 1. produced ErrorMissing
 	//         // 2. produced ErrorMessage(_, true)
@@ -654,7 +662,7 @@ func parse_Option[T any](
 	//         //
 	//         // In all other scenarios we should return the original error
 	//         //
-	//         // When parser returns Ok(fun.Invalid()) we should return the original arguments so if there's
+	//         // When parser returns Ok(Invalid()) we should return the original arguments so if there's
 	//         // anything left unconsumed - this won't be lost.
 
 	//         missing := matches(err, MessageMissing(_));
@@ -666,7 +674,7 @@ func parse_Option[T any](
 	//             if orig_args.comp_mut().is_Valid() {
 	//                 args.swap_comps(&mut orig_args);
 	//             }
-	//             Ok(fun.Invalid())
+	//             Ok(Invalid())
 	//         } else {
 	//             Err(Error(err))
 	//         }
@@ -676,7 +684,7 @@ func parse_Option[T any](
 
 // impl<T, P> Parser[[]T] for ParseMany<P>
 func (self ParseMany[T]) eval(args *State) Result[[]T] {
-	len := uintMAX
+	len := uint(math.MaxUint)
 	return stditerfrom_fn((func() parse_option)(&self.inner, &len, args, self.catch).transpose()).collect[Result[[]T]]()
 }
 
@@ -702,13 +710,13 @@ func (self ParsePure[T]) meta() Meta {
 
 type ParsePureWith[T any] struct{ inner func() Result[T] }
 
-// impl<T: Clone , F: func()Result[T, E>, E: ToString> Parser<T]
+// impl[T: Clone] Parser[T]
 func (self ParsePureWith[T]) eval(_args *State) Result[T] {
 	ok, e := self.inner().unpack()
 	if e == nil {
 		return Ok(ok)
 	}
-	return Err(Error(MessagePureFailed(e.to_string())))
+	return Err[T](Error(MessagePureFailed(e.to_string())))
 }
 
 func (self ParsePureWith[T]) meta() Meta {

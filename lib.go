@@ -80,7 +80,7 @@ import "github.com/rprtr258/fun"
 //!   can be updated to include default value using
 //!   [`display_fallback`](ParseFallbackdisplay_fallback) and
 //!   [`debug_fallback`](ParseFallbackdebug_fallback) .
-//! - [`optional`](Parseroptional) - return `fun.Invalid()` if value is missing instead of failing, see
+//! - [`optional`](Parseroptional) - return `Invalid()` if value is missing instead of failing, see
 //!   also [`catch`](ParseOptionalcatch) .
 //! - [`many`](Parsermany), [`some`](Parsersome) and [`collect`](Parsercollect) - collect
 //!   multiple values into a collection, usually a vector, see their respective
@@ -372,30 +372,29 @@ import "github.com/rprtr258/fun"
 // }
 // ```
 
-// #[macro_export]
-// macro_rules! construct {
+// func construct() {
 //     // construct(EnumCons { a, b, c })
-//     ($()? $ns:ident $( $con:ident)* { $($tokens:tt)* }){{ $crateconstruct(@prepare [named [$ns $( $con)*]] [] $($tokens)*) }};
+//     ($()? $ns:ident $( $con:ident)* { $($tokens:tt)* }){{ construct(@prepare [named [$ns $( $con)*]] [] $($tokens)*) }};
 
 //     // construct(EnumCons ( a, b, c ))
-//     ($()? $ns:ident $( $con:ident)* ( $($tokens:tt)* )){{ $crateconstruct(@prepare [pos [$ns $( $con)*]] [] $($tokens)*) }};
+//     ($()? $ns:ident $( $con:ident)* ( $($tokens:tt)* )){{ construct(@prepare [pos [$ns $( $con)*]] [] $($tokens)*) }};
 
 //     // construct( a, b, c )
-//     ($first:ident $($tokens:tt)*){{ $crateconstruct(@prepare [pos] [] $first $($tokens)*) }};
+//     ($first:ident $($tokens:tt)*){{ construct(@prepare [pos] [] $first $($tokens)*) }};
 
 //     // construct[a, b, c]
-//     ([$first:ident $($tokens:tt)*]){{ $crateconstruct(@prepare [alt] [] $first $($tokens)*) }};
+//     ([$first:ident $($tokens:tt)*]){{ construct(@prepare [alt] [] $first $($tokens)*) }};
 
 //     (@prepare $ty:tt [$($fields:tt)*] $field:ident () $(, $($rest:tt)*)? ){{
 //         $field := $field();
-//         $crateconstruct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
+//         construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
 //     }};
 //     (@prepare $ty:tt [$($fields:tt)*] $field:ident ($expr:expr) $(, $($rest:tt)*)?){{
 //         $field := $expr;
-//         $crateconstruct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
+//         construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
 //     }};
 //     (@prepare $ty:tt [$($fields:tt)*] $field:ident $(, $($rest:tt)*)? ){{
-//         $crateconstruct(@prepare $ty [$($fields)* $field] $($($rest)* )?)
+//         construct(@prepare $ty [$($fields)* $field] $($($rest)* )?)
 //     }};
 
 //     (@prepare [alt] [$first:ident $($fields:ident)*]){
@@ -404,7 +403,7 @@ import "github.com/rprtr258/fun"
 //     };
 
 //     (@prepare $ty:tt [$($fields:tt)*]){
-//         $crateconstruct(@fin $ty [ $($fields)* ])
+//         construct(@fin $ty [ $($fields)* ])
 //     };
 
 //     (@make [named [$($con:tt)+]] [$($fields:ident)*]){ $($con)+ { $($fields),* } };
@@ -431,9 +430,9 @@ import "github.com/rprtr258/fun"
 //             $front := $front?;
 //             $($fields := $fields?;)*
 
-//             args.current = fun.Invalid();
+//             args.current = Invalid();
 //             stdresultResultOk<_, $crateError>
-//                 ($crateconstruct(@make $ty [$front $($fields)*]))
+//                 (construct(@make $ty [$front $($fields)*]))
 //         };
 //         $crateParseCon { inner, meta, failfast: false }
 //     }};
@@ -599,8 +598,8 @@ type Parser[T any] struct {
 // [`some`](Parsersome) also collects results to a vector but requires at least one
 // element to succeed, [`collect`](Parsercollect) collects results into a [`FromIterator`]
 // structure
-func (self Parser[T]) many() ParseMany[Parser[T]] {
-	return ParseMany[Parser[T]]{
+func (self Parser[T]) many() ParseMany[T] {
+	return ParseMany[T]{
 		inner: self,
 		catch: false,
 	}
@@ -623,8 +622,8 @@ func (self Parser[T]) many() ParseMany[Parser[T]] {
 // `collect` will collect at most one result that does not consume anything from the argument
 // list allowing using it in combination of any parsers with a fallback. After the first one
 // it will keep collecting the results as long as they consume something.
-func (self Parser[T]) collect() ParseCollect[Parser[T], []T, T] {
-	return ParseCollect[Parser[T], []T, T]{
+func (self Parser[T]) collect() ParseCollect[T] {
+	return ParseCollect[T]{
 		inner: self,
 		catch: false,
 	}
@@ -652,8 +651,8 @@ func (self Parser[T]) collect() ParseCollect[Parser[T], []T, T] {
 // no matching values. [`collect`](Parsercollect) collects results into a [`FromIterator`]
 // structure
 
-func (self Parser[T]) Some(message string) ParseSome[Parser[T]] {
-	return ParseSome[Parser[T]]{
+func (self Parser[T]) Some(message string) ParseSome[T] {
+	return ParseSome[T]{
 		inner:   self,
 		message: message,
 		catch:   false,
@@ -665,7 +664,7 @@ func (self Parser[T]) Some(message string) ParseSome[Parser[T]] {
 // {{{ fun.Optional
 // Turn a required argument into an fun.Optional one
 //
-// `optional` converts any missing items into `fun.Invalid()` and passes the remaining parsing
+// `optional` converts any missing items into `Invalid()` and passes the remaining parsing
 // failures untouched. With an extra [`catch`](ParseOptionalcatch) statement, you can handle
 // those failures too.
 //
@@ -676,8 +675,8 @@ func (self Parser[T]) Some(message string) ParseSome[Parser[T]] {
 // But it's also possible to specify it explicitly.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/optional.md"))]
-func (self Parser[T]) Option() ParseOptional[Parser[T]] {
-	return ParseOptional[Parser[T]]{
+func (self Parser[T]) Option() ParseOptional[T] {
+	return ParseOptional[T]{
 		inner: self,
 		catch: false,
 	}
@@ -701,8 +700,8 @@ func (self Parser[T]) count() ParseCount[Parser[T], T] {
 //
 // You can use this to allow users to pick contradicting fun.Options
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/last.md"))]
-func (self Parser[T]) last() ParseLast[Parser[T]] {
-	return ParseLast[Parser[T]]{inner: self}
+func (self Parser[T]) last() ParseLast[T] {
+	return ParseLast[T]{inner: self}
 }
 
 // parse
@@ -749,8 +748,8 @@ func parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, Parser[T]
 // the value produced by the parser into a new value of the same or different type.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/map.md"))]
-func Map[T, R any](self Parser[T], Map func(T) R) ParseMap[T, Parser[T], func(T) R, R] {
-	return ParseMap[T, Parser[T], func(T) R, R]{
+func Map[T, R any](self Parser[T], Map func(T) R) ParseMap[T, R] {
+	return ParseMap[T, R]{
 		inner:  self,
 		map_fn: Map,
 	}
@@ -1168,8 +1167,8 @@ func fail[T any](msg string) ParseFail[T] {
 //	`bpaf` would use items past the first one as hidden aliases.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func short(short byte) NamedArg {
-	return NamedArg{
+func short(short byte) *NamedArg {
+	return &NamedArg{
 		short: []byte{short},
 		env:   nil,
 		long:  nil,
@@ -1185,8 +1184,8 @@ func short(short byte) NamedArg {
 //	`bpaf` would use items past the first one as hidden aliases.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func long(long string) NamedArg {
-	return NamedArg{
+func long(long string) *NamedArg {
+	return &NamedArg{
 		short: nil,
 		long:  []string{long},
 		env:   nil,
@@ -1269,7 +1268,7 @@ func env(variable string) NamedArg {
 // [`strict`](ParsePositionalstrict).
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 func positional[T any](metavar string) ParsePositional[T] {
-	return build_positional(metavar)
+	return build_positional[T](metavar)
 }
 
 // Deprecated: You should switch from command(name, sub) to sub.command(name)
@@ -1324,8 +1323,8 @@ func Any[I FromStr, T any](metavar string, check func(I) Option[T]) ParseAny[T] 
 		// metavar: [(metavar, StyleMetavar)][..].into(),
 		help: Invalid[Doc](),
 		check: func(os string) Option[T] {
-			i, err := from_os_strparse_os_str[I](os)
-			if err != nil {
+			var i I
+			if err := i.UnmarshalText([]byte(os)); err != nil {
 				return Invalid[T]()
 			}
 			return check(i)
@@ -1380,7 +1379,8 @@ func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 func choice[T any](parsers ...Parser[T]) Parser[T] {
 	this, ok := parsers.next()
 	if !ok {
-		return fail[T]("Invalid choice usage")
+		p := fail[T]("Invalid choice usage")
+		return Parser[T]{p.eval, p.meta}
 	}
 	for _, that := range parsers {
 		this = ParseOrElse[T]{this, that}

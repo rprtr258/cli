@@ -163,7 +163,7 @@ func (self Meta) peek_front_ty() Option[HiTy] {
 	// | MetaStrict(x)
 	// | MetaCustomUsage(x, _)x.peek_front_ty(),
 	// MetaItem(i)Valid(HiTyfrom(i.as_ref())),
-	// MetaSkipfun.Invalid(),
+	// MetaSkipInvalid(),
 	}
 }
 
@@ -192,7 +192,7 @@ func (self *HelpItems) append_meta(meta Meta) {
 		// | MetaMany(x)
 		// | MetaStrict(x)GO(hi, x, no_ss),
 		// MetaItem(item){
-		//     if matches(item.as_ref(), ItemPositional { help: fun.Invalid(), .. }) {
+		//     if matches(item.as_ref(), ItemPositional { help: Invalid(), .. }) {
 		//         return;
 		//     }
 		//     hi.items=append(hi.items,HelpItemfrom(item.as_ref()));
@@ -248,7 +248,7 @@ func HelpItemFromItem(item Item) HelpItem {
 	switch item {
 	// ItemPositional { metavar, help }SelfPositional {
 	//     metavar: *metavar,
-	//     help: help.as_ref(),
+	//     help: help,
 	// },
 	// ItemCommand {
 	//     name,
@@ -262,7 +262,7 @@ func HelpItemFromItem(item Item) HelpItem {
 	// }SelfCommand {
 	//     name,
 	//     short: *short,
-	//     help: help.as_ref(),
+	//     help: help,
 	//     meta,
 
 	//     info,
@@ -275,7 +275,7 @@ func HelpItemFromItem(item Item) HelpItem {
 	// }SelfFlag {
 	//     name: *name,
 	//     env: *env,
-	//     help: help.as_ref(),
+	//     help: help,
 	// },
 	// ItemArgument {
 	//     name,
@@ -287,7 +287,7 @@ func HelpItemFromItem(item Item) HelpItem {
 	//     name: *name,
 	//     metavar: *metavar,
 	//     env: *env,
-	//     help: help.as_ref(),
+	//     help: help,
 	// },
 	// ItemAny {
 	//     metavar,
@@ -296,7 +296,7 @@ func HelpItemFromItem(item Item) HelpItem {
 	// }SelfAny {
 	//     metavar,
 	//     anywhere: *anywhere,
-	//     help: help.as_ref(),
+	//     help: help,
 	// },
 	}
 }
@@ -428,7 +428,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 	//     if Valid(env) := env {
 	//         val := switch stdenvvar_os(env) {
 	//             Valid(s)stdborrowCowfrom(fmt.Sprintf(" = %#v", s.to_string_lossy())),
-	//             fun.Invalid()stdborrowCowBorrowed(": N/A"),
+	//             Invalid()stdborrowCowBorrowed(": N/A"),
 	//         };
 
 	//         if help.is_Valid() {

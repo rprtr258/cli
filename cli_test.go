@@ -540,7 +540,8 @@ func wtf_shenanigans_1(t *testing.T) {
 		os_string += "="
 		os_string += i_suffix
 
-		o_c, o_prefix, o_suffix := split_os_argument(&os_string).unwrap()
+		o_c, o_prefix, o_suffix, ok := split_os_argument(os_string)
+		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, i_prefix, o_prefix)
 		require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
@@ -571,27 +572,12 @@ func wtf_shenanigans_2(t *testing.T) {
 		os_string += "="
 		os_string += i_suffix
 
-		{
-			o_c, o_prefix, o_suffix := split_os_argument(&os_string).unwrap()
-			require.Equal(t, i_c, o_c)
-			require.Equal(t, i_prefix, o_prefix)
-			require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
-		}
-
-		{
-			o_c, o_prefix, o_suffix := split_os_argument_fallback(&os_string).unwrap()
-			require.Equal(t, i_c, o_c)
-			require.Equal(t, i_prefix, o_prefix)
-			require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
-		}
+		o_c, o_prefix, o_suffix, ok := split_os_argument(os_string)
+		require.True(t, ok)
+		require.Equal(t, i_c, o_c)
+		require.Equal(t, i_prefix, o_prefix)
+		require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
 	}
-}
-
-func fallback_with_strange_args_produces_same_results(t *testing.T) {
-	s := "-Obits=2048"
-	r1 := split_os_argument(&s)
-	r2 := split_os_argument_fallback(&s)
-	require.Equal(t, r1, r2)
 }
 
 func de_yoda(t *testing.T) {

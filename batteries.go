@@ -12,6 +12,8 @@ package cli
 
 import (
 	"fmt"
+
+	"github.com/rprtr258/fun"
 )
 
 // `--verbose` and `--quiet` flags with results encoded as number
@@ -32,20 +34,20 @@ import (
 // ```
 func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
 	verbose := short('v').
-		long("verbose").
-		help("Increase output verbosity, can be used several times").
+		Long("verbose").
+		Help(newDocFromString("Increase output verbosity, can be used several times")).
 		req_flag(struct{}{}).
 		many().
 		Map((func(v) v.len)())
 
 	quiet := short('q').
-		long("quiet").
-		help("Decrease output verbosity, can be used several times").
+		Long("quiet").
+		Help(newDocFromString("Decrease output verbosity, can be used several times")).
 		req_flag(struct{}{}).
 		many().
 		Map((func(v) v.len)())
 
-	construct(verbose, quiet).Map(func(v, q) { return (v - q + offset).clamp(min, max) })
+	return construct(verbose, quiet).Map(func(v, q int) int { return fun.Clamp(v-q+offset, min, max) })
 }
 
 // `--verbose` and `--quiet` flags with results choosen from a slice of values
@@ -84,12 +86,12 @@ func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
 // # res := parser.run_inner(&["-vvvvq"]).unwrap();
 // # require.Equal(t,LevelTrace, res);
 // ```
-func verbose_by_slice(
-	offset uint,
+func verbose_by_slice[T any](
+	offset int,
 	items []T,
 ) Parser[T] {
-	verbose_and_quiet_by_number(offset, 0, len(items)-1).
-		Map(func(i) items[i])
+	return verbose_and_quiet_by_number(offset, 0, len(items)-1).
+		Map(func(i int) T { return items[i] })
 }
 
 // Pick last passed value between two different flags
@@ -110,7 +112,7 @@ func verbose_by_slice(
 // $ app --banana --no-banana --banana --banana
 // Valid(Banana)
 // $ app
-// fun.Invalid()
+// Invalid()
 // ```
 //
 // # Usage
@@ -131,14 +133,12 @@ func verbose_by_slice(
 //
 // ```
 func toggle_flag[T any](
-	a NamedArg,
-	val_a T,
-	b NamedArg,
-	val_b T,
+	a NamedArg, val_a T,
+	b NamedArg, val_b T,
 ) Parser[Option[T]] {
 	a := a.req_flag(val_a)
 	b := b.req_flag(val_b)
-	construct(a, b).many().Map((func(xs) xs.into_iter)().last())
+	return construct(a, b).many().Map(func(xs []T) Option[T] { return xs.last() })
 }
 
 // Get usage for a parser

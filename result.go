@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"encoding"
 	"fmt"
+	"strings"
 
 	"github.com/rprtr258/fun"
 )
@@ -51,17 +53,31 @@ func (r Result[T]) or(t T) T {
 	return r.Value
 }
 
-func first[T any](xs []T) Option[T] {
-	if len(xs) == 0 {
+func get[T any](xs []T, ix int) Option[T] {
+	if ix < 0 || ix >= len(xs) {
 		return Invalid[T]()
 	}
-	return Valid(xs[0])
+	return Valid(xs[ix])
+}
+
+func first[T any](xs []T) Option[T] {
+	return get(xs, 0)
 }
 
 type IntoString = fmt.Stringer
+type FromStr = encoding.TextUnmarshaler
 
 func stdmemswap[T any](a, b *T) {
 	*a, *b = *b, *a
+}
+
+func strip_prefix(s string, prefix string) Option[string] {
+	x, ok := strings.CutPrefix(s, prefix)
+	return Option[string]{x, ok}
+}
+
+func strip_prefixb(s string, prefix byte) Option[string] {
+	return strip_prefix(s, string(prefix))
 }
 
 // Option is either value or nothing.
@@ -100,6 +116,13 @@ func (o Option[T]) OrDefault(value T) T {
 	return fun.IF(o.Valid, o.Value, value)
 }
 
+func (o Option[T]) and_then(f func(T) Option[T]) Option[T] {
+	if !o.Valid {
+		return Invalid[T]()
+	}
+	return f(o.Value)
+}
+
 func OptMap[I, O any](o Option[I], f func(I) O) Option[O] {
 	if !o.Valid {
 		return Invalid[O]()
@@ -107,9 +130,25 @@ func OptMap[I, O any](o Option[I], f func(I) O) Option[O] {
 	return Valid(f(o.Value))
 }
 
+func map_or[I, O any](o Option[I], defVal O, f func(I) O) O {
+	return OptMap(o, f).OrDefault(defVal)
+}
+
 func OptFlatMap[I, O any](o Option[I], f func(I) Option[O]) Option[O] {
 	if !o.Valid {
 		return Invalid[O]()
 	}
 	return f(o.Value)
+}
+
+func stris_empty(s string) bool {
+	return s == ""
+}
+
+func starts_with(s string, prefix string) bool {
+	return strings.HasPrefix(s, prefix)
+}
+
+func starts_withb(s string, prefix byte) bool {
+	return starts_with(s, string(prefix))
 }

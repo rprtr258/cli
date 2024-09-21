@@ -3,8 +3,6 @@ package cli
 import (
 	"fmt"
 	"os"
-
-	"github.com/rprtr258/fun"
 )
 
 type Range [2]int
@@ -50,6 +48,14 @@ type ParseFailure func(
 	// Print this to stderr and exit with failure code
 	Stderr func(Doc),
 )
+
+func ParseFailureStderr(doc Doc) ParseFailure {
+	return func(_ func(Doc, bool), _ func(string), Stderr func(Doc)) {
+		if Stderr != nil {
+			Stderr(doc)
+		}
+	}
+}
 
 type Message func(
 	// those can be caught ---------------------------------------------------------------
@@ -115,6 +121,14 @@ type Message func(
 	OnlyOnce func( /* winner */ uint, uint),
 )
 
+func MessagePureFailed(s string) Message {
+	return func(_, _, _, PureFailed func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if PureFailed != nil {
+			PureFailed(s)
+		}
+	}
+}
+
 func MessageMissing(xs ...MissingItem) Message {
 	return func(_, _, _, _ func(string), Missing func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if Missing != nil {
@@ -132,25 +146,7 @@ func MessageParseFail(s string) Message {
 }
 
 func MessageNoArgument(ix int, metavar Metavar) Message {
-	return func(
-		_ func(string),
-		_ func(string),
-		_ func(string),
-		_ func(string),
-		_ func([]MissingItem),
-		_ func(ParseFailure),
-		_ func(uint, Metavar),
-		_ func(uint, Metavar),
-		_ func(Option[uint], string),
-		_ func(Option[uint], string),
-		NoArgument func(int, Metavar),
-		_ func(uint),
-		_ func(int, string),
-		_ func(uint, Suggestion),
-		_ func(uint, uint),
-		_ func([]Item, Option[uint]),
-		_ func(uint, uint),
-	) {
+	return func(_ func(string), _ func(string), _ func(string), _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), NoArgument func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if NoArgument != nil {
 			NoArgument(ix, metavar)
 		}
@@ -163,6 +159,30 @@ func MessageAmbiguity(ix int, short string) Message {
 			Ambiguity(ix, short)
 		}
 	}
+}
+
+func (self Message) to_string() string {
+	var res string
+	self(
+		func(a string) { res = fmt.Sprintf("NoEnv(%#v)", a) },
+		func(a string) { res = fmt.Sprintf("ParseSome(%#v)", a) },
+		func(a string) { res = fmt.Sprintf("ParseFail(%#v)", a) },
+		func(a string) { res = fmt.Sprintf("PureFailed(%#v)", a) },
+		func(a []MissingItem) { res = fmt.Sprintf("Missing(%#v)", a) },
+		func(a ParseFailure) { res = fmt.Sprintf("ParseFailure(%#v)", a) },
+		func(a uint, b Metavar) { res = fmt.Sprintf("StrictPos(%#v, %#v)", a, b) },
+		func(a uint, b Metavar) { res = fmt.Sprintf("NonStrictPos(%#v, %#v)", a, b) },
+		func(a Option[uint], b string) { res = fmt.Sprintf("ParseFailed(%#v, %#v)", a, b) },
+		func(a Option[uint], b string) { res = fmt.Sprintf("GuardFailed(%#v, %#v)", a, b) },
+		func(a int, b Metavar) { res = fmt.Sprintf("NoArgument(%#v, %#v)", a, b) },
+		func(a uint) { res = fmt.Sprintf("Unconsumed(%#v)", a) },
+		func(a int, b string) { res = fmt.Sprintf("Ambiguity(%#v, %#v)", a, b) },
+		func(a uint, b Suggestion) { res = fmt.Sprintf("Suggestion(%#v, %#v)", a, b) },
+		func(a uint, b uint) { res = fmt.Sprintf("Conflict(%#v, %#v)", a, b) },
+		func(a []Item, b Option[uint]) { res = fmt.Sprintf("Expected(%#v, %#v)", a, b) },
+		func(a uint, b uint) { res = fmt.Sprintf("OnlyOnce(%#v, %#v)", a, b) },
+	)
+	return res
 }
 
 // TODO: OPTIMIZE: less memory could be used
@@ -221,6 +241,10 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 
 // Unsuccessful command line parsing outcome, internal representation
 type Error Message
+
+func (self Error) to_string() string {
+	return Message(self).to_string()
+}
 
 func (self Error) combine_with(other Error) Error {
 	return Error(Message(self).combine_with(Message(other)))
@@ -298,7 +322,7 @@ func (self ParseFailure) unwrap_stdout() string {
 	self(
 		func(err Doc, full bool) { res = err.monochrome(full) },
 		func(s string) { res = s },
-		func(Doc) { panic("not an stdout: %#v", self) },
+		func(Doc) { panic(fmt.Sprintf("not an stdout: %#v", self)) },
 	)
 	return res
 }
@@ -324,7 +348,7 @@ func (self ParseFailure) print_message(max_width uint) {
 	color := Colordefault()
 	self(
 		func(msg Doc, full bool) {
-			fmt.Println(msg.render_console(*full, color, max_width))
+			fmt.Println(msg.render_console(full, color, max_width))
 		},
 		func(s string) {
 			fmt.Print(s)
@@ -339,42 +363,47 @@ func (self ParseFailure) print_message(max_width uint) {
 }
 
 func check_conflicts(args State) Option[Message] {
-	loser, winner, ok := args.conflict().Unpack()
+	loserwinner, ok := args.conflict().Unpack()
 	if !ok {
-		return fun.Invalid()
+		return Invalid[Message]()
 	}
+	loser, winner := loserwinner.start(), loserwinner.end()
 	return Valid(MessageConflict(winner, loser))
 }
 
-func textual_part(args State, ix Option[uint]) Option[string] {
-	ix, ok := ix.Unpack()
+func textual_part(args State, ixxx Option[int]) Option[string] {
+	ixx, ok := ixxx.Unpack()
 	if !ok {
-		return fun.Invalid()
+		return Invalid[string]()
 	}
 
-	ix, ok := args.items.get(ix).Unpack()
+	ix, ok := get(args.items, ixx).Unpack()
 	if !ok {
-		return fun.Invalid()
+		return Invalid[string]()
 	}
 
 	res := Invalid[string]()
-	// switch ix {
-	//     ArgArgWord(s) | ArgWord(s) | ArgPosWord(s)Valid(s.to_string_lossy()),
-	// }
+	ix.value(
+		nil,
+		nil,
+		func() { res = Valid(ix.os_str) },
+		func() { res = Valid(ix.os_str) },
+		func() { res = Valid(ix.os_str) },
+	)
 	return res
 }
 
 func only_once(args State, cur uint) Option[uint] {
 	if cur == 0 {
-		return fun.Invalid()
+		return Invalid[uint]()
 	}
 	iter := args.items[:cur].iter().rev()
 	offset := s /*witch args.items.get(cur)? {
 	    ArgShort(s, _, _)iter.position(|a| a.match_short(*s)),
 	    ArgLong(l, _, _)iter.position(|a| a.match_long(l)),
-	    ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)fun.Invalid(),
+	    ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)Invalid(),
 	};*/
-	Valid(cur - offset /*?*/ - 1)
+	return Valid(cur - offset /*?*/ - 1)
 }
 
 func (self *Message) render(args State, meta Meta) ParseFailure {
@@ -396,7 +425,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	}
 
 	doc := Doc{}
-	self(
+	(*self)(
 	// // already rendered
 	// MessageParseFailure(f)return f,
 
@@ -505,7 +534,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	//         doc.text(" to use it as an argument");
 	//     }
 	//     // "Some" part of this branch is actually unreachable
-	//     Valid(ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)) | fun.Invalid(){
+	//     Valid(ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)) | Invalid(){
 	//         arg := &args.items[x];
 	//         doc.token(TokenBlockStart(BlockTermRef));
 	//         doc.write(arg, StyleLiteral);
@@ -681,7 +710,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	//             doc.token(TokenBlockEnd(BlockTermRef));
 	//             doc.text(". Pass ");
 	//         }
-	//         fun.Invalid(){
+	//         Invalid(){
 	//             doc.text(", pass ");
 	//         }
 	//     }
@@ -712,7 +741,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	// }
 	)
 
-	ParseFailureStderr(doc)
+	return ParseFailureStderr(doc)
 }
 
 // go over all the missing items, pick the left most scope
@@ -720,7 +749,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := items.
 		iter().
-		max_by_key(func(item) { return Res{item.position, item.scope.start} })
+		max_by_key(func(item MissingItem) Range { return Range{item.position, item.scope.start()} })
 	if !ok {
 		return MessageParseValid("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}
@@ -730,19 +759,18 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 	saw_command := false
 	expected := items.
 		iter().
-		filter_map(func(i) {
-			// cmd := matches(i.item, ItemCommand { .. });
+		filter_map(func(i MissingItem) Option[Item] {
+			cmd := matches(i.item, ItemCommand)
 			if i.scope == best_scope && !(saw_command && cmd) {
 				saw_command |= cmd
-				Valid(i.item)
+				return Valid(i.item)
 			} else {
-				fun.Invalid()
+				return Invalid[Item]()
 			}
 		}).
 		collect()
 
 	best_scope.start = best_scope.start.max(best_item.position)
-	args := args
 	args.set_scope(best_scope)
 	if ix, _arg, ok = args.items_iter().next().Unpack(); ok {
 		if ix, sugg := cratemeta_youmeansuggest(&args, inner).Unpack(); ok {
@@ -751,6 +779,6 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 			MessageExpected(expected, Valid(ix))
 		}
 	} else {
-		MessageExpected(expected, fun.Invalid())
+		MessageExpected(expected, Invalid())
 	}
 }

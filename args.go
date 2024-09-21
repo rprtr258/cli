@@ -581,7 +581,7 @@ func (self State) swap_comps_with(comps *[]Comp) {
 // Get a short or long flag: `-f` / `--flag`
 //
 // Returns false if value isn't present
-func (self State) take_flag(named NamedArg) bool {
+func (self State) take_flag(named *NamedArg) bool {
 	if ix, _, ok := self.items_iter().find(func(_ int, arg Arg) bool { return named.matches_arg(arg, false) }).Unpack(); ok {
 		self.remove(ix)
 		return true
@@ -592,7 +592,7 @@ func (self State) take_flag(named NamedArg) bool {
 
 // get a short or long arguments
 //
-// Returns Ok(fun.Invalid()) if flag isn't present
+// Returns Ok(Invalid()) if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
 func (self State) take_arg(
 	named NamedArg,
@@ -600,9 +600,8 @@ func (self State) take_arg(
 	metavar Metavar,
 ) Result[Option[string]] {
 	var key_ix int
-	var _arg Arg
 	if v, ok := self.items_iter().find(func(_ int, arg Arg) bool { return named.matches_arg(arg, adjacent) }).Unpack(); ok {
-		key_ix, _arg = v[0], v[1]
+		key_ix = v[0]
 	} else {
 		return Ok(Invalid[string]())
 	}
@@ -626,7 +625,7 @@ func (self State) take_arg(
 
 // gets first positional argument present
 //
-// returns Ok(fun.Invalid()) if input is empty
+// returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
 func (self State) take_positional_word(metavar Metavar) (int, bool, string, Error) {
 	var (

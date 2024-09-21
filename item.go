@@ -180,10 +180,10 @@ func ShortLongFromNamedArg(named NamedArg) Option[ShortLong] {
 }
 
 func (self Item) required(required bool) Meta {
-	boxed := Metafrom(self)
+	boxed := MetaItem(self)
 	if required {
 		return boxed
 	} else {
-		return MetaOptional(Boxnew(boxed))
+		return MetaOptional(boxed)
 	}
 }

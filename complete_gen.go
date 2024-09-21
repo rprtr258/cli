@@ -3,8 +3,6 @@ package cli
 import (
 	"fmt"
 	"strings"
-
-	"github.com/rprtr258/fun"
 )
 
 type CompExtra struct {
@@ -209,8 +207,8 @@ func (self *State) push_command(
 		comp.comps = append(comp.comps, CompCommand{
 			extra: CompExtra{
 				depth: depth,
-				group: fun.Invalid(),
-				help:  help.as_ref().and_then(Docto_completion),
+				group: Invalid[string](),
+				help:  help.and_then(Docto_completion),
 			},
 			name,
 			short,
@@ -231,15 +229,15 @@ func (self *State) clear_comps() {
 func (self *State) push_pos_sep() {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		comp.comps = append(comp.comps, CompValue{
-			extra: CompExtra{
+		comp.comps = append(comp.comps, CompValue(
+			CompExtra{
 				depth: depth,
 				group: Invalid[string](),
 				help:  Valid("Positional only items after this token"),
 			},
-			body:        "--",
-			is_argument: false,
-		})
+			"--",
+			false,
+		))
 	}
 }
 
@@ -451,7 +449,7 @@ func (self State) check_complete() Option[string] {
 		case 9:
 			return render_fish(&items, shell, full_lit, self.path[0])
 		default:
-			panic(fmt.Sprintf("Unsupported output revision {}, you need to genenerate your shell completion files for the app", unk))
+			panic(fmt.Sprintf("Unsupported output revision {}, you need to genenerate your shell completion files for the app", comp.output_rev))
 		}
 	}())
 }
@@ -480,25 +478,27 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 	// allocations and cloning
 	name(
 		func(s byte) {
-			can_switch |= arg.
-				strip_prefix('-').
-				and_then(func(a string) Option[string] { return a.strip_prefix(s) }).
-				map_or(false, stris_empty)
+			can_switch |= map_or(strip_prefixb(arg, '-').
+				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
+				false, stris_empty)
 		},
 		nil,
 		func(s byte, _ string) {
-			can_switch |= arg.
-				strip_prefix('-').
-				and_then((func(a) a.strip_prefix)(s)).
-				map_or(false, stris_empty)
+			can_switch |= map_or(strip_prefixb(arg, '-').
+				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
+				false, stris_empty)
 		},
 	)
 
 	// and long string too
 	name(
 		nil,
-		func(l string) { can_switch |= arg.strip_prefix("--").map_or(false, (func(s) l.starts_with)(s)) },
-		func(_ byte, l string) { can_switch |= arg.strip_prefix("--").map_or(false, (func(s) l.starts_with)(s)) },
+		func(l string) {
+			can_switch |= map_or(strip_prefix(arg, "--"), false, func(s string) bool { return starts_with(l, s) })
+		},
+		func(_ byte, l string) {
+			can_switch |= map_or(strip_prefix(arg, "--"), false, func(s string) bool { return starts_with(l, s) })
+		},
 	)
 
 	if !can_switch {
@@ -510,9 +510,9 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 
 func cmd_matches(arg string, name string, short Option[byte]) Option[string] {
 	// partial long name and exact short name switch anything
-	if name.starts_with(arg) || short.map_or(false, func(s string) Option[string] {
+	if starts_with(name, arg) || map_or(short, false, func(s byte) bool {
 		// avoid allocations
-		return arg.strip_prefix(s).map_or(false, stris_empty)
+		return map_or(strip_prefixb(arg, s), false, stris_empty)
 	}) {
 		return Valid(name)
 	}
@@ -568,7 +568,7 @@ F:
 
 		item(
 			func(extra CompExtra, name ShortLong) {
-				if long, ok := arg_matches(arg, *name).Unpack(); ok {
+				if long, ok := arg_matches(arg, name).Unpack(); ok {
 					items = append(items, ShowComp{
 						pretty: long,
 						subst:  long,
@@ -581,7 +581,7 @@ F:
 				name ShortLong,
 				metavar string,
 			) {
-				if long, ok := arg_matches(arg, *name).Unpack(); ok {
+				if long, ok := arg_matches(arg, name).Unpack(); ok {
 					items = append(items, ShowComp{
 						pretty: fmt.Sprintf("{}={}", long, metavar),
 						subst:  long,
@@ -594,10 +594,10 @@ F:
 				name string,
 				short Option[byte],
 			) {
-				if long, ok := cmd_matches(arg, name, *short).Unpack(); ok {
+				if long, ok := cmd_matches(arg, name, short).Unpack(); ok {
 					items = append(items, ShowComp{
-						subst:  long.to_string(),
-						pretty: long.to_string(),
+						subst:  long,
+						pretty: long,
 						extra:  extra,
 					})
 				}
@@ -626,14 +626,13 @@ F:
 				meta string,
 				is_argument bool,
 			) {
-				if !is_argument && !pos_only && arg.starts_with('-') {
-					continue F
+				if is_argument || pos_only || !starts_withb(arg, '-') {
+					items = append(items, ShowComp{
+						subst:  "",
+						pretty: meta,
+						extra:  extra,
+					})
 				}
-				items = append(items, ShowComp{
-					subst:  "",
-					pretty: meta,
-					extra:  extra,
-				})
 			},
 			func(
 				_ CompExtra,
