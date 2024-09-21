@@ -18,7 +18,7 @@ type MissingItem struct {
 	// Item that is missing
 	item Item
 	// Position it is missing from - exact for positionals, earliest possible for flags
-	position uint
+	position int
 	// Range where search was performed, important for combinators that narrow the search scope such as adjacent
 	scope Range
 }
@@ -82,17 +82,17 @@ type Message func(
 	NonStrictPos func(uint, Metavar),
 
 	// Parser provided by user failed to parse a value
-	ParseFailed func(fun.Option[uint], string),
+	ParseFailed func(Option[uint], string),
 
 	// Parser provided by user failed to validate a value
-	GuardFailed func(fun.Option[uint], string),
+	GuardFailed func(Option[uint], string),
 
 	// Argument requres a value but something else was passed,
 	// required: --foo <BAR>
 	// given: --foo --bar
 	//        --foo -- bar
 	//        --foo
-	NoArgument func(uint, Metavar),
+	NoArgument func(int, Metavar),
 
 	// Parser is expected to consume all the things from the command line
 	// this item will contain an index of the unconsumed value
@@ -109,22 +109,56 @@ type Message func(
 	Conflict func( /* winner */ uint, uint),
 
 	// Expected one or more items in the scope, got someting else if any
-	Expected func([]Item, fun.Option[uint]),
+	Expected func([]Item, Option[uint]),
 
 	// Parameter is accepted but only once
 	OnlyOnce func( /* winner */ uint, uint),
 )
 
+func MessageMissing(xs ...MissingItem) Message {
+	return func(_, _, _, _ func(string), Missing func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if Missing != nil {
+			Missing(xs)
+		}
+	}
+}
+
 func MessageParseFail(s string) Message {
-	return func(_, _, _, ParseFail func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(fun.Option[uint], string), _ func(fun.Option[uint], string), _ func(uint, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, fun.Option[uint]), _ func(uint, uint)) {
+	return func(_, _, _, ParseFail func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if ParseFail != nil {
 			ParseFail(s)
 		}
 	}
 }
 
+func MessageNoArgument(ix int, metavar Metavar) Message {
+	return func(
+		_ func(string),
+		_ func(string),
+		_ func(string),
+		_ func(string),
+		_ func([]MissingItem),
+		_ func(ParseFailure),
+		_ func(uint, Metavar),
+		_ func(uint, Metavar),
+		_ func(Option[uint], string),
+		_ func(Option[uint], string),
+		NoArgument func(int, Metavar),
+		_ func(uint),
+		_ func(int, string),
+		_ func(uint, Suggestion),
+		_ func(uint, uint),
+		_ func([]Item, Option[uint]),
+		_ func(uint, uint),
+	) {
+		if NoArgument != nil {
+			NoArgument(ix, metavar)
+		}
+	}
+}
+
 func MessageAmbiguity(ix int, short string) Message {
-	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(fun.Option[uint], string), _ func(fun.Option[uint], string), _ func(uint, Metavar), _ func(uint), Ambiguity func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, fun.Option[uint]), _ func(uint, uint)) {
+	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), Ambiguity func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if Ambiguity != nil {
 			Ambiguity(ix, short)
 		}
@@ -296,7 +330,7 @@ func (self ParseFailure) print_message(max_width uint) {
 			fmt.Print(s)
 		},
 		func(msg Doc) {
-			error := Stringnew()
+			error := ""
 			color.push_str(StyleInvalid, &error, "Error: ")
 
 			fmt.Fprintln(os.Stderr, error+msg.render_console(true, color, max_width))
@@ -309,10 +343,10 @@ func check_conflicts(args State) Option[Message] {
 	if !ok {
 		return fun.Invalid()
 	}
-	return fun.Valid(MessageConflict(winner, loser))
+	return Valid(MessageConflict(winner, loser))
 }
 
-func textual_part(args State, ix fun.Option[uint]) Option[string] {
+func textual_part(args State, ix Option[uint]) Option[string] {
 	ix, ok := ix.Unpack()
 	if !ok {
 		return fun.Invalid()
@@ -323,9 +357,9 @@ func textual_part(args State, ix fun.Option[uint]) Option[string] {
 		return fun.Invalid()
 	}
 
-	res := fun.Invalid[string]()
+	res := Invalid[string]()
 	// switch ix {
-	//     ArgArgWord(s) | ArgWord(s) | ArgPosWord(s)fun.Valid(s.to_string_lossy()),
+	//     ArgArgWord(s) | ArgWord(s) | ArgPosWord(s)Valid(s.to_string_lossy()),
 	// }
 	return res
 }
@@ -340,18 +374,18 @@ func only_once(args State, cur uint) Option[uint] {
 	    ArgLong(l, _, _)iter.position(|a| a.match_long(l)),
 	    ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)fun.Invalid(),
 	};*/
-	fun.Valid(cur - offset /*?*/ - 1)
+	Valid(cur - offset /*?*/ - 1)
 }
 
 func (self *Message) render(args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
 	switch self {
 	// MessageUnconsumed(ix){
-	//     if fun.Valid(conflict) := check_conflicts(args) {
+	//     if Valid(conflict) := check_conflicts(args) {
 	//         self = conflict;
-	//     } else if fun.Valid(prev_ix) := only_once(args, ix) {
+	//     } else if Valid(prev_ix) := only_once(args, ix) {
 	//         self = MessageOnlyOnce(prev_ix, ix);
-	//     } else if let fun.Valid((ix, suggestion)) = cratemeta_youmeansuggest(args, meta) {
+	//     } else if let Valid((ix, suggestion)) = cratemeta_youmeansuggest(args, meta) {
 	//         self = MessageSuggestion(ix, suggestion);
 	//     }
 	// }
@@ -361,7 +395,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	// _{}
 	}
 
-	doc := Docdefault()
+	doc := Doc{}
 	self(
 	// // already rendered
 	// MessageParseFailure(f)return f,
@@ -414,14 +448,14 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	// }
 
 	// // Error: <message from some or fail>
-	// MessageParsefun.Valid(s) | MessageParseFail(s){
+	// MessageParseValid(s) | MessageParseFail(s){
 	//     doc.text(s);
 	// }
 
 	// // Error: couldn't parse FIELD: <FromStr message>
 	// MessageParseFailed(mix, s){
 	//     doc.text("couldn't parse");
-	//     if fun.Valid(field) := textual_part(args, mix) {
+	//     if Valid(field) := textual_part(args, mix) {
 	//         doc.text(" ");
 	//         doc.token(TokenBlockStart(BlockTermRef));
 	//         doc.invalid(&field);
@@ -433,7 +467,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 
 	// // Error: ( FIELD:  | check failed: ) <message from guard>
 	// MessageGuardFailed(mix, s){
-	//     if fun.Valid(field) := textual_part(args, mix) {
+	//     if Valid(field) := textual_part(args, mix) {
 	//         doc.token(TokenBlockStart(BlockTermRef));
 	//         doc.invalid(&field);
 	//         doc.token(TokenBlockEnd(BlockTermRef));
@@ -447,7 +481,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	// // Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
 	// // Error: --foo requires an argument FOO
 	// MessageNoArgument(x, mv)switch args.get(x + 1) {
-	//     fun.Valid(ArgShort(_, _, os) | ArgLong(_, _, os)){
+	//     Valid(ArgShort(_, _, os) | ArgLong(_, _, os)){
 	//         arg := &args.items[x];
 	//         os := &os.to_string_lossy();
 
@@ -471,7 +505,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	//         doc.text(" to use it as an argument");
 	//     }
 	//     // "Some" part of this branch is actually unreachable
-	//     fun.Valid(ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)) | fun.Invalid(){
+	//     Valid(ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)) | fun.Invalid(){
 	//         arg := &args.items[x];
 	//         doc.token(TokenBlockStart(BlockTermRef));
 	//         doc.write(arg, StyleLiteral);
@@ -491,11 +525,11 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	// MessageAmbiguity(ix, name){
 	//     chars := name.chars();
 	//     first := chars.next().unwrap();
-	//     rest := chars.as_str();
+	//     rest := chars;
 	//     second := chars.next().unwrap();
 	//     s := args.items[ix].os_str().to_str().unwrap();
 
-	//     if fun.Valid(name) := args.path.first() {
+	//     if Valid(name) := args.path.first() {
 	//         doc.literal(name);
 	//         doc.text(" supports ");
 	//     } else {
@@ -640,7 +674,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	//         }
 	//     }
 	//     switch actual {
-	//         fun.Valid(actual){
+	//         Valid(actual){
 	//             doc.text(", got ");
 	//             doc.token(TokenBlockStart(BlockTermRef));
 	//             doc.write(&args.items[actual], StyleInvalid);
@@ -688,7 +722,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 		iter().
 		max_by_key(func(item) { return Res{item.position, item.scope.start} })
 	if !ok {
-		return MessageParsefun.Valid("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+		return MessageParseValid("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}
 
 	best_scope := best_item.scope
@@ -700,7 +734,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 			// cmd := matches(i.item, ItemCommand { .. });
 			if i.scope == best_scope && !(saw_command && cmd) {
 				saw_command |= cmd
-				fun.Valid(i.item)
+				Valid(i.item)
 			} else {
 				fun.Invalid()
 			}
@@ -714,7 +748,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 		if ix, sugg := cratemeta_youmeansuggest(&args, inner).Unpack(); ok {
 			MessageSuggestion(ix, sugg)
 		} else {
-			MessageExpected(expected, fun.Valid(ix))
+			MessageExpected(expected, Valid(ix))
 		}
 	} else {
 		MessageExpected(expected, fun.Invalid())

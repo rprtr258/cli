@@ -4,16 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
-
-	"github.com/rprtr258/fun"
 )
-
-type NamedArg struct {
-	short []byte
-	long  []string
-	env   []string
-	help  fun.Option[Doc]
-}
 
 func (p FlagParser[T]) Help(text string) FlagParser[T] {
 	// TODO: implement
@@ -33,7 +24,7 @@ func (p FlagParser[T]) Default(v T) FlagParser[T] {
 
 func (p FlagParser[T]) Guard(f func(T) bool, err string) FlagParser[T] {
 	return FlagParser[T]{func(ctx *Context) Result[T] {
-		return p.run(ctx).check(func(t T) error {
+		return p.run(ctx).check(func(t T) Error {
 			if !f(t) {
 				return errors.New(err)
 			}
@@ -52,7 +43,7 @@ func ExampleGuard() {
 		Guard(func(x int) bool { return x < 100 }, "speed must be less than 100")
 }
 
-func Parse[T, R any](p FlagParser[T], f func(T) (R, error)) FlagParser[R] {
+func Parse[T, R any](p FlagParser[T], f func(T) (R, Error)) FlagParser[R] {
 	return FlagParser[R]{func(ctx *Context) Result[R] {
 		t := p.run(ctx)
 		if t.Err != nil {

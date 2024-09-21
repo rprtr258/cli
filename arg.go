@@ -2,8 +2,6 @@ package cli
 
 import (
 	"fmt"
-
-	"github.com/rprtr258/fun"
 )
 
 // Preprocessed command line argument
@@ -147,7 +145,7 @@ const (
 // Notation -fbar is ambigous and could mean either `-f -b -a -r` or `-f=bar`, resolve it into
 // [`ArgAmbiguity`] and let subparser disambiguate it later depending on available short flag and
 // arguments
-func split_os_argument(input string) (ArgType, string, fun.Option[Arg], bool) {
+func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 	// but in either case dashes and equals are just literal values just with different width
 	const DASH = '-'
 	const EQUALS = '='
@@ -159,7 +157,7 @@ func split_os_argument(input string) (ArgType, string, fun.Option[Arg], bool) {
 
 	// first item must be dash, otherwise it's positional or a flag value
 	if len(items) == 0 || items[0] != DASH {
-		return false, "", fun.Invalid[Arg](), false
+		return false, "", Invalid[Arg](), false
 	}
 	items = items[1:]
 
@@ -183,7 +181,7 @@ func split_os_argument(input string) (ArgType, string, fun.Option[Arg], bool) {
 				body = append(body, items...)
 				name = name[1:]
 				os := ArgArgWord(string(body))
-				return ty, string(name), fun.Valid(os), true
+				return ty, string(name), Valid(os), true
 			}
 			break
 		default:
@@ -191,9 +189,9 @@ func split_os_argument(input string) (ArgType, string, fun.Option[Arg], bool) {
 		}
 	}
 	if len(name) == 0 {
-		return false, "", fun.Invalid[Arg](), false
+		return false, "", Invalid[Arg](), false
 	}
 
 	word := ArgArgWord(string(items))
-	return ty, string(name), fun.Valid(word), true
+	return ty, string(name), Valid(word), true
 }

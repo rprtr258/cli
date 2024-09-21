@@ -10,11 +10,11 @@ import (
 // /
 // No longer public, users are only interacting with it via [`OptionParser`]
 type Info struct {
-	version         fun.Option[Doc] // version field, see [`version`][Infoversion]
-	descr           fun.Option[Doc] // Custom description field, see [`descr`][Infodescr]
-	header          fun.Option[Doc] // Custom header field, see [`header`][Infoheader]
-	footer          fun.Option[Doc] // Custom footer field, see [`footer`][Infofooter]
-	usage           fun.Option[Doc] // Custom usage field, see [`usage`][Infousage]
+	version         Option[Doc] // version field, see [`version`][Infoversion]
+	descr           Option[Doc] // Custom description field, see [`descr`][Infodescr]
+	header          Option[Doc] // Custom header field, see [`header`][Infoheader]
+	footer          Option[Doc] // Custom footer field, see [`footer`][Infofooter]
+	usage           Option[Doc] // Custom usage field, see [`usage`][Infousage]
 	help_arg        NamedArg
 	version_arg     NamedArg
 	help_if_no_args bool
@@ -70,7 +70,7 @@ type OptionParser[T any] struct {
 //	}
 //
 // ```
-func (self OptionParser[T]) run(self) T {
+func (self OptionParser[T]) run() T {
 	t, err := self.run_inner(Argscurrent_args()).Unpack()
 	if err != nil {
 		err.print_message(self.info.max_width)
@@ -101,8 +101,8 @@ func (self OptionParser[T]) run(self) T {
 //	}
 //
 //	fn main() {
-//	    let verbosity: fun.Option[uint] = switch verbosity().try_run() {
-//	        Ok(v)fun.Valid(v),
+//	    let verbosity: Option[uint] = switch verbosity().try_run() {
+//	        Ok(v)Valid(v),
 //	        Err(ParseFailureStdout(buf, full)){
 //	            fmt.Print("{}", buf.monochrome(full));
 //	            fun.Invalid()
@@ -163,7 +163,7 @@ func (self OptionParser[T]) try_run(self) Result[T, ParseFailure] {
 //
 // ";
 //
-//	assert_eq!(expected_help, help);
+//	require.Equal(t,expected_help, help);
 //
 // # /*
 // }
@@ -185,8 +185,8 @@ func (self OptionParser[T]) try_run(self) Result[T, ParseFailure] {
 // Exact string reperentations may change between versions including minor releases.
 func (self OptionParser[T]) run_inner(args Into[Args]) Result[T, ParseFailure] {
 	// prepare available short flags and arguments for disambiguation
-	short_flags := Vecnew()
-	short_args := Vecnew()
+	short_flags := nil
+	short_args := nil
 	self.inner.meta().collect_shorts(&short_flags, &short_args)
 	short_flags.extend(&self.info.help_arg.short)
 	short_flags.extend(&self.info.version_arg.short)
@@ -271,7 +271,7 @@ func (self OptionParser[T]) run_subparser(args *State) Result[T, ParseFailure] {
 				)
 			},
 			func(v Doc) {
-				buffer := Docdefault()
+				buffer := Doc{}
 				buffer.token(TokenBlockStart(BlockBlock))
 				buffer.text("Version: ")
 				buffer.doc(&v)
@@ -288,7 +288,7 @@ func (self OptionParser[T]) run_subparser(args *State) Result[T, ParseFailure] {
 //
 // Used internally to avoid duplicating description for [`command`].
 func (self OptionParser[T]) short_descr() Option[Doc] {
-	self.info.descr.as_ref().and_then(Docfirst_line)
+	return self.info.descr.and_then(Doc.first_line)
 }
 
 // Set the version field.
@@ -331,8 +331,8 @@ func (self OptionParser[T]) short_descr() Option[Doc] {
 // $ app --version
 // Version: 0.5.0
 // ```
-func (self *OptionParser[T]) version(version Doc) *Self {
-	self.info.version = fun.Valid(version)
+func (self *OptionParser[T]) version(version Doc) *OptionParser[T] {
+	self.info.version = Valid(version)
 	return self
 }
 
@@ -402,7 +402,7 @@ func (self *OptionParser[T]) version(version Doc) *Self {
 // This is a footer
 // ```
 func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
-	self.info.descr = fun.Valid(descr.into())
+	self.info.descr = Valid(descr)
 	return self
 }
 
@@ -471,7 +471,7 @@ func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
 // This is a footer
 // ```
 func (self *OptionParser[T]) header(header Doc) *OptionParser[T] {
-	self.info.header = fun.Valid(header.into())
+	self.info.header = Valid(header)
 	return self
 }
 
@@ -540,7 +540,7 @@ func (self *OptionParser[T]) header(header Doc) *OptionParser[T] {
 // This is a footer
 // ```
 func (self *OptionParser[T]) footer(footer Doc) *OptionParser[T] {
-	self.info.footer = fun.Valid(footer.into())
+	self.info.footer = Valid(footer)
 	return self
 }
 
@@ -548,7 +548,7 @@ func (self *OptionParser[T]) footer(footer Doc) *OptionParser[T] {
 //
 // Custom usage field to use instead of one derived by `bpaf`.
 func (self *OptionParser[T]) usage(usage Doc) *OptionParser[T] {
-	self.info.usage = fun.Valid(usage.into())
+	self.info.usage = Valid(usage)
 	return self
 }
 
@@ -561,10 +561,10 @@ func (self *OptionParser[T]) usage(usage Doc) *OptionParser[T] {
 // but since it gives you an object of [`OptionParser[T]`](OptionParser)
 // type you can alter it using Combinatoric API:
 func (self *OptionParser[T]) with_usage(f func(Doc) Doc) *OptionParser[T] {
-	buf := Docdefault()
-	buf.write_meta(&self.inner.meta(), true)
-	self.info.usage = fun.Valid(f(buf))
-	self
+	buf := Doc{}
+	buf.write_meta(self.inner.meta(), true)
+	self.info.usage = Valid(f(buf))
+	return self
 }
 
 // Check the invariants `bpaf` relies on for normal operations

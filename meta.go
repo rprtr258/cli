@@ -6,7 +6,7 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type Meta = func(
+type Meta func(
 	// All arguments listed in a vector must be present
 	And func([]Meta),
 	// One of arguments listed in a vector must be present
@@ -29,16 +29,78 @@ type Meta = func(
 	Suffix func(Meta, Doc),
 	// This item is not rendered in the help message
 	Skip func(),
-	// TODO make it fun.Option[Doc]
+	// TODO make it Option[Doc]
 	CustomUsage func(Meta, Doc),
 	// this meta must be prefixed with -- in unsage group
 	Strict func(Meta),
 )
 
 func MetaAnd(xs []Meta) Meta {
-	return func(And, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _, _, _ func(Meta, Doc), _ func(Meta)) {
+	return func(And, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
 		if And != nil {
 			And(xs)
+		}
+	}
+}
+
+func MetaOr(xs []Meta) Meta {
+	return func(_, Or func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Or != nil {
+			Or(xs)
+		}
+	}
+}
+
+func MetaOptional(m Meta) Meta {
+	return func(_, _ func([]Meta), Optional, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Optional != nil {
+			Optional(m)
+		}
+	}
+}
+
+func MetaRequired(m Meta) Meta {
+	return func(_, _ func([]Meta), _, Required, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Required != nil {
+			Required(m)
+		}
+	}
+}
+
+func MetaAdjacent(m Meta) Meta {
+	return func(_, _ func([]Meta), _, _, Adjacent func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Adjacent != nil {
+			Adjacent(m)
+		}
+	}
+}
+
+func MetaItem(i Item) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), Item func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Item != nil {
+			Item(i)
+		}
+	}
+}
+
+func MetaMany(m Meta) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), Many func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if Many != nil {
+			Many(m)
+		}
+	}
+}
+
+var MetaSkip Meta = func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), Skip func(), _ func(Meta, Doc), _ func(Meta)) {
+	if Skip != nil {
+		Skip()
+	}
+}
+
+func MetaStrict(m Meta) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), Strict func(Meta)) {
+		if Strict != nil {
+			Strict(m)
 		}
 	}
 }
@@ -60,9 +122,31 @@ type StrictNorm func(
 	Strip func(),
 )
 
+func StrictNormPull() StrictNorm {
+	return func(Pull, Push, Strip func()) {
+		if Pull != nil {
+			Pull()
+		}
+	}
+}
+func StrictNormPush() StrictNorm {
+	return func(Pull, Push, Strip func()) {
+		if Push != nil {
+			Push()
+		}
+	}
+}
+func StrictNormStrip() StrictNorm {
+	return func(Pull, Push, Strip func()) {
+		if Strip != nil {
+			Strip()
+		}
+	}
+}
+
 func (self *StrictNorm) push() {
-	self(
-		func() { *self = StrictNormPush },
+	(*self)(
+		func() { *self = StrictNormPush() },
 		nil,
 		nil,
 	)
@@ -79,7 +163,7 @@ func (self Meta) is_command() bool {
 		nil,
 		nil,
 		func(i Item) {
-			i(nil, nil, func(string, fun.Option[byte], fun.Option[Doc], Meta, Info) { res = true }, nil, nil)
+			i(nil, nil, func(string, Option[byte], Option[Doc], Meta, Info) { res = true }, nil, nil)
 		},
 		nil,
 		func(m Meta, _ Doc) { res = m.is_command() },
@@ -93,7 +177,8 @@ func (self Meta) is_command() bool {
 
 // do a nested invariant check
 func (self Meta) positional_invariant_check(verbose bool) {
-	GO := func(meta Meta, is_pos *bool, v bool) {
+	var GO func(meta Meta, is_pos *bool, v bool)
+	GO = func(meta Meta, is_pos *bool, v bool) {
 		meta(
 			func(xs []Meta) {
 				for _, x := range xs {
@@ -105,12 +190,12 @@ func (self Meta) positional_invariant_check(verbose bool) {
 				for _, x := range xs {
 					this_pos := *is_pos
 					GO(x, &this_pos, v)
-					out |= this_pos
+					out = out || this_pos
 				}
 				*is_pos = out
 			},
-			func(Meta) { GO(m, is_pos, v) },
-			func(Meta) { GO(m, is_pos, v) },
+			func(m Meta) { GO(m, is_pos, v) },
+			func(m Meta) { GO(m, is_pos, v) },
 			func(m Meta) {
 				if i, ok := Metafirst_item(m).Unpack(); ok {
 					if i.is_pos() {
@@ -129,7 +214,7 @@ func (self Meta) positional_invariant_check(verbose bool) {
 				case i.is_pos():
 					*is_pos = true
 				}
-				i(nil, nil, func(_ string, _ fun.Option[byte], _ fun.Option[Doc], meta Meta, _ Info) {
+				i(nil, nil, func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
 					command_pos := false
 					if v {
 						fmt.Printf("Checking\n%#v\n", meta)
@@ -137,12 +222,12 @@ func (self Meta) positional_invariant_check(verbose bool) {
 					GO(meta, &command_pos, v)
 				}, nil, nil)
 			},
-			func(Meta) { GO(m, is_pos, v) },
-			func(Meta) { GO(m, is_pos, v) },
-			func(Meta) { GO(m, is_pos, v) },
+			func(m Meta) { GO(m, is_pos, v) },
+			func(m Meta, _ Doc) { GO(m, is_pos, v) },
+			func(m Meta, _ Doc) { GO(m, is_pos, v) },
 			func() {},
-			func(Meta, Doc) { GO(m, is_pos, v) },
-			func(Meta) { GO(m, is_pos, v) },
+			func(m Meta, _ Doc) { GO(m, is_pos, v) },
+			func(m Meta) { GO(m, is_pos, v) },
 		)
 	}
 	is_pos := false
@@ -154,20 +239,20 @@ func (self Meta) positional_invariant_check(verbose bool) {
 
 func (self Meta) normalized(for_usage bool) Meta {
 	m := self
-	norm := StrictNormPull
+	norm := StrictNormPull()
 	m.normalize(for_usage, &norm)
 	// stip outer () around meta unless inner
-	m(nil, nil, nil, func(i Meta) { m = i }, nil, nil, nil, nil, nil, nil, nil)
-	m(nil, func([]Meta) { m = MetaRequired(m) }, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	m(nil, nil, nil, func(i Meta) { m = i }, nil, nil, nil, nil, nil, nil, nil, nil)
+	m(nil, func([]Meta) { m = MetaRequired(m) }, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	norm(nil, func() { m = MetaStrict(m) }, nil)
 	return m
 }
 
 // Used by adjacent parsers since it inherits behavior of the front item
-func first_item(meta Meta) Option[Item] {
-	res := fun.Invalid[Item]()
+func Metafirst_item(meta Meta) Option[Item] {
+	res := Invalid[Item]()
 	meta(
-		func(xs []Meta) { res = xs.first().and_then(Selffirst_item) },
+		func(xs []Meta) { res = first(xs).and_then(Metafirst_item) },
 		nil,
 		func(x Meta) { res = Metafirst_item(x) },
 		func(x Meta) { res = Metafirst_item(x) },
@@ -178,13 +263,13 @@ func first_item(meta Meta) Option[Item] {
 		func(x Meta, _ Doc) { res = Metafirst_item(x) },
 		nil,
 		func(x Meta, _ Doc) { res = Metafirst_item(x) },
-		func(x Meta, _ Doc) { res = Metafirst_item(x) },
+		func(x Meta) { res = Metafirst_item(x) },
 	)
 	return res
 }
 
 // Normalize meta info for display as usage. Required propagates outwards
-func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
+func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 	normalize_vec := func(
 		xs *[]Meta,
 		for_usage bool,
@@ -194,7 +279,7 @@ func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
 		final_norm := *norm
 		for i := range *xs {
 			this_norm := *norm
-			xs[i].normalize(for_usage, &this_norm)
+			(*xs)[i].normalize(for_usage, &this_norm)
 			var target *StrictNorm = fun.IF(or, &final_norm, norm)
 			// switch (*target, this_norm) {
 			//     (_, StrictNormPull) | (StrictNormStrip, _){}
@@ -207,46 +292,49 @@ func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
 			//     }
 			// }
 		}
-		xs = fun.Filter(xs, func(m) { return !matches(m, MetaSkip) })
+		*xs = fun.Filter(func(m Meta) bool { return !matches(m, MetaSkip) }, *xs...)
 
 		*norm = final_norm
 
-		switch xs.len() {
+		switch len(*xs) {
 		case 0:
-			return fun.Valid(MetaSkip)
+			return Valid(MetaSkip)
 		case 1:
-			return fun.Valid(xs.remove(0))
+			res := (*xs)[0]
+			*xs = (*xs)[1:]
+			return Valid(res)
 		default:
-			return fun.Invalid()
+			return Invalid[Meta]()
 		}
 	}
 
-	self(
+	(*self)(
 		func(xs []Meta) {
-			if replacement, ok := normalize_vec(xs, for_usage, norm, false); ok {
+			if replacement, ok := normalize_vec(&xs, for_usage, norm, false).Unpack(); ok {
 				*self = replacement
 			}
 		},
 		// or should have either () or [] around it
 		func(xs []Meta) {
-			if replacement, ok := normalize_vec(xs, for_usage, norm, true); ok {
+			if replacement, ok := normalize_vec(&xs, for_usage, norm, true).Unpack(); ok {
 				*self = replacement
 			} else {
 				saw_cmd := false
 				// drop all the commands apart from the first one
-				xs = fun.Filter(func(m Meta) {
+				xs = fun.Filter(func(m Meta) bool {
 					is_cmd := m.is_command()
 					keep := !(is_cmd && saw_cmd)
-					saw_cmd |= is_cmd
-					keep
+					saw_cmd = saw_cmd || is_cmd
+					return keep
 				}, xs...)
-				switch xs.len() {
+				switch len(xs) {
 				case 0:
 					*self = MetaSkip
 				case 1:
-					*self = xs.remove(0)
+					*self = xs[0]
+					xs = xs[1:]
 				default:
-					*self = MetaRequired(Boxnew(stdmemtake(self)))
+					*self = MetaRequired(*self)
 				}
 			}
 		},
@@ -255,12 +343,12 @@ func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
 			m(
 				nil,
 				nil,
-				func(mm Meta) { *m = stdmemtake(mm) },
-				func(mm Meta) { *m = stdmemtake(mm) },
+				func(mm Meta) { *m = mm },
+				func(mm Meta) { *m = mm },
 				nil,
 				nil,
 				func(many Meta) {
-					many(nil, nil, nil, func(x Meta) { *self = MetaMany(Boxnew(MetaOptional(stdmemtake(x)))) }, nil, nil, nil, nil, nil)
+					many(nil, nil, nil, func(x Meta) { *self = MetaMany(MetaOptional(x)) }, nil, nil, nil, nil, nil, nil, nil, nil)
 				},
 				nil,
 				nil,
@@ -271,34 +359,34 @@ func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
 		},
 		func(m Meta) {
 			m.normalize(for_usage, norm)
-			if matches(**m, MetaSkip) {
+			if matches(m, MetaSkip) {
 				// Required(Skip)Skip
 				*self = MetaSkip
-			} else if matches(**m, MetaAnd(_)|MetaOr(_)) {
+			} else if matches(m, MetaAnd, MetaOr) {
 				// keep () around composite parsers
 			} else {
 				// and strip them elsewhere
-				*self = stdmemtake(m)
+				*self = m
 			}
 		},
 		func(m Meta) {
 			m.normalize(for_usage, norm)
-			*self = stdmemtake(m)
+			*self = m
 		},
 		func(i Item) { i.normalize(for_usage) },
 		func(m Meta) {
 			m.normalize(for_usage, norm)
-			if matches(**m, MetaSkip) {
+			if matches(m, MetaSkip) {
 				*self = MetaSkip
 			}
 		},
 		func(m Meta, _ Doc) {
 			m.normalize(for_usage, norm)
-			*self = stdmemtake(m)
+			*self = m
 		},
 		func(m Meta, _ Doc) {
 			m.normalize(for_usage, norm)
-			*self = stdmemtake(m)
+			*self = m
 		},
 		nil, // nothing to do with items and skip just bubbles upwards
 		func(m Meta, u Doc) {
@@ -309,49 +397,49 @@ func (meta *Meta) normalize(for_usage bool, norm *StrictNorm) {
 					*self = MetaSkip
 				}
 			} else {
-				*self = stdmemtake(m)
+				*self = m
 			}
 		},
 		func(m Meta) {
 			m.normalize(for_usage, norm)
 			norm.push()
-			*self = stdmemtake(m)
+			*self = m
 		},
 	)
 }
 
 func MetaFromItem(value Item) Meta {
-	return MetaItem(Boxnew(value))
+	return MetaItem(value)
 }
 
 func (self Meta) alts(to *[]Meta) {
 	self(
-		func() { to.push(meta) },
-		func(xs) { to.append(&xs) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
-		func() { to.push(meta) },
+		func([]Meta) { *to = append(*to, self) },
+		func(xs []Meta) { *to = append(*to, xs...) },
+		func(Meta) { *to = append(*to, self) },
+		func(Meta) { *to = append(*to, self) },
+		func(Meta) { *to = append(*to, self) },
+		func(Item) { *to = append(*to, self) },
+		func(Meta) { *to = append(*to, self) },
+		func(Meta, Doc) { *to = append(*to, self) },
+		func(Meta, Doc) { *to = append(*to, self) },
 		nil,
-		func() { to.push(meta) },
-		func() { to.push(meta) },
+		func(Meta, Doc) { *to = append(*to, self) },
+		func(Meta) { *to = append(*to, self) },
 	)
 }
 
-func (self Meta) or(other Meta) Self {
-	res := Vecnew()
+func (self Meta) or(other Meta) Meta {
+	res := []Meta{}
 	self.alts(&res)
 	other.alts(&res)
-	switch res.len() {
+	switch len(res) {
 	case 0:
-		MetaSkip
+		return MetaSkip
 	case 1:
-		res.remove(0)
+		return res[0]
 	default:
-		MetaOr(res)
+		return MetaOr(res)
 	}
 }
 
@@ -374,12 +462,14 @@ func (self Meta) collect_shorts(flags *[]byte, args *[]byte) {
 		func(m Item) {
 			m(
 				nil, nil,
-				func(_ string, _ fun.Option[byte], _ fun.Option[Doc], meta Meta, _ Info) {
+				func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
 					meta.collect_shorts(flags, args)
 				},
-				func(_ ShortLong, shorts []byte, _ fun.Option[string], _ fun.Option[Doc]) { flags.extend(shorts) },
-				func(_ ShortLong, shorts []byte, _ Metavar, _ fun.Option[string], _ fun.Option[Doc]) {
-					args.extend(shorts)
+				func(_ ShortLong, shorts []byte, _ Option[string], _ Option[Doc]) {
+					*flags = append(*flags, shorts...)
+				},
+				func(_ ShortLong, shorts []byte, _ Metavar, _ Option[string], _ Option[Doc]) {
+					*args = append(*args, shorts...)
 				},
 			)
 		},
@@ -387,7 +477,7 @@ func (self Meta) collect_shorts(flags *[]byte, args *[]byte) {
 		func(m Meta, _ Doc) { m.collect_shorts(flags, args) },
 		func(m Meta, _ Doc) { m.collect_shorts(flags, args) },
 		nil,
-		func(m Meta) { m.collect_shorts(flags, args) },
+		func(m Meta, _ Doc) { m.collect_shorts(flags, args) },
 		nil,
 	)
 }

@@ -103,8 +103,8 @@ package cli
 
 // 	for i, v := range newParser("test", nil).addGroup("test group", "", &opts).flags {
 // 		s, err := convertToString(v.value, v.tag)
-// 		assert.NoError(t, err)
-// 		assert.Equal(t, s, expects[i])
+// 		require.NoError(t, err)
+// 		require.Equal(t, s, expects[i])
 // 	}
 // }
 
@@ -121,7 +121,7 @@ package cli
 // 	if err != nil {
 // 		err = newErrorf(ErrMarshal, "%v", err)
 // 	}
-// 	assert.Equal(t, &Error{
+// 	require.Equal(t, &Error{
 // 		Kind:    ErrMarshal,
 // 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 // 	}, err)
@@ -139,7 +139,7 @@ package cli
 // 	if err != nil {
 // 		err = newErrorf(ErrMarshal, "%v", err)
 // 	}
-// 	assert.Equal(t, &Error{
+// 	require.Equal(t, &Error{
 // 		Kind:    ErrMarshal,
 // 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 // 	}, err)

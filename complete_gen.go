@@ -2,18 +2,19 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/rprtr258/fun"
 )
 
 type CompExtra struct {
-	depth uint               // Used by complete_gen to separate commands from each other
-	group fun.Option[string] // Render this fun.Option in a group along with all other items with the same name
-	help  fun.Option[string] // help message attached to a completion item
+	depth uint           // Used by complete_gen to separate commands from each other
+	group Option[string] // Render this fun.Option in a group along with all other items with the same name
+	help  Option[string] // help message attached to a completion item
 }
 
 // TODO: move out extra
-type Comp = func(
+type Comp func(
 	// short or long flag
 	Flag func(extra CompExtra, name ShortLong),
 
@@ -27,7 +28,7 @@ type Comp = func(
 	Command func(
 		extra CompExtra,
 		name string,
-		short fun.Option[byte],
+		short Option[byte],
 	),
 
 	// comes from completed values, part of "dynamic" completion
@@ -54,21 +55,52 @@ type Comp = func(
 	),
 )
 
-type Complete struct {
-	// completions accumulated so far
-	comps      []Comp
-	output_rev uint
-
-	// don't try to suggest any more positional items after there's a positional item failure
-	// or parsing in progress
-	no_pos_ahead bool
+func CompFlag(extra CompExtra, name ShortLong) Comp {
+	return func(
+		Flag func(extra CompExtra, name ShortLong),
+		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, string, Option[byte]),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, ShellComp, bool),
+	) {
+		if Flag != nil {
+			Flag(extra, name)
+		}
+	}
 }
 
-func Completenew(output_rev uint) Complete {
-	return Complete{
-		comps:        []Comp{},
-		output_rev:   output_rev,
-		no_pos_ahead: false,
+func CompArgument(extra CompExtra, name ShortLong, metavar string) Comp {
+	return func(
+		_ func(CompExtra, ShortLong),
+		Argument func(extra CompExtra, name ShortLong, metavar string),
+		_ func(CompExtra, string, Option[byte]),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, ShellComp, bool),
+	) {
+		if Argument != nil {
+			Argument(extra, name, metavar)
+		}
+	}
+}
+
+func CompValue(
+	extra CompExtra,
+	body string,
+	is_argument bool,
+) Comp {
+	return func(
+		_ func(CompExtra, ShortLong),
+		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, string, Option[byte]),
+		Value func(extra CompExtra, body string, is_argument bool),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, ShellComp, bool),
+	) {
+		if Value != nil {
+			Value(extra, body, is_argument)
+		}
 	}
 }
 
@@ -100,8 +132,8 @@ type Complete struct {
 
 func Completenew(output_rev uint) Complete {
 	return Complete{
-		comps: nil,
-		output_rev,
+		comps:        []Comp{},
+		output_rev:   output_rev,
 		no_pos_ahead: false,
 	}
 }
@@ -111,14 +143,14 @@ func (self *State) push_flag(named NamedArg) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
 		if name, err := ShortLongtry_from(named); err == nil {
-			comp.comps.push(CompFlag{
-				extra: CompExtra{
-					depth,
-					group: fun.Invalid(),
-					help:  named.help.as_ref().and_then(Docto_completion),
+			comp.comps = append(comp.comps, CompFlag(
+				CompExtra{
+					depth: depth,
+					group: Invalid[string](),
+					help:  named.help.and_then(Docto_completion),
 				},
 				name,
-			})
+			))
 		}
 	}
 }
@@ -128,15 +160,15 @@ func (self *State) push_argument(named NamedArg, metavar string) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
 		if name, err := ShortLongtry_from(named); err == nil {
-			comp.comps.push(CompArgument{
-				extra: CompExtra{
-					depth,
-					group: fun.Invalid(),
-					help:  named.help.as_ref().and_then(Docto_completion),
+			comp.comps = append(comp.comps, CompArgument(
+				CompExtra{
+					depth: depth,
+					group: Invalid[string](),
+					help:  named.help.and_then(Docto_completion),
 				},
-				metavar,
 				name,
-			})
+				metavar,
+			))
 		}
 	}
 }
@@ -153,12 +185,12 @@ func (self *State) push_metavar(
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
 		extra := CompExtra{
-			depth,
-			group: fun.Invalid(),
-			help:  help.as_ref().and_then(Docto_completion),
+			depth: depth,
+			group: Invalid[string](),
+			help:  help.and_then(Docto_completion),
 		}
 
-		comp.comps.push(CompMetavariable{
+		comp.comps = append(comp.comps, CompMetavariable{
 			extra,
 			meta,
 			is_argument,
@@ -169,14 +201,14 @@ func (self *State) push_metavar(
 // Add a new completion hint for command, if needed
 func (self *State) push_command(
 	name string,
-	short fun.Option[char],
+	short Option[byte],
 	help Option[Doc],
 ) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		comp.comps.push(CompCommand{
+		comp.comps = append(comp.comps, CompCommand{
 			extra: CompExtra{
-				depth,
+				depth: depth,
 				group: fun.Invalid(),
 				help:  help.as_ref().and_then(Docto_completion),
 			},
@@ -189,7 +221,7 @@ func (self *State) push_command(
 // Clear collected completions if enabled
 func (self *State) clear_comps() {
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		comp.comps.clear()
+		comp.comps = comp.comps[:0]
 	}
 }
 
@@ -199,13 +231,13 @@ func (self *State) clear_comps() {
 func (self *State) push_pos_sep() {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		comp.comps.push(CompValue{
+		comp.comps = append(comp.comps, CompValue{
 			extra: CompExtra{
-				depth,
-				group: fun.Invalid(),
-				help:  fun.Valid("Positional only items after this token".to_owned()),
+				depth: depth,
+				group: Invalid[string](),
+				help:  Valid("Positional only items after this token"),
 			},
-			body:        "--".to_owned(),
+			body:        "--",
 			is_argument: false,
 		})
 	}
@@ -214,21 +246,21 @@ func (self *State) push_pos_sep() {
 // Insert a bunch of items
 func (self *State) push_with_group(group Option[string], comps *[]Comp) {
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		for i := range comps {
-			if group, ok := group.as_ref().Unpack(); ok {
-				comps[i].set_group(group)
+		for i := range *comps {
+			if group, ok := group.Unpack(); ok {
+				(*comps)[i].set_group(group)
 			}
-			comp.comps.push(comps[i])
+			comp.comps = append(comp.comps, (*comps)[i])
 		}
 	}
 }
 
 func (self *Complete) push_shell(op ShellComp, is_argument bool, depth uint) {
-	self.comps.push(CompShell{
+	self.comps = append(self.comps, CompShell{
 		extra: CompExtra{
-			depth,
-			group: fun.Invalid(),
-			help:  fun.Invalid(),
+			depth: depth,
+			group: Invalid[string](),
+			help:  Invalid[string](),
 		},
 		script: op,
 		is_argument,
@@ -237,24 +269,24 @@ func (self *Complete) push_shell(op ShellComp, is_argument bool, depth uint) {
 
 func (self *Complete) push_value(
 	body string,
-	help fun.Option[string],
-	group fun.Option[string],
+	help Option[string],
+	group Option[string],
 	depth uint,
 	is_argument bool,
 ) {
-	self.comps.push(CompValue{
+	self.comps = append(self.comps, CompValue(
+		CompExtra{depth, group, help},
 		body,
 		is_argument,
-		extra: CompExtra{depth, group, help},
-	})
+	))
 }
 
 func (self *Complete) push_comp(comp Comp) {
-	self.comps.push(comp)
+	self.comps = append(self.comps, comp)
 }
 
 func (self *Complete) extend_comps(comps []Comp) {
-	self.comps.extend(comps)
+	self.comps = append(self.comps, comps...)
 }
 
 func (self *Complete) drain_comps() []Comp {
@@ -262,16 +294,7 @@ func (self *Complete) drain_comps() []Comp {
 }
 
 func (self *Complete) swap_comps(other *[]Comp) {
-	stdmemswap(other, *self.comps)
-}
-
-type CompExtra struct {
-	// Used by complete_gen to separate commands from each other
-	depth uint
-	// Render this fun.Option in a group along with all other items with the same name
-	group fun.Option[string]
-	// help message attached to a completion item
-	help fun.Option[string]
+	stdmemswap(other, &self.comps)
 }
 
 // to avoid leaking items with higher depth into items with lower depth
@@ -280,35 +303,35 @@ func (self Comp) depth() uint {
 	self(
 		func(extra CompExtra, _ ShortLong) { res = extra.depth },
 		func(extra CompExtra, _ ShortLong, _ string) { res = extra.depth },
-		func(extra CompExtra, _ string, _ fun.Option[byte]) { res = extra.depth },
+		func(extra CompExtra, _ string, _ Option[byte]) { res = extra.depth },
 		func(extra CompExtra, _ string, _ bool) { res = extra.depth },
 		func(extra CompExtra, _ string, _ bool) { res = extra.depth },
 		func(extra CompExtra, _ ShellComp, _ bool) { res = extra.depth },
 	)
-	return uint
+	return res
 }
 
 // completer needs to replace meta placeholder with actual values - uses this
 //
 // value indicates if it's an argument or a positional meta
 func (self Comp) is_metavar() Option[bool] {
-	res := fun.Invalid[bool]()
-	self(nil, nil, nil, nil, func(_ CompExtra, _ string, is_argument bool) { res = fun.Valid(*is_argument) }, nil)
+	res := Invalid[bool]()
+	self(nil, nil, nil, nil, func(_ CompExtra, _ string, is_argument bool) { res = Valid(is_argument) }, nil)
 	return res
 }
 
 func (self *Comp) set_group(group string) {
 	var extraa CompExtra
-	self(
-		func(extra CompExtra, _ ShortLong) { extraa = extra.depth },
-		func(extra CompExtra, _ ShortLong, _ string) { extraa = extra.depth },
-		func(extra CompExtra, _ string, _ fun.Option[byte]) { extraa = extra.depth },
-		func(extra CompExtra, _ string, _ bool) { extraa = extra.depth },
-		func(extra CompExtra, _ string, _ bool) { extraa = extra.depth },
-		func(extra CompExtra, _ ShellComp, _ bool) { extraa = extra.depth },
+	(*self)(
+		func(extra CompExtra, _ ShortLong) { extraa = extra },
+		func(extra CompExtra, _ ShortLong, _ string) { extraa = extra },
+		func(extra CompExtra, _ string, _ Option[byte]) { extraa = extra },
+		func(extra CompExtra, _ string, _ bool) { extraa = extra },
+		func(extra CompExtra, _ string, _ bool) { extraa = extra },
+		func(extra CompExtra, _ ShellComp, _ bool) { extraa = extra },
 	)
-	if extraa.group.is_fun.Invalid()() {
-		extraa.group = fun.Valid(group)
+	if !extraa.group.Valid {
+		extraa.group = Valid(group)
 	}
 }
 
@@ -322,8 +345,8 @@ type ShowComp struct {
 	extra CompExtra
 }
 
-func (self ShowComp) fmt(f *stdfmtFormatter) Result {
-	if help, ok := self.extra.help.Unpack(); ok && self.subst.is_empty() {
+func (self ShowComp) fmt(f *strings.Builder) {
+	if help, ok := self.extra.help.Unpack(); ok && self.subst == "" {
 		fmt.Fprintf(f, "{}: {}", self.pretty, help)
 	} else if ok {
 		fmt.Fprintf(f, "{:24} -- {}", self.pretty, help)
@@ -333,19 +356,17 @@ func (self ShowComp) fmt(f *stdfmtFormatter) Result {
 }
 
 func (self Arg) and_os_string() Option[string] {
-	res := fun.Invalid[string]()
+	res := Invalid[string]()
 	self.value(
 		func(byte, bool) {
-			if self.os_str.is_empty() {
-				res = fun.Invalid()
-			} else {
-				res = fun.Valid(self.os_str)
+			if self.os_str != "" {
+				res = Valid(self.os_str)
 			}
 		},
-		func(string, bool) { res = fun.Valid(self.os_str) },
-		func() { res = fun.Valid(self.os_str) },
-		func() { res = fun.Valid(self.os_str) },
-		func() { res = fun.Valid(self.os_str) },
+		func(string, bool) { res = Valid(self.os_str) },
+		func() { res = Valid(self.os_str) },
+		func() { res = Valid(self.os_str) },
+		func() { res = Valid(self.os_str) },
 	)
 	return res
 }
@@ -367,21 +388,20 @@ type Prefix = func(
 func (self State) check_complete() Option[string] {
 	comp, ok := self.comp_ref().Unpack()
 	if !ok {
-		return fun.Invalid[string]()
+		return Invalid[string]()
 	}
 
 	items := self.
 		items.
-		iter().
 		rev().
 		filter_map(Argand_os_string)
 
 	// try get a current item to complete - must be non-virtual right most one
 	// value must be present here, and can fail only for non-utf8 values
 	// can't do much completing with non-utf8 values since bpaf needs to print them to stdout
-	let(cur, lit, ok) = items.next().Unpack()
+	cur, lit, ok := items.next().Unpack()
 	if !ok {
-		return fun.Invalid[string]()
+		return Invalid[string]()
 	}
 
 	// For cases like "-k=val", "-kval", "--key=val", "--key val"
@@ -394,7 +414,7 @@ func (self State) check_complete() Option[string] {
 		full_lit string
 	)
 	switch {
-	// case ok && fun.Valid((ArgShort(_, true, _os) | ArgLong(_, true, _os), full_lit)):
+	// case ok && Valid((ArgShort(_, true, _os) | ArgLong(_, true, _os), full_lit)):
 	//     pos_only,full_lit=false, full_lit
 	// case ok && (ArgPosWord(_), _): pos_only,full_lit=true, lit
 	// default: pos_only,full_lit=false, lit
@@ -411,29 +431,29 @@ func (self State) check_complete() Option[string] {
 
 	var prefix Prefix
 	// switch preceeding {
-	//     case fun.Valid((ArgShort(s, true, _os), _lit)): prefix = PrefixShort(*s)
-	//     case fun.Valid((ArgLong(l, true, _os), _lit)):prefix=PrefixLong(l.as_str())
+	//     case Valid((ArgShort(s, true, _os), _lit)): prefix = PrefixShort(*s)
+	//     case Valid((ArgLong(l, true, _os), _lit)):prefix=PrefixLong(l)
 	//     default:PrefixNA
 	// };
 
-	let(items, shell) = comp.complete(lit, pos_only, is_named, prefix)
+	items, shell := comp.complete(lit, pos_only, is_named, prefix)
 
-	return fun.Valid(func() string {
+	return Valid(func() string {
 		switch comp.output_rev {
 		case 0:
-			return render_test(&items, &shell, full_lit)
+			return render_test(&items, shell, full_lit)
 		case 1:
 			return render_simple(&items) // <- AKA elvish
 		case 7:
-			return render_zsh(&items, &shell, full_lit)
+			return render_zsh(&items, shell, full_lit)
 		case 8:
-			return render_bash(&items, &shell, full_lit)
+			return render_bash(&items, shell, full_lit)
 		case 9:
-			return render_fish(&items, &shell, full_lit, self.path[0].as_str())
+			return render_fish(&items, shell, full_lit, self.path[0])
 		default:
 			panic(fmt.Sprintf("Unsupported output revision {}, you need to genenerate your shell completion files for the app", unk))
 		}
-	})
+	}())
 }
 
 // Try to expand short string names into long names if possible
@@ -450,8 +470,8 @@ func preferred_name(name ShortLong) string {
 // check if argument can possibly switch the argument passed in and returns a preferrable replacement
 func arg_matches(arg string, name ShortLong) Option[string] {
 	// "" and "-" switch any flag
-	if arg.is_empty() || arg == "-" {
-		return fun.Valid(preferred_name(name))
+	if arg == "" || arg == "-" {
+		return Valid(preferred_name(name))
 	}
 
 	can_switch := false
@@ -462,7 +482,7 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 		func(s byte) {
 			can_switch |= arg.
 				strip_prefix('-').
-				and_then((func(a) a.strip_prefix)(s)).
+				and_then(func(a string) Option[string] { return a.strip_prefix(s) }).
 				map_or(false, stris_empty)
 		},
 		nil,
@@ -481,23 +501,23 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 		func(_ byte, l string) { can_switch |= arg.strip_prefix("--").map_or(false, (func(s) l.starts_with)(s)) },
 	)
 
-	if can_switch {
-		return fun.Valid(preferred_name(name))
-	} else {
-		return fun.Invalid()
+	if !can_switch {
+		return Invalid[string]()
 	}
+
+	return Valid(preferred_name(name))
 }
 
-func cmd_matches(arg string, name string, short fun.Option[char]) Option[string] {
+func cmd_matches(arg string, name string, short Option[byte]) Option[string] {
 	// partial long name and exact short name switch anything
-	if name.starts_with(arg) || short.map_or(false, func(s) {
+	if name.starts_with(arg) || short.map_or(false, func(s string) Option[string] {
 		// avoid allocations
-		arg.strip_prefix(s).map_or(false, stris_empty)
+		return arg.strip_prefix(s).map_or(false, stris_empty)
 	}) {
-		return fun.Valid(name)
-	} else {
-		return fun.Invalid()
+		return Valid(name)
 	}
+
+	return Invalid[string]()
 }
 
 // this completion should suppress anything else that is not a value
@@ -524,32 +544,35 @@ func (self Complete) complete(
 	is_named bool,
 	prefix Prefix,
 ) ([]ShowComp, []ShellComp) {
-	items := []ShowComp{}
-	shell := Vecnew()
-	max_depth := self.comps.iter().Map(Compdepth).max().unwrap_or(0)
-	only_values := false
+	max_depth := uint(0)
+	for _, c := range self.comps {
+		max_depth = max(max_depth, c.depth())
+	}
 
+	only_values := false
+	items := []ShowComp{}
+	shell := []ShellComp{}
 F:
 	for _, item := range self.
 		comps.
 		iter().
-		filter((func(c) c.depth)() == max_depth && (!pos_only || c.is_pos())) {
+		filter(func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
 		switch {
 		case only_values == item.only_value():
 		case only_values:
 			continue F
 		case item.only_value():
 			only_values = true
-			items.clear()
+			items = items[:0]
 		}
 
 		item(
 			func(extra CompExtra, name ShortLong) {
 				if long, ok := arg_matches(arg, *name).Unpack(); ok {
-					items.push(ShowComp{
+					items = append(items, ShowComp{
 						pretty: long,
 						subst:  long,
-						extra,
+						extra:  extra,
 					})
 				}
 			},
@@ -559,23 +582,23 @@ F:
 				metavar string,
 			) {
 				if long, ok := arg_matches(arg, *name).Unpack(); ok {
-					items.push(ShowComp{
+					items = append(items, ShowComp{
 						pretty: fmt.Sprintf("{}={}", long, metavar),
 						subst:  long,
-						extra,
+						extra:  extra,
 					})
 				}
 			},
 			func(
 				extra CompExtra,
 				name string,
-				short fun.Option[byte],
+				short Option[byte],
 			) {
 				if long, ok := cmd_matches(arg, name, *short).Unpack(); ok {
-					items.push(ShowComp{
+					items = append(items, ShowComp{
 						subst:  long.to_string(),
 						pretty: long.to_string(),
-						extra,
+						extra:  extra,
 					})
 				}
 			},
@@ -584,15 +607,15 @@ F:
 				body string,
 				_ bool,
 			) {
-				items.push(ShowComp{
+				items = append(items, ShowComp{
 					pretty: body,
-					extra,
+					extra:  extra,
 					subst: func() string {
 						var res string
 						prefix(
 							func() { res = body },
-							func(s) { res = fmt.Sprintf("-{}={}", s, body) },
-							func(l) { res = fmt.Sprintf("--{}={}", l, body) },
+							func(s byte) { res = fmt.Sprintf("-{}={}", s, body) },
+							func(l string) { res = fmt.Sprintf("--{}={}", l, body) },
 						)
 						return res
 					}(),
@@ -606,10 +629,10 @@ F:
 				if !is_argument && !pos_only && arg.starts_with('-') {
 					continue F
 				}
-				items.push(ShowComp{
+				items = append(items, ShowComp{
 					subst:  "",
-					pretty: (*meta).to_string(),
-					extra,
+					pretty: meta,
+					extra:  extra,
 				})
 			},
 			func(
@@ -618,7 +641,7 @@ F:
 				_ bool,
 			) {
 				if !is_named {
-					shell.push(*script)
+					shell = append(shell, script)
 				}
 			},
 		)

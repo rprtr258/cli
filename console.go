@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"testing"
 )
 
@@ -40,12 +39,28 @@ import (
 const MAX_TAB uint = 24
 const MAX_WIDTH uint = 100
 
-// / Default to dull color if colors are enabled,
-type Color = func(
+// Default to dull color if colors are enabled,
+type Color func(
 	Monochrome func(),
 	Dull func(),
 	Bright func(),
 )
+
+var ColorMonochrome Color = func(Monochrome, Dull, Bright func()) {
+	if Monochrome != nil {
+		Monochrome()
+	}
+}
+var ColorDull Color = func(Monochrome, Dull, Bright func()) {
+	if Dull != nil {
+		Dull()
+	}
+}
+var ColorBright Color = func(Monochrome, Dull, Bright func()) {
+	if Bright != nil {
+		Bright()
+	}
+}
 
 func Colordefault() Color {
 	res := ColorDull
@@ -58,58 +73,48 @@ func Colordefault() Color {
 func (self Color) push_str(style Style, res *string, item string) {
 	self(
 		func() {
-			res.push_str(item)
+			*res += item
 		},
 		func() {
-			switch style {
-			case Style__Text:
-				res.push_str(item)
-			case Style__Emphasis:
-				fmt.Fprintf(res, "{}", item.underline().bold())
-			case Style__Literal:
-				fmt.Fprintf(res, "{}", item.bold())
-			case Style__Metavar:
-				fmt.Fprintf(res, "{}", item.underline())
-			case Style__Invalid:
-				fmt.Fprintf(res, "{}", item.bold().red())
-			}
+			style(
+				func() { *res += item },
+				func() { *res += item.underline().bold() },
+				func() { *res += item.bold() },
+				func() { *res += item.underline() },
+				func() { *res += item.bold().red() },
+			)
 		},
 		func() {
-			switch style {
-			case Style__Text:
-				res.push_str(item)
-			case Style__Emphasis:
-				fmt.Fprintf(res, "{}", item.yellow().bold())
-			case Style__Literal:
-				fmt.Fprintf(res, "{}", item.green().bold())
-			case Style__Metavar:
-				fmt.Fprintf(res, "{}", item.blue().bold())
-			case Style__Invalid:
-				fmt.Fprintf(res, "{}", item.red().bold())
-			}
+			style(
+				func() { *res += item },
+				func() { *res += item.yellow().bold() },
+				func() { *res += item.green().bold() },
+				func() { *res += item.blue().bold() },
+				func() { *res += item.red().bold() },
+			)
 		},
-	).unwrap()
+	)
 }
 
 const PADDING = "                                                  "
 
-// / Render a monochrome version of the document
-// /
-// / `full` indicates if full message should be rendered, this makes
-// / difference for rendered help message, otherwise you can pass `true`.
+// Render a monochrome version of the document
+//
+// `full` indicates if full message should be rendered, this makes
+// difference for rendered help message, otherwise you can pass `true`.
 func (self Doc) monochrome(full bool) string {
-	return self.render_console(full, Color__Monochrome, MAX_WIDTH)
+	return self.render_console(full, ColorMonochrome, MAX_WIDTH)
 }
 
-func (self Doc) render_console(full bool, color Color, max_width usize) string {
-	res := String__new()
+func (self Doc) render_console(full bool, color Color, max_width uint) string {
+	res := ""
 	tabstop := 0
 	byte_pos := 0
 	{
 		current := 0
 		in_term := false
 		// looking for widest term below MAX_TAB
-		for _, token := range self.tokens.iter().copied() {
+		for _, token := range self.tokens {
 			token(
 				func(Text TokenText) {
 					bytes, style := Text.bytes, Text.style
@@ -307,7 +312,7 @@ mod test {
         m.token(Token__TermStop);
         m.text("c");
         m.token(Token__LineBreak);
-        assert_eq!(m.monochrome(true), "    aa\n    b   c\n");
+        require.Equal(t,m.monochrome(true), "    aa\n    b   c\n");
         m.clear();
 
         // plain, narrow first
@@ -322,7 +327,7 @@ mod test {
         m.token(Token__TermStop);
         m.text("4");
         m.token(Token__LineBreak);
-        assert_eq!(m.monochrome(true), "    1   22\n    33  4\n");
+        require.Equal(t,m.monochrome(true), "    1   22\n    33  4\n");
         m.clear();
 
         // plain, wide first
@@ -339,7 +344,7 @@ mod test {
 
         m.text("dd");
         m.token(Token__LineBreak);
-        assert_eq!(m.monochrome(true), "    aa  b\n    c   dd\n");
+        require.Equal(t,m.monochrome(true), "    aa  b\n    c   dd\n");
         m.clear();
 
         // two different styles first
@@ -356,7 +361,7 @@ mod test {
 
         m.literal("e");
         m.token(Token__LineBreak);
-        assert_eq!(m.monochrome(true), "    ab  c\n    d   e\n");
+        require.Equal(t,m.monochrome(true), "    ab  c\n    d   e\n");
     }
 
     #[test]
@@ -378,7 +383,7 @@ mod test {
              word
 ";
 
-        assert_eq!(m.monochrome(true), expected);
+        require.Equal(t,m.monochrome(true), expected);
     }
 
     #[test]
@@ -402,45 +407,45 @@ mod test {
       word14 and last word
 ";
 
-        assert_eq!(m.monochrome(true), expected);
+        require.Equal(t,m.monochrome(true), expected);
     }
 
     #[test]
     fn line_breaking_rules() {
         let mut buffer = Buffer__default();
         buffer.write_str("hello ", Style__Text);
-        assert_eq!(buffer.monochrome(true), "hello ");
+        require.Equal(t,buffer.monochrome(true), "hello ");
         buffer.clear();
 
         buffer.write_str("hello\n world\n", Style__Text);
-        assert_eq!(buffer.monochrome(true), "hello\nworld ");
+        require.Equal(t,buffer.monochrome(true), "hello\nworld ");
         buffer.clear();
 
         buffer.write_str("hello\nworld", Style__Text);
-        assert_eq!(buffer.monochrome(true), "hello world");
+        require.Equal(t,buffer.monochrome(true), "hello world");
         buffer.clear();
 
         buffer.write_str("hello\nworld\n", Style__Text);
-        assert_eq!(buffer.monochrome(true), "hello world ");
+        require.Equal(t,buffer.monochrome(true), "hello world ");
         buffer.clear();
 
         buffer.write_str("hello\n\nworld", Style__Text);
-        assert_eq!(buffer.monochrome(false), "hello\n");
+        require.Equal(t,buffer.monochrome(false), "hello\n");
         buffer.clear();
 
         buffer.write_str("hello\n\nworld", Style__Text);
-        assert_eq!(buffer.monochrome(true), "hello\nworld");
+        require.Equal(t,buffer.monochrome(true), "hello\nworld");
         buffer.clear();
     }
 
     #[test]
     fn splitter_works() {
-        assert_eq!(
+        require.Equal(t,
             split("hello ").collect__<Vec<_>>(),
             [Chunk__Raw("hello", 5), Chunk__Raw(" ", 1)]
         );
 
-        assert_eq!(
+        require.Equal(t,
             split("hello\nworld").collect__<Vec<_>>(),
             [
                 Chunk__Raw("hello", 5),
@@ -449,7 +454,7 @@ mod test {
             ]
         );
 
-        assert_eq!(
+        require.Equal(t,
             split("hello\n world").collect__<Vec<_>>(),
             [
                 Chunk__Raw("hello", 5),
@@ -458,7 +463,7 @@ mod test {
             ]
         );
 
-        assert_eq!(
+        require.Equal(t,
             split("hello\n\nworld").collect__<Vec<_>>(),
             [
                 Chunk__Raw("hello", 5),

@@ -8,7 +8,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestDuplicateShortFlags(t *testing.T) {
@@ -150,7 +150,7 @@ func TestDefaults(t *testing.T) {
 		test := test
 		t.Run(name, func(t *testing.T) {
 			assertSuccess[cmdOptions](t, func(x cmdOptions) {
-				assert.Equal(t, test.expected, x)
+				require.Equal(t, test.expected, x)
 			}, test.args...)
 		})
 	}
@@ -263,7 +263,7 @@ func TestEnum(t *testing.T) {
 		"--choose", "invalid")
 	assertSuccess[cmdEnum](t,
 		func(x cmdEnum) {
-			assert.Equal(t, flagEnumV2, x.Choice)
+			require.Equal(t, flagEnumV2, x.Choice)
 		}, "--choose", "v2")
 }
 
@@ -278,7 +278,7 @@ func (x cmdEmbedded) Execute(ctx context.Context) error { return fromCtx(ctx)(x)
 
 func TestEmbedded(t *testing.T) {
 	assertSuccess[cmdEmbedded](t, func(x cmdEmbedded) {
-		assert.True(t, x.V)
+		require.True(t, x.V)
 	}, "-v")
 }
 
@@ -291,8 +291,8 @@ func (x cmdArgs) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 func TestCommandHandlerNoCommand(t *testing.T) {
 	assertSuccess[cmdArgs](t, func(x cmdArgs) {
-		assert.False(t, x.Value)
-		assert.Equal(t, []string{"arg1", "arg2"}, x.Args)
+		require.False(t, x.Value)
+		require.Equal(t, []string{"arg1", "arg2"}, x.Args)
 	}, "arg1", "arg2")
 }
 
@@ -309,8 +309,8 @@ func TestCommandHandler(t *testing.T) {
 	}
 
 	assertSuccess[cmd](t, func(x cmdSubcommand) {
-		assert.False(t, x.Value)
-		assert.Equal(t, []string{"arg1", "arg2"}, x.Args)
+		require.False(t, x.Value)
+		require.Equal(t, []string{"arg1", "arg2"}, x.Args)
 	}, "cmd", "arg1", "arg2")
 }
 
@@ -336,7 +336,7 @@ func (x cmdCustomFlag2) Execute(ctx context.Context) error { return fromCtx(ctx)
 
 func TestUnmarshal(t *testing.T) {
 	assertSuccess[cmdCustomFlag2](t, func(x cmdCustomFlag2) {
-		assert.Equal(t, marshalled("true"), x.Value)
+		require.Equal(t, marshalled("true"), x.Value)
 	}, "-v", "yes")
 	assertFail[cmdCustomFlag2](t,
 		`expected argument for flag -v`,
@@ -354,7 +354,7 @@ func (x cmdCustomFlag2Default) Execute(ctx context.Context) error { return fromC
 
 func TestUnmarshalDefault(t *testing.T) {
 	assertSuccess[cmdCustomFlag2Default](t, func(x cmdCustomFlag2Default) {
-		assert.Equal(t, marshalled("true"), x.Value)
+		require.Equal(t, marshalled("true"), x.Value)
 	})
 }
 
@@ -404,15 +404,15 @@ func (x cmdPositionalsV0) Execute(ctx context.Context) error { return fromCtx(ct
 
 func TestPassDoubleDash(t *testing.T) {
 	assertSuccess[cmdPositionalsV0](t, func(x cmdPositionalsV0) {
-		assert.True(t, x.Value)
-		assert.Equal(t, []string{"-v", "-g"}, x.Args)
+		require.True(t, x.Value)
+		require.Equal(t, []string{"-v", "-g"}, x.Args)
 	}, "-v", "--", "-v", "-g")
 }
 
 func TestPassAfterNonOption(t *testing.T) {
 	assertSuccess[cmdPositionalsV0](t, func(x cmdPositionalsV0) {
-		assert.True(t, x.Value)
-		assert.Equal(t, []string{"arg", "-v", "-g"}, x.Args)
+		require.True(t, x.Value)
+		require.Equal(t, []string{"arg", "-v", "-g"}, x.Args)
 	}, "-v", "arg", "-v", "-g")
 }
 
@@ -427,8 +427,8 @@ func (x cmdPositionalsV) Execute(ctx context.Context) error { return fromCtx(ctx
 
 func TestPassAfterNonOptionWithPositional(t *testing.T) {
 	assertSuccess[cmdPositionalsV](t, func(x cmdPositionalsV) {
-		assert.True(t, x.Value)
-		assert.Equal(t, []string{"arg", "-v", "-g"}, x.Positional.Rest)
+		require.True(t, x.Value)
+		require.Equal(t, []string{"arg", "-v", "-g"}, x.Positional.Rest)
 	}, "-v", "arg", "-v", "-g")
 }
 
@@ -441,8 +441,8 @@ func (x cmdPositionalsVInts) Execute(ctx context.Context) error { return fromCtx
 
 func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 	assertSuccess[cmdPositionalsVInts](t, func(x cmdPositionalsVInts) {
-		assert.True(t, x.Value)
-		assert.Equal(t, []int{1, 2, 3}, x.Args)
+		require.True(t, x.Value)
+		require.Equal(t, []int{1, 2, 3}, x.Args)
 	}, "-v", "1", "2", "3")
 }
 
@@ -457,8 +457,8 @@ func (x cmdPositionalsVInts2) Execute(ctx context.Context) error { return fromCt
 
 func TestPassAfterNonOptionWithPositionalIntPass2(t *testing.T) {
 	assertSuccess[cmdPositionalsVInts2](t, func(x cmdPositionalsVInts2) {
-		assert.True(t, x.Value)
-		assert.Equal(t, []int{1, 2, 3}, x.Positional.Args)
+		require.True(t, x.Value)
+		require.Equal(t, []int{1, 2, 3}, x.Positional.Args)
 	}, "-v", "1", "2", "3")
 }
 
@@ -488,7 +488,7 @@ func (x cmdPtrBool) Execute(ctx context.Context) error { return fromCtx(ctx)(x) 
 
 func TestPointerBool(t *testing.T) {
 	assertSuccess[cmdPtrBool](t, func(x cmdPtrBool) {
-		assert.True(t, *x.Value)
+		require.True(t, *x.Value)
 	}, "-v")
 }
 
@@ -500,7 +500,7 @@ func (x cmdPtrString) Execute(ctx context.Context) error { return fromCtx(ctx)(x
 
 func TestPointerString(t *testing.T) {
 	assertSuccess[cmdPtrString](t, func(x cmdPtrString) {
-		assert.Equal(t, "value", *x.Value)
+		require.Equal(t, "value", *x.Value)
 	}, "-v", "value")
 }
 
@@ -539,7 +539,7 @@ func (x cmdPtrCustomString) Execute(ctx context.Context) error { return fromCtx(
 
 func TestPointerStringMarshalled(t *testing.T) {
 	assertSuccess[cmdPtrCustomString](t, func(x cmdPtrCustomString) {
-		assert.Equal(t, "value", string(*x.Value))
+		require.Equal(t, "value", string(*x.Value))
 	}, "-v", "value")
 }
 
@@ -560,7 +560,7 @@ func (x cmdPtrCustomStruct) Execute(ctx context.Context) error { return fromCtx(
 
 func TestPointerStructMarshalled(t *testing.T) {
 	assertSuccess[cmdPtrCustomStruct](t, func(x cmdPtrCustomStruct) {
-		assert.Equal(t, "value", x.Value.Value)
+		require.Equal(t, "value", x.Value.Value)
 	}, "-v", "value")
 }
 
@@ -579,7 +579,7 @@ func TestPointerGroup(t *testing.T) {
 	t.Skip()
 
 	assertSuccess[cmdPtrEmbedded](t, func(x cmdPtrEmbedded) {
-		assert.True(t, x.Value)
+		require.True(t, x.Value)
 	}, "-v")
 }
 
@@ -599,10 +599,10 @@ func (x cmdShortBool) Execute(ctx context.Context) error { return fromCtx(ctx)(x
 
 func TestShort(t *testing.T) {
 	assertSuccess[cmdShortBool](t, func(x cmdShortBool) {
-		assert.True(t, x.Value)
+		require.True(t, x.Value)
 	}, "-v")
 	assertSuccess[cmdShortBool](t, func(x cmdShortBool) {
-		assert.False(t, x.Value)
+		require.False(t, x.Value)
 	})
 }
 
@@ -620,12 +620,12 @@ func TestShortMultiConcat(t *testing.T) {
 	t.Skip()
 
 	assertSuccess[cmdShorts](t, func(x cmdShorts) {
-		assert.True(t, x.V)
-		assert.True(t, x.O)
-		assert.True(t, x.F)
+		require.True(t, x.V)
+		require.True(t, x.O)
+		require.True(t, x.F)
 	}, "-vo", "-f")
 	assertSuccess[cmdShorts](t, func(x cmdShorts) {
-		assert.Equal(t, "f", x.Str)
+		require.Equal(t, "f", x.Str)
 	}, "-vs", "f")
 }
 
@@ -640,9 +640,9 @@ func TestShortWithEqualArg(t *testing.T) {
 	t.Skip()
 
 	assertSuccess[cmdShortString](t, func(x cmdShortString) {
-		assert.Equal(t, "value", x.Value)
+		require.Equal(t, "value", x.Value)
 	}, "-v", "value")
 	assertSuccess[cmdShortString](t, func(x cmdShortString) {
-		assert.Equal(t, "value", x.Value)
+		require.Equal(t, "value", x.Value)
 	}, "-vvalue")
 }

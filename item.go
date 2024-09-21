@@ -1,22 +1,20 @@
 package cli
 
-import "github.com/rprtr258/fun"
-
-// TODO: move out fun.Option[Doc]
+// TODO: move out Option[Doc]
 type Item func(
 	Any func(
 		metavar Doc,
 		// used by any, moves it from positionals into arguments
 		anywhere bool,
-		help fun.Option[Doc],
+		help Option[Doc],
 	),
 	// Positional item, consumed from the the front of the arguments
 	// <FILE>
-	Positional func(metavar Metavar, help fun.Option[Doc]),
+	Positional func(metavar Metavar, help Option[Doc]),
 	Command func(
 		name string,
-		short fun.Option[byte],
-		help fun.Option[Doc],
+		short Option[byte],
+		help Option[Doc],
 		meta Meta,
 		info Info,
 	),
@@ -27,8 +25,8 @@ type Item func(
 		name ShortLong,
 		// used for disambiguation
 		shorts []byte,
-		env fun.Option[string],
-		help fun.Option[Doc],
+		env Option[string],
+		help Option[Doc],
 	),
 	// Short or long name followed by a value, consumed anywhere
 	// -f <VAL>
@@ -38,17 +36,45 @@ type Item func(
 		// used for disambiguation
 		shorts []byte,
 		metavar Metavar,
-		env fun.Option[string],
-		help fun.Option[Doc],
+		env Option[string],
+		help Option[Doc],
 	),
 )
+
+func ItemAny(metavar Doc, anywhere bool, help Option[Doc]) Item {
+	return func(
+		Any func(Doc, bool, Option[Doc]),
+		_ func(Metavar, Option[Doc]),
+		_ func(string, Option[byte], Option[Doc], Meta, Info),
+		_ func(ShortLong, []byte, Option[string], Option[Doc]),
+		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	) {
+		if Any != nil {
+			Any(metavar, anywhere, help)
+		}
+	}
+}
+
+func ItemPositional(metavar Metavar, help Option[Doc]) Item {
+	return func(
+		_ func(Doc, bool, Option[Doc]),
+		Positional func(Metavar, Option[Doc]),
+		_ func(string, Option[byte], Option[Doc], Meta, Info),
+		_ func(ShortLong, []byte, Option[string], Option[Doc]),
+		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	) {
+		if Positional != nil {
+			Positional(metavar, help)
+		}
+	}
+}
 
 func (self Item) is_pos() bool {
 	var res bool
 	self(
-		func(_ Doc, anywhere bool, _ fun.Option[Doc]) { res = !anywhere },
-		func(Metavar, fun.Option[Doc]) { res = true },
-		func(string, fun.Option[byte], fun.Option[Doc], Meta, Info) { res = true },
+		func(_ Doc, anywhere bool, _ Option[Doc]) { res = !anywhere },
+		func(Metavar, Option[Doc]) { res = true },
+		func(string, Option[byte], Option[Doc], Meta, Info) { res = true },
 		nil,
 		nil,
 	)
@@ -64,8 +90,8 @@ func (self *Item) normalize(short bool) {
 		func(
 			name ShortLong,
 			shorts []byte,
-			env fun.Option[string],
-			help fun.Option[Doc],
+			env Option[string],
+			help Option[Doc],
 		) {
 			*self = SelfFlag(name.normalize(short), shorts, env, help)
 		},
@@ -73,8 +99,8 @@ func (self *Item) normalize(short bool) {
 			name ShortLong,
 			shorts []byte,
 			metavar Metavar,
-			env fun.Option[string],
-			help fun.Option[Doc],
+			env Option[string],
+			help Option[Doc],
 		) {
 			*self = SelfArgument(name.normalize(short), shorts, metavar, env, help)
 		},
@@ -88,21 +114,21 @@ type ShortLong func(
 )
 
 func (self ShortLong) as_long() Option[string] {
-	var res fun.Option[string]
+	var res Option[string]
 	self(
 		nil,
-		func(l string) { res = fun.Valid(l) },
-		func(_ byte, l string) { res = fun.Valid(l) },
+		func(l string) { res = Valid(l) },
+		func(_ byte, l string) { res = Valid(l) },
 	)
 	return res
 }
 
 func (self ShortLong) as_short() Option[char] {
-	var res fun.Option[char]
+	var res Option[char]
 	self(
-		func(s byte) { res = fun.Valid(s) },
+		func(s byte) { res = Valid(s) },
 		nil,
-		func(s byte, _ string) { res = fun.Valid(s) },
+		func(s byte, _ string) { res = Valid(s) },
 	)
 	return res
 }
@@ -110,10 +136,10 @@ func (self ShortLong) as_short() Option[char] {
 func (self ShortLong) eq(other string) bool {
 	short_eq := func(c char, s string) bool {
 		tmp := [4]u8{}
-		s.strip_prefix('-') == fun.Valid(c.encode_utf8(&tmp))
+		s.strip_prefix('-') == Valid(c.encode_utf8(&tmp))
 	}
 	long_eq := func(l string, s string) bool {
-		fun.Valid(l) == s.strip_prefix("--")
+		Valid(l) == s.strip_prefix("--")
 	}
 	var res bool
 	self(
@@ -140,16 +166,16 @@ func (self *ShortLong) normalize(short bool) {
 	)
 }
 
-func ShortLongFromNamedArg(named NamedArg) fun.Option[ShortLong] {
+func ShortLongFromNamedArg(named NamedArg) Option[ShortLong] {
 	switch {
 	case named.short.is_empty() && named.long.is_empty():
-		return fun.Invalid[ShortLong]()
+		return Invalid[ShortLong]()
 	case named.short.is_empty():
-		return fun.Valid(SelfLong(named.long[0]))
+		return Valid(SelfLong(named.long[0]))
 	case named.long.is_empty():
-		return fun.Valid(SelfShort(named.short[0]))
+		return Valid(SelfShort(named.short[0]))
 	default:
-		return fun.Valid(SelfBoth(named.short[0], named.long[0]))
+		return Valid(SelfBoth(named.short[0], named.long[0]))
 	}
 }
 

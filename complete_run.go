@@ -4,8 +4,6 @@ import (
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/rprtr258/fun"
 )
 
 func dump_bash_completer(name string) {
@@ -61,8 +59,8 @@ func dump_elvish_completer(name string) {
 }
 
 type ArgScanner struct {
-	revision fun.Option[uint]
-	name     fun.Option[string]
+	revision Option[uint]
+	name     Option[string]
 }
 
 func (self *ArgScanner) check_next(arg string) bool {
@@ -87,17 +85,17 @@ func (self *ArgScanner) check_next(arg string) bool {
 	}
 	if ver, ok := strings.CutPrefix(arg, "--bpaf-complete-rev="); ok {
 		if ver, err := strconv.Atoi(ver); err == nil {
-			self.revision = fun.Valid(uint(ver))
+			self.revision = Valid(uint(ver))
 		}
 		return true
 	}
 	return false
 }
 
-func (self ArgScanner) done() fun.Option[Complete] {
+func (self ArgScanner) done() Option[Complete] {
 	revision, ok := self.revision.Unpack()
 	if !ok {
-		return fun.Invalid[Complete]()
+		return Invalid[Complete]()
 	}
-	return fun.Valid(Completenew(revision))
+	return Valid(Completenew(revision))
 }

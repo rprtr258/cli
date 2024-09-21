@@ -1,5 +1,7 @@
 package cli
 
+import "github.com/rprtr258/fun"
+
 // #![warn(missing_docs)]
 // #![allow(clippyneedless_doctest_main)]
 // #![allow(clippyredundant_else)] // not useful
@@ -545,18 +547,18 @@ package cli
 //	    number_2: u32,
 //
 //	    // `bpaf` inserts implicit `argument`, `optional` and the right type
-//	    number_3: fun.Option[u32],
+//	    number_3: Option[u32],
 //
 //	    // fails to compile: you need to specify `argument`
 //	    // #[bpaf(optional)]
-//	    // number_4: fun.Option[u32],
+//	    // number_4: Option[u32],
 //
 //	    #[bpaf(argument("N"), fun.Optional)]
-//	    number_5: fun.Option[u32],
+//	    number_5: Option[u32],
 //
 //	    // explicit consumer and a full postprocessing chain
 //	    #[bpaf(argument<u32>("N"), fun.Optional)]
-//	    number_6: fun.Option[u32],
+//	    number_6: Option[u32],
 //	}
 //
 // ```
@@ -747,8 +749,8 @@ func parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, Parser[T]
 // the value produced by the parser into a new value of the same or different type.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/map.md"))]
-func Map[R any](self Parser[T], Map func(T) R) ParseMap[T, Parser[T], func(T) R, R] {
-	ParseMap{
+func Map[T, R any](self Parser[T], Map func(T) R) ParseMap[T, Parser[T], func(T) R, R] {
+	return ParseMap[T, Parser[T], func(T) R, R]{
 		inner:  self,
 		map_fn: Map,
 	}
@@ -767,10 +769,10 @@ func Map[R any](self Parser[T], Map func(T) R) ParseMap[T, Parser[T], func(T) R,
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/guard.md"))]
 func (self Parser[T]) guard(check func(T) bool, message string) ParseGuard[Parser[T], func(T) bool] {
-	ParseGuard{
-		inner: self,
-		check,
-		message,
+	return ParseGuard[Parser[T], func(T) bool]{
+		inner:   self,
+		check:   check,
+		message: message,
 	}
 }
 
@@ -791,10 +793,10 @@ func (self Parser[T]) guard(check func(T) bool, message string) ParseGuard[Parse
 // [`display_fallback`](ParseFallbackdisplay_fallback) and
 // [`debug_fallback`](ParseFallbackdebug_fallback).
 func (self Parser[T]) fallback(value T) ParseFallback[Parser[T], T] {
-	ParseFallback{
+	return ParseFallback[Parser[T], T]{
 		inner:     self,
 		value:     value,
-		value_str: stringnew(),
+		value_str: "",
 	}
 }
 
@@ -813,10 +815,10 @@ func (self Parser[T]) fallback(value T) ParseFallback[Parser[T], T] {
 // [`display_fallback`](ParseFallbackWithdisplay_fallback) and
 // [`debug_fallback`](ParseFallbackWithdebug_fallback).
 func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T, Parser[T], func() Result[T], Error] {
-	ParseFallbackWith{
+	return ParseFallbackWith[T, Parser[T], func() Result[T], Error]{
 		inner:     self,
 		fallback:  fallback,
-		value_str: stringnew(),
+		value_str: "",
 	}
 }
 
@@ -898,9 +900,9 @@ func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith
 // and both are present error message should point at the second flag
 // Deprecated: instead of a.or_else(b) you should use construct([a, b])
 func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
-	ParseOrElse{
-		this: Boxnew(self),
-		that: Boxnew(alt),
+	return ParseOrElse[T]{
+		this: self,
+		that: alt,
 	}
 }
 
@@ -915,7 +917,7 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/hide.md"))]
 func (self Parser[T]) hide() ParseHide[Parser[T]] {
-	ParseHide{inner: self}
+	return ParseHide[Parser[T]]{inner: self}
 }
 
 // }}}
@@ -928,9 +930,9 @@ func (self Parser[T]) hide() ParseHide[Parser[T]] {
 // fun.Option or a group of them with some other text.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/hide_usage.md"))]
 func (self Parser[T]) hide_usage() ParseUsage[Parser[T]] {
-	ParseUsage{
+	return ParseUsage[Parser[T]]{
 		inner: self,
-		usage: Docdefault(),
+		usage: Doc{},
 	}
 }
 
@@ -938,9 +940,9 @@ func (self Parser[T]) hide_usage() ParseUsage[Parser[T]] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/custom_usage.md"))]
 func (self Parser[T]) custom_usage(usage Doc) ParseUsage[Parser[T]] {
-	ParseUsage{
+	return ParseUsage[Parser[T]]{
 		inner: self,
-		usage: usage.into(),
+		usage: usage,
 	}
 }
 
@@ -952,9 +954,9 @@ func (self Parser[T]) custom_usage(usage Doc) ParseUsage[Parser[T]] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/group_help.md"))]
 func (self Parser[T]) group_help(message Doc) ParseGroupHelp[Parser[T]] {
-	ParseGroupHelp{
+	return ParseGroupHelp[Parser[T]]{
 		inner:   self,
-		message: message.into(),
+		message: message,
 	}
 }
 
@@ -964,7 +966,7 @@ func (self Parser[T]) group_help(message Doc) ParseGroupHelp[Parser[T]] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
 func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[Parser[T], func(MetaInfo) Doc] {
-	ParseWithGroupHelp{inner: self, f}
+	return ParseWithGroupHelp[Parser[T], func(MetaInfo) Doc]{inner: self, f: f}
 }
 
 // {{{ comp
@@ -995,11 +997,11 @@ func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[P
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
 
-func complete[M IntoString](self Parser[T], op func(T) []fun.Pair[M, fun.Option[M]]) ParseComp[Parser[T], func(T) []fun.Pair[M, fun.Option[M]]] {
-	ParseComp{
+func complete[T any, M IntoString](self Parser[T], op func(T) []fun.Pair[M, Option[M]]) ParseComp[Parser[T], func(T) []fun.Pair[M, Option[M]]] {
+	return ParseComp[Parser[T], func(T) []fun.Pair[M, Option[M]]]{
 		inner: self,
-		op,
-		group: fun.Invalid(),
+		op:    op,
+		group: Invalid[string](),
 	}
 }
 
@@ -1029,7 +1031,7 @@ func complete[M IntoString](self Parser[T], op func(T) []fun.Pair[M, fun.Option[
 //     long("output")
 //         .help("Cargo.toml file to use as output")
 //         .argument("OUTPUT")
-//         .complete_shell(ShellCompFile { mask: fun.Valid("*.toml") })
+//         .complete_shell(ShellCompFile { mask: Valid("*.toml") })
 // }
 // ```
 //
@@ -1039,15 +1041,15 @@ func complete[M IntoString](self Parser[T], op func(T) []fun.Pair[M, fun.Option[
 //
 // struct fun.Options {
 //     // Cargo.toml file to use as output
-//     #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: fun.Valid("*.toml") }))]
+//     #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: Valid("*.toml") }))]
 //     output string,
 // }
 // ```
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.
 
-func (self Parser[T]) complete_shell(op complete_shellShellComp) ParseCompShell[Parser[T]] {
-	cratecomplete_shellParseCompShell{inner: self, op}
+func (self Parser[T]) complete_shell(op ShellComp) ParseCompShell[T] {
+	return ParseCompShell[T]{inner: self, op: op}
 }
 
 // }}}
@@ -1070,9 +1072,9 @@ func (self Parser[T]) complete_shell(op complete_shellShellComp) ParseCompShell[
 // # See also
 // There's some methods implemented on [`OptionParser`] directly to customize the appearance
 func (self Parser[T]) to_options() OptionParser[T] {
-	fun.OptionParser{
-		info:  infoInfodefault(),
-		inner: Boxnew(self),
+	return OptionParser[T]{
+		info:  NewInfo(),
+		inner: self,
 	}
 }
 
@@ -1108,7 +1110,7 @@ func (self Parser[T]) run() T {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/pure.md"))]
 func pure[T any](val T) ParsePure[T] {
-	ParsePure(val)
+	return ParsePure[T]{val}
 }
 
 // Wrap a calculated value into a `Parser`
@@ -1124,8 +1126,8 @@ func pure[T any](val T) ParsePure[T] {
 // See also [`pure`] for a pure computation that can't fail.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/pure_with.md"))]
-func pure_with[T any](val func() Result[T]) ParsePureWith[T, func() Result[T], Error] {
-	return ParsePureWith(val)
+func pure_with[T any](val func() Result[T]) ParsePureWith[T] {
+	return ParsePureWith[T]{val}
 }
 
 // Fail with a fixed error message
@@ -1153,7 +1155,7 @@ func pure_with[T any](val func() Result[T]) ParsePureWith[T, func() Result[T], E
 // // succeeds
 // ```
 func fail[T any](msg string) ParseFail[T] {
-	return ParseFail{
+	return ParseFail[T]{
 		field1: msg,
 	}
 }
@@ -1167,11 +1169,11 @@ func fail[T any](msg string) ParseFail[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
 func short(short byte) NamedArg {
-	NamedArg{
+	return NamedArg{
 		short: []byte{short},
-		env:   Vecnew(),
-		long:  Vecnew(),
-		help:  fun.Invalid(),
+		env:   nil,
+		long:  nil,
+		help:  Invalid[Doc](),
 	}
 }
 
@@ -1184,11 +1186,11 @@ func short(short byte) NamedArg {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
 func long(long string) NamedArg {
-	NamedArg{
-		short: Vecnew(),
+	return NamedArg{
+		short: nil,
 		long:  []string{long},
-		env:   Vecnew(),
-		help:  fun.Invalid(),
+		env:   nil,
+		help:  Invalid[Doc](),
 	}
 }
 
@@ -1213,10 +1215,10 @@ func long(long string) NamedArg {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
 func env(variable string) NamedArg {
-	NamedArg{
-		short: Vecnew(),
-		long:  Vecnew(),
-		help:  fun.Invalid(),
+	return NamedArg{
+		short: nil,
+		long:  nil,
+		help:  Invalid[Doc](),
 		env:   []string{variable},
 	}
 }
@@ -1267,17 +1269,17 @@ func env(variable string) NamedArg {
 // [`strict`](ParsePositionalstrict).
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 func positional[T any](metavar string) ParsePositional[T] {
-	build_positional(metavar)
+	return build_positional(metavar)
 }
 
 // Deprecated: You should switch from command(name, sub) to sub.command(name)
-func command[T any](name string, subparser fun.OptionParser[T]) ParseCommand[T] {
-	ParseCommand{
-		longs:  []string{name},
-		shorts: Vecnew(),
-		help:   subparser.short_descr().Map(Intointo),
-		subparser,
-		adjacent: false,
+func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
+	return ParseCommand[T]{
+		longs:     []string{name},
+		shorts:    nil,
+		help:      subparser.short_descr(),
+		subparser: subparser,
+		adjacent:  false,
 	}
 }
 
@@ -1318,14 +1320,15 @@ func command[T any](name string, subparser fun.OptionParser[T]) ParseCommand[T] 
 // # See also
 // [`literal`] - a specialized version of `any` that tries to parse a fixed literal
 func Any[I FromStr, T any](metavar string, check func(I) Option[T]) ParseAny[T] {
-	ParseAny{
+	return ParseAny[T]{
 		// metavar: [(metavar, StyleMetavar)][..].into(),
-		help: fun.Invalid(),
-		check: func(os string) {
-			switch cratefrom_os_strparse_os_str < I > (os) {
-			// Ok(v)check(v),
-			// Err(_)fun.Invalid(),
+		help: Invalid[Doc](),
+		check: func(os string) Option[T] {
+			i, err := from_os_strparse_os_str[I](os)
+			if err != nil {
+				return Invalid[T]()
 			}
+			return check(i)
 		},
 		anywhere: false,
 	}
@@ -1344,22 +1347,27 @@ func Any[I FromStr, T any](metavar string, check func(I) Option[T]) ParseAny[T] 
 // [`any`] - a generic version of `literal` that uses function to decide if value is to be parsed
 // or not.
 func literal(val string) ParseAny[struct{}] {
-	Any("", func(s string) {
-		if s == val {
-			fun.Valid(struct{}{})
-		} else {
-			fun.Invalid()
-		}
+	return Any("", func(s string) Option[struct{}] {
+		return Option[struct{}]{struct{}{}, s == val}
 	}) /*.
 	  metavar(&[(val, cratebufferStyleLiteral)][..])*/
 }
 
 // Strip a command name if present at the front when used as a `cargo` command
 //
-// this is exactly the same as batteriescargo_helper, but used by derive macro...
-func cargo_helper[P Parser[T], T any](cmd string, parser P) Parser[T] {
+// When implementing a cargo subcommand parser needs to be able to skip the first argument which
+// is always the same as the executable name without `cargo-` prefix. For example if executable name is
+// `cargo-cmd` so first argument would be `cmd`. `cargo_helper` helps to support both invocations:
+// with name present when used via cargo and without it when used locally.
+//
+// You can read the code of this function as this approximate sequence of statements:
+// 1. Try to parse a string literal that corresponds to a command name
+// 2. It's okay if it's missing
+// 3. And don't show anything to the user in `--help` or completion
+// 4. Parse this word and then everything else as a tuple, return that second item.
+func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 	skip := literal(cmd).optional().hide()
-	construct(skip, parser).Map(func(x) { return x[1] })
+	return construct(skip, parser).Map(func(x) { return x[1] })
 }
 
 // Choose between several parsers specified at runtime
@@ -1370,12 +1378,12 @@ func cargo_helper[P Parser[T], T any](cmd string, parser P) Parser[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/choice.md"))]
 func choice[T any](parsers ...Parser[T]) Parser[T] {
-	// this := switch parsers.next() {
-	//     fun.Invalid()return fail("Invalid choice usage").boxed(),
-	//     fun.Valid(p)p,
-	// };
+	this, ok := parsers.next()
+	if !ok {
+		return fail[T]("Invalid choice usage")
+	}
 	for _, that := range parsers {
-		this = Boxnew(ParseOrElse{this, that})
+		this = ParseOrElse[T]{this, that}
 	}
 	return this
 }

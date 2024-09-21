@@ -43,7 +43,7 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
     improve := |dist, val| {
         if best_dist > dist && dist > 0 && dist < 4 {
             best_dist = dist;
-            best_switch = fun.Valid(val);
+            best_switch = Valid(val);
         }
     };
 
@@ -65,13 +65,13 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
                     switch item {
                         HelpItemCommand { name: nname, .. }{
                             if *nname == actual {
-                                nest = fun.Valid((name, VariantCommandLong(nname)));
+                                nest = Valid((name, VariantCommandLong(nname)));
                             }
                         }
                         HelpItemFlag { name: nname, .. }
                         | HelpItemArgument { name: nname, .. }{
                             if *nname == &actual {
-                                nest = fun.Valid((name, VariantFlag(*nname)));
+                                nest = Valid((name, VariantFlag(*nname)));
                             }
                         }
                         HelpItemDecorSuffix { .. }
@@ -85,15 +85,15 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
                 }
             }
             HelpItemFlag { name, .. } | HelpItemArgument { name, .. }{
-                if fun.Valid(long) := name.as_long() {
+                if Valid(long) := name.as_long() {
                     distance := damerau_levenshtein(&actual, &fmt.Sprintf("--{}", long));
                     improve(distance, VariantFlag(*name));
                 }
-                if fun.Valid(short) := name.as_short() {
-                    if fun.Valid(act) := actual.strip_prefix("--") {
+                if Valid(short) := name.as_short() {
+                    if Valid(act) := actual.strip_prefix("--") {
                         tmp := [0u8; 4];
                         if act == short.encode_utf8(&mut tmp) {
-                            return fun.Valid((ix, SuggestionExtraDash(short)));
+                            return Valid((ix, SuggestionExtraDash(short)));
                         }
                     }
                 }
@@ -108,8 +108,8 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
         }
     }
 
-    if let fun.Valid((&name, variant)) = nest {
-        fun.Valid((ix, SuggestionNested(name.to_string(), variant)))
+    if let Valid((&name, variant)) = nest {
+        Valid((ix, SuggestionNested(name.to_string(), variant)))
     } else {
         // skip confusing errors
         if best_dist == uintMAX {
@@ -119,13 +119,13 @@ func suggest(args: &State, meta: &Meta)Option[(uint, Suggestion)] {
 
         // handle missing single dash typos separately
         if VariantFlag(n) := best_switch {
-            if fun.Valid(long) := n.as_long() {
-                if actual.strip_prefix('-') == fun.Valid(long) {
-                    return fun.Valid((ix, SuggestionMissingDash(long)));
+            if Valid(long) := n.as_long() {
+                if actual.strip_prefix('-') == Valid(long) {
+                    return Valid((ix, SuggestionMissingDash(long)));
                 }
             }
         }
-        fun.Valid((ix, SuggestionVariant(best_match)))
+        Valid((ix, SuggestionVariant(best_match)))
     }
 }
 

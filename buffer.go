@@ -1,18 +1,19 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/rprtr258/fun"
 )
 
 func newDocFromPairs(val []fun.Pair[string, Style]) Doc {
-	res := NewDoc()
+	res := Doc{}
 	for _, v := range val {
-		text, style := v.First, v.Second
-		res.write_str(text, *style)
+		text, style := v.K, v.V
+		res.write_str(text, style)
 	}
-	res
+	return res
 }
 
 // Parser metainformation
@@ -114,19 +115,19 @@ func (self Doc) write_shortlong(name ShortLong) {
 
 func (self Doc) write_item(item Item) {
 	item(
-		func(metavar Doc, _ bool, _ fun.Option[Doc]) {
+		func(metavar Doc, _ bool, _ Option[Doc]) {
 			self.doc(metavar)
 		},
-		func(metavar Metavar, _ fun.Option[Doc]) {
+		func(metavar Metavar, _ Option[Doc]) {
 			self.metavar(*metavar)
 		},
-		func(string, fun.Option[byte], fun.Option[Doc], Meta, Info) {
+		func(string, Option[byte], Option[Doc], Meta, Info) {
 			self.write_str("COMMAND ...", StyleMetavar)
 		},
-		func(name ShortLong, _ []byte, _ fun.Option[string], _ fun.Option[Doc]) {
+		func(name ShortLong, _ []byte, _ Option[string], _ Option[Doc]) {
 			self.write_shortlong(name)
 		},
-		func(name ShortLong, _ []byte, _ Metavar, _ fun.Option[string], _ fun.Option[Doc]) {
+		func(name ShortLong, _ []byte, _ Metavar, _ Option[string], _ Option[Doc]) {
 			self.write_shortlong(name)
 			self.write_char('=', StyleText)
 			self.metavar(*metavar)
@@ -181,22 +182,46 @@ func (self Doc) write_meta(meta Meta, for_usage bool) {
 		)
 	}
 
-	meta := meta.normalized(for_usage)
+	meta = meta.normalized(for_usage)
 	self.token(TokenBlockStart(BlockMono))
-	gO(&meta, self)
+	gO(meta, &self)
 	self.token(TokenBlockEnd(BlockMono))
 }
 
 // Style of a text fragment inside of [`Doc`]
-type Style uint8
-
-const (
-	StyleText     Style = iota // Plain text, no decorations
-	StyleEmphasis              // Word with emphasis - things like "Usage", "Available fun.Options", etc
-	StyleLiteral               // Something user needs to type literally - command names, etc
-	StyleMetavar               // Metavavar placeholder - something user needs to replace with own input
-	StyleInvalid               // Invalid input given by user - used to display invalid parts of the input
+type Style func(
+	Text func(), // Plain text, no decorations
+	Emphasis func(), // Word with emphasis - things like "Usage", "Available fun.Options", etc
+	Literal func(), // Something user needs to type literally - command names, etc
+	Metavar func(), // Metavavar placeholder - something user needs to replace with own input
+	Invalid func(), // Invalid input given by user - used to display invalid parts of the input
 )
+
+var StyleText Style = func(Text, _, _, _, _ func()) {
+	if Text != nil {
+		Text()
+	}
+}
+var StyleEmphasis Style = func(_, Emphasis, _, _, _ func()) {
+	if Emphasis != nil {
+		Emphasis()
+	}
+}
+var StyleLiteral Style = func(_, _, Literal, _, _ func()) {
+	if Literal != nil {
+		Literal()
+	}
+}
+var StyleMetavar Style = func(_, _, _, Metavar, _ func()) {
+	if Metavar != nil {
+		Metavar()
+	}
+}
+var StyleInvalid Style = func(_, _, _, _, Invalid func()) {
+	if Invalid != nil {
+		Invalid()
+	}
+}
 
 type Block uint8
 
@@ -214,16 +239,34 @@ const (
 	BlockMono           // Monospaced font that goes around [`Meta`]
 )
 
-type TokenText struct {
-	bytes int
-	style Style
+type Token func(
+	Text func(bytes int, style Style),
+	BlockStart func(Block),
+	BlockEnd func(Block),
+)
+
+func TokenText(bytes int, style Style) Token {
+	return func(Text func(int, Style), _, _ func(Block)) {
+		if Text != nil {
+			Text(bytes, style)
+		}
+	}
 }
 
-type Token func(
-	func(Text TokenText),
-	func(BlockStart Block),
-	func(BlockEnd Block),
-)
+func TokenBlockStart(block Block) Token {
+	return func(_ func(int, Style), BlockStart, _ func(Block)) {
+		if BlockStart != nil {
+			BlockStart(block)
+		}
+	}
+}
+func TokenBlockEnd(block Block) Token {
+	return func(_ func(int, Style), _, BlockEnd func(Block)) {
+		if BlockEnd != nil {
+			BlockEnd(block)
+		}
+	}
+}
 
 // String with styled segments.
 //
@@ -236,9 +279,9 @@ type Doc struct {
 }
 
 func newDocFromString(s string) Doc { return Doc{payload: s} }
-func (d Doc) isEmpty() bool         { return len(d.tokens) == 0 }
-func (d Doc) firstLine() (Doc, bool) {
-	if d.isEmpty() {
+func (d Doc) is_empty() bool        { return len(d.tokens) == 0 }
+func (d Doc) first_line() (Doc, bool) {
+	if d.is_empty() {
 		return Doc{}, false
 	}
 
@@ -246,21 +289,21 @@ func (d Doc) firstLine() (Doc, bool) {
 	cur := 0
 	doBreak := false
 	for _, t := range d.tokens {
-		t(func(Text TokenText) {
-			payload := d.payload[cur : cur+Text.bytes]
+		t(func(bytes int, style Style) {
+			payload := d.payload[cur : cur+bytes]
 			first, _, ok := strings.Cut(payload, "\n")
 			if ok {
 				res.payload += first
-				res.tokens = append(res.tokens, func(ftext func(Text TokenText), _, _ func(BlockEnd Block)) {
+				res.tokens = append(res.tokens, func(ftext func(int, Style), _, _ func(BlockEnd Block)) {
 					if ftext != nil {
-						ftext(TokenText{len(first), Text.style})
+						ftext(len(first), style)
 					}
 				})
 				return
 			} else {
-				res.payload += d.payload[cur : cur+Text.bytes]
+				res.payload += d.payload[cur : cur+bytes]
 				res.tokens = append(res.tokens, t)
-				cur += Text.bytes
+				cur += bytes
 			}
 		}, func(Block) { doBreak = true }, func(Block) { doBreak = true })
 		if doBreak {
@@ -285,35 +328,35 @@ func (s *Skip) pop() {
 	}
 }
 
-func (self Doc) token(token Token) {
-	self.tokens.push(token)
+func (self *Doc) token(token Token) {
+	self.tokens = append(self.tokens, token)
 }
 
-func (self Doc) write(input fmt.Display, style Style) {
-	old_len := self.payload.len()
-	_ := write(self.payload, "{}", input)
-	self.set_style(self.payload.len()-old_len, style)
+func (self *Doc) write(input fmt.GoStringer, style Style) {
+	old_len := len(self.payload)
+	self.payload += input.GoString()
+	self.set_style(len(self.payload)-old_len, style)
 }
 
-func (self Doc) set_style(len uint, style Style) {
+func (self Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
 	// [metavar]"foo" + [metavar]"bar"[metavar]"foobar"
 	if n := len(self.tokens); n == 0 {
-		self.tokens.push(TokenText{bytes: len, style})
+		self.tokens = append(self.tokens, TokenText(lenn, style))
 	} else {
 		if self.tokens[n-1].style == style {
-			self.tokens[n-1].bytes += len
+			self.tokens[n-1].bytes += lenn
 		}
 	}
 }
 
-func (self Doc) write_str(input string, style Style) {
-	self.payload.push_str(input)
-	self.set_style(input.len(), style)
+func (self *Doc) write_str(input string, style Style) {
+	self.payload += input
+	self.set_style(len(input), style)
 }
 
-func (self Doc) write_char(c char, style Style) {
-	self.write_str(c.encode_utf8([4]byte{}), style)
+func (self *Doc) write_char(c byte, style Style) {
+	self.write_str(string(c), style)
 }
 
 type DocSection struct {
@@ -330,10 +373,10 @@ func extract_sections(
 	sections *[]DocSection,
 ) {
 	*sections = append(*sections, DocSection{*path, info, meta})
-	hi := HelpItemsDefault()
+	hi := HelpItems{}
 	hi.append_meta(meta)
-	for item := range hi.items {
-		item(nil, nil, nil, nil, nil, func(name string, _ fun.Option[byte], _ fun.Option[Doc], meta Meta, info Info) {
+	for _, item := range hi.items {
+		item(nil, nil, nil, nil, nil, func(name string, _ Option[byte], _ Option[Doc], meta Meta, info Info) {
 			*path = append(*path, name)
 			extract_sections(meta, info, path, sections)
 			*path = (*path)[0 : len(*path)-1]
