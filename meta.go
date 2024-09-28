@@ -91,9 +91,33 @@ func MetaMany(m Meta) Meta {
 	}
 }
 
+func MetaSubsection(m Meta, d Doc) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), f, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if f != nil {
+			f(m, d)
+		}
+	}
+}
+
+func MetaSuffix(m Meta, d Doc) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, f func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
+		if f != nil {
+			f(m, d)
+		}
+	}
+}
+
 var MetaSkip Meta = func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), Skip func(), _ func(Meta, Doc), _ func(Meta)) {
 	if Skip != nil {
 		Skip()
+	}
+}
+
+func MetaCustomUsage(m Meta, d Doc) Meta {
+	return func(_, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), f func(Meta, Doc), _ func(Meta)) {
+		if f != nil {
+			f(m, d)
+		}
 	}
 }
 
@@ -108,6 +132,24 @@ func MetaStrict(m Meta) Meta {
 // to get stdmemtake to work
 func DefaultMeta() Meta {
 	return MetaSkip
+}
+
+func (m Meta) IsAnd() bool {
+	var res bool
+	m(func([]Meta) { res = true }, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	return res
+}
+
+func (m Meta) IsOr() bool {
+	var res bool
+	m(nil, func([]Meta) { res = true }, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+	return res
+}
+
+func (m Meta) IsSkip() bool {
+	var res bool
+	m(nil, nil, nil, nil, nil, nil, nil, nil, nil, func() { res = true }, nil, nil)
+	return res
 }
 
 // MetaStrict should bubble up to one of 3 places:
@@ -142,6 +184,24 @@ func StrictNormStrip() StrictNorm {
 			Strip()
 		}
 	}
+}
+
+func (self StrictNorm) IsPull() bool {
+	var res bool
+	self(func() { res = true }, nil, nil)
+	return res
+}
+
+func (self StrictNorm) IsPush() bool {
+	var res bool
+	self(nil, func() { res = true }, nil)
+	return res
+}
+
+func (self StrictNorm) IsStrip() bool {
+	var res bool
+	self(nil, nil, func() { res = true })
+	return res
 }
 
 func (self *StrictNorm) push() {
@@ -252,7 +312,7 @@ func (self Meta) normalized(for_usage bool) Meta {
 func Metafirst_item(meta Meta) Option[Item] {
 	res := Invalid[Item]()
 	meta(
-		func(xs []Meta) { res = first(xs).and_then(Metafirst_item) },
+		func(xs []Meta) { res = OptFlatMap(First(xs), Metafirst_item) },
 		nil,
 		func(x Meta) { res = Metafirst_item(x) },
 		func(x Meta) { res = Metafirst_item(x) },
@@ -281,18 +341,17 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 			this_norm := *norm
 			(*xs)[i].normalize(for_usage, &this_norm)
 			var target *StrictNorm = fun.IF(or, &final_norm, norm)
+			switch {
 			// switch (*target, this_norm) {
-			//     (_, StrictNormPull) | (StrictNormStrip, _){}
-			//     (StrictNormPull, StrictNormPush){
-			//         *m = MetaStrict(stdmemtake(m));
-			//         *target = StrictNormStrip;
-			//     }
-			//     _{
-			//         *target = this_norm;
-			//     }
-			// }
+			case this_norm.IsPull() || target.IsStrip():
+			case target.IsPull() && this_norm.IsPush():
+				*self = MetaStrict(*self)
+				*target = StrictNormStrip()
+			default:
+				*target = this_norm
+			}
 		}
-		*xs = fun.Filter(func(m Meta) bool { return !matches(m, MetaSkip) }, *xs...)
+		*xs = fun.Filter(func(m Meta) bool { return !m.IsSkip() }, *xs...)
 
 		*norm = final_norm
 
@@ -343,8 +402,9 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 			m(
 				nil,
 				nil,
-				func(mm Meta) { *m = mm },
-				func(mm Meta) { *m = mm },
+				// TODO: mutate issue
+				func(mm Meta) { /* *m = mm*/ },
+				func(mm Meta) { /* *m = mm*/ },
 				nil,
 				nil,
 				func(many Meta) {
@@ -359,12 +419,13 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 		},
 		func(m Meta) {
 			m.normalize(for_usage, norm)
-			if matches(m, MetaSkip) {
+			switch {
+			case m.IsSkip():
 				// Required(Skip)Skip
 				*self = MetaSkip
-			} else if matches(m, MetaAnd, MetaOr) {
+			case m.IsAnd() || m.IsOr():
 				// keep () around composite parsers
-			} else {
+			default:
 				// and strip them elsewhere
 				*self = m
 			}
@@ -376,7 +437,7 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 		func(i Item) { i.normalize(for_usage) },
 		func(m Meta) {
 			m.normalize(for_usage, norm)
-			if matches(m, MetaSkip) {
+			if m.IsSkip() {
 				*self = MetaSkip
 			}
 		},

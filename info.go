@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"iter"
 	"os"
+
+	"github.com/rprtr258/fun"
 )
 
 // Information about the parser
@@ -21,13 +24,13 @@ type Info struct {
 
 func NewInfo() Info {
 	return Info{
-		version:         Invalid(),
-		descr:           Invalid(),
-		header:          Invalid(),
-		footer:          Invalid(),
-		usage:           Invalid(),
-		help_arg:        short('h').long("help").help("Prints help information"),
-		version_arg:     short('V').long("version").help("Prints version information"),
+		version:         Invalid[Doc](),
+		descr:           Invalid[Doc](),
+		header:          Invalid[Doc](),
+		footer:          Invalid[Doc](),
+		usage:           Invalid[Doc](),
+		help_arg:        short('h').Long("help").Help(newDocFromString("Prints help information")),
+		version_arg:     short('V').Long("version").Help(newDocFromString("Prints version information")),
 		help_if_no_args: false,
 		max_width:       100,
 	}
@@ -69,64 +72,12 @@ type OptionParser[T any] struct {
 //
 // ```
 func (self OptionParser[T]) run() T {
-	t, err := self.run_inner(Argscurrent_args()).Unpack()
+	t, err := self.run_inner(current_args())
 	if err != nil {
 		err.print_message(self.info.max_width)
 		os.Exit(err.exit_code())
 	}
 	return t
-}
-
-// Execute the [`OptionParser`], extract a parsed value or return a [`ParseFailure`]
-//
-// In most cases using [`run`](OptionParserrun) is sufficient, you can use `try_run` if you
-// want to control the exit code or you need to perform a custom cleanup.
-//
-// # Usage
-// ```no_run
-// # use bpaf*;
-// // Parses number of repetitions of `-v` on a command line
-//
-//	fn verbosity()OptionParser[uint] {
-//	    parser := short('v')
-//	        .req_flag(struct{}{})
-//	        .many()
-//	        .map(|xs|xs.len());
-//
-//	    parser
-//	        .to_options()
-//	        .descr("Takes verbosity flag and does nothing else")
-//	}
-//
-//	fn main() {
-//	    let verbosity: Option[uint] = switch verbosity().try_run() {
-//	        Ok(v)Valid(v),
-//	        Err(ParseFailureStdout(buf, full)){
-//	            fmt.Print("{}", buf.monochrome(full));
-//	            Invalid()
-//	        }
-//	        Err(ParseFailureCompletion(msg)){
-//	            fmt.Print("{}", msg);
-//	            Invalid()
-//	        }
-//	        Err(ParseFailureStderr(buf)){
-//	            fmt.Fprintln(os.Stderr, "{}", buf.monochrome(true));
-//	            Invalid()
-//	        }
-//	    };
-//
-//	    // Run cleanup tasks
-//	}
-//
-// ```
-//
-// # Errors
-//
-// [`ParseFailure`] represents parsing errors, autocomplete results and generated `--help`
-// output.
-// DEPRECATED: You should switch to equivalent parser.run_inner(Argscurrent_args())
-func (self OptionParser[T]) try_run(self) Result[T, ParseFailure] {
-	self.run_inner(Argscurrent_args())
 }
 
 // Execute the [`OptionParser`] and produce a values for unit tests or manual processing
@@ -181,31 +132,26 @@ func (self OptionParser[T]) try_run(self) Result[T, ParseFailure] {
 // [`parse`](Parserparse), stdout/stderr isn't actually captured.
 //
 // Exact string reperentations may change between versions including minor releases.
-func (self OptionParser[T]) run_inner(args Into[Args]) Result[T, ParseFailure] {
+func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	// prepare available short flags and arguments for disambiguation
-	short_flags := nil
-	short_args := nil
+	short_flags := []byte(nil)
+	short_args := []byte(nil)
 	self.inner.meta().collect_shorts(&short_flags, &short_args)
-	short_flags.extend(&self.info.help_arg.short)
-	short_flags.extend(&self.info.version_arg.short)
-	args := args.into()
-	err := Invalid()
-	state := Stateconstruct(args, short_flags, short_args, &err)
+	short_flags = append(short_flags, self.info.help_arg.short...)
+	short_flags = append(short_flags, self.info.version_arg.short...)
+	err := Invalid[Message]()
+	state := stateconstruct(args, short_flags, short_args, &err)
 
 	// this only handles disambiguation failure in construct
-	if msg, ok := err.Unpack(); ok {
-		check_disambiguation := !state.comp_ref().Valid
-		check_disambiguation := false
-		if check_disambiguation {
-			return Err(msg.render(&state, &self.inner.meta()))
-		}
+	if msg, ok := err.Unpack(); ok && !state.comp_ref().Valid {
+		return *new(T), fun.Ptr(Message(msg)).render(state, self.inner.meta())
 	}
 
-	self.run_subparser(&state)
+	return self.run_subparser(&state)
 }
 
 // Run subparser, implementation detail
-func (self OptionParser[T]) run_subparser(args *State) Result[T, ParseFailure] {
+func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	// process should work like this:
 	// - inner parser is evaluated, it returns Error
 	// - if error is finalized (ParseFailure) - it is simply propagated outwards,
@@ -220,73 +166,78 @@ func (self OptionParser[T]) run_subparser(args *State) Result[T, ParseFailure] {
 
 	if self.info.help_if_no_args && args.is_empty() {
 		buffer := render_help(
-			&args.path,
-			&self.info,
-			&self.inner.meta(),
-			&self.info.meta(),
+			args.path,
+			self.info,
+			self.inner.meta(),
+			self.info.meta(),
 			true,
 		)
-		return Err(ParseFailureStdout(buffer, false))
+		return *new(T), ParseFailureStdout(buffer, false)
 	}
 
 	res := self.inner.eval(args)
-	var parseFailure error
+	var parseFailure ParseFailure
 	res.Err(nil, nil, nil, nil, nil, func(failure ParseFailure) {
-		parseFailure = Err(failure)
-	}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+		parseFailure = failure
+	}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 	if parseFailure != nil {
-		return parseFailure
+		return *new(T), parseFailure
 	}
 
 	if comp, ok := args.check_complete().Unpack(); ok {
-		return Err(ParseFailureCompletion(comp))
+		return *new(T), ParseFailureCompletion(comp)
 	}
 
-	var err error
+	var err Message
 	if res.Err != nil {
-		err = res.Err
+		err = Message(res.Err)
 	} else {
-		if ix, _, ok = args.items_iter().next().Unpack(); ok {
+		next, stop := iter.Pull2(args.items_iter())
+		defer stop()
+		if ix, _, ok := next(); ok {
 			err = MessageUnconsumed(ix)
 		} else {
-			return Ok(ok)
+			return res.Value, nil
 		}
 	}
 
 	// handle --help and --version messages
-	if extra, ok := self.info.eval(args); ok {
+	if extra, err := self.info.eval(args).unpack(); err == nil {
 		detailed := false
 		var buffer Doc
 		extra(
 			func(d bool) {
 				detailed = d
 				buffer = render_help(
-					&args.path,
-					&self.info,
-					&self.inner.meta(),
-					&self.info.meta(),
+					args.path,
+					self.info,
+					self.inner.meta(),
+					self.info.meta(),
 					true,
 				)
 			},
 			func(v Doc) {
-				buffer := Doc{}
-				buffer.token(TokenBlockStart(BlockBlock))
-				buffer.text("Version: ")
-				buffer.doc(&v)
-				buffer.token(TokenBlockEnd(BlockBlock))
-				buffer = buffer
+				tmp := Doc{}
+				tmp.token(TokenBlockStart(BlockBlock))
+				tmp.text("Version: ")
+				tmp.doc(v)
+				tmp.token(TokenBlockEnd(BlockBlock))
+				buffer = tmp
 			},
 		)
-		return Err(ParseFailureStdout(buffer, detailed))
+		return *new(T), ParseFailureStdout(buffer, detailed)
 	}
-	Err(err.render(args, &self.inner.meta()))
+	return *new(T), err.render(*args, self.inner.meta())
 }
 
 // Get first line of description if Available
 //
 // Used internally to avoid duplicating description for [`command`].
 func (self OptionParser[T]) short_descr() Option[Doc] {
-	return self.info.descr.and_then(Doc.first_line)
+	return self.info.descr.and_then(func(d Doc) Option[Doc] {
+		v, ok := Doc.first_line(d)
+		return Option[Doc]{v, ok}
+	})
 }
 
 // Set the version field.
@@ -585,7 +536,7 @@ func (self *OptionParser[T]) with_usage(f func(Doc) Doc) *OptionParser[T] {
 // # Panics
 //
 // `check_invariants` indicates problems with panic
-func (self OptionParser[T]) check_invariants(_cosmetic bool) {
+func (self OptionParser[T]) check_invariants(bool) {
 	self.inner.meta().positional_invariant_check(true)
 }
 
@@ -672,11 +623,11 @@ func (self *OptionParser[T]) max_width(width uint) *OptionParser[T] {
 }
 
 func (self Info) mk_help_parser() Parser[struct{}] {
-	return self.help_arg.req_flag(struct{}{})
+	return req_flag(self.help_arg, struct{}{})
 }
 
 func (self Info) mk_version_parser() Parser[struct{}] {
-	return self.version_arg.req_flag(struct{}{})
+	return req_flag(self.version_arg, struct{}{})
 }
 
 func (self Info) eval(args *State) Result[ExtraParams] {
@@ -692,7 +643,7 @@ func (self Info) eval(args *State) Result[ExtraParams] {
 	}
 
 	// error message is not actually used anywhere
-	return Err[ExtraParams](MessageParseFail("not a version or help"))
+	return Err[ExtraParams](Error(MessageParseFail("not a version or help")))
 }
 
 func (self Info) meta() Meta {

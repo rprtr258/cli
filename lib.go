@@ -1,6 +1,11 @@
 package cli
 
-import "github.com/rprtr258/fun"
+import (
+	"encoding"
+	"fmt"
+
+	"github.com/rprtr258/fun"
+)
 
 // #![warn(missing_docs)]
 // #![allow(clippyneedless_doctest_main)]
@@ -160,283 +165,6 @@ import "github.com/rprtr258/fun"
 //!    Disabled by default.
 //!
 //!  - `docgen`: generate documentation from help declaration, see [`OptionParserrender_markdown`] and [`doc`](cratedoc). Disabled by default.
-
-// pub mod parsers {
-//     //! This module exposes parsers that accept further configuration with builder pattern
-//     //!
-//     //! In most cases you won't be using those names directly, they're only listed here to provide
-//     //! access to documentation
-
-//     #[doc(inline)]
-//     pub use cratecomplete_shellParseCompShell;
-//     #[doc(inline)]
-//     pub use crateparams{
-//         NamedArg, ParseAny, ParseArgument, ParseCommand, ParseFlag, ParsePositional,
-//     };
-//     #[doc(inline)]
-//     pub use cratestructs{
-//         ParseCollect, ParseCon, ParseCount, ParseFallback, ParseFallbackWith, ParseLast, ParseMany,
-//         ParseOptional, ParseSome,
-//     };
-// }
-
-// // -------------------------------------------------------------------
-
-// #[doc(inline)]
-// pub use crate{argsArgs, bufferDoc, errorParseFailure, infoOptionParser};
-
-// #[doc(hidden)]
-// // used by construct macro, not part of public API
-// pub use crate{argsState, errorError, metaMeta, structsParseCon};
-
-// use std{markerPhantomData, strFromStr};
-
-// use crate{
-//     buffer{MetaInfo, Style},
-//     itemItem,
-//     paramsbuild_positional,
-//     parsers{NamedArg, ParseAny, ParseCommand, ParsePositional},
-//     structs{
-//         ParseCollect, ParseCount, ParseFail, ParseFallback, ParseFallbackWith, ParseGroupHelp,
-//         ParseGuard, ParseHide, ParseLast, ParseMany, ParseMap, ParseOptional, ParseOrElse,
-//         ParsePure, ParsePureWith, ParseSome, ParseUsage, ParseWith, ParseWithGroupHelp,
-//     },
-// };
-
-// pub use cratecomplete_shellShellComp;
-
-// use structsParseComp;
-
-// #[doc(inline)]
-
-// pub use bpaf_deriveBpaf;
-
-// Compose several parsers to produce a single result
-//
-// # Usage reference
-// ```rust
-// # use bpaf*;
-// # { struct Res(bool, bool, bool);
-// # a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // structs with unnamed fields:
-// construct(Res(a, b, c));
-// # }
-//
-// # { struct Res { a bool, b bool, c bool }
-// # a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // structs with named fields:
-// construct(Res {a, b, c});
-// # }
-//
-// # { enum Ty { Res(bool, bool, bool) }
-// # a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // enums with unnamed fields:
-// construct(TyRes(a, b, c));
-// # }
-//
-// # { enum Ty { Res { a bool, b bool, c bool } }
-// # a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // enums with named fields:
-// construct(TyRes {a, b, c});
-// # }
-//
-// # { a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // tuples:
-// construct(a, b, c);
-// # }
-//
-// # { a := short('a').switch(); b := short('b').switch(); c := short('c').switch();
-// // parallel composition, tries all parsers, picks one that consumes the left most value,
-// // or if they consume the same (or not at all) - the left most in a list
-// construct([a, b, c]);
-// # }
-//
-// // defining primitive parsers inside construct macro :)
-// construct(a(short('a').switch()), b(long("arg").argument[uint]("ARG")));
-//
-// # { a := short('a').switch();
-// // defining a boxed parser
-// construct(a);
-// # }
-// ```
-//
-// # Combinatoric usage
-// `construct` can compose parsers sequentially or in parallel.
-//
-// Sequential composition runs each parser and if all of them succeed you get a parser object of a
-// new type back. Placeholder names for values inside `construct` macro must correspond to both
-// struct/enum names and parser names present in scope. In examples below `a` corresponds to a
-// function and `b` corresponds to a variable name. Note parens in `a()`, you must to use them to
-// indicate function parsers.
-//
-// Inside the parens you can put a whole expression to use instead of
-// having to define them in advance: `a(positional<String>("POS"))`. Probably a good idea to use this
-// approach only for simple parsers.
-//
-// ```rust
-// # use bpaf*;
-// struct Res (u32, u32);
-// enum Ul { T { a: u32, b: u32 } }
-//
-// // You can share parameters across multiple construct invocations
-// // if defined as functions
-// func a()impl Parser<u32> {
-//     short('a').argument<u32>("N")
-// }
-//
-// // You can construct structs or enums with unnamed fields
-// func res()impl Parser<Res> {
-//     b := short('b').argument<u32>("n");
-//     construct(Res ( a(), b ))
-// }
-//
-// // You can construct structs or enums with named fields
-// func ult()impl Parser<Ul> {
-//     b := short('b').argument<u32>("n");
-//     construct(UlT { a(), b })
-// }
-//
-// // You can also construct simple tuples
-// func tuple()impl Parser<(u32, u32)> {
-//     b := short('b').argument<u32>("n");
-//     construct(a(), b)
-// }
-//
-// // You can create boxed version of parsers so the type matches as long
-// // as return type is the same - can be useful for all sort of dynamic parsers
-// func boxed()Box<dyn Parser<u32>> {
-//     a := short('a').argument<u32>("n");
-//     construct(a)
-// }
-//
-// // In addition to having primitives defined before using them - you can also define
-// // them directly inside construct macro. Probably only a good idea if you have only simple
-// // components
-// struct fun.Options {
-//     arg: u32,
-//     switch bool,
-// }
-//
-// func coyoda()impl Parser<fun.Options> {
-//     construct(Options {
-//         arg(short('a').argument<u32>("ARG")),
-//         switch(short('s').switch())
-//     })
-// }
-// ```
-//
-// Parallel composition picks one of several available parsers (result types must match) and returns a
-// parser object of the same type. Similar to sequential composition you can use parsers from variables
-// or functions:
-//
-// ```rust
-// # use bpaf*;
-// func b()impl Parser<u32> {
-//     short('b').argument<u32>("NUM")
-// }
-//
-// func a_or_b()impl Parser<u32> {
-//     a := short('a').argument<u32>("NUM");
-//     // equivalent way of writing this would be `a.or_else(b())`
-//     construct([a, b()])
-// }
-// ```
-//
-// # Derive usage
-//
-// `bpaf` would combine fields of struct or enum constructors sequentially and enum
-// variants in parallel.
-// ```rust
-// # use bpaf*;
-// // to satisfy this parser user needs to pass both -a and -b
-//
-// struct Res {
-//     a: u32,
-//     b: u32,
-// }
-//
-// // to satisfy this parser user needs to pass one (and only one) of -a, -b, -c or -d
-//
-// enum Enumeraton {
-//     A { a: u32 },
-//     B { b: u32 },
-//     C { c: u32 },
-//     D { d: u32 },
-// }
-//
-// // here user needs to pass either both -a AND -b or both -c AND -d
-//
-// enum Ult {
-//     AB { a: u32, b: u32 },
-//     CD { c: u32, d: u32 }
-// }
-// ```
-
-// func construct() {
-//     // construct(EnumCons { a, b, c })
-//     ($()? $ns:ident $( $con:ident)* { $($tokens:tt)* }){{ construct(@prepare [named [$ns $( $con)*]] [] $($tokens)*) }};
-
-//     // construct(EnumCons ( a, b, c ))
-//     ($()? $ns:ident $( $con:ident)* ( $($tokens:tt)* )){{ construct(@prepare [pos [$ns $( $con)*]] [] $($tokens)*) }};
-
-//     // construct( a, b, c )
-//     ($first:ident $($tokens:tt)*){{ construct(@prepare [pos] [] $first $($tokens)*) }};
-
-//     // construct[a, b, c]
-//     ([$first:ident $($tokens:tt)*]){{ construct(@prepare [alt] [] $first $($tokens)*) }};
-
-//     (@prepare $ty:tt [$($fields:tt)*] $field:ident () $(, $($rest:tt)*)? ){{
-//         $field := $field();
-//         construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
-//     }};
-//     (@prepare $ty:tt [$($fields:tt)*] $field:ident ($expr:expr) $(, $($rest:tt)*)?){{
-//         $field := $expr;
-//         construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
-//     }};
-//     (@prepare $ty:tt [$($fields:tt)*] $field:ident $(, $($rest:tt)*)? ){{
-//         construct(@prepare $ty [$($fields)* $field] $($($rest)* )?)
-//     }};
-
-//     (@prepare [alt] [$first:ident $($fields:ident)*]){
-//         #[allow(deprecated)]
-//         { use $crateParser; $first $(.or_else($fields))* }
-//     };
-
-//     (@prepare $ty:tt [$($fields:tt)*]){
-//         construct(@fin $ty [ $($fields)* ])
-//     };
-
-//     (@make [named [$($con:tt)+]] [$($fields:ident)*]){ $($con)+ { $($fields),* } };
-//     (@make [pos   [$($con:tt)+]] [$($fields:ident)*]){ $($con)+ ( $($fields),* ) };
-//     (@make [pos] [$($fields:ident)*]){ ( $($fields),* ) };
-
-//     (@fin [named [$($con:tt)+]] []){ $cratepure($($con)+ { })};
-//     (@fin [pos   [$($con:tt)+]] []){ $cratepure($($con)+ ( ))};
-
-//     (@fin [pos] [$field:ident]){{
-//         use $crateParser;
-//         $field.boxed()
-//     }};
-
-//     (@fin $ty:tt [$front:ident $($fields:ident)*]){{
-//         use $crateParser;
-//         meta := $crateMetaAnd(vec![ $front.meta(), $($fields.meta()),* ]);
-//         inner := move |failfast bool, args: &mut $crateState| {
-//             $front := $front.eval(args);
-//             if failfast {
-//                 $front = Ok($front?);
-//             }
-//             $($fields := $fields.eval(args);)*
-//             $front := $front?;
-//             $($fields := $fields?;)*
-
-//             args.current = Invalid();
-//             stdresultResultOk<_, $crateError>
-//                 (construct(@make $ty [$front $($fields)*]))
-//         };
-//         $crateParseCon { inner, meta, failfast: false }
-//     }};
-// }
 
 // Simple or composed argument parser
 //
@@ -598,11 +326,13 @@ type Parser[T any] struct {
 // [`some`](Parsersome) also collects results to a vector but requires at least one
 // element to succeed, [`collect`](Parsercollect) collects results into a [`FromIterator`]
 // structure
-func (self Parser[T]) many() ParseMany[T] {
-	return ParseMany[T]{
+// TODO: compiler ne mogyet v return Parser[[]T] in method
+func many[T any](self Parser[T]) Parser[[]T] {
+	p := ParseMany[T]{
 		inner: self,
 		catch: false,
 	}
+	return Parser[[]T]{p.eval, p.meta}
 }
 
 // }}}
@@ -675,11 +405,13 @@ func (self Parser[T]) Some(message string) ParseSome[T] {
 // But it's also possible to specify it explicitly.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/optional.md"))]
-func (self Parser[T]) Option() ParseOptional[T] {
-	return ParseOptional[T]{
+// TODO: compiler ne mogyet v return Parser[Option[T]] in method
+func optional[T any](self Parser[T]) Parser[Option[T]] {
+	p := ParseOptional[T]{
 		inner: self,
 		catch: false,
 	}
+	return Parser[Option[T]]{p.eval, p.meta}
 }
 
 // }}}
@@ -690,8 +422,8 @@ func (self Parser[T]) Option() ParseOptional[T] {
 // anything from a command line - `bpaf` will count first such success as well.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/count.md"))]
-func (self Parser[T]) count() ParseCount[Parser[T], T] {
-	return ParseCount[Parser[T], T]{
+func (self Parser[T]) count() ParseCount[T] {
+	return ParseCount[T]{
 		inner: self,
 	}
 }
@@ -729,17 +461,14 @@ func (self Parser[T]) last() ParseLast[T] {
 // parameter `F` used by `parse` in combinatoric API.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/parse.md"))]
-func parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, Parser[T], func(T) Result[R], Error, R] {
-	return ParseWith[T, Parser[T], func(T) Result[R], Error, R]{
+func parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, R] {
+	return ParseWith[T, R]{
 		inner:    self,
 		parse_fn: f,
 	}
 }
 
-// }}}
-
-// {{{ map
-// Apply a pure transformation to a contained value
+// Map - Apply a pure transformation to a contained value
 //
 // A common case of the [`parse`](Parserparse) method, exists mostly for convenience.
 //
@@ -748,11 +477,12 @@ func parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, Parser[T]
 // the value produced by the parser into a new value of the same or different type.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/map.md"))]
-func Map[T, R any](self Parser[T], Map func(T) R) ParseMap[T, R] {
-	return ParseMap[T, R]{
+func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
+	p := ParseMap[T, R]{
 		inner:  self,
 		map_fn: Map,
 	}
+	return Parser[R]{p.eval, p.meta}
 }
 
 // }}}
@@ -767,8 +497,8 @@ func Map[T, R any](self Parser[T], Map func(T) R) ParseMap[T, R] {
 // clean. The second argument can be either a string literal or a constant name for a static [`str`].
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/guard.md"))]
-func (self Parser[T]) guard(check func(T) bool, message string) ParseGuard[Parser[T], func(T) bool] {
-	return ParseGuard[Parser[T], func(T) bool]{
+func (self Parser[T]) guard(check func(T) bool, message string) ParseGuard[T] {
+	return ParseGuard[T]{
 		inner:   self,
 		check:   check,
 		message: message,
@@ -791,8 +521,8 @@ func (self Parser[T]) guard(check func(T) bool, message string) ParseGuard[Parse
 // not be shown in the `--help` output, you can change that by using
 // [`display_fallback`](ParseFallbackdisplay_fallback) and
 // [`debug_fallback`](ParseFallbackdebug_fallback).
-func (self Parser[T]) fallback(value T) ParseFallback[Parser[T], T] {
-	return ParseFallback[Parser[T], T]{
+func (self Parser[T]) fallback(value T) ParseFallback[T] {
+	return ParseFallback[T]{
 		inner:     self,
 		value:     value,
 		value_str: "",
@@ -813,8 +543,8 @@ func (self Parser[T]) fallback(value T) ParseFallback[Parser[T], T] {
 // By default fallback value will not be shown in the `--help` output, you can change that by using
 // [`display_fallback`](ParseFallbackWithdisplay_fallback) and
 // [`debug_fallback`](ParseFallbackWithdebug_fallback).
-func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T, Parser[T], func() Result[T], Error] {
-	return ParseFallbackWith[T, Parser[T], func() Result[T], Error]{
+func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T] {
+	return ParseFallbackWith[T]{
 		inner:     self,
 		fallback:  fallback,
 		value_str: "",
@@ -915,8 +645,9 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 // backward compatibility or hidden aliases
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/hide.md"))]
-func (self Parser[T]) hide() ParseHide[Parser[T]] {
-	return ParseHide[Parser[T]]{inner: self}
+func (self Parser[T]) hide() Parser[T] {
+	p := ParseHide[T]{inner: self}
+	return Parser[T]{p.eval, p.meta}
 }
 
 // }}}
@@ -928,8 +659,8 @@ func (self Parser[T]) hide() ParseHide[Parser[T]] {
 // Alternatively, you can use [`custom_usage`](Parsercustom_usage) to replace a single
 // fun.Option or a group of them with some other text.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/hide_usage.md"))]
-func (self Parser[T]) hide_usage() ParseUsage[Parser[T]] {
-	return ParseUsage[Parser[T]]{
+func (self Parser[T]) hide_usage() ParseUsage[T] {
+	return ParseUsage[T]{
 		inner: self,
 		usage: Doc{},
 	}
@@ -938,8 +669,8 @@ func (self Parser[T]) hide_usage() ParseUsage[Parser[T]] {
 // Customize how this parser looks like in the usage line
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/custom_usage.md"))]
-func (self Parser[T]) custom_usage(usage Doc) ParseUsage[Parser[T]] {
-	return ParseUsage[Parser[T]]{
+func (self Parser[T]) custom_usage(usage Doc) ParseUsage[T] {
+	return ParseUsage[T]{
 		inner: self,
 		usage: usage,
 	}
@@ -952,8 +683,8 @@ func (self Parser[T]) custom_usage(usage Doc) ParseUsage[Parser[T]] {
 // from the inner parser and an empty line after the block.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/group_help.md"))]
-func (self Parser[T]) group_help(message Doc) ParseGroupHelp[Parser[T]] {
-	return ParseGroupHelp[Parser[T]]{
+func (self Parser[T]) group_help(message Doc) ParseGroupHelp[T] {
+	return ParseGroupHelp[T]{
 		inner:   self,
 		message: message,
 	}
@@ -964,8 +695,8 @@ func (self Parser[T]) group_help(message Doc) ParseGroupHelp[Parser[T]] {
 // Make a help message for a complex parser from its [`MetaInfo`]
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
-func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[Parser[T], func(MetaInfo) Doc] {
-	return ParseWithGroupHelp[Parser[T], func(MetaInfo) Doc]{inner: self, f: f}
+func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[T] {
+	return ParseWithGroupHelp[T]{inner: self, f: f}
 }
 
 // {{{ comp
@@ -996,8 +727,8 @@ func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[P
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
 
-func complete[T any, M IntoString](self Parser[T], op func(T) []fun.Pair[M, Option[M]]) ParseComp[Parser[T], func(T) []fun.Pair[M, Option[M]]] {
-	return ParseComp[Parser[T], func(T) []fun.Pair[M, Option[M]]]{
+func complete[T any, M fmt.Stringer](self Parser[T], op func(T) []fun.Pair[string, Option[string]]) ParseComp[T] {
+	return ParseComp[T]{
 		inner: self,
 		op:    op,
 		group: Invalid[string](),
@@ -1167,8 +898,8 @@ func fail[T any](msg string) ParseFail[T] {
 //	`bpaf` would use items past the first one as hidden aliases.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func short(short byte) *NamedArg {
-	return &NamedArg{
+func short(short byte) NamedArg {
+	return NamedArg{
 		short: []byte{short},
 		env:   nil,
 		long:  nil,
@@ -1184,8 +915,8 @@ func short(short byte) *NamedArg {
 //	`bpaf` would use items past the first one as hidden aliases.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func long(long string) *NamedArg {
-	return &NamedArg{
+func long(long string) NamedArg {
+	return NamedArg{
 		short: nil,
 		long:  []string{long},
 		env:   nil,
@@ -1318,7 +1049,7 @@ func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 //
 // # See also
 // [`literal`] - a specialized version of `any` that tries to parse a fixed literal
-func Any[I FromStr, T any](metavar string, check func(I) Option[T]) ParseAny[T] {
+func Any[I encoding.TextUnmarshaler, T any](metavar string, check func(I) Option[T]) ParseAny[T] {
 	return ParseAny[T]{
 		// metavar: [(metavar, StyleMetavar)][..].into(),
 		help: Invalid[Doc](),
@@ -1345,11 +1076,12 @@ func Any[I FromStr, T any](metavar string, check func(I) Option[T]) ParseAny[T] 
 // # See also
 // [`any`] - a generic version of `literal` that uses function to decide if value is to be parsed
 // or not.
-func literal(val string) ParseAny[struct{}] {
-	return Any("", func(s string) Option[struct{}] {
-		return Option[struct{}]{struct{}{}, s == val}
+func literal(val string) Parser[struct{}] {
+	p := Any("", func(s *GS) Option[struct{}] {
+		return Option[struct{}]{struct{}{}, string(*s) == val}
 	}) /*.
 	  metavar(&[(val, cratebufferStyleLiteral)][..])*/
+	return Parser[struct{}]{p.eval, p.meta}
 }
 
 // Strip a command name if present at the front when used as a `cargo` command
@@ -1365,8 +1097,8 @@ func literal(val string) ParseAny[struct{}] {
 // 3. And don't show anything to the user in `--help` or completion
 // 4. Parse this word and then everything else as a tuple, return that second item.
 func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
-	skip := literal(cmd).optional().hide()
-	return construct(skip, parser).Map(func(x) { return x[1] })
+	skip := optional(literal(cmd)).hide()
+	return Map(Pair(skip, parser), func(x fun.Pair[Option[struct{}], T]) T { return x.V })
 }
 
 // Choose between several parsers specified at runtime
@@ -1377,13 +1109,33 @@ func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/choice.md"))]
 func choice[T any](parsers ...Parser[T]) Parser[T] {
-	this, ok := parsers.next()
-	if !ok {
+	if len(parsers) == 0 {
 		p := fail[T]("Invalid choice usage")
 		return Parser[T]{p.eval, p.meta}
 	}
-	for _, that := range parsers {
-		this = ParseOrElse[T]{this, that}
+	this := parsers[0]
+	for _, that := range parsers[1:] {
+		p := ParseOrElse[T]{this, that}
+		this = Parser[T]{p.eval, p.meta}
 	}
 	return this
+}
+
+func Pair[A, B any](pa Parser[A], pb Parser[B]) Parser[fun.Pair[A, B]] {
+	meta := MetaAnd(nil)
+	type R = fun.Pair[A, B]
+	inner := func(failfast bool, args *State) Result[R] {
+		verbose, err := pa.eval(args).unpack()
+		if failfast && err != nil {
+			return Err[R](err)
+		}
+		quiet, err := pb.eval(args).unpack()
+		if err != nil {
+			return Err[R](err)
+		}
+		args.current = Invalid[int]()
+		return Ok(R{verbose, quiet})
+	}
+	p := ParseCon[R]{inner, meta, false}
+	return Parser[R]{p.eval, p.Meta}
 }

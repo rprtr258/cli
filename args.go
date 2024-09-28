@@ -8,8 +8,6 @@ import (
 	"path/filepath"
 	"slices"
 	"unicode/utf8"
-
-	"github.com/rprtr258/fun"
 )
 
 // All currently present command line parameters with fun.Valid extra metainfo
@@ -581,13 +579,23 @@ func (self State) swap_comps_with(comps *[]Comp) {
 // Get a short or long flag: `-f` / `--flag`
 //
 // Returns false if value isn't present
-func (self State) take_flag(named *NamedArg) bool {
-	if ix, _, ok := self.items_iter().find(func(_ int, arg Arg) bool { return named.matches_arg(arg, false) }).Unpack(); ok {
-		self.remove(ix)
-		return true
-	} else {
-		return false
+func (self State) take_flag(named NamedArg) bool {
+	var (
+		ix int
+		ok bool
+	)
+	iter := self.items_iter()
+	for i, arg := range iter {
+		if named.matches_arg(arg, false) {
+			ix = i
+			ok = true
+			break
+		}
 	}
+	if ok {
+		self.remove(ix)
+	}
+	return ok
 }
 
 // get a short or long arguments
@@ -599,10 +607,20 @@ func (self State) take_arg(
 	adjacent bool,
 	metavar Metavar,
 ) Result[Option[string]] {
-	var key_ix int
-	if v, ok := self.items_iter().find(func(_ int, arg Arg) bool { return named.matches_arg(arg, adjacent) }).Unpack(); ok {
-		key_ix = v[0]
-	} else {
+	var (
+		key_ix int
+		ok     bool
+	)
+	iter := self.items_iter()
+	for i, arg := range iter {
+		if named.matches_arg(arg, adjacent) {
+			key_ix = i
+			ok = true
+			break
+		}
+	}
+
+	if !ok {
 		return Ok(Invalid[string]())
 	}
 
@@ -634,11 +652,11 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 		w      Arg
 		ok     bool
 	)
-	for ix, arg := range self.items_iter() {
+	for _, arg := range self.items_iter() {
 		arg.value(nil, nil, func() {
-			ix, strict, w, ok = ix, false, w, true
+			strict, ok = false, true
 		}, nil, func() {
-			ix, strict, w, ok = ix, true, w, true
+			strict, ok = true, true
 		})
 	}
 	if ok {
@@ -661,8 +679,9 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 
 // take a static string argument from the first present argument
 func (self State) take_cmd(w string) bool {
-	iter := self.items_iter()
-	ix, a, ok := iter.next()
+	next, cancel := iter.Pull2(self.items_iter())
+	defer cancel()
+	ix, a, ok := next()
 	if !ok || a.os_str != w {
 		goto INVALID
 	}
@@ -684,7 +703,8 @@ INVALID:
 
 // #[cfg(test)]
 func (self State) peek() Option[Arg] {
-	iter := self.items_iter()
-	_, a, ok := iter.next()
-	return fun.Optional(a, ok)
+	next, cancel := iter.Pull2(self.items_iter())
+	defer cancel()
+	_, a, ok := next()
+	return Option[Arg]{a, ok}
 }

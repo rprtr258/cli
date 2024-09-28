@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"cmp"
 	"fmt"
 	"math"
 
@@ -24,7 +25,7 @@ func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 		return Ok(ok)
 	} else {
 		args.swap_comps(clone)
-		if e.can_catch() {
+		if Message(e).can_catch() {
 			ok, e := self.fallback().unpack()
 			if e == nil {
 				return Ok(ok)
@@ -42,7 +43,7 @@ func (self ParseFallbackWith[T]) meta() Meta {
 	if self.value_str == "" {
 		return m
 	} else {
-		buf := Docfrom(self.value_str)
+		buf := newDocFromString(self.value_str)
 		return MetaSuffix(m, buf)
 	}
 }
@@ -59,7 +60,7 @@ func (self ParseGroupHelp[T]) eval(args *State) Result[T] {
 	args.swap_comps_with(&comp_items)
 	res := self.inner.eval(args)
 	args.swap_comps_with(&comp_items)
-	args.push_with_group(&self.message.to_completion(), &comp_items)
+	args.push_with_group(self.message.to_completion(), &comp_items)
 	return res
 }
 
@@ -111,19 +112,23 @@ func (self *ParseSome[T]) Catch() *ParseSome[T] {
 
 // impl<T, P> Parser[[]T] for ParseSome<P>
 func (self ParseSome[T]) eval(args *State) Result[[]T] {
-	res := nil
-	len := uintMAX
+	res := []T{}
+	len := uint(math.MaxUint)
 
 	for {
-		val, ok := parse_option(&self.inner, &len, args, self.catch)
-		if !ok {
+		val, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		if err != nil {
 			break
 		}
-		res.push(val)
+		if val.Valid {
+			res = append(res, val.Value)
+		} else {
+			break
+		}
 	}
 
-	if res.is_empty() {
-		return Err[T](Error(MessageParseValid(self.message)))
+	if is_empty(res) {
+		return Err[[]T](Error(MessageParseFail(self.message)))
 	} else {
 		return Ok(res)
 	}
@@ -157,8 +162,20 @@ func (self *ParseCollect[T]) Catch() *ParseCollect[T] {
 
 // impl<T, C, P> Parser<C> for ParseCollect<P, C, T>
 func (self ParseCollect[T]) eval(args *State) Result[[]T] {
-	len := uintMAX
-	stditerfrom_fn((func() parse_option)(&self.inner, &len, args, self.catch).transpose()).collect[Result[[]T]]()
+	len := uint(math.MaxUint)
+	res := []T{}
+	for {
+		xx, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		if err != nil {
+			return Err[[]T](err)
+		}
+		x, ok := xx.Unpack()
+		if !ok {
+			break
+		}
+		res = append(res, x)
+	}
+	return Ok(res)
 }
 
 func (self ParseCollect[T]) meta() Meta {
@@ -167,26 +184,26 @@ func (self ParseCollect[T]) meta() Meta {
 
 // Parser that returns results as usual but not shown in `--help` output, created with
 // [`Parserhide`]
-type ParseHide[P any] struct {
-	inner P
+type ParseHide[T any] struct {
+	inner Parser[T]
 }
 
 // impl<T, P> Parser[T] for ParseHide<P>
 //
 //	P: Parser[T],
-func (self ParseHide[P]) eval(args *State) Result[T] {
-	comps := nil
+func (self ParseHide[T]) eval(args *State) Result[T] {
+	var comps []Comp
 
 	args.swap_comps_with(&comps)
 
 	res := self.inner.eval(args)
 
 	args.swap_comps_with(&comps)
-	// if Err(Error(MessageMissing(_))) := res {
-	//     Err(Error(MessageMissing(nil)))
-	// } else {
-	//     res
-	// }
+	if res.Err != nil && MessageF(Message(res.Err), MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
+		return Err[T](Error(MessageMissing()))
+	}
+
+	return res
 }
 
 func (self ParseHide[P]) meta() Meta {
@@ -196,15 +213,15 @@ func (self ParseHide[P]) meta() Meta {
 // Parser that hides inner parser from usage line
 //
 // No other changes to the inner parser
-type ParseUsage[P any] struct {
-	inner P
+type ParseUsage[T any] struct {
+	inner Parser[T]
 	usage Doc
 }
 
 // impl<T, P> Parser[T] for ParseUsage<P>
 //
 //	P: Parser[T],
-func (self ParseUsage[P]) eval(args *State) Result[T] {
+func (self ParseUsage[T]) eval(args *State) Result[T] {
 	return self.inner.eval(args)
 }
 
@@ -221,7 +238,7 @@ type ParseOrElse[T any] struct {
 
 // impl[T] Parser[T] for ParseOrElse[T] {
 func (self ParseOrElse[T]) eval(args *State) Result[T] {
-	comp_items := nil
+	var comp_items []Comp
 
 	args.swap_comps_with(&comp_items)
 
@@ -236,32 +253,48 @@ func (self ParseOrElse[T]) eval(args *State) Result[T] {
 	// so that code that does a bunch of comparing logic can be shared across
 	// all invocations of parsers rather than being inlined into each one.
 
-	// let (res_a, err_a) = switch self.this.eval(&mut args_a) {
-	//     Ok(ok)(Valid(ok), Invalid()),
-	//     Err(err)(Invalid(), Valid(err)),
-	// };
+	ok, err := self.this.eval(args_a).unpack()
+	var (
+		res_a Option[T]
+		err_a Option[Error]
+	)
+	if err != nil {
+		res_a, err_a = Invalid[T](), Valid(err)
+	} else {
+		res_a, err_a = Valid(ok), Invalid[Error]()
+	}
 
-	// let (res_b, err_b) = switch self.that.eval(&mut args_b) {
-	//     Ok(ok)(Valid(ok), Invalid()),
-	//     Err(err)(Invalid(), Valid(err)),
-	// };
+	ok, err = self.that.eval(args_b).unpack()
+	var (
+		res_b Option[T]
+		err_b Option[Error]
+	)
+	if err != nil {
+		res_b, err_b = Invalid[T](), Valid(err)
+	} else {
+		res_b, err_b = Valid(ok), Invalid[Error]()
+	}
 
-	// if this_or_that_picks_first(
-	//     err_a,
-	//     err_b,
-	//     args,
-	//     &args_a,
-	//     &args_b,
-	//     comp_items,
-	// )? {
-	//     Ok(res_a.unwrap())
-	// } else {
-	//     Ok(res_b.unwrap())
-	// }
+	zalupa, err := this_or_that_picks_first(
+		err_a,
+		err_b,
+		args,
+		args_a,
+		args_b,
+		&comp_items,
+	).unpack()
+	if err != nil {
+		return Err[T](err)
+	}
+	if zalupa {
+		return Ok(res_a.unwrap())
+	} else {
+		return Ok(res_b.unwrap())
+	}
 }
 
 func (self ParseOrElse[T]) meta() Meta {
-	self.this.meta().or(self.that.meta())
+	return self.this.meta().or(self.that.meta())
 }
 
 // Given two possible errors along with to sets of arguments produce a new error or an instruction
@@ -276,45 +309,51 @@ func this_or_that_picks_first(
 ) Result[bool] {
 	// if higher depth parser succeeds - it takes a priority
 	// completion from different depths should never mix either
-	// switch Ordcmp(&args_a.depth(), &args_b.depth()) {
-	//     stdcmpOrderingLess{
-	//         stdmemswap(args, args_b);
+	switch ccc := cmp.Compare(args_a.depth(), args_b.depth()); {
+	case ccc < 0:
+		stdmemswap(args, args_b)
 
-	//         if Valid(comp) := args.comp_mut() {
-	//             comp.extend_comps(comp_stash);
-	//         }
-	//         return switch err_b {
-	//             Valid(err)Err(err),
-	//             Invalid()Ok(false),
-	//         };
-	//     }
-	//     stdcmpOrderingEqual{}
-	//     stdcmpOrderingGreater{
-	//         stdmemswap(args, args_a);
+		if comp, ok := args.comp_mut().Unpack(); ok {
+			comp.extend_comps(*comp_stash)
+		}
+		err, ok := err_b.Unpack()
+		if !ok {
+			return Ok(false)
+		}
+		return Err[bool](err)
+	case ccc == 0:
+	case ccc > 0:
+		stdmemswap(args, args_a)
 
-	//         if Valid(comp) := args.comp_mut() {
-	//             comp.extend_comps(comp_stash);
-	//         }
-	//         return switch err_a {
-	//             Valid(err)Err(err),
-	//             Invalid()Ok(true),
-	//         };
-	//     }
-	// }
+		if comp, ok := args.comp_mut().Unpack(); ok {
+			comp.extend_comps(*comp_stash)
+		}
+		err, ok := err_a.Unpack()
+		if !ok {
+			return Ok(true)
+		}
+		return Err[bool](err)
+	}
 
 	// otherwise pick based on the left most or successful one
-	// res := switch (err_a, err_b) {
-	//     (Invalid(), Invalid()){
-	//         if args.len() == args_a.len() && args.len() == args_b.len() {
-	//             Ok((true, Invalid()))
-	//         } else {
-	//             Ok(args_a.pick_winner(args_b))
-	//         }
-	//     }
-	//     (Valid(e1), Valid(e2))Err(e1.combine_with(e2)),
-	//     // otherwise either a or b are success, true means a is success
-	//     (a_ok, _)Ok((a_ok.is_Invalid()(), Invalid())),
-	// };
+	e1, a_ok := err_a.Unpack()
+	e2, b_ok := err_b.Unpack()
+	type resT fun.Pair[bool, Option[uint]]
+	var res Result[resT]
+	switch {
+	case !a_ok && !b_ok:
+		if args.len() == args_a.len() && args_a.len() == args_b.len() {
+			res = Ok(resT{true, Invalid[uint]()})
+		} else {
+			a, b := args_a.pick_winner(*args_b)
+			res = Ok(resT{a, b})
+		}
+	case a_ok && b_ok:
+		res = Err[resT](e1.combine_with(e2))
+	// otherwise either a or b are success, true means a is success
+	default:
+		res = Ok(resT{!a_ok, Invalid[uint]()})
+	}
 
 	{
 		keep_a := true
@@ -325,100 +364,108 @@ func this_or_that_picks_first(
 			//
 			// This is needed to preserve completion from a choice between a positional and a flag
 			// See https://github.com/pacak/bpaf/issues/303 for more details
-			// if let (Valid(_), Valid(_)) = (args_a.comp_mut(), args_b.comp_mut()) {
-			//     CHECK: for (ix, arg) in args_a.items.iter().enumerate() {
-			//         // During completion process named and unnamed arguments behave
-			//         // different - `-` and `--` are positional arguments, but we want to produce
-			//         // named items too. An empty string is also a special type of item that
-			//         // gets passed when user starts completion without passing any actual data.
-			//         //
-			//         // All other strings are either valid named items or valid positional items
-			//         // those are hopefully follow the right logic for being parsed/not parsed
-			//         if ix + 1 == args_a.len(items) {
-			//             os := arg.os_str();
-			//             if os.is_empty() || os == "-" || os == "--" {
-			//                 break CHECK;
-			//             }
-			//         }
-			//         if let (Valid(a), Valid(b)) = (args_a.present(ix), args_b.present(ix)) {
-			//             switch (a, b) {
-			//                 (false, true){
-			//                     keep_b = false;
-			//                     break CHECK;
-			//                 }
-			//                 (true, false){
-			//                     keep_a = false;
-			//                     break CHECK;
-			//                 }
-			//                 _{}
-			//             }
-			//         }
-			//     }
-			// }
+			_, ok1 := args_a.comp_mut().Unpack()
+			_, ok2 := args_b.comp_mut().Unpack()
+			if ok1 && ok2 {
+			CHECK:
+				for ix, arg := range args_a.items {
+					// During completion process named and unnamed arguments behave
+					// different - `-` and `--` are positional arguments, but we want to produce
+					// named items too. An empty string is also a special type of item that
+					// gets passed when user starts completion without passing any actual data.
+					//
+					// All other strings are either valid named items or valid positional items
+					// those are hopefully follow the right logic for being parsed/not parsed
+					if ix+1 == len(args_a.items) {
+						os := arg.os_str
+						if os == "" || os == "-" || os == "--" {
+							break CHECK
+						}
+					}
+					a, ok1 := args_a.present(ix).Unpack()
+					b, ok2 := args_b.present(ix).Unpack()
+					if ok1 && ok2 {
+						switch {
+						case b:
+							keep_b = false
+							break CHECK
+						case a:
+							keep_a = false
+							break CHECK
+						}
+					}
+				}
+			}
 		}
 
-		// if let (Valid(a), Valid(b)) = (args_a.comp_mut(), args_b.comp_mut()) {
-		//     if keep_a {
-		//         comp_stash.extend(a.drain_comps());
-		//     }
-		//     if keep_b {
-		//         comp_stash.extend(b.drain_comps());
-		//     }
-		// }
+		a, ok1 := args_a.comp_mut().Unpack()
+		b, ok2 := args_b.comp_mut().Unpack()
+		if ok1 && ok2 {
+			if keep_a {
+				*comp_stash = append(*comp_stash, a.drain_comps()...)
+			}
+			if keep_b {
+				*comp_stash = append(*comp_stash, b.drain_comps()...)
+			}
+		}
 	}
 
-	// switch res {
-	//     Ok((true, ix)){
-	//         if Valid(win) := ix {
-	//             args_a.save_conflicts(args_b, win);
-	//         }
-	//         stdmemswap(args, args_a);
-	//     }
-	//     Ok((false, ix)){
-	//         if Valid(win) := ix {
-	//             args_b.save_conflicts(args_a, win);
-	//         }
-	//         stdmemswap(args, args_b);
-	//     }
-	//     // no winner, keep the completions but don't touch args otherwise
-	//     Err(_){}
-	// }
+	if bbb, errrr := res.unpack(); errrr == nil { // or else no winner, keep the completions but don't touch args otherwise
+		ix := bbb.V
+		if bbb.K {
+			if win, ok := ix.Unpack(); ok {
+				args_a.save_conflicts(*args_b, int(win))
+			}
+			stdmemswap(args, args_a)
+		} else {
+			if win, ok := ix.Unpack(); ok {
+				args_b.save_conflicts(*args_a, int(win))
+			}
+			stdmemswap(args, args_b)
+		}
+	}
 
 	if comp, ok := args.comp_mut().Unpack(); ok {
-		comp.extend_comps(comp_stash)
+		comp.extend_comps(*comp_stash)
 	}
 
-	// Ok(res?.0)
+	resres, err := res.unpack()
+	if err != nil {
+		return Err[bool](err)
+	}
+	return Ok(resres.K)
 }
 
 // Parser that transforms parsed value with a failing function, created with
 // [`parse`](Parserparse)
-type ParseWith[T, P, F, E, R any] struct {
-	inner    P
-	parse_fn F
+type ParseWith[T, R any] struct {
+	inner    Parser[T]
+	parse_fn func(T) Result[R]
 }
 
 // impl<T, P, F, E, R> Parser<R> for ParseWith<T, P, F, E, R>
-//
-//	P: Parser[T],
-//	F: func(T)Result[R, E],
-//	E: ToString,
-func (self ParseWith[T, P, F, E, R]) eval(args *State) Result[R, Error] {
-	// t := self.inner.eval(args)?;
-	// switch (self.parse_fn)(t) {
-	//     Ok(r)Ok(r),
-	//     Err(e)Err(Error(MessageParseFailed(args.current, e.to_string()))),
-	// }
+func (self ParseWith[T, R]) eval(args *State) Result[R] {
+	t, err := self.inner.eval(args).unpack()
+	if err != nil {
+		return Err[R](err)
+	}
+
+	r, err := self.parse_fn(t).unpack()
+	if err != nil {
+		return Err[R](Error(MessageParseFailed(args.current, err.to_string())))
+	}
+
+	return Ok(r)
 }
 
-func (self ParseWith[T, P, F, E, R]) meta() Meta {
-	self.inner.meta()
+func (self ParseWith[T, R]) meta() Meta {
+	return self.inner.meta()
 }
 
 // Parser that substitutes missing value but not parse failure, created with
 // [`fallback`](Parserfallback).
-type ParseFallback[P, T any] struct {
-	inner     P
+type ParseFallback[T any] struct {
+	inner     Parser[T]
 	value     T
 	value_str string
 }
@@ -427,32 +474,28 @@ type ParseFallback[P, T any] struct {
 //
 //	P: Parser[T],
 //	T: Clone,
-func (self ParseFallback[P, T]) eval(args *State) Result[T] {
+func (self ParseFallback[T]) eval(args *State) Result[T] {
 	clone := args
-	switch self.inner.eval(&clone) {
-	// Ok(ok){
-	//     stdmemswap(args, &mut clone);
-	//     Ok(ok)
-	// }
-	// Err(Error(e)){
-
-	//     args.swap_comps(&mut clone);
-	//     if e.can_catch() {
-	//         Ok(self.value)
-	//     } else {
-	//         Err(Error(e))
-	//     }
-	// }
+	ok, e := self.inner.eval(clone).unpack()
+	if e != nil {
+		args.swap_comps(clone)
+		if Message(e).can_catch() {
+			return Ok(self.value)
+		} else {
+			return Err[T](Error(e))
+		}
 	}
+	*args = *clone
+	return Ok(ok)
 }
 
-func (self ParseFallback[P, T]) meta() Meta {
+func (self ParseFallback[T]) meta() Meta {
 	m := MetaOptional(self.inner.meta())
-	if self.value_str.is_empty() {
-		m
+	if self.value_str == "" {
+		return m
 	} else {
-		buf := Docfrom(self.value_str)
-		MetaSuffix(m, buf)
+		buf := newDocFromString(self.value_str)
+		return MetaSuffix(m, buf)
 	}
 }
 
@@ -461,18 +504,18 @@ func (self ParseFallback[P, T]) meta() Meta {
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-func (self *ParseFallback[P, T]) display_fallback() ParseFallback[P, T] {
-	self.value_str = fmt.Sprintf("[default: {}]", self.value)
-	return self
+func (self *ParseFallback[T]) display_fallback() ParseFallback[T] {
+	self.value_str = fmt.Sprintf("[default: %v]", self.value)
+	return *self
 }
 
 // Show [`fallback`](Parserfallback) value in `--help` using [`Debug`](stdfmtDebug)
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
-func (self *ParseFallback[P, T]) debug_fallback() ParseFallback[P, T] {
+func (self *ParseFallback[T]) debug_fallback() ParseFallback[T] {
 	self.value_str = fmt.Sprintf("[default: %#v]", self.value)
-	return self
+	return *self
 }
 
 // impl<P, T: stdfmtDisplay, F, E>
@@ -484,10 +527,10 @@ func (self *ParseFallback[P, T]) debug_fallback() ParseFallback[P, T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
 func (self *ParseFallbackWith[T]) display_fallback() ParseFallbackWith[T] {
-	// if Ok(val) := (self.fallback)() {
-	//     self.value_str = fmt.Sprintf("[default: {}]", val);
-	// }
-	return self
+	if val, err := self.fallback().unpack(); err == nil {
+		self.value_str = fmt.Sprintf("[default: %v]", val)
+	}
+	return *self
 }
 
 // impl<P, T: stdfmtDebug, F, E>
@@ -542,14 +585,21 @@ type ParseCount[T any] struct {
 func (self ParseCount[T]) eval(args *State) Result[int] {
 	res := 0
 	current := args.len()
-	len := uintMAX
-	// while (parse_option(&self.inner, &len, args, false)?).is_Valid() {
-	//     res += 1;
-	//     if current == args.len() {
-	//         break;
-	//     }
-	//     current = args.len();
-	// }
+	len := uint(math.MaxUint)
+	for {
+		vv, err := parse_option(self.inner, &len, args, false).unpack()
+		if err != nil {
+			return Err[int](err)
+		}
+		if !vv.Valid {
+			break
+		}
+		res += 1
+		if current == args.len() {
+			break
+		}
+		current = args.len()
+	}
 	return Ok(res)
 }
 
@@ -589,12 +639,21 @@ func (self ParseLast[T]) meta() Meta {
 	return MetaMany(MetaRequired(self.inner.meta()))
 }
 
-// / Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-// / and return `None` if any are missing. Created with [`optional`](Parser::optional). Implements
-// / [`catch`](ParseOptional::catch)
+// Apply inner parser, return a value in `Some` if items requested by it are all present, restore
+// and return `None` if any are missing. Created with [`optional`](Parser::optional). Implements
+// [`catch`](ParseOptional::catch)
 type ParseOptional[T any] struct {
 	inner Parser[T]
 	catch bool
+}
+
+func (self ParseOptional[T]) eval(args *State) Result[Option[T]] {
+	len := uint(math.MaxUint)
+	return parse_option(self.inner, &len, args, self.catch)
+}
+
+func (self ParseOptional[T]) meta() Meta {
+	return MetaOptional(self.inner.meta())
 }
 
 // Handle parse failures for fun.Optional parsers
@@ -644,48 +703,62 @@ func parse_option[T any](
 	catch bool,
 ) Result[Option[T]] {
 	orig_args := args
-	// switch parser.eval(args) {
-	//     // we keep including values for as long as we consume values from the argument
-	//     // list or at least one value
-	//     Ok(val)Ok(if args.len() < *len {
-	//         *len = args.len();
-	//         Valid(val)
-	//     } else {
-	//         Invalid()
-	//     }),
-	//     Err(Error(err)){
-	//         // this is safe to return Ok(Invalid()) in following scenarios
-	//         // when inner parser never consumed anything and
-	//         // 1. produced ErrorMissing
-	//         // 2. produced ErrorMessage(_, true)
-	//         // 3. produced ErrorMessage and catch is enabled
-	//         //
-	//         // In all other scenarios we should return the original error
-	//         //
-	//         // When parser returns Ok(Invalid()) we should return the original arguments so if there's
-	//         // anything left unconsumed - this won't be lost.
+	val, err := parser.eval(args).unpack()
+	if err != nil {
+		// this is safe to return Ok(Invalid()) in following scenarios
+		// when inner parser never consumed anything and
+		// 1. produced ErrorMissing
+		// 2. produced ErrorMessage(_, true)
+		// 3. produced ErrorMessage and catch is enabled
+		//
+		// In all other scenarios we should return the original error
+		//
+		// When parser returns Ok(Invalid()) we should return the original arguments so if there's
+		// anything left unconsumed - this won't be lost.
 
-	//         missing := matches(err, MessageMissing(_));
+		missing := Message(err).IsMissing()
 
-	//         if catch || (missing && orig_args.len() == args.len()) || (!missing && err.can_catch())
-	//         {
-	//             stdmemswap(&mut orig_args, args);
+		if catch || (missing && orig_args.len() == args.len()) || (!missing && Message(err).can_catch()) {
+			*orig_args = *args
 
-	//             if orig_args.comp_mut().is_Valid() {
-	//                 args.swap_comps(&mut orig_args);
-	//             }
-	//             Ok(Invalid())
-	//         } else {
-	//             Err(Error(err))
-	//         }
-	//     }
-	// }
+			if orig_args.comp_mut().Valid {
+				args.swap_comps(orig_args)
+			}
+			return Ok(Invalid[T]())
+		} else {
+			return Err[Option[T]](err)
+		}
+	}
+	// we keep including values for as long as we consume values from the argument
+	// list or at least one value
+	return Ok(func() Option[T] {
+		if args.len() < int(*len) {
+			*len = uint(args.len())
+			return Valid(val)
+		} else {
+			return Invalid[T]()
+		}
+	}())
 }
 
 // impl<T, P> Parser[[]T] for ParseMany<P>
 func (self ParseMany[T]) eval(args *State) Result[[]T] {
 	len := uint(math.MaxUint)
-	return stditerfrom_fn((func() parse_option)(&self.inner, &len, args, self.catch).transpose()).collect[Result[[]T]]()
+	res := []T{}
+	for {
+		vr, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		if err != nil {
+			return Err[[]T](err)
+		}
+
+		v, ok := vr.Unpack()
+		if !ok {
+			break
+		}
+
+		res = append(res, v)
+	}
+	return Ok(res)
 }
 
 func (self ParseMany[T]) meta() Meta {
@@ -711,7 +784,7 @@ func (self ParsePure[T]) meta() Meta {
 type ParsePureWith[T any] struct{ inner func() Result[T] }
 
 // impl[T: Clone] Parser[T]
-func (self ParsePureWith[T]) eval(_args *State) Result[T] {
+func (self ParsePureWith[T]) eval(*State) Result[T] {
 	ok, e := self.inner().unpack()
 	if e == nil {
 		return Ok(ok)
@@ -967,8 +1040,14 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 	best_args := args
 	best_consumed := 0
 
-	for start, width /*, mut this_arg*/ := range args.ranges(first_item) {
-		var this_arg State
+	iter := args.ranges(first_item)
+	for {
+		start_width, ok := iter.next().Unpack()
+		if !ok {
+			break
+		}
+		start, width, this_arg := start_width.startOffset, start_width.widthOfTheFirstItem, start_width.state
+
 		// since we only want to parse things to the right of the first item we perform
 		// parsing in two passes:
 		// - try to run the parser showing only single argument available at all the indices
@@ -1000,7 +1079,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 
 		// values consumed by adjacent must be actually adjacent - if a scope contains
 		// already parsed values inside we need to trim it
-		if original_scope.end-start > before {
+		if original_scope.end()-start > before {
 			this_arg.set_scope(this_arg.adjacently_available_from(start))
 		}
 

@@ -111,7 +111,7 @@ func render_zsh(
 	full_lit string,
 ) string {
 	if len(items) == 0 && len(ops) == 0 {
-		return fmt.Sprintf("compadd -- {}\n", full_lit)
+		return fmt.Sprintf("compadd -- %v\n", full_lit)
 	}
 
 	res := &strings.Builder{}
@@ -119,14 +119,14 @@ func render_zsh(
 		op(
 			func(mask Option[string]) {
 				if mask, ok := mask.Unpack(); ok {
-					fmt.Fprintln(res, "_files -g {}", Shell(mask))
+					fmt.Fprintf(res, "_files -g %v\n", Shell(mask))
 				} else {
 					fmt.Fprintln(res, "_files")
 				}
 			},
 			func(mask Option[string]) {
 				if mask, ok := mask.Unpack(); ok {
-					fmt.Fprintln(res, "_files -/ -g {}", Shell(mask))
+					fmt.Fprintf(res, "_files -/ -g %v\n", Shell(mask))
 				} else {
 					fmt.Fprintln(res, "_files -/")
 				}
@@ -137,7 +137,7 @@ func render_zsh(
 				_ string,
 				_ string,
 			) {
-				fmt.Fprintln(res, "{}", zsh)
+				fmt.Fprintln(res, zsh)
 			},
 			nil,
 		)
@@ -145,22 +145,22 @@ func render_zsh(
 
 	if len(items) == 1 {
 		if items[0].subst == "" {
-			fmt.Fprintln(res, "compadd -- {}", Shell(items[0].pretty))
+			fmt.Fprintf(res, "compadd -- %v\n", Shell(items[0].pretty))
 			fmt.Fprintln(res, "compadd ''")
 			return res.String()
 		} else {
-			return fmt.Sprintf("compadd -- {}\n", Shell(items[0].subst))
+			return fmt.Sprintf("compadd -- %v\n", Shell(items[0].subst))
 		}
 	}
 	fmt.Fprintln(res, "local -a descr")
 
 	for _, item := range items {
-		fmt.Fprintln(res, "descr=({})", Shell(&item.to_string()))
-		//        fmt.Fprintln(res, "args=(\"{}\")", item.subst)?;
+		fmt.Fprintf(res, "descr=(%v)\n", Shell(item.to_string()))
+		fmt.Fprintf(res, "args=(%q)\n", item.subst)
 		if group, ok := item.extra.group.Unpack(); ok {
-			fmt.Fprintln(
+			fmt.Fprintf(
 				res,
-				"compadd -l -d descr -V {} -X {} -- {}",
+				"compadd -l -d descr -V %v -X %v -- %v\n",
 				Shell(group),
 				Shell(group),
 				Shell(item.subst),
@@ -169,9 +169,9 @@ func render_zsh(
 			// it seems sorting as well as not sorting is done in a group,
 			// by default group contains just one element so and `-o nosort`
 			// does nothing, while `-V whatever` stops sorting...
-			fmt.Fprintln(
+			fmt.Fprintf(
 				res,
-				"compadd -l -V nosort -d descr -- {}",
+				"compadd -l -V nosort -d descr -- %v\n",
 				Shell(item.subst),
 			)
 		}
@@ -198,17 +198,17 @@ func render_bash(
 	// Rust side... But for now try this
 	//
 	bashmask := func(i string) string {
-		ii := i.strip_prefix("*.").unwrap_or(i)
+		ii := strip_prefix(i, "*.").OrDefault(i)
 
-		if ii.starts_with('(') {
-			return fmt.Sprintf("@{}", ii)
+		if starts_withb(ii, '(') {
+			return fmt.Sprintf("@%v", ii)
 		} else {
 			return ii
 		}
 	}
 
 	if len(items) == 0 && len(ops) == 0 {
-		return fmt.Sprintf("COMPREPLY+=({})\n", Shell(full_lit))
+		return fmt.Sprintf("COMPREPLY+=(%v)\n", Shell(full_lit))
 	}
 
 	const init = "local cur prev words cword ; _init_completion || return ;"
@@ -218,28 +218,28 @@ func render_bash(
 		op(
 			func(mask Option[string]) {
 				if mask, ok := mask.Unpack(); ok {
-					fmt.Fprintln(res, "{} _filedir {}", init, Shell(bashmask(mask)))
+					fmt.Fprintf(res, "%v _filedir %v\n", init, Shell(bashmask(mask)))
 				} else {
-					fmt.Fprintf(res, "{} _filedir", init)
+					fmt.Fprintf(res, "%v _filedir", init)
 				}
 			},
 			func(mask Option[string]) {
 				if mask, ok := mask.Unpack(); ok {
-					fmt.Fprintln(res, "{} _filedir -d {}", init, Shell(bashmask(mask)))
+					fmt.Fprintf(res, "%v _filedir -d %v\n", init, Shell(bashmask(mask)))
 				} else {
-					fmt.Fprintf(res, "{} _filedir -d", init)
+					fmt.Fprintf(res, "%v _filedir -d", init)
 				}
 			},
-			func(bash string, _ string, _ string, _ string) { fmt.Fprintln(res, "{}", bash) },
+			func(bash string, _ string, _ string, _ string) { fmt.Fprintln(res, bash) },
 			nil,
 		)
 	}
 
 	if len(items) == 1 {
 		if items[0].subst == "" {
-			fmt.Fprintln(res, "COMPREPLY+=( {} '')", Shell(items[0].pretty))
+			fmt.Fprintf(res, "COMPREPLY+=( %v '')\n", Shell(items[0].pretty))
 		} else {
-			fmt.Fprintln(res, "COMPREPLY+=( {} )\n", Shell(items[0].subst))
+			fmt.Fprintf(res, "COMPREPLY+=( %v )\n", Shell(items[0].subst))
 		}
 
 		return res.String()
@@ -249,10 +249,10 @@ func render_bash(
 		if group, ok := item.extra.group.Unpack(); ok {
 			if prev != group {
 				prev = group
-				fmt.Fprintln(res, "COMPREPLY+=({})", Shell(group))
+				fmt.Fprintf(res, "COMPREPLY+=(%v)\n", Shell(group))
 			}
 		}
-		fmt.Fprintln(res, "COMPREPLY+=({})", Shell(item.to_string()))
+		fmt.Fprintf(res, "COMPREPLY+=(%v)\n", Shell(item.to_string()))
 	}
 
 	return res.String()
@@ -264,7 +264,7 @@ func render_test(
 	lit string,
 ) string {
 	if len(items) == 0 && len(ops) == 0 {
-		return fmt.Sprintf("{}\n", lit)
+		return fmt.Sprintf("%v\n", lit)
 	}
 
 	if len(items) == 1 && len(ops) == 0 && items[0].subst != "" {
@@ -273,9 +273,9 @@ func render_test(
 
 	res := &strings.Builder{}
 	for _, op := range items {
-		fmt.Fprintln(
+		fmt.Fprintf(
 			res,
-			"{}\t{}\t{}\t{}",
+			"%v\t%v\t%v\t%v\n",
 			op.subst,
 			op.pretty,
 			op.extra.group.OrDefault(""),
@@ -284,7 +284,7 @@ func render_test(
 	}
 	fmt.Fprintln(res)
 	for _, op := range ops {
-		fmt.Fprintln(res, "%#v", op)
+		fmt.Fprintf(res, "%#v\n", op)
 	}
 
 	return res.String()
@@ -297,19 +297,19 @@ func render_fish(
 	app string,
 ) string {
 	if len(items) == 0 && len(ops) == 0 {
-		return fmt.Sprintf("complete -c {} --arguments={}", app, full_lit)
+		return fmt.Sprintf("complete -c %v --arguments=%v", app, full_lit)
 	}
 
 	res := &strings.Builder{}
 	shared := fun.IF(len(ops) == 0, "-f ", "")
-	for _, item := range items.iter().rev().filter(func(i ShowComp) bool { return i.subst != "" }) {
-		fmt.Fprintf(res, "complete -c {} {}", app, shared)
-		if long, ok := item.subst.strip_prefix("--").Unpack(); ok {
-			fmt.Fprintf(res, "--long-option {} ", long)
-		} else if short, ok := item.subst.strip_prefix('-').Unpack(); ok {
-			fmt.Fprintf(res, "--short-option {} ", short)
+	for item := range filter(rev(items), func(i ShowComp) bool { return i.subst != "" }) {
+		fmt.Fprintf(res, "complete -c %v %v", app, shared)
+		if long, ok := strip_prefix(item.subst, "--").Unpack(); ok {
+			fmt.Fprintf(res, "--long-option %v ", long)
+		} else if short, ok := strip_prefixb(item.subst, '-').Unpack(); ok {
+			fmt.Fprintf(res, "--short-option %v ", short)
 		} else {
-			fmt.Fprintf(res, "-a {} ", item.subst)
+			fmt.Fprintf(res, "-a %v ", item.subst)
 		}
 		if help, ok := item.extra.help.Unpack(); ok {
 			fmt.Fprintf(res, "-d %#v", help)
@@ -326,10 +326,10 @@ func render_simple(items []ShowComp) string {
 	} else {
 		for _, item := range items {
 			if descr, ok := item.extra.help.Unpack(); ok {
-				fmt.Fprintln(res,
-					"{}\t{}",
+				fmt.Fprintf(res,
+					"%v\t%v\n",
 					item.subst,
-					strings.Split(descr, "\n").next().unwrap_or(""),
+					First(strings.Split(descr, "\n")).OrDefault(""),
 				)
 			} else {
 				fmt.Fprintln(res, item.subst)

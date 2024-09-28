@@ -180,6 +180,7 @@ func ambiguity_towards_error(t *testing.T) {
 func ambiguity_towards_default(t *testing.T) {
 	// AKA unresolved
 	a := Statefrom([]string{"-abc"})
-	is_ambig := matches(a.peek(), Valid(ArgWord))
+	var is_ambig bool
+	a.peek().unwrap().value(nil, nil, nil, func() { is_ambig = true }, nil)
 	require.True(t, is_ambig)
 }

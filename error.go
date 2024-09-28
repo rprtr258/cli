@@ -1,8 +1,11 @@
 package cli
 
 import (
+	"cmp"
 	"fmt"
+	"iter"
 	"os"
+	"slices"
 )
 
 type Range [2]int
@@ -49,140 +52,28 @@ type ParseFailure func(
 	Stderr func(Doc),
 )
 
+func ParseFailureStdout(doc Doc, b bool) ParseFailure {
+	return func(Stdout func(Doc, bool), _ func(string), _ func(Doc)) {
+		if Stdout != nil {
+			Stdout(doc, b)
+		}
+	}
+}
+
+func ParseFailureCompletion(comp string) ParseFailure {
+	return func(_ func(Doc, bool), Completion func(string), _ func(Doc)) {
+		if Completion != nil {
+			Completion(comp)
+		}
+	}
+}
+
 func ParseFailureStderr(doc Doc) ParseFailure {
 	return func(_ func(Doc, bool), _ func(string), Stderr func(Doc)) {
 		if Stderr != nil {
 			Stderr(doc)
 		}
 	}
-}
-
-type Message func(
-	// those can be caught ---------------------------------------------------------------
-	// Tried to consume an env variable with no fallback, variable was not set
-	NoEnv func(string),
-
-	// User specified an error message on some
-	ParseSome func(string),
-
-	// User asked for parser to fail explicitly
-	ParseFail func(string),
-
-	// pure_with failed to parse a value
-	PureFailed func(string),
-
-	// Expected one of those values
-	//
-	// Used internally to generate better error messages
-	Missing func([]MissingItem),
-
-	// those cannot be caught-------------------------------------------------------------
-	// Parsing failed and this is the final output
-	ParseFailure func(ParseFailure),
-
-	// Tried to consume a strict positional argument, value was present but was not strictly
-	// positional
-	StrictPos func(uint, Metavar),
-
-	// Tried to consume a non-strict positional argument, but the value was strict
-	NonStrictPos func(uint, Metavar),
-
-	// Parser provided by user failed to parse a value
-	ParseFailed func(Option[uint], string),
-
-	// Parser provided by user failed to validate a value
-	GuardFailed func(Option[uint], string),
-
-	// Argument requres a value but something else was passed,
-	// required: --foo <BAR>
-	// given: --foo --bar
-	//        --foo -- bar
-	//        --foo
-	NoArgument func(int, Metavar),
-
-	// Parser is expected to consume all the things from the command line
-	// this item will contain an index of the unconsumed value
-	Unconsumed func( /* TODO: unused? */ uint),
-
-	// argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
-	Ambiguity func(int, string),
-
-	// Suggested fixes for typos or missing input
-	Suggestion func(uint, Suggestion),
-
-	// Two arguments are mutually exclusive
-	// --release --dev
-	Conflict func( /* winner */ uint, uint),
-
-	// Expected one or more items in the scope, got someting else if any
-	Expected func([]Item, Option[uint]),
-
-	// Parameter is accepted but only once
-	OnlyOnce func( /* winner */ uint, uint),
-)
-
-func MessagePureFailed(s string) Message {
-	return func(_, _, _, PureFailed func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if PureFailed != nil {
-			PureFailed(s)
-		}
-	}
-}
-
-func MessageMissing(xs ...MissingItem) Message {
-	return func(_, _, _, _ func(string), Missing func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Missing != nil {
-			Missing(xs)
-		}
-	}
-}
-
-func MessageParseFail(s string) Message {
-	return func(_, _, _, ParseFail func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if ParseFail != nil {
-			ParseFail(s)
-		}
-	}
-}
-
-func MessageNoArgument(ix int, metavar Metavar) Message {
-	return func(_ func(string), _ func(string), _ func(string), _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), NoArgument func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if NoArgument != nil {
-			NoArgument(ix, metavar)
-		}
-	}
-}
-
-func MessageAmbiguity(ix int, short string) Message {
-	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), Ambiguity func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Ambiguity != nil {
-			Ambiguity(ix, short)
-		}
-	}
-}
-
-func (self Message) to_string() string {
-	var res string
-	self(
-		func(a string) { res = fmt.Sprintf("NoEnv(%#v)", a) },
-		func(a string) { res = fmt.Sprintf("ParseSome(%#v)", a) },
-		func(a string) { res = fmt.Sprintf("ParseFail(%#v)", a) },
-		func(a string) { res = fmt.Sprintf("PureFailed(%#v)", a) },
-		func(a []MissingItem) { res = fmt.Sprintf("Missing(%#v)", a) },
-		func(a ParseFailure) { res = fmt.Sprintf("ParseFailure(%#v)", a) },
-		func(a uint, b Metavar) { res = fmt.Sprintf("StrictPos(%#v, %#v)", a, b) },
-		func(a uint, b Metavar) { res = fmt.Sprintf("NonStrictPos(%#v, %#v)", a, b) },
-		func(a Option[uint], b string) { res = fmt.Sprintf("ParseFailed(%#v, %#v)", a, b) },
-		func(a Option[uint], b string) { res = fmt.Sprintf("GuardFailed(%#v, %#v)", a, b) },
-		func(a int, b Metavar) { res = fmt.Sprintf("NoArgument(%#v, %#v)", a, b) },
-		func(a uint) { res = fmt.Sprintf("Unconsumed(%#v)", a) },
-		func(a int, b string) { res = fmt.Sprintf("Ambiguity(%#v, %#v)", a, b) },
-		func(a uint, b Suggestion) { res = fmt.Sprintf("Suggestion(%#v, %#v)", a, b) },
-		func(a uint, b uint) { res = fmt.Sprintf("Conflict(%#v, %#v)", a, b) },
-		func(a []Item, b Option[uint]) { res = fmt.Sprintf("Expected(%#v, %#v)", a, b) },
-		func(a uint, b uint) { res = fmt.Sprintf("OnlyOnce(%#v, %#v)", a, b) },
-	)
-	return res
 }
 
 // TODO: OPTIMIZE: less memory could be used
@@ -275,26 +166,27 @@ func (self Message) can_catch() bool {
 }
 
 func (self Message) combine_with(other Message) Message {
-	// switch (self, other) {
-	//     // help output takes priority
-	//     (a @ MessageParseFailure(_), _)a,
-	//     (_, b @ MessageParseFailure(_))b,
+	// help output takes priority
+	if MessageF(self, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
+		return self
+	}
+	if MessageF(other, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
+		return other
+	}
 
-	//     // combine missing elements
-	//     (MessageMissing(mut a), MessageMissing(mut b)){
-	//         a.append(&mut b);
-	//         MessageMissing(a)
-	//     }
+	// combine missing elements
+	var a, b []MissingItem
+	if MessageF(self, MessageFs[bool]{Missing: func(xs []MissingItem) bool { a = xs; return true }}) &&
+		MessageF(other, MessageFs[bool]{Missing: func(xs []MissingItem) bool { b = xs; return true }}) {
+		return MessageMissing(append(a, b...)...)
+	}
 
-	//     // otherwise earliest wins
-	//     (a, b){
-	//         if a.can_catch() {
-	//             b
-	//         } else {
-	//             a
-	//         }
-	//     }
-	// }
+	// otherwise earliest wins
+	if self.can_catch() {
+		return other
+	} else {
+		return self
+	}
 }
 
 // Returns the contained `stderr` values - for unit tests
@@ -328,8 +220,8 @@ func (self ParseFailure) unwrap_stdout() string {
 }
 
 // Returns the exit code for the failure
-func (self ParseFailure) exit_code() int32 {
-	res := int32(0)
+func (self ParseFailure) exit_code() int {
+	res := 0
 	self(
 		nil,
 		nil,
@@ -393,352 +285,368 @@ func textual_part(args State, ixxx Option[int]) Option[string] {
 	return res
 }
 
-func only_once(args State, cur uint) Option[uint] {
+func only_once(args State, cur int) Option[int] {
 	if cur == 0 {
-		return Invalid[uint]()
+		return Invalid[int]()
 	}
-	iter := args.items[:cur].iter().rev()
-	offset := s /*witch args.items.get(cur)? {
-	    ArgShort(s, _, _)iter.position(|a| a.match_short(*s)),
-	    ArgLong(l, _, _)iter.position(|a| a.match_long(l)),
-	    ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)Invalid(),
-	};*/
-	return Valid(cur - offset /*?*/ - 1)
+
+	iter := rev(args.items[:cur])
+	v, ok := get(args.items, cur).Unpack()
+	if !ok {
+		return Invalid[int]()
+	}
+
+	var offsetO Option[int]
+	v.value(
+		func(s byte, _ bool) { offsetO = position(iter, func(a Arg) bool { return a.match_short(s) }) },
+		func(l string, _ bool) { offsetO = position(iter, func(a Arg) bool { return a.match_long(l) }) },
+		nil, nil, nil,
+	)
+	offset, ok := offsetO.Unpack()
+	if !ok {
+		return Invalid[int]()
+	}
+	return Valid(cur - offset - 1)
 }
 
 func (self *Message) render(args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
-	switch self {
-	// MessageUnconsumed(ix){
-	//     if Valid(conflict) := check_conflicts(args) {
-	//         self = conflict;
-	//     } else if Valid(prev_ix) := only_once(args, ix) {
-	//         self = MessageOnlyOnce(prev_ix, ix);
-	//     } else if let Valid((ix, suggestion)) = cratemeta_youmeansuggest(args, meta) {
-	//         self = MessageSuggestion(ix, suggestion);
-	//     }
-	// }
-	// MessageMissing(xs){
-	//     self = summarize_missing(&xs, meta, args);
-	// }
-	// _{}
-	}
+	(*self)(
+		nil, nil, nil, nil,
+		func(xs []MissingItem) {
+			*self = summarize_missing(xs, meta, args)
+		},
+		nil, nil, nil, nil, nil, nil,
+		func(ix uint) {
+			if conflict, ok := check_conflicts(args).Unpack(); ok {
+				*self = conflict
+			} else if prev_ix, ok := only_once(args, int(ix)).Unpack(); ok {
+				*self = MessageOnlyOnce(prev_ix, int(ix))
+			} else if ix, suggestion, ok := suggest(args, meta); ok {
+				*self = MessageSuggestion(ix, suggestion)
+			}
+		},
+		nil, nil, nil, nil, nil,
+	)
 
 	doc := Doc{}
 	(*self)(
-	// // already rendered
-	// MessageParseFailure(f)return f,
+		func(name string) {
+			// Error: environment variable FOO is not set
+			doc.text("environment variable ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.invalid(name)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" is not set")
+		},
+		func(s string) {
+			// Error: <message from some or fail>
+			doc.text(s)
+		},
+		func(s string) {
+			// Error: <message from some or fail>
+			doc.text(s)
+		},
+		func(s string) {
+			// Error: <message from pure_with>
+			doc.text(s)
+		},
+		func([]MissingItem) {
+			// this case is handled above(?)
+			// this one is unreachable
+		},
+		// already rendered
+		func(f ParseFailure) { /* doc = f */ }, // TODO: insta return
+		func(_ uint, metavar Metavar) {
+			// Error: FOO expected to be  in the right side of --
+			doc.text("expected ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.metavar(metavar)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" to be on the right side of ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.literal("--")
+			doc.token(TokenBlockEnd(BlockTermRef))
+		},
+		func(_ uint, metavar Metavar) {
+			// Error: FOO expected to be on the left side of --
+			doc.text("expected ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.metavar(metavar)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" to be on the left side of ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.literal("--")
+			doc.token(TokenBlockEnd(BlockTermRef))
+		},
+		func(mix Option[uint], s string) {
+			// Error: couldn't parse FIELD: <FromStr message>
+			doc.text("couldn't parse")
+			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
+				doc.text(" ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.invalid(field)
+				doc.token(TokenBlockEnd(BlockTermRef))
+			}
+			doc.text(": ")
+			doc.text(s)
+		},
+		func(mix Option[uint], s string) {
+			// Error: ( FIELD:  | check failed: ) <message from guard>
+			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.invalid(field)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(": ")
+			} else {
+				doc.text("check failed: ")
+			}
+			doc.text(s)
+		},
+		func(x int, mv Metavar) {
+			// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
+			// Error: --foo requires an argument FOO
+			a, ok := args.get(x + 1).Unpack()
+			if ok && (a.IsShort() || a.IsLong()) {
+				arg := &args.items[x]
+				os := a.os_str
 
-	// // this case is handled above
-	// MessageMissing(_){
-	//     // this one is unreachable
-	// }
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write(arg, StyleLiteral)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(" requires an argument ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.metavar(mv)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(", got a flag ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write(GS(os), StyleInvalid)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(", try ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write(arg, StyleLiteral)
+				doc.literal("=")
+				doc.write(GS(os), StyleLiteral)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(" to use it as an argument")
+			} else {
+				// "Some" part of this branch is actually unreachable
+				arg := &args.items[x]
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write(arg, StyleLiteral)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(" requires an argument ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.metavar(mv)
+				doc.token(TokenBlockEnd(BlockTermRef))
+			}
+		},
+		func(ix uint) {
+			// Error: --foo is not expected in this context
+			item := &args.items[ix]
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.write(item, StyleInvalid)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" is not expected in this context")
+		},
+		func(ix int, name string) {
+			// Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
+			// into invididual fun.Options (-f -o ..) or use -f=oo syntax to disambiguate
+			first := name[0]
+			second := name[1]
+			rest := name[2:]
+			s := args.items[ix].os_str
 
-	// // Error: --foo is not expected in this context
-	// MessageUnconsumed(ix){
-	//     item := &args.items[ix];
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.write(item, StyleInvalid);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" is not expected in this context");
-	// }
+			if name, ok := First(args.path).Unpack(); ok {
+				doc.literal(name)
+				doc.text(" supports ")
+			} else {
+				doc.text("app supports ")
+			}
 
-	// // Error: environment variable FOO is not set
-	// MessageNoEnv(name){
-	//     doc.text("environment variable ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.invalid(name);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" is not set");
-	// }
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.literal("-")
+			doc.write_char(first, StyleLiteral)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" as both an fun.Option and an fun.Option-argument, try to split ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.write(GS(s), StyleLiteral)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" into individual fun.Options (")
+			doc.literal("-")
+			doc.write_char(first, StyleLiteral)
+			doc.literal(" -")
+			doc.write_char(second, StyleLiteral)
+			doc.literal(" ..")
+			doc.text(") or use ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.literal("-")
+			doc.write_char(first, StyleLiteral)
+			doc.literal("=")
+			doc.literal(rest)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" syntax to disambiguate")
+		},
+		func(ix uint, suggestion Suggestion) {
+			// Error: No such (flag|argument|command), did you mean  ...
+			actual := args.items[ix].GoString()
+			suggestion(
+				func(v Variant) {
+					var ty string
+					if starts_withb(actual, '-') {
+						ty = "flag"
+					} else {
+						args.items[ix].value(
+							func(byte, bool) { ty = "flag" },
+							func(string, bool) { ty = "flag" },
+							func() { ty = "argument value" },
+							func() { ty = "command or positional" },
+							func() { ty = "command or positional" },
+						)
+					}
 
-	// // Error: FOO expected to be  in the right side of --
-	// MessageStrictPos(_ix, metavar){
-	//     doc.text("expected ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.metavar(metavar);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" to be on the right side of ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.literal("--");
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	// }
+					doc.text("no such ")
+					doc.text(ty)
+					doc.text(": ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.invalid(actual)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text(", did you mean ")
+					doc.token(TokenBlockStart(BlockTermRef))
 
-	// // Error: FOO expected to be on the left side of --
-	// MessageNonStrictPos(_ix, metavar){
-	//     doc.text("expected ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.metavar(metavar);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" to be on the left side of ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.literal("--");
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	// }
+					v(
+						func(name string) {
+							doc.literal(name)
+						},
+						func(f ShortLong) {
+							f(
+								func(s byte) {
+									doc.literal("-")
+									doc.write_char(s, StyleLiteral)
+								},
+								func(l string) {
+									doc.literal("--")
+									doc.literal(l)
+								},
+								func(_ byte, l string) {
+									doc.literal("--")
+									doc.literal(l)
+								},
+							)
+						},
+					)
 
-	// // Error: <message from some or fail>
-	// MessageParseValid(s) | MessageParseFail(s){
-	//     doc.text(s);
-	// }
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text("?")
+				},
+				func(name string) {
+					doc.text("no such flag: ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal("-")
+					doc.literal(name)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text(" (with one dash), did you mean ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal("--")
+					doc.literal(name)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text("?")
+				},
+				func(name byte) {
+					doc.text("no such flag: ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal("--")
+					doc.write_char(name, StyleLiteral)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text(" (with two dashes), did you mean ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal("-")
+					doc.write_char(name, StyleLiteral)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text("?")
+				},
+				func(x string, v Variant) {
+					var ty string
+					v(
+						func(string) { ty = "subcommand" },
+						func(ShortLong) { ty = "flag" },
+					)
+					doc.text(ty)
+					doc.text(" ")
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal(actual)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text(
+						" is not valid in this context, did you mean to pass it to command ",
+					)
+					doc.token(TokenBlockStart(BlockTermRef))
+					doc.literal(x)
+					doc.token(TokenBlockEnd(BlockTermRef))
+					doc.text("?")
+				},
+			)
+		},
+		func(winner, loser uint) {
+			// Error: --intel cannot be used at the same time as --att
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.write(&args.items[loser], StyleLiteral)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" cannot be used at the same time as ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.write(&args.items[winner], StyleLiteral)
+			doc.token(TokenBlockEnd(BlockTermRef))
+		},
+		func(exp []Item, actual Option[uint]) {
+			// Error: Expected (no arguments|--foo), got ..., pass --help
+			doc.text("expected ")
+			switch len(exp) {
+			case 0:
+				doc.text("no arguments")
+			case 1:
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write_item(exp[0])
+				doc.token(TokenBlockEnd(BlockTermRef))
+			case 2:
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write_item(exp[0])
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(" or ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write_item(exp[1])
+				doc.token(TokenBlockEnd(BlockTermRef))
+			default:
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write_item(exp[0])
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(", ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write_item(exp[1])
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(", or more")
+			}
 
-	// // Error: couldn't parse FIELD: <FromStr message>
-	// MessageParseFailed(mix, s){
-	//     doc.text("couldn't parse");
-	//     if Valid(field) := textual_part(args, mix) {
-	//         doc.text(" ");
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.invalid(&field);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//     }
-	//     doc.text(": ");
-	//     doc.text(&s);
-	// }
-
-	// // Error: ( FIELD:  | check failed: ) <message from guard>
-	// MessageGuardFailed(mix, s){
-	//     if Valid(field) := textual_part(args, mix) {
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.invalid(&field);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(": ");
-	//     } else {
-	//         doc.text("check failed: ");
-	//     }
-	//     doc.text(s);
-	// }
-
-	// // Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
-	// // Error: --foo requires an argument FOO
-	// MessageNoArgument(x, mv)switch args.get(x + 1) {
-	//     Valid(ArgShort(_, _, os) | ArgLong(_, _, os)){
-	//         arg := &args.items[x];
-	//         os := &os.to_string_lossy();
-
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.write(arg, StyleLiteral);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(" requires an argument ");
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.metavar(mv);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(", got a flag ");
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.write(os, StyleInvalid);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(", try ");
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.write(arg, StyleLiteral);
-	//         doc.literal("=");
-	//         doc.write(os, StyleLiteral);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(" to use it as an argument");
-	//     }
-	//     // "Some" part of this branch is actually unreachable
-	//     Valid(ArgArgWord(_) | ArgWord(_) | ArgPosWord(_)) | Invalid(){
-	//         arg := &args.items[x];
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.write(arg, StyleLiteral);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//         doc.text(" requires an argument ");
-	//         doc.token(TokenBlockStart(BlockTermRef));
-	//         doc.metavar(mv);
-	//         doc.token(TokenBlockEnd(BlockTermRef));
-	//     }
-	// },
-	// // Error: <message from pure_with>
-	// MessagePureFailed(s){
-	//     doc.text(&s);
-	// }
-	// // Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
-	// // into invididual fun.Options (-f -o ..) or use -f=oo syntax to disambiguate
-	// MessageAmbiguity(ix, name){
-	//     chars := name.chars();
-	//     first := chars.next().unwrap();
-	//     rest := chars;
-	//     second := chars.next().unwrap();
-	//     s := args.items[ix].os_str().to_str().unwrap();
-
-	//     if Valid(name) := args.path.first() {
-	//         doc.literal(name);
-	//         doc.text(" supports ");
-	//     } else {
-	//         doc.text("app supports ");
-	//     }
-
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.literal("-");
-	//     doc.write_char(first, StyleLiteral);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" as both an fun.Option and an fun.Option-argument, try to split ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.write(s, StyleLiteral);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" into individual fun.Options (");
-	//     doc.literal("-");
-	//     doc.write_char(first, StyleLiteral);
-	//     doc.literal(" -");
-	//     doc.write_char(second, StyleLiteral);
-	//     doc.literal(" ..");
-	//     doc.text(") or use ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.literal("-");
-	//     doc.write_char(first, StyleLiteral);
-	//     doc.literal("=");
-	//     doc.literal(rest);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" syntax to disambiguate");
-	// }
-	// // Error: No such (flag|argument|command), did you mean  ...
-	// MessageSuggestion(ix, suggestion){
-	//     actual := &args.items[ix].to_string();
-	//     switch suggestion {
-	//         SuggestionVariant(v){
-	//             ty := switch &args.items[ix] {
-	//                 _ if actual.starts_with('-')"flag",
-	//                 ArgShort(_, _, _) | ArgLong(_, _, _)"flag",
-	//                 ArgArgWord(_)"argument value",
-	//                 ArgWord(_) | ArgPosWord(_)"command or positional",
-	//             };
-
-	//             doc.text("no such ");
-	//             doc.text(ty);
-	//             doc.text(": ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.invalid(actual);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(", did you mean ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-
-	//             switch v {
-	//                 VariantCommandLong(name)doc.literal(name),
-	//                 VariantFlag(ShortLongLong(l) | ShortLongBoth(_, l)){
-	//                     doc.literal("--");
-	//                     doc.literal(l);
-	//                 }
-	//                 VariantFlag(ShortLongShort(s)){
-	//                     doc.literal("-");
-	//                     doc.write_char(s, StyleLiteral);
-	//                 }
-	//             };
-
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text("?");
-	//         }
-	//         SuggestionMissingDash(name){
-	//             doc.text("no such flag: ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal("-");
-	//             doc.literal(name);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(" (with one dash), did you mean ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal("--");
-	//             doc.literal(name);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text("?");
-	//         }
-	//         SuggestionExtraDash(name){
-	//             doc.text("no such flag: ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal("--");
-	//             doc.write_char(name, StyleLiteral);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(" (with two dashes), did you mean ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal("-");
-	//             doc.write_char(name, StyleLiteral);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text("?");
-	//         }
-	//         SuggestionNested(x, v){
-	//             ty := switch v {
-	//                 VariantCommandLong(_)"subcommand",
-	//                 VariantFlag(_)"flag",
-	//             };
-	//             doc.text(ty);
-	//             doc.text(" ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal(actual);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(
-	//                 " is not valid in this context, did you mean to pass it to command ",
-	//             );
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.literal(&x);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text("?");
-	//         }
-	//     }
-	// }
-	// // Error: Expected (no arguments|--foo), got ..., pass --help
-	// MessageExpected(exp, actual){
-	//     doc.text("expected ");
-	//     switch exp.len() {
-	//         0{
-	//             doc.text("no arguments");
-	//         }
-	//         1{
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write_item(&exp[0]);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//         }
-	//         2{
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write_item(&exp[0]);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(" or ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write_item(&exp[1]);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//         }
-	//         _{
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write_item(&exp[0]);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(", ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write_item(&exp[1]);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(", or more");
-	//         }
-	//     }
-	//     switch actual {
-	//         Valid(actual){
-	//             doc.text(", got ");
-	//             doc.token(TokenBlockStart(BlockTermRef));
-	//             doc.write(&args.items[actual], StyleInvalid);
-	//             doc.token(TokenBlockEnd(BlockTermRef));
-	//             doc.text(". Pass ");
-	//         }
-	//         Invalid(){
-	//             doc.text(", pass ");
-	//         }
-	//     }
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.literal("--help");
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" for usage information");
-	// }
-
-	// // Error: --intel cannot be used at the same time as --att
-	// MessageConflict(winner, loser){
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.write(&args.items[loser], StyleLiteral);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" cannot be used at the same time as ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.write(&args.items[winner], StyleLiteral);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	// }
-
-	// // Error: argument FOO cannot be used multiple times in this context
-	// MessageOnlyOnce(_winner, loser){
-	//     doc.text("argument ");
-	//     doc.token(TokenBlockStart(BlockTermRef));
-	//     doc.write(&args.items[loser], StyleLiteral);
-	//     doc.token(TokenBlockEnd(BlockTermRef));
-	//     doc.text(" cannot be used multiple times in this context");
-	// }
+			if actual, ok := actual.Unpack(); ok {
+				doc.text(", got ")
+				doc.token(TokenBlockStart(BlockTermRef))
+				doc.write(&args.items[actual], StyleInvalid)
+				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.text(". Pass ")
+			} else {
+				doc.text(", pass ")
+			}
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.literal("--help")
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" for usage information")
+		},
+		func(_ uint, loser uint) {
+			// Error: argument FOO cannot be used multiple times in this context
+			doc.text("argument ")
+			doc.token(TokenBlockStart(BlockTermRef))
+			doc.write(&args.items[loser], StyleLiteral)
+			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.text(" cannot be used multiple times in this context")
+		},
 	)
 
 	return ParseFailureStderr(doc)
@@ -747,38 +655,52 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 // go over all the missing items, pick the left most scope
 func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 	// missing items can belong to different scopes, pick the best scope to work with
-	best_item, ok := items.
-		iter().
-		max_by_key(func(item MissingItem) Range { return Range{item.position, item.scope.start()} })
+	best_item, ok := max_by_key(
+		slices.Values(items),
+		func(a, b MissingItem) int {
+			aa, ab := a.position, a.scope.start()
+			ba, bb := b.position, b.scope.start()
+			return cmp.Or(
+				cmp.Compare(aa, ba),
+				cmp.Compare(ab, bb),
+			)
+		},
+	).Unpack()
 	if !ok {
-		return MessageParseValid("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+		return MessageParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}
 
 	best_scope := best_item.scope
 
 	saw_command := false
-	expected := items.
-		iter().
-		filter_map(func(i MissingItem) Option[Item] {
-			cmd := matches(i.item, ItemCommand)
-			if i.scope == best_scope && !(saw_command && cmd) {
-				saw_command |= cmd
-				return Valid(i.item)
-			} else {
-				return Invalid[Item]()
-			}
-		}).
-		collect()
-
-	best_scope.start = best_scope.start.max(best_item.position)
-	args.set_scope(best_scope)
-	if ix, _arg, ok = args.items_iter().next().Unpack(); ok {
-		if ix, sugg := cratemeta_youmeansuggest(&args, inner).Unpack(); ok {
-			MessageSuggestion(ix, sugg)
+	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) Option[Item] {
+		var cmd bool
+		i.item(
+			nil,
+			nil,
+			func(string, Option[byte], Option[Doc], Meta, Info) { cmd = true },
+			nil,
+			nil,
+		)
+		if i.scope == best_scope && !(saw_command && cmd) {
+			saw_command = saw_command || cmd
+			return Valid(i.item)
 		} else {
-			MessageExpected(expected, Valid(ix))
+			return Invalid[Item]()
+		}
+	}))
+
+	best_scope[0] = max(best_scope.start(), best_item.position)
+	args.set_scope(best_scope)
+	next, cancel := iter.Pull2(args.items_iter())
+	defer cancel()
+	if _, _, ok := next(); ok {
+		if ix, sugg, ok := suggest(args, inner); ok {
+			return MessageSuggestion(ix, sugg)
+		} else {
+			return MessageExpected(expected, Valid(ix))
 		}
 	} else {
-		MessageExpected(expected, Invalid())
+		return MessageExpected(expected, Invalid[int]())
 	}
 }

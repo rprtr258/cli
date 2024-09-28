@@ -33,21 +33,22 @@ import (
 //
 // ```
 func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
-	verbose := short('v').
+	vp := many(req_flag(short('v').
 		Long("verbose").
-		Help(newDocFromString("Increase output verbosity, can be used several times")).
-		req_flag(struct{}{}).
-		many().
-		Map((func(v) v.len)())
+		Help(newDocFromString("Increase output verbosity, can be used several times")),
+		struct{}{}))
+	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta},
+		func(v []struct{}) int { return len(v) })
 
-	quiet := short('q').
+	qp := many(req_flag(short('q').
 		Long("quiet").
-		Help(newDocFromString("Decrease output verbosity, can be used several times")).
-		req_flag(struct{}{}).
-		many().
-		Map((func(v) v.len)())
+		Help(newDocFromString("Decrease output verbosity, can be used several times")),
+		struct{}{}))
+	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta},
+		func(v []struct{}) int { return len(v) })
 
-	return construct(verbose, quiet).Map(func(v, q int) int { return fun.Clamp(v-q+offset, min, max) })
+	p := Pair(verbose, quiet)
+	return Map(p, func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
 }
 
 // `--verbose` and `--quiet` flags with results choosen from a slice of values
@@ -90,8 +91,9 @@ func verbose_by_slice[T any](
 	offset int,
 	items []T,
 ) Parser[T] {
-	return verbose_and_quiet_by_number(offset, 0, len(items)-1).
-		Map(func(i int) T { return items[i] })
+	pp := Map(verbose_and_quiet_by_number(offset, 0, len(items)-1),
+		func(i int) T { return items[i] })
+	return Parser[T]{pp.eval, pp.meta}
 }
 
 // Pick last passed value between two different flags
@@ -136,9 +138,9 @@ func toggle_flag[T any](
 	a NamedArg, val_a T,
 	b NamedArg, val_b T,
 ) Parser[Option[T]] {
-	a := a.req_flag(val_a)
-	b := b.req_flag(val_b)
-	return construct(a, b).many().Map(func(xs []T) Option[T] { return xs.last() })
+	pa := req_flag(a, val_a)
+	pb := req_flag(b, val_b)
+	return Map(many(Pair(pa, pb)), func(xs []fun.Pair[T, T]) Option[T] { return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V }) })
 }
 
 // Get usage for a parser
@@ -153,12 +155,16 @@ func toggle_flag[T any](
 //
 //	...
 //	ArgHelp{
-//	    fmt.Println("{}", get_usage(parser()));
+//	    fmt.Println(get_usage(parser()));
 //	    os.Exit(0);
 //	}
 //	...
 //
 // ```
 func get_usage[T any](parser OptionParser[fmt.Formatter]) string {
-	return parser.run_inner("--help").unwrap_err().unwrap_stdout()
+	x, e := parser.run_inner(Argsfrom("--help"))
+	if e == nil {
+		panic(x)
+	}
+	return e.unwrap_stdout()
 }

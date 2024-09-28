@@ -1,8 +1,6 @@
 package cli
 
-import (
-	"fmt"
-)
+import "fmt"
 
 // Preprocessed command line argument
 // /
@@ -76,6 +74,34 @@ func ArgPosWord(s string) Arg {
 	}}
 }
 
+func (self Arg) IsShort() bool {
+	var res bool
+	self.value(
+		func(byte, bool) { res = true },
+		nil, nil, nil, nil,
+	)
+	return res
+}
+
+func (self Arg) IsLong() bool {
+	var res bool
+	self.value(
+		nil,
+		func(string, bool) { res = true },
+		nil, nil, nil,
+	)
+	return res
+}
+
+func (self Arg) IsPosWord() bool {
+	var res bool
+	self.value(
+		nil, nil, nil, nil,
+		func() { res = true },
+	)
+	return res
+}
+
 func (self Arg) match_short(val byte) bool {
 	res := false
 	self.value(func(c byte, b bool) { res = c == val }, nil, nil, nil, nil)
@@ -104,7 +130,7 @@ func (self Arg) match_long(val string) bool {
 // 1. parse argument into ambigous representation that can store both short flags and argument
 // 2. collect short flag/arg when entering the subparsre
 // 3. when reaching ambi
-func (self Arg) fmt() string {
+func (self Arg) GoString() string {
 	var res string
 	self.value(
 		func(c byte, _ bool) { res = fmt.Sprintf("-%c", c) },

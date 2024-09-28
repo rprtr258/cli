@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -36,8 +37,8 @@ import (
 // margin sets the minimal offset for any new text and retained until new margin is set:
 // "hello" [margin 8] "world" is rendered as "hello   world"
 
-const MAX_TAB uint = 24
-const MAX_WIDTH uint = 100
+const MAX_TAB = 24
+const MAX_WIDTH = 100
 
 // Default to dull color if colors are enabled,
 type Color func(
@@ -45,6 +46,12 @@ type Color func(
 	Dull func(),
 	Bright func(),
 )
+
+func (c Color) IsMonochrome() bool {
+	var res bool
+	c(func() { res = true }, nil, nil)
+	return res
+}
 
 var ColorMonochrome Color = func(Monochrome, Dull, Bright func()) {
 	if Monochrome != nil {
@@ -63,11 +70,7 @@ var ColorBright Color = func(Monochrome, Dull, Bright func()) {
 }
 
 func Colordefault() Color {
-	res := ColorDull
-	if !(on(StreamStdout).is_some() && on(StreamStderr).is_some()) {
-		res = ColorMonochrome
-	}
-	return res
+	return ColorMonochrome
 }
 
 func (self Color) push_str(style Style, res *string, item string) {
@@ -78,19 +81,19 @@ func (self Color) push_str(style Style, res *string, item string) {
 		func() {
 			style(
 				func() { *res += item },
-				func() { *res += item.underline().bold() },
-				func() { *res += item.bold() },
-				func() { *res += item.underline() },
-				func() { *res += item.bold().red() },
+				func() { *res += item /*.underline().bold()*/ },
+				func() { *res += item /*.bold()*/ },
+				func() { *res += item /*.underline()*/ },
+				func() { *res += item /*.bold().red()*/ },
 			)
 		},
 		func() {
 			style(
 				func() { *res += item },
-				func() { *res += item.yellow().bold() },
-				func() { *res += item.green().bold() },
-				func() { *res += item.blue().bold() },
-				func() { *res += item.red().bold() },
+				func() { *res += item /*.yellow().bold()*/ },
+				func() { *res += item /*.green().bold()*/ },
+				func() { *res += item /*.blue().bold()*/ },
+				func() { *res += item /*.red().bold()*/ },
 			)
 		},
 	)
@@ -116,21 +119,20 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 		// looking for widest term below MAX_TAB
 		for _, token := range self.tokens {
 			token(
-				func(Text TokenText) {
-					bytes, style := Text.bytes, Text.style
+				func(bytes int, style Style) {
 					if in_term {
-						current += self.payload[byte_pos : byte_pos+bytes].chars().count()
+						current += len(self.payload[byte_pos : byte_pos+bytes])
 					}
 					byte_pos += bytes
 				},
-				func(BlockStart Block) {
-					if BlockStart == BlockItemTerm {
+				func(block Block) {
+					if block == BlockItemTerm {
 						in_term = true
 						current = 0
 					}
 				},
-				func(BlockEnd Block) {
-					if BlockStart == BlockItemTerm {
+				func(block Block) {
+					if block == BlockItemTerm {
 						in_term = false
 						if current > tabstop && current <= MAX_TAB {
 							tabstop = current
@@ -143,8 +145,8 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	}
 	tabstop += 4
 
-	stack := Vec__new()
-	skip := Skip__default()
+	stack := []Block{}
+	skip := Skip(0)
 	char_pos := 0
 
 	margins := []uint{}
@@ -156,49 +158,48 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 
 	pending_margin := false
 
-	for _, token := range self.tokens.iter().copied() {
+	for _, token := range self.tokens {
 		token(
-			func(x TokenText) {
-				bytes, style := x.bytes, x.style
-				input := &self.payload[byte_pos : byte_pos+bytes]
+			func(bytes int, style Style) {
+				input := self.payload[byte_pos : byte_pos+bytes]
 				byte_pos += bytes
 
 				if skip.enabled() {
-					continue
+					return
 				}
 
-				for _, chunk := range split(input) {
-					switch chunk {
-					case Chunk__Raw(s, w):
-						{
-							margin := margins.last().copied().unwrap_or(0)
-							if !res.is_empty() {
-								if (pending_newline || pending_blank_line) && !res.ends_with('\n') {
+				for chunk := range split(input) {
+					chunk(
+						func(s string, w uint) {
+							margin := last(margins).OrDefault(0)
+							if res != "" {
+								if (pending_newline || pending_blank_line) && !strings.HasSuffix(res, "\n") {
 									char_pos = 0
-									res.push('\n')
+									res += "\n"
 								}
-								if pending_blank_line && !res.ends_with("\n\n") {
-									res.push('\n')
+								if pending_blank_line && !strings.HasSuffix(res, "\n\n") {
+									res += "\n"
 								}
-								if char_pos+s.len() > max_width {
+								if char_pos+len(s) > int(max_width) {
 									char_pos = 0
-									res.truncate(res.trim_end().len())
-									res.push('\n')
+									res = strings.TrimRight(res, " \n")
+									res += "\n"
 									if s == " " {
-										continue
+										return
 									}
 								}
 							}
 
 							pushed := 0
-							if missing, ok := margin.checked_sub(char_pos).Unpack(); ok {
-								res.push_str(&PADDING[:missing])
-								char_pos = margin
+							if int(margin) >= char_pos {
+								missing := int(margin) - char_pos
+								res += PADDING[:missing]
+								char_pos = int(margin)
 								pushed = missing
 							}
 							if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
 								missing := 2 - pushed
-								res.push_str(&PADDING[:missing])
+								res += PADDING[:missing]
 								char_pos += missing
 							}
 
@@ -207,77 +208,75 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 							pending_margin = false
 
 							color.push_str(style, &res, s)
-							char_pos += w
-						}
-					case Chunk__Paragraph:
-						{
-							res.push('\n')
+							char_pos += int(w)
+						},
+						func() {
+							res += "\n"
 							char_pos = 0
 							if !full {
 								skip.enable()
-								break
+								return
 							}
-						}
-					case Chunk__LineBreak:
-						{
-							res.push('\n')
+						},
+						func() {
+							res += "\n"
 							char_pos = 0
-						}
-					}
+						},
+					)
 				}
 			},
 			func(block Block) {
-				stack.push(block)
-				margin := margins.last().copied().unwrap_or(0)
+				stack = append(stack, block)
+				margin := last(margins).OrDefault(0)
 
 				switch block {
-				case Block__Header, Block__Section2:
+				case BlockHeader, BlockSection2:
 					pending_newline = true
-					margins.push(margin)
-				case Block__Section3:
+					margins = append(margins, margin)
+				case BlockSection3:
 					pending_newline = true
-					margins.push(margin + 2)
-				case Block__ItemTerm:
+					margins = append(margins, margin+2)
+				case BlockItemTerm:
 					pending_newline = true
-					margins.push(margin + 4)
-				case Block__ItemBody:
-					margins.push(margin + tabstop + 2)
+					margins = append(margins, margin+4)
+				case BlockItemBody:
+					margins = append(margins, margin+uint(tabstop)+2)
 					pending_margin = true
-				case Block__InlineBlock:
+				case BlockInlineBlock:
 					skip.push()
-				case Block__Block:
-					margins.push(margin)
-				case Block__DefinitionList, Block__Meta, Block__Mono:
-				case Block__TermRef:
-					if color == Color__Monochrome {
-						res.push('`')
+				case BlockBlock:
+					margins = append(margins, margin)
+				case BlockDefinitionList, BlockMeta, BlockMono:
+				case BlockTermRef:
+					if color.IsMonochrome() {
+						res += "`"
 						char_pos += 1
 					}
 				}
 			},
 			func(block Block) {
-				if testing.Testing() && stack.pop() != Some(block) {
+				if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
 					panic("assert")
 				}
 
-				margins.pop()
+				margins = margins[:len(margins)-1]
 				switch block {
-				case Block__ItemBody:
+				case BlockItemBody:
 					pending_margin = false
-				case Block__Header,
-					Block__Section2,
-					Block__Section3,
-					Block__ItemTerm,
-					Block__DefinitionList,
-					Block__Meta,
-					Block__Mono:
-				case Block__InlineBlock:
+				case BlockHeader,
+					BlockSection2,
+					BlockSection3,
+					BlockItemTerm,
+					BlockDefinitionList,
+					BlockMeta,
+					BlockMono:
+				case BlockInlineBlock:
 					skip.pop()
-				case Block__Block:
+				case BlockBlock:
 					pending_blank_line = true
-				case Block__TermRef:
-					if color == Color__Monochrome {
-						res.push('`')
+				case BlockTermRef:
+					if color.IsMonochrome() {
+						res += "`"
 						char_pos += 1
 					}
 				}
@@ -285,9 +284,9 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 		)
 	}
 	if pending_newline || pending_blank_line {
-		res.push('\n')
+		res += "\n"
 	}
-	if testing.Testing() && stack.len() != 0 {
+	if testing.Testing() && len(stack) != 0 {
 		panic("assert")
 	}
 	return res

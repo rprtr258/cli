@@ -581,15 +581,17 @@ func wtf_shenanigans_2(t *testing.T) {
 }
 
 func de_yoda(t *testing.T) {
-	parser := construct(a(short('a').Switch()), b(short('b').Switch())).to_options()
+	parser := Pair(short('a').Switch(), short('b').Switch()).to_options()
 
 	{
-		r := parser.run_inner([]string{}).unwrap()
+		r, err := parser.run_inner(Argsfrom())
+		require.Nil(t, err)
 		require.Equal(t, r, fun.Pair[bool, bool]{false, false})
 	}
 
 	{
-		r := parser.run_inner([]string{"-a", "-b"}).unwrap()
+		r, err := parser.run_inner(Argsfrom("-a", "-b"))
+		require.Nil(t, err)
 		require.Equal(t, r, fun.Pair[bool, bool]{true, true})
 	}
 }

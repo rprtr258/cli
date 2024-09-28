@@ -2,6 +2,8 @@ package cli
 
 import (
 	"fmt"
+	"iter"
+	"slices"
 	"strings"
 )
 
@@ -83,6 +85,21 @@ func CompArgument(extra CompExtra, name ShortLong, metavar string) Comp {
 	}
 }
 
+func CompCommand(a CompExtra, b string, c Option[byte]) Comp {
+	return func(
+		_ func(CompExtra, ShortLong),
+		_ func(extra CompExtra, name ShortLong, metavar string),
+		f func(CompExtra, string, Option[byte]),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, string, bool),
+		_ func(CompExtra, ShellComp, bool),
+	) {
+		if f != nil {
+			f(a, b, c)
+		}
+	}
+}
+
 func CompValue(
 	extra CompExtra,
 	body string,
@@ -98,6 +115,44 @@ func CompValue(
 	) {
 		if Value != nil {
 			Value(extra, body, is_argument)
+		}
+	}
+}
+
+func CompMetavariable(
+	a CompExtra,
+	b string,
+	c bool,
+) Comp {
+	return func(
+		_ func(CompExtra, ShortLong),
+		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, string, Option[byte]),
+		_ func(extra CompExtra, body string, is_argument bool),
+		f func(CompExtra, string, bool),
+		_ func(CompExtra, ShellComp, bool),
+	) {
+		if f != nil {
+			f(a, b, c)
+		}
+	}
+}
+
+func CompShell(
+	a CompExtra,
+	b ShellComp,
+	c bool,
+) Comp {
+	return func(
+		_ func(CompExtra, ShortLong),
+		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, string, Option[byte]),
+		_ func(extra CompExtra, body string, is_argument bool),
+		_ func(CompExtra, string, bool),
+		f func(CompExtra, ShellComp, bool),
+	) {
+		if f != nil {
+			f(a, b, c)
 		}
 	}
 }
@@ -140,12 +195,12 @@ func Completenew(output_rev uint) Complete {
 func (self *State) push_flag(named NamedArg) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		if name, err := ShortLongtry_from(named); err == nil {
+		if name, ok := ShortLongtry_from(named).Unpack(); ok {
 			comp.comps = append(comp.comps, CompFlag(
 				CompExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  named.help.and_then(Docto_completion),
+					help:  OptFlatMap(named.help, (Doc).to_completion),
 				},
 				name,
 			))
@@ -157,12 +212,12 @@ func (self *State) push_flag(named NamedArg) {
 func (self *State) push_argument(named NamedArg, metavar string) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		if name, err := ShortLongtry_from(named); err == nil {
+		if name, ok := ShortLongtry_from(named).Unpack(); ok {
 			comp.comps = append(comp.comps, CompArgument(
 				CompExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  named.help.and_then(Docto_completion),
+					help:  OptFlatMap(named.help, (Doc).to_completion),
 				},
 				name,
 				metavar,
@@ -185,14 +240,10 @@ func (self *State) push_metavar(
 		extra := CompExtra{
 			depth: depth,
 			group: Invalid[string](),
-			help:  help.and_then(Docto_completion),
+			help:  OptFlatMap(help, (Doc).to_completion),
 		}
 
-		comp.comps = append(comp.comps, CompMetavariable{
-			extra,
-			meta,
-			is_argument,
-		})
+		comp.comps = append(comp.comps, CompMetavariable(extra, meta, is_argument))
 	}
 }
 
@@ -204,15 +255,15 @@ func (self *State) push_command(
 ) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		comp.comps = append(comp.comps, CompCommand{
-			extra: CompExtra{
+		comp.comps = append(comp.comps, CompCommand(
+			CompExtra{
 				depth: depth,
 				group: Invalid[string](),
-				help:  help.and_then(Docto_completion),
+				help:  OptFlatMap(help, (Doc).to_completion),
 			},
 			name,
 			short,
-		})
+		))
 	}
 }
 
@@ -254,15 +305,15 @@ func (self *State) push_with_group(group Option[string], comps *[]Comp) {
 }
 
 func (self *Complete) push_shell(op ShellComp, is_argument bool, depth uint) {
-	self.comps = append(self.comps, CompShell{
-		extra: CompExtra{
+	self.comps = append(self.comps, CompShell(
+		CompExtra{
 			depth: depth,
 			group: Invalid[string](),
 			help:  Invalid[string](),
 		},
-		script: op,
+		op,
 		is_argument,
-	})
+	))
 }
 
 func (self *Complete) push_value(
@@ -345,12 +396,18 @@ type ShowComp struct {
 
 func (self ShowComp) fmt(f *strings.Builder) {
 	if help, ok := self.extra.help.Unpack(); ok && self.subst == "" {
-		fmt.Fprintf(f, "{}: {}", self.pretty, help)
+		fmt.Fprintf(f, "%v: %v", self.pretty, help)
 	} else if ok {
-		fmt.Fprintf(f, "{:24} -- {}", self.pretty, help)
+		fmt.Fprintf(f, "%24s -- %v", self.pretty, help)
 	} else {
-		fmt.Fprintf(f, "{}", self.pretty)
+		fmt.Fprintf(f, "%v", self.pretty)
 	}
+}
+
+func (self ShowComp) to_string() string {
+	var res strings.Builder
+	self.fmt(&res)
+	return res.String()
 }
 
 func (self Arg) and_os_string() Option[string] {
@@ -378,6 +435,22 @@ type Prefix = func(
 	Long func(string),
 )
 
+func PrefixNA(f func(), _ func(byte), _ func(string)) { f() }
+func PrefixShort(s byte) Prefix {
+	return func(_ func(), f func(byte), _ func(string)) {
+		if f != nil {
+			f(s)
+		}
+	}
+}
+func PrefixLong(s string) Prefix {
+	return func(_ func(), _ func(byte), f func(string)) {
+		if f != nil {
+			f(s)
+		}
+	}
+}
+
 // Generate completion from collected heads
 //
 // before calling this method we run parser in "complete" mode and collect live heads inside
@@ -389,15 +462,19 @@ func (self State) check_complete() Option[string] {
 		return Invalid[string]()
 	}
 
-	items := self.
-		items.
-		rev().
-		filter_map(Argand_os_string)
+	next, cancel := iter.Pull2(func(yield func(Arg, string) bool) {
+		for s := range rev(self.items) {
+			if s.os_str != "" && !yield(s, s.os_str) {
+				break
+			}
+		}
+	})
+	defer cancel()
 
 	// try get a current item to complete - must be non-virtual right most one
 	// value must be present here, and can fail only for non-utf8 values
 	// can't do much completing with non-utf8 values since bpaf needs to print them to stdout
-	cur, lit, ok := items.next().Unpack()
+	cur, lit, ok := next()
 	if !ok {
 		return Invalid[string]()
 	}
@@ -406,7 +483,7 @@ func (self State) check_complete() Option[string] {
 	// last value is going  to be either ArgWord or ArgArgWord
 	// so to perform full completion we look at the preceeding item
 	// and use it's value if it was a composite short/long argument
-	preceeding, ok := items.next()
+	preceeding, _, ok := next()
 	var (
 		pos_only bool
 		full_lit string
@@ -419,7 +496,7 @@ func (self State) check_complete() Option[string] {
 	}
 
 	is_named := false
-	cur(
+	cur.value(
 		func(byte, bool) { is_named = true },
 		func(string, bool) { is_named = true },
 		nil,
@@ -427,29 +504,37 @@ func (self State) check_complete() Option[string] {
 		nil,
 	)
 
-	var prefix Prefix
-	// switch preceeding {
-	//     case Valid((ArgShort(s, true, _os), _lit)): prefix = PrefixShort(*s)
-	//     case Valid((ArgLong(l, true, _os), _lit)):prefix=PrefixLong(l)
-	//     default:PrefixNA
-	// };
+	prefix := PrefixNA
+	preceeding.value(
+		func(s byte, bb bool) {
+			if bb {
+				prefix = PrefixShort(s)
+			}
+		},
+		func(l string, bb bool) {
+			if bb {
+				prefix = PrefixLong(l)
+			}
+		},
+		nil, nil, nil,
+	)
 
 	items, shell := comp.complete(lit, pos_only, is_named, prefix)
 
 	return Valid(func() string {
 		switch comp.output_rev {
 		case 0:
-			return render_test(&items, shell, full_lit)
+			return render_test(items, shell, full_lit)
 		case 1:
-			return render_simple(&items) // <- AKA elvish
+			return render_simple(items) // <- AKA elvish
 		case 7:
-			return render_zsh(&items, shell, full_lit)
+			return render_zsh(items, shell, full_lit)
 		case 8:
-			return render_bash(&items, shell, full_lit)
+			return render_bash(items, shell, full_lit)
 		case 9:
-			return render_fish(&items, shell, full_lit, self.path[0])
+			return render_fish(items, shell, full_lit, self.path[0])
 		default:
-			panic(fmt.Sprintf("Unsupported output revision {}, you need to genenerate your shell completion files for the app", comp.output_rev))
+			panic(fmt.Sprintf("Unsupported output revision %v, you need to genenerate your shell completion files for the app", comp.output_rev))
 		}
 	}())
 }
@@ -458,11 +543,15 @@ func (self State) check_complete() Option[string] {
 func preferred_name(name ShortLong) string {
 	var res string
 	name(
-		func(s byte) { res = fmt.Sprintf("-{}", s) },
-		func(l string) { res = fmt.Sprintf("--{}", l) },
-		func(_ byte, l string) { res = fmt.Sprintf("--{}", l) },
+		func(s byte) { res = fmt.Sprintf("-%v", s) },
+		func(l string) { res = fmt.Sprintf("--%v", l) },
+		func(_ byte, l string) { res = fmt.Sprintf("--%v", l) },
 	)
 	return res
+}
+
+func stris_empty(s string) bool {
+	return s == ""
 }
 
 // check if argument can possibly switch the argument passed in and returns a preferrable replacement
@@ -478,13 +567,13 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 	// allocations and cloning
 	name(
 		func(s byte) {
-			can_switch |= map_or(strip_prefixb(arg, '-').
+			can_switch = can_switch || map_or(strip_prefixb(arg, '-').
 				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
 				false, stris_empty)
 		},
 		nil,
 		func(s byte, _ string) {
-			can_switch |= map_or(strip_prefixb(arg, '-').
+			can_switch = can_switch || map_or(strip_prefixb(arg, '-').
 				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
 				false, stris_empty)
 		},
@@ -494,10 +583,10 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 	name(
 		nil,
 		func(l string) {
-			can_switch |= map_or(strip_prefix(arg, "--"), false, func(s string) bool { return starts_with(l, s) })
+			can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(l, s) })
 		},
 		func(_ byte, l string) {
-			can_switch |= map_or(strip_prefix(arg, "--"), false, func(s string) bool { return starts_with(l, s) })
+			can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(l, s) })
 		},
 	)
 
@@ -510,7 +599,7 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 
 func cmd_matches(arg string, name string, short Option[byte]) Option[string] {
 	// partial long name and exact short name switch anything
-	if starts_with(name, arg) || map_or(short, false, func(s byte) bool {
+	if strings.HasPrefix(name, arg) || map_or(short, false, func(s byte) bool {
 		// avoid allocations
 		return map_or(strip_prefixb(arg, s), false, stris_empty)
 	}) {
@@ -522,20 +611,29 @@ func cmd_matches(arg string, name string, short Option[byte]) Option[string] {
 
 // this completion should suppress anything else that is not a value
 func (self Comp) only_value() bool {
-	// switch self {
-	//     CompFlag { .. } | CompArgument { .. } | CompCommand { .. }false,
-	//     CompMetavariable { is_argument, .. }
-	//     | CompValue { is_argument, .. }
-	//     | CompShell { is_argument, .. }*is_argument,
-	// }
+	var res bool
+	self(
+		nil,
+		nil,
+		nil,
+		func(_ CompExtra, _ string, is_argument bool) { res = is_argument },
+		func(_ CompExtra, _ string, is_argument bool) { res = is_argument },
+		func(_ CompExtra, _ ShellComp, is_argument bool) { res = is_argument },
+	)
+	return res
 }
 
 func (self Comp) is_pos() bool {
-	// switch self {
-	//     CompFlag { .. } | CompArgument { .. } | CompCommand { .. }false,
-	//     CompValue { is_argument, .. }!is_argument,
-	//     CompMetavariable { .. } | CompShell { .. }true,
-	// }
+	var res bool
+	self(
+		nil,
+		nil,
+		nil,
+		func(_ CompExtra, _ string, is_argument bool) { res = !is_argument },
+		func(_ CompExtra, _ string, is_argument bool) { res = true },
+		func(_ CompExtra, _ ShellComp, is_argument bool) { res = true },
+	)
+	return res
 }
 
 func (self Complete) complete(
@@ -553,10 +651,8 @@ func (self Complete) complete(
 	items := []ShowComp{}
 	shell := []ShellComp{}
 F:
-	for _, item := range self.
-		comps.
-		iter().
-		filter(func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
+	for item := range filter(slices.Values(self.comps),
+		func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
 		switch {
 		case only_values == item.only_value():
 		case only_values:
@@ -583,7 +679,7 @@ F:
 			) {
 				if long, ok := arg_matches(arg, name).Unpack(); ok {
 					items = append(items, ShowComp{
-						pretty: fmt.Sprintf("{}={}", long, metavar),
+						pretty: fmt.Sprintf("%v=%v", long, metavar),
 						subst:  long,
 						extra:  extra,
 					})
@@ -614,8 +710,8 @@ F:
 						var res string
 						prefix(
 							func() { res = body },
-							func(s byte) { res = fmt.Sprintf("-{}={}", s, body) },
-							func(l string) { res = fmt.Sprintf("--{}={}", l, body) },
+							func(s byte) { res = fmt.Sprintf("-%v=%v", s, body) },
+							func(l string) { res = fmt.Sprintf("--%v=%v", l, body) },
 						)
 						return res
 					}(),

@@ -72,8 +72,10 @@ func (self Doc) doc(buf Doc) {
 // first line as a help section header
 func (self Doc) em_doc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
-	if v, ok := buf.tokens.first().copied().Unpack(); ok {
-		bytes := v.bytes
+	v, ok := First(buf.tokens).Unpack()
+	var bytes int
+	v(func(bb int, _ Style) { bytes = bb }, func(Block) { ok = false }, func(Block) { ok = false })
+	if ok {
 		prefix := buf.payload[0:bytes]
 		if a, b, ok := strings.Cut(prefix, "\n"); ok {
 			self.emphasis(a)
@@ -279,6 +281,16 @@ type Doc struct {
 	tokens  []Token
 }
 
+func (d Doc) to_completion() Option[string] {
+	l, ok := d.first_line()
+	if !ok {
+		return Invalid[string]()
+	}
+
+	s := l.monochrome(false)
+	return Valid(strings.TrimRight(s, " "))
+}
+
 func newDocFromString(s string) Doc { return Doc{payload: s} }
 func (d Doc) is_empty() bool        { return len(d.tokens) == 0 }
 func (d Doc) first_line() (Doc, bool) {
@@ -342,12 +354,13 @@ func (self *Doc) write(input fmt.GoStringer, style Style) {
 func (self Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
 	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
-	if n := len(self.tokens); n == 0 || !matches(self.tokens[n-1], TokenText) {
+	if n := len(self.tokens); n == 0 || !func() bool { var res bool; self.tokens[n-1](func(int, Style) { res = true }, nil, nil); return res }() {
 		self.tokens = append(self.tokens, TokenText(lenn, style))
 	} else {
-		if self.tokens[n-1].style == style {
-			self.tokens[n-1].bytes += lenn
-		}
+		// TODO: mutate
+		// if self.tokens[n-1].style == style {
+		// 	self.tokens[n-1].bytes += lenn
+		// }
 	}
 }
 

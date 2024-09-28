@@ -1,8 +1,7 @@
 package cli
 
 import (
-	"encoding"
-	"fmt"
+	"iter"
 	"strings"
 
 	"github.com/rprtr258/fun"
@@ -27,6 +26,10 @@ func resultNew[T any](v T, err Error) Result[T] {
 
 func (r Result[T]) unpack() (T, Error) {
 	return r.Value, r.Err
+}
+
+func (r Result[T]) is_ok() bool {
+	return r.Err == nil
 }
 
 func (r Result[T]) unwrap() T {
@@ -60,12 +63,13 @@ func get[T any](xs []T, ix int) Option[T] {
 	return Valid(xs[ix])
 }
 
-func first[T any](xs []T) Option[T] {
+func First[T any](xs []T) Option[T] {
 	return get(xs, 0)
 }
 
-type IntoString = fmt.Stringer
-type FromStr = encoding.TextUnmarshaler
+func last[T any](xs []T) Option[T] {
+	return get(xs, len(xs)-1)
+}
 
 func stdmemswap[T any](a, b *T) {
 	*a, *b = *b, *a
@@ -141,14 +145,94 @@ func OptFlatMap[I, O any](o Option[I], f func(I) Option[O]) Option[O] {
 	return f(o.Value)
 }
 
-func stris_empty(s string) bool {
-	return s == ""
-}
-
-func starts_with(s string, prefix string) bool {
-	return strings.HasPrefix(s, prefix)
-}
-
 func starts_withb(s string, prefix byte) bool {
-	return starts_with(s, string(prefix))
+	return strings.HasPrefix(s, string(prefix))
+}
+
+func find_map[T, R any](xs []T, f func(T) Option[R]) Option[R] {
+	for _, x := range xs {
+		if res := f(x); res.Valid {
+			return res
+		}
+	}
+	return Invalid[R]()
+}
+
+func is_empty[T any](xs []T) bool {
+	return len(xs) == 0
+}
+
+func rev[T any](xs []T) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for i := len(xs) - 1; i >= 0; i-- {
+			if !yield(xs[i]) {
+				break
+			}
+		}
+	}
+}
+
+func filter[T any](it iter.Seq[T], f func(T) bool) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for x := range it {
+			if f(x) && !yield(x) {
+				break
+			}
+		}
+	}
+}
+
+func filter_map[T, R any](it iter.Seq[T], f func(T) Option[R]) iter.Seq[R] {
+	return func(yield func(R) bool) {
+		for x := range it {
+			if y, ok := f(x).Unpack(); ok && !yield(y) {
+				break
+			}
+		}
+	}
+}
+
+func fromPull[T any](next func() (T, bool)) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		for {
+			x, ok := next()
+			if !ok || !yield(x) {
+				break
+			}
+		}
+	}
+}
+
+func position[T any](it iter.Seq[T], f func(T) bool) Option[int] {
+	i := 0
+	for x := range it {
+		if f(x) {
+			return Valid(i)
+		}
+		i++
+	}
+	return Invalid[int]()
+}
+
+func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
+	ok := false
+	var res T
+	for x := range xs {
+		if !ok || cmp(res, x) > 0 {
+			res = x
+			ok = true
+		}
+	}
+	return Option[T]{res, ok}
+}
+
+type GS string
+
+func (self GS) GoString() string {
+	return string(self)
+}
+
+func (self *GS) UnmarshalText(text []byte) error {
+	*self = GS(text)
+	return nil
 }

@@ -69,6 +69,48 @@ func ItemPositional(metavar Metavar, help Option[Doc]) Item {
 	}
 }
 
+func ItemCommand(name string, short Option[byte], help Option[Doc], meta Meta, info Info) Item {
+	return func(
+		_ func(Doc, bool, Option[Doc]),
+		_ func(Metavar, Option[Doc]),
+		Command func(string, Option[byte], Option[Doc], Meta, Info),
+		_ func(ShortLong, []byte, Option[string], Option[Doc]),
+		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	) {
+		if Command != nil {
+			Command(name, short, help, meta, info)
+		}
+	}
+}
+
+func ItemFlag(name ShortLong, shorts []byte, env Option[string], help Option[Doc]) Item {
+	return func(
+		_ func(Doc, bool, Option[Doc]),
+		_ func(Metavar, Option[Doc]),
+		_ func(string, Option[byte], Option[Doc], Meta, Info),
+		Flag func(ShortLong, []byte, Option[string], Option[Doc]),
+		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	) {
+		if Flag != nil {
+			Flag(name, shorts, env, help)
+		}
+	}
+}
+
+func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[string], help Option[Doc]) Item {
+	return func(
+		_ func(Doc, bool, Option[Doc]),
+		_ func(Metavar, Option[Doc]),
+		_ func(string, Option[byte], Option[Doc], Meta, Info),
+		_ func(ShortLong, []byte, Option[string], Option[Doc]),
+		Argument func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	) {
+		if Argument != nil {
+			Argument(name, shorts, metavar, env, help)
+		}
+	}
+}
+
 func (self Item) is_pos() bool {
 	var res bool
 	self(
@@ -83,7 +125,7 @@ func (self Item) is_pos() bool {
 
 // Normalize name inside [`ShortLong`] into either short or long
 func (self *Item) normalize(short bool) {
-	self(
+	(*self)(
 		nil,
 		nil,
 		nil,
@@ -93,7 +135,8 @@ func (self *Item) normalize(short bool) {
 			env Option[string],
 			help Option[Doc],
 		) {
-			*self = SelfFlag(name.normalize(short), shorts, env, help)
+			name.normalize(short)
+			*self = ItemFlag(name, shorts, env, help)
 		},
 		func(
 			name ShortLong,
@@ -102,7 +145,8 @@ func (self *Item) normalize(short bool) {
 			env Option[string],
 			help Option[Doc],
 		) {
-			*self = SelfArgument(name.normalize(short), shorts, metavar, env, help)
+			name.normalize(short)
+			*self = ItemArgument(name, shorts, metavar, env, help)
 		},
 	)
 }
@@ -112,6 +156,42 @@ type ShortLong func(
 	Long func(string),
 	Both func(byte, string),
 )
+
+func ShortLongShort(s byte) ShortLong {
+	return func(
+		f func(byte),
+		_ func(string),
+		_ func(byte, string),
+	) {
+		if f != nil {
+			f(s)
+		}
+	}
+}
+
+func ShortLongLong(s string) ShortLong {
+	return func(
+		_ func(byte),
+		f func(string),
+		_ func(byte, string),
+	) {
+		if f != nil {
+			f(s)
+		}
+	}
+}
+
+func ShortLongBoth(b byte, s string) ShortLong {
+	return func(
+		_ func(byte),
+		_ func(string),
+		f func(byte, string),
+	) {
+		if f != nil {
+			f(b, s)
+		}
+	}
+}
 
 func (self ShortLong) as_long() Option[string] {
 	var res Option[string]
@@ -123,8 +203,8 @@ func (self ShortLong) as_long() Option[string] {
 	return res
 }
 
-func (self ShortLong) as_short() Option[char] {
-	var res Option[char]
+func (self ShortLong) as_short() Option[byte] {
+	var res Option[byte]
 	self(
 		func(s byte) { res = Valid(s) },
 		nil,
@@ -134,18 +214,17 @@ func (self ShortLong) as_short() Option[char] {
 }
 
 func (self ShortLong) eq(other string) bool {
-	short_eq := func(c char, s string) bool {
-		tmp := [4]u8{}
-		s.strip_prefix('-') == Valid(c.encode_utf8(&tmp))
+	short_eq := func(c byte, s string) bool {
+		return strip_prefixb(s, '-') == Valid(string([]byte{c}))
 	}
 	long_eq := func(l string, s string) bool {
-		Valid(l) == s.strip_prefix("--")
+		return strip_prefix(s, "--") == Valid(l)
 	}
 	var res bool
 	self(
-		func(s byte) { res = short_eq(*s, other) },
+		func(s byte) { res = short_eq(s, other) },
 		func(l string) { res = long_eq(l, other) },
-		func(s byte, l string) { res = short_eq(*s, other) || long_eq(l, other) },
+		func(s byte, l string) { res = short_eq(s, other) || long_eq(l, other) },
 	)
 	return res
 }
@@ -153,29 +232,29 @@ func (self ShortLong) eq(other string) bool {
 // Changes [`ShortLong`](ShortLongShortLong) variant into either short or long depending,
 // leaves both Short and Long untouched
 func (self *ShortLong) normalize(short bool) {
-	self(
+	(*self)(
 		nil,
 		nil,
 		func(s byte, l string) {
 			if short {
-				*self = SelfShort(*s)
+				*self = ShortLongShort(s)
 			} else {
-				*self = SelfLong(l)
+				*self = ShortLongLong(l)
 			}
 		},
 	)
 }
 
-func ShortLongFromNamedArg(named NamedArg) Option[ShortLong] {
+func ShortLongtry_from(named NamedArg) Option[ShortLong] {
 	switch {
-	case named.short.is_empty() && named.long.is_empty():
+	case is_empty(named.short) && is_empty(named.long):
 		return Invalid[ShortLong]()
-	case named.short.is_empty():
-		return Valid(SelfLong(named.long[0]))
-	case named.long.is_empty():
-		return Valid(SelfShort(named.short[0]))
+	case is_empty(named.short):
+		return Valid(ShortLongLong(named.long[0]))
+	case is_empty(named.long):
+		return Valid(ShortLongShort(named.short[0]))
 	default:
-		return Valid(SelfBoth(named.short[0], named.long[0]))
+		return Valid(ShortLongBoth(named.short[0], named.long[0]))
 	}
 }
 
