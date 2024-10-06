@@ -39,23 +39,6 @@ func (r Result[T]) unwrap() T {
 	return r.Value
 }
 
-func (r Result[T]) check(f func(T) Error) Result[T] {
-	if r.Err != nil {
-		return r
-	}
-	if err := f(r.Value); err != nil {
-		return Err[T](err)
-	}
-	return r
-}
-
-func (r Result[T]) or(t T) T {
-	if r.Err != nil {
-		return t
-	}
-	return r.Value
-}
-
 func get[T any](xs []T, ix int) Option[T] {
 	if ix < 0 || ix >= len(xs) {
 		return Invalid[T]()
