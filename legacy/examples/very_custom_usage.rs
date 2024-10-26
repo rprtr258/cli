@@ -34,5 +34,5 @@ fn cmd_usage() -> impl Parser<Cmd> {
 }
 
 fn main() {
-    println!("{:?}", opts().run());
+    fmt.Println(opts().run());
 }

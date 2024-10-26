@@ -36,5 +36,5 @@ fn parse_command() -> impl Parser<(Command, Vec<String>)> {
 fn main() {
     let opts = parse_command().to_options().run();
 
-    println!("{:?}", opts);
+    fmt.Println(opts);
 }

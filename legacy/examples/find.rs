@@ -1,5 +1,5 @@
-//! This is not a typical bpaf usage,
-//! but you should be able to replicate command line used by find
+// This is not a typical bpaf usage,
+// but you should be able to replicate command line used by find
 
 use bpaf::*;
 use std::{ffi::OsString, path::PathBuf};

@@ -20,7 +20,7 @@ func Err[T any](err Error) Result[T] {
 	return Result[T]{*new(T), err}
 }
 
-func resultNew[T any](v T, err Error) Result[T] {
+func NewResult[T any](v T, err Error) Result[T] {
 	return Result[T]{v, err}
 }
 
@@ -207,15 +207,4 @@ func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
 		}
 	}
 	return Option[T]{res, ok}
-}
-
-type GS string
-
-func (self GS) GoString() string {
-	return string(self)
-}
-
-func (self *GS) UnmarshalText(text []byte) error {
-	*self = GS(text)
-	return nil
 }

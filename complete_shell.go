@@ -46,15 +46,15 @@ type ShellComp func(
 	Raw func(
 		// This raw string will be used for `bash` shell
 		// <https://www.gnu.org/software/bash/manual/html_node/Command-Line-Editing.html>
-		bash string,
+		bash,
 
 		// This raw string will be used for `zsh` shell
 		// <https://zsh.sourceforge.io/Doc/Release/Completion-System.html>
-		zsh string,
+		zsh,
 
 		// This raw string will be used for `fish` shell
 		// <https://fishshell.com/docs/current/completions.html>
-		fish string,
+		fish,
 
 		// This raw string will be used for `elvish` shell
 		// <https://elv.sh/ref/edit.html#completion-api>
@@ -66,11 +66,27 @@ type ShellComp func(
 	Nothing func(),
 )
 
-// Parser that inserts static shell completion into bpaf's dynamic shell completion
+func ShellCompFile(mask Option[string]) ShellComp {
+	return func(
+		f func(mask Option[string]),
+		_ func(mask Option[string]),
+		_ func(_, _, _, _ string),
+		_ func(),
+	) {
+		if f != nil {
+			f(mask)
+		}
+	}
+}
 
+// Parser that inserts static shell completion into bpaf's dynamic shell completion
 type ParseCompShell[T any] struct {
 	inner Parser[T]
 	op    ShellComp
+}
+
+func (self ParseCompShell[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 func (self ParseCompShell[T]) eval(args *State) Result[T] {

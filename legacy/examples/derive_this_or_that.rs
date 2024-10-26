@@ -20,5 +20,5 @@ enum Opts {
 }
 
 fn main() {
-    println!("{:?}", opts().run())
+    fmt.Println(opts().run())
 }

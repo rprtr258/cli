@@ -1,13 +1,12 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/rprtr258/fun"
 )
 
-func newDocFromPairs(val []fun.Pair[string, Style]) Doc {
+func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 	res := Doc{}
 	for _, v := range val {
 		text, style := v.K, v.V
@@ -23,45 +22,45 @@ func newDocFromPairs(val []fun.Pair[string, Style]) Doc {
 // [`Docmeta`](Docmeta)
 type MetaInfo = Meta
 
-// Append a fragment of plain text to [`Doc`]
+// Append a fragment of plain Text to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) text(text string) {
+func (self Doc) Text(text string) {
 	self.write_str(text, StyleText)
 }
 
-// Append a fragment of literal text to [`Doc`]
+// Append a fragment of Literal text to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) literal(text string) {
+func (self Doc) Literal(text string) {
 	self.write_str(text, StyleLiteral)
 }
 
-// Append a fragment of text with emphasis to [`Doc`]
+// Append a fragment of text with Emphasis to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) emphasis(text string) {
+func (self Doc) Emphasis(text string) {
 	self.write_str(text, StyleEmphasis)
 }
 
 // Append a fragment of unexpected user input to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) invalid(text string) {
+func (self Doc) Invalid(text string) {
 	self.write_str(text, StyleInvalid)
 }
 
 // Append a fragment of parser metadata to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) meta(meta MetaInfo, for_usage bool) {
+func (self Doc) Meta(meta MetaInfo, for_usage bool) {
 	self.write_meta(meta, for_usage)
 }
 
 // Append a `Doc` to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) doc(buf Doc) {
+func (self Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
 	self.tokens = append(self.tokens, buf.tokens...)
 	self.payload += buf.payload
@@ -70,17 +69,15 @@ func (self Doc) doc(buf Doc) {
 
 // Append a `Doc` to [`Doc`] for plaintext documents try to format
 // first line as a help section header
-func (self Doc) em_doc(buf Doc) {
+func (self Doc) EmDoc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
-	v, ok := First(buf.tokens).Unpack()
-	var bytes int
-	v(func(bb int, _ Style) { bytes = bb }, func(Block) { ok = false }, func(Block) { ok = false })
-	if ok {
+	if v, ok := First(buf.tokens).Unpack(); ok && v.isText {
+		bytes := v.bytes
 		prefix := buf.payload[0:bytes]
 		if a, b, ok := strings.Cut(prefix, "\n"); ok {
-			self.emphasis(a)
+			self.Emphasis(a)
 			self.tokens = append(self.tokens, TokenBlockStart(BlockSection3))
-			self.text(b)
+			self.Text(b)
 
 			if len(buf.tokens) > 1 {
 				self.tokens = append(self.tokens, buf.tokens[1:]...)
@@ -88,13 +85,12 @@ func (self Doc) em_doc(buf Doc) {
 			}
 			self.tokens = append(self.tokens, TokenBlockEnd(BlockSection3))
 		} else {
-			self.emphasis(prefix)
+			self.Emphasis(prefix)
 		}
 	} else {
 		self.tokens = append(self.tokens, buf.tokens...)
 		self.payload += buf.payload
 	}
-
 	self.tokens = append(self.tokens, TokenBlockEnd(BlockInlineBlock))
 }
 
@@ -118,7 +114,7 @@ func (self Doc) write_shortlong(name ShortLong) {
 func (self Doc) write_item(item Item) {
 	item(
 		func(metavar Doc, _ bool, _ Option[Doc]) {
-			self.doc(metavar)
+			self.Doc(metavar)
 		},
 		func(metavar Metavar, _ Option[Doc]) {
 			self.metavar(metavar)
@@ -176,7 +172,7 @@ func (self Doc) write_meta(meta Meta, for_usage bool) {
 			func(m Meta, _ Doc) { gO(m, f) },
 			func(m Meta, _ Doc) { gO(m, f) },
 			func() { /* f.write_str("no parameters expected", StyleText), */ },
-			func(_ Meta, u Doc) { f.doc(u) },
+			func(_ Meta, u Doc) { f.Doc(u) },
 			func(m Meta) {
 				f.write_str("--", StyleLiteral)
 				f.write_str(" ", StyleText)
@@ -192,39 +188,15 @@ func (self Doc) write_meta(meta Meta, for_usage bool) {
 }
 
 // Style of a text fragment inside of [`Doc`]
-type Style func(
-	Text func(), // Plain text, no decorations
-	Emphasis func(), // Word with emphasis - things like "Usage", "Available fun.Options", etc
-	Literal func(), // Something user needs to type literally - command names, etc
-	Metavar func(), // Metavavar placeholder - something user needs to replace with own input
-	Invalid func(), // Invalid input given by user - used to display invalid parts of the input
-)
+type Style uint8
 
-var StyleText Style = func(Text, _, _, _, _ func()) {
-	if Text != nil {
-		Text()
-	}
-}
-var StyleEmphasis Style = func(_, Emphasis, _, _, _ func()) {
-	if Emphasis != nil {
-		Emphasis()
-	}
-}
-var StyleLiteral Style = func(_, _, Literal, _, _ func()) {
-	if Literal != nil {
-		Literal()
-	}
-}
-var StyleMetavar Style = func(_, _, _, Metavar, _ func()) {
-	if Metavar != nil {
-		Metavar()
-	}
-}
-var StyleInvalid Style = func(_, _, _, _, Invalid func()) {
-	if Invalid != nil {
-		Invalid()
-	}
-}
+const (
+	StyleText     Style = iota // Plain text, no decorations
+	StyleEmphasis              // Word with emphasis - things like "Usage", "Available fun.Options", etc
+	StyleLiteral               // Something user needs to type literally - command names, etc
+	StyleMetavar               // Metavavar placeholder - something user needs to replace with own input
+	StyleInvalid               // Invalid input given by user - used to display invalid parts of the input
+)
 
 type Block uint8
 
@@ -242,34 +214,19 @@ const (
 	BlockMono           // Monospaced font that goes around [`Meta`]
 )
 
-type Token func(
-	Text func(bytes int, style Style),
-	BlockStart func(Block),
-	BlockEnd func(Block),
-)
+// Token = Text | BlockStart | BlockEnd
+type Token struct {
+	isText bool
+	bytes  int
+	style  Style
 
-func TokenText(bytes int, style Style) Token {
-	return func(Text func(int, Style), _, _ func(Block)) {
-		if Text != nil {
-			Text(bytes, style)
-		}
-	}
+	isStart bool
+	block   Block
 }
 
-func TokenBlockStart(block Block) Token {
-	return func(_ func(int, Style), BlockStart, _ func(Block)) {
-		if BlockStart != nil {
-			BlockStart(block)
-		}
-	}
-}
-func TokenBlockEnd(block Block) Token {
-	return func(_ func(int, Style), _, BlockEnd func(Block)) {
-		if BlockEnd != nil {
-			BlockEnd(block)
-		}
-	}
-}
+func TokenText(bytes int, style Style) Token { return Token{isText: true, bytes: bytes, style: style} }
+func TokenBlockStart(block Block) Token      { return Token{isStart: true, block: block} }
+func TokenBlockEnd(block Block) Token        { return Token{isStart: false, block: block} }
 
 // String with styled segments.
 //
@@ -300,27 +257,20 @@ func (d Doc) first_line() (Doc, bool) {
 
 	res := Doc{}
 	cur := 0
-	doBreak := false
 	for _, t := range d.tokens {
-		t(func(bytes int, style Style) {
-			payload := d.payload[cur : cur+bytes]
-			first, _, ok := strings.Cut(payload, "\n")
-			if ok {
-				res.payload += first
-				res.tokens = append(res.tokens, func(ftext func(int, Style), _, _ func(BlockEnd Block)) {
-					if ftext != nil {
-						ftext(len(first), style)
-					}
-				})
-				return
-			} else {
-				res.payload += d.payload[cur : cur+bytes]
-				res.tokens = append(res.tokens, t)
-				cur += bytes
-			}
-		}, func(Block) { doBreak = true }, func(Block) { doBreak = true })
-		if doBreak {
+		if !t.isText {
 			break
+		}
+
+		bytes, style := t.bytes, t.style
+		payload := d.payload[cur : cur+bytes]
+		if first, _, ok := strings.Cut(payload, "\n"); ok {
+			res.tokens = append(res.tokens, TokenText(len(first), style))
+			res.payload += first
+		} else {
+			res.tokens = append(res.tokens, t)
+			res.payload += d.payload[cur : cur+bytes]
+			cur += bytes
 		}
 	}
 	return res, true
@@ -345,22 +295,21 @@ func (self *Doc) token(token Token) {
 	self.tokens = append(self.tokens, token)
 }
 
-func (self *Doc) write(input fmt.GoStringer, style Style) {
+func (self *Doc) write(input string, style Style) {
 	old_len := len(self.payload)
-	self.payload += input.GoString()
+	self.payload += input
 	self.set_style(len(self.payload)-old_len, style)
 }
 
 func (self Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
 	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
-	if n := len(self.tokens); n == 0 || !func() bool { var res bool; self.tokens[n-1](func(int, Style) { res = true }, nil, nil); return res }() {
+	if n := len(self.tokens); n == 0 || !self.tokens[n-1].isText {
 		self.tokens = append(self.tokens, TokenText(lenn, style))
 	} else {
-		// TODO: mutate
-		// if self.tokens[n-1].style == style {
-		// 	self.tokens[n-1].bytes += lenn
-		// }
+		if self.tokens[n-1].style == style {
+			self.tokens[n-1].bytes += lenn
+		}
 	}
 }
 

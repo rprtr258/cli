@@ -21,14 +21,14 @@ func Statefrom(value []string) State {
 
 func long_arg(t *testing.T) {
 	a := Statefrom([]string{"--speed", "12"})
-	s := a.take_arg(long("speed"), false, M).unwrap().unwrap()
+	s := a.take_arg(Long("speed"), false, M).unwrap().unwrap()
 	require.Equal(t, s, "12")
 	require.True(t, a.is_empty())
 }
 
 func long_flag_and_positional(t *testing.T) {
 	a := Statefrom([]string{"--speed", "12"})
-	flag := a.take_flag(long("speed"))
+	flag := a.take_flag(Long("speed"))
 	require.True(t, flag)
 	require.True(t, !a.is_empty())
 	_, _, s, err := a.take_positional_word(M)
@@ -41,75 +41,75 @@ func multiple_short_flags(t *testing.T) {
 	args := Argsfrom("-vvv")
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{'v'}, []byte{}, &err)
-	require.True(t, a.take_flag(short('v')))
-	require.True(t, a.take_flag(short('v')))
-	require.True(t, a.take_flag(short('v')))
-	require.True(t, !a.take_flag(short('v')))
+	require.True(t, a.take_flag(Short('v')))
+	require.True(t, a.take_flag(Short('v')))
+	require.True(t, a.take_flag(Short('v')))
+	require.True(t, !a.take_flag(Short('v')))
 	require.True(t, a.is_empty())
 }
 
 func long_arg_with_equality(t *testing.T) {
 	a := Statefrom([]string{"--speed=12"})
-	s := a.take_arg(long("speed"), false, M).unwrap().unwrap()
+	s := a.take_arg(Long("speed"), false, M).unwrap().unwrap()
 	require.Equal(t, s, "12")
 	require.True(t, a.is_empty())
 }
 
 func long_arg_with_equality_and_minus(t *testing.T) {
 	a := Statefrom([]string{"--speed=-12"})
-	s := a.take_arg(long("speed"), true, M).unwrap().unwrap()
+	s := a.take_arg(Long("speed"), true, M).unwrap().unwrap()
 	require.Equal(t, s, "-12")
 	require.True(t, a.is_empty())
 }
 
 func short_arg_with_equality(t *testing.T) {
 	a := Statefrom([]string{"-s=12"})
-	s := a.take_arg(short('s'), false, M).unwrap().unwrap()
+	s := a.take_arg(Short('s'), false, M).unwrap().unwrap()
 	require.Equal(t, s, "12")
 	require.True(t, a.is_empty())
 }
 
 func short_arg_with_equality_and_minus(t *testing.T) {
 	a := Statefrom([]string{"-s=-12"})
-	s := a.take_arg(short('s'), false, M).unwrap().unwrap()
+	s := a.take_arg(Short('s'), false, M).unwrap().unwrap()
 	require.Equal(t, s, "-12")
 	require.True(t, a.is_empty())
 }
 
 func short_arg_with_equality_and_minus_is_adjacent(t *testing.T) {
 	a := Statefrom([]string{"-s=-12"})
-	s := a.take_arg(short('s'), true, M).unwrap().unwrap()
+	s := a.take_arg(Short('s'), true, M).unwrap().unwrap()
 	require.Equal(t, s, "-12")
 	require.True(t, a.is_empty())
 }
 
 func short_arg_without_equality(t *testing.T) {
 	a := Statefrom([]string{"-s", "12"})
-	s := a.take_arg(short('s'), false, M).unwrap().unwrap()
+	s := a.take_arg(Short('s'), false, M).unwrap().unwrap()
 	require.Equal(t, s, "12")
 	require.True(t, a.is_empty())
 }
 
 func two_short_flags(t *testing.T) {
 	a := Statefrom([]string{"-s", "-v"})
-	require.True(t, a.take_flag(short('s')))
-	require.True(t, a.take_flag(short('v')))
+	require.True(t, a.take_flag(Short('s')))
+	require.True(t, a.take_flag(Short('v')))
 	require.True(t, a.is_empty())
 }
 
 func two_short_flags2(t *testing.T) {
 	a := Statefrom([]string{"-s", "-v"})
-	require.True(t, a.take_flag(short('v')))
-	require.True(t, !a.take_flag(short('v')))
-	require.True(t, a.take_flag(short('s')))
-	require.True(t, !a.take_flag(short('s')))
+	require.True(t, a.take_flag(Short('v')))
+	require.True(t, !a.take_flag(Short('v')))
+	require.True(t, a.take_flag(Short('s')))
+	require.True(t, !a.take_flag(Short('s')))
 	require.True(t, a.is_empty())
 }
 
 func command_with_flags(t *testing.T) {
 	a := Statefrom([]string{"cmd", "-s", "v"})
 	require.True(t, a.take_cmd("cmd"))
-	s := a.take_arg(short('s'), false, M).unwrap().unwrap()
+	s := a.take_arg(Short('s'), false, M).unwrap().unwrap()
 	require.Equal(t, s, "v")
 	require.True(t, a.is_empty())
 }
@@ -125,7 +125,7 @@ func command_and_positional(t *testing.T) {
 
 func positionals_after_double_dash1(t *testing.T) {
 	a := Statefrom([]string{"-v", "--", "-x"})
-	require.True(t, a.take_flag(short('v')))
+	require.True(t, a.take_flag(Short('v')))
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "-x")
@@ -134,7 +134,7 @@ func positionals_after_double_dash1(t *testing.T) {
 
 func positionals_after_double_dash2(t *testing.T) {
 	a := Statefrom([]string{"-v", "--", "-x"})
-	require.True(t, a.take_flag(short('v')))
+	require.True(t, a.take_flag(Short('v')))
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "-x")
@@ -143,7 +143,7 @@ func positionals_after_double_dash2(t *testing.T) {
 
 func positionals_after_double_dash3(t *testing.T) {
 	a := Statefrom([]string{"-v", "12", "--", "-x"})
-	w := a.take_arg(short('v'), false, M).unwrap().unwrap()
+	w := a.take_arg(Short('v'), false, M).unwrap().unwrap()
 	require.Equal(t, w, "12")
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
@@ -156,9 +156,9 @@ func ambiguity_towards_flag(t *testing.T) {
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{}, &err)
 
-	require.True(t, a.take_flag(short('a')))
-	require.True(t, a.take_flag(short('b')))
-	require.True(t, a.take_flag(short('c')))
+	require.True(t, a.take_flag(Short('a')))
+	require.True(t, a.take_flag(Short('b')))
+	require.True(t, a.take_flag(Short('c')))
 }
 
 func ambiguity_towards_argument(t *testing.T) {
@@ -166,7 +166,7 @@ func ambiguity_towards_argument(t *testing.T) {
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{}, []byte{'a'}, &err)
 
-	r := a.take_arg(short('a'), false, M).unwrap().unwrap()
+	r := a.take_arg(Short('a'), false, M).unwrap().unwrap()
 	require.Equal(t, r, "bc")
 }
 

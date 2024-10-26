@@ -32,5 +32,5 @@ enum Action {
 }
 
 fn main() {
-    println!("{:?}", options().run());
+    fmt.Println(options().run());
 }

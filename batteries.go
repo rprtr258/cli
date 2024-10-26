@@ -33,22 +33,21 @@ import (
 //
 // ```
 func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
-	vp := many(req_flag(short('v').
+	vp := Many(ReqFlag(Short('v').
 		Long("verbose").
-		Help(newDocFromString("Increase output verbosity, can be used several times")),
-		struct{}{}))
+		Help("Increase output verbosity, can be used several times"),
+		struct{}{}).Parser())
 	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta},
 		func(v []struct{}) int { return len(v) })
 
-	qp := many(req_flag(short('q').
+	qp := Many(ReqFlag(Short('q').
 		Long("quiet").
-		Help(newDocFromString("Decrease output verbosity, can be used several times")),
-		struct{}{}))
+		Help("Decrease output verbosity, can be used several times"),
+		struct{}{}).Parser())
 	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta},
 		func(v []struct{}) int { return len(v) })
 
-	p := Pair(verbose, quiet)
-	return Map(p, func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
+	return Map(Pair(verbose, quiet).Parser(), func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
 }
 
 // `--verbose` and `--quiet` flags with results choosen from a slice of values
@@ -138,9 +137,9 @@ func toggle_flag[T any](
 	a NamedArg, val_a T,
 	b NamedArg, val_b T,
 ) Parser[Option[T]] {
-	pa := req_flag(a, val_a)
-	pb := req_flag(b, val_b)
-	return Map(many(Pair(pa, pb)), func(xs []fun.Pair[T, T]) Option[T] { return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V }) })
+	pa := ReqFlag(a, val_a).Parser()
+	pb := ReqFlag(b, val_b).Parser()
+	return Map(Many(Pair(pa, pb).Parser()), func(xs []fun.Pair[T, T]) Option[T] { return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V }) })
 }
 
 // Get usage for a parser

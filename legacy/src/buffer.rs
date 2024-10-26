@@ -368,7 +368,6 @@ impl Doc {
 
         let mut res = Doc::default();
         let mut cur = 0;
-
         for &t in &self.tokens {
             match t {
                 Token::Text { bytes, style } => {

@@ -27,5 +27,5 @@ struct Fallback {
 
 fn main() {
     let opts = commands().run();
-    println!("{:?}", opts);
+    fmt.Println(opts);
 }

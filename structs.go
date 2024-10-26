@@ -3,6 +3,7 @@ package cli
 import (
 	"cmp"
 	"fmt"
+	"iter"
 	"math"
 
 	"github.com/rprtr258/fun"
@@ -52,6 +53,10 @@ func (self ParseFallbackWith[T]) meta() Meta {
 type ParseGroupHelp[T any] struct {
 	inner   Parser[T]
 	message Doc
+}
+
+func (self ParseGroupHelp[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 // impl<T, P> Parser[T] for ParseGroupHelp<P>
@@ -443,6 +448,10 @@ type ParseWith[T, R any] struct {
 	parse_fn func(T) Result[R]
 }
 
+func (self ParseWith[T, R]) Parser() Parser[R] {
+	return Parser[R]{self.eval, self.meta}
+}
+
 // impl<T, P, F, E, R> Parser<R> for ParseWith<T, P, F, E, R>
 func (self ParseWith[T, R]) eval(args *State) Result[R] {
 	t, err := self.inner.eval(args).unpack()
@@ -470,10 +479,10 @@ type ParseFallback[T any] struct {
 	value_str string
 }
 
-// impl<P, T> Parser[T] for ParseFallback<P, T>
-//
-//	P: Parser[T],
-//	T: Clone,
+func (self ParseFallback[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
+}
+
 func (self ParseFallback[T]) eval(args *State) Result[T] {
 	clone := args
 	ok, e := self.inner.eval(clone).unpack()
@@ -504,7 +513,7 @@ func (self ParseFallback[T]) meta() Meta {
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-func (self *ParseFallback[T]) display_fallback() ParseFallback[T] {
+func (self *ParseFallback[T]) DisplayFallback() ParseFallback[T] {
 	self.value_str = fmt.Sprintf("[default: %v]", self.value)
 	return *self
 }
@@ -513,7 +522,7 @@ func (self *ParseFallback[T]) display_fallback() ParseFallback[T] {
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
-func (self *ParseFallback[T]) debug_fallback() ParseFallback[T] {
+func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 	self.value_str = fmt.Sprintf("[default: %#v]", self.value)
 	return *self
 }
@@ -526,7 +535,7 @@ func (self *ParseFallback[T]) debug_fallback() ParseFallback[T] {
 // # If fallback function fails - no value will show up
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-func (self *ParseFallbackWith[T]) display_fallback() ParseFallbackWith[T] {
+func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 	if val, err := self.fallback().unpack(); err == nil {
 		self.value_str = fmt.Sprintf("[default: %v]", val)
 	}
@@ -558,6 +567,10 @@ type ParseGuard[T any] struct {
 	message string
 }
 
+func (self ParseGuard[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
+}
+
 // impl<T, P, F> Parser[T] for ParseGuard<P, F>
 func (self ParseGuard[T]) eval(args *State) Result[T] {
 	t, err := self.inner.eval(args).unpack()
@@ -575,13 +588,15 @@ func (self ParseGuard[T]) meta() Meta {
 	return self.inner.meta()
 }
 
-// Apply inner parser as many times as it succeeds while consuming something and return this
-// number
+// Apply inner parser as many times as it succeeds while consuming something and return this number
 type ParseCount[T any] struct {
 	inner Parser[T]
 }
 
-// impl<T, P> Parser[uint] for ParseCount<P, T>
+func (self ParseCount[T]) Parser() Parser[int] {
+	return Parser[int]{self.eval, self.meta}
+}
+
 func (self ParseCount[T]) eval(args *State) Result[int] {
 	res := 0
 	current := args.len()
@@ -669,9 +684,13 @@ func (self ParseOptional[T]) meta() Meta {
 // actually parse arguments like in examples you should [`parse`](Parserparse) or construct
 // enum with alternative branches
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/optional_catch.md"))]
-func (self *ParseOptional[P]) Catch() *ParseOptional[P] {
+func (self *ParseOptional[T]) Catch() *ParseOptional[T] {
 	self.catch = true
 	return self
+}
+
+func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
+	return Parser[Option[T]]{self.eval, self.meta}
 }
 
 // Apply inner parser several times and collect results into `Vec`, created with
@@ -690,7 +709,7 @@ type ParseMany[T any] struct {
 // There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
 // and [`ParseSome`], behavior should be identical for all of them.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
-func (self *ParseMany[P]) Catch() *ParseMany[P] {
+func (self *ParseMany[T]) Catch() *ParseMany[T] {
 	self.catch = true
 	return self
 }
@@ -844,6 +863,10 @@ type ParseCon[T any] struct {
 	failfast bool
 }
 
+func (self ParseCon[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.Meta}
+}
+
 // impl<T, P> Parser[T] for ParseCon<P>
 func (self ParseCon[T]) eval(args *State) Result[T] {
 	res := self.inner(self.failfast, args)
@@ -855,11 +878,11 @@ func (self ParseCon[P]) Meta() Meta {
 	return self.meta
 }
 
-// Automagically restrict the inner parser scope to accept adjacent values only
+// Automagically restrict the inner parser scope to accept Adjacent values only
 //
-// `adjacent` can solve surprisingly wide variety of problems: sequential command chaining,
+// `Adjacent` can solve surprisingly wide variety of problems: sequential command chaining,
 // multi-value arguments, fun.Option-structs to name a few. If you want to run a parser on a
-// sequential subset of arguments - `adjacent` might be able to help you. Check the examples
+// sequential subset of arguments - `Adjacent` might be able to help you. Check the examples
 // for better intuition.
 //
 // Let's consider two examples with consumed items marked in bold and constructor containing
@@ -869,7 +892,7 @@ func (self ParseCon[P]) Meta() Meta {
 // - <code>**-a** **-c** -b -d</code>
 //
 // In the first example `-b` breaks the adjacency for all the consumed items so parsing will fail,
-// while here in the second one all the consumed items are adjacent to each other so
+// while here in the second one all the consumed items are Adjacent to each other so
 // parsing will succeed.
 //
 // # Multi-value arguments
@@ -883,7 +906,7 @@ func (self ParseCon[P]) Meta() Meta {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_1.md"))]
 //
 // # Chaining commands
-// This example explains [`adjacent`](crateparamsParseCommandadjacent), but the same idea holds.
+// This example explains [`Adjacent`](crateparamsParseCommandadjacent), but the same idea holds.
 // Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag`
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
@@ -908,12 +931,12 @@ func (self ParseCon[P]) Meta() Meta {
 // `bpaf` can run adjacently restricted parsers multiple times to refine the guesses. It's
 // best not to have complex inter-fields verification since they might trip up the detection
 // logic: instead of restricting, for example "sum of two fields to be 5 or greater" *inside* the
-// `adjacent` parser, you can restrict it *outside*, once `adjacent` done the parsing.
+// `Adjacent` parser, you can restrict it *outside*, once `Adjacent` done the parsing.
 //
-// There's also similar method [`adjacent`](crateparsersParseArgument) that allows to restrict argument
+// There's also similar method [`Adjacent`](crateparsersParseArgument) that allows to restrict argument
 // parser to work only for arguments where both key and a value are in the same shell word:
 // `-f=bar` or `-fbar`, but not `-f bar`.
-func (self ParseCon[T]) adjacent() ParseAdjacent[T] {
+func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
 	self.failfast = true
 	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.Meta}}
 }
@@ -922,8 +945,12 @@ func (self ParseCon[T]) adjacent() ParseAdjacent[T] {
 
 type ParseComp[T any] struct {
 	inner Parser[T]
-	op    func(T) []fun.Pair[string, Option[string]]
+	op    func(T) iter.Seq2[string, Option[string]]
 	group Option[string]
+}
+
+func (self ParseComp[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 // Attach group name to parsed values
@@ -961,11 +988,11 @@ func (self ParseComp[T]) eval(args *State) Result[T] {
 			if is_arg, ok := is_meta.Unpack(); ok {
 				suggestions := self.op(res.Value)
 				// strip metavar when completion makes a single good suggestion
-				if len(suggestions) != 1 {
-					comp.push_comp(ci)
-				}
-				for _, sugg := range suggestions {
-					replacement, description := sugg.K, sugg.V
+				// TODO: get back if
+				// if len(suggestions) != 1 {
+				// 	comp.push_comp(ci)
+				// }
+				for replacement, description := range suggestions {
 					group := self.group
 					comp.push_value(
 						replacement,
@@ -1015,6 +1042,10 @@ where
 
 type ParseAdjacent[T any] struct {
 	inner Parser[T]
+}
+
+func (self ParseAdjacent[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 // impl<P, T> Parser[T] for ParseAdjacent<P>

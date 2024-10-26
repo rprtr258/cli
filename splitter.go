@@ -5,53 +5,17 @@ import (
 	"strings"
 )
 
-type Code func(
-	No func(),
-	First func(),
-	Rest func(),
+type Code uint8
+
+const (
+	CodeNo Code = iota
+	CodeFirst
+	CodeRest
 )
 
-func CodeNo() Code {
-	return func(f, _, _ func()) {
-		if f != nil {
-			f()
-		}
-	}
-}
-
-func CodeFirst() Code {
-	return func(_, f, _ func()) {
-		if f != nil {
-			f()
-		}
-	}
-}
-
-func CodeRest() Code {
-	return func(_, _, f func()) {
-		if f != nil {
-			f()
-		}
-	}
-}
-
-func (c Code) IsNo() bool {
-	var res bool
-	c(func() { res = true }, nil, nil)
-	return res
-}
-
-func (c Code) IsFirst() bool {
-	var res bool
-	c(nil, func() { res = true }, nil)
-	return res
-}
-
-func (c Code) IsRest() bool {
-	var res bool
-	c(nil, nil, func() { res = true })
-	return res
-}
+func (c Code) IsNo() bool    { return c == CodeNo }
+func (c Code) IsFirst() bool { return c == CodeFirst }
+func (c Code) IsRest() bool  { return c == CodeRest }
 
 type Chunk func(
 	Raw func(string, uint),
@@ -90,7 +54,7 @@ func split(input string) iter.Seq[Chunk] {
 
 	self := Splitter{
 		input: input,
-		code:  CodeNo(),
+		code:  CodeNo,
 	}
 
 	// 1. paragraphs are separated by a blank line.
@@ -111,10 +75,10 @@ func split(input string) iter.Seq[Chunk] {
 
 		if !self.code.IsNo() {
 			if self.code.IsRest() && strings.HasPrefix(self.input, "```") {
-				self.code = CodeNo()
+				self.code = CodeNo
 			}
 			if self.code.IsFirst() {
-				self.code = CodeRest()
+				self.code = CodeRest
 			}
 
 			tail := self.input
@@ -145,7 +109,7 @@ func split(input string) iter.Seq[Chunk] {
 				}
 				return ChunkRaw(code, ChunkCODE), true
 			} else if strings.HasPrefix(tail, "\n```") {
-				self.code = CodeFirst()
+				self.code = CodeFirst
 				self.input = tail[1:]
 				return ChunkParagraph, true
 			} else if strings.HasPrefix(tail, "\n    ") {

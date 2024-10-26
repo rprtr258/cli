@@ -557,13 +557,13 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 			buf.token(TokenBlockStart(BlockItemTerm))
 			buf.token(TokenBlockEnd(BlockItemTerm))
 			buf.token(TokenBlockStart(BlockItemBody))
-			buf.doc(help)
+			buf.Doc(help)
 			buf.token(TokenBlockEnd(BlockItemBody))
 		},
 		func(help Doc, _ HiTy) {
 			buf.token(TokenBlockStart(BlockBlock))
 			buf.token(TokenBlockStart(BlockSection2))
-			buf.em_doc(help)
+			buf.EmDoc(help)
 			buf.token(TokenBlockEnd(BlockSection2))
 			buf.token(TokenBlockStart(BlockDefinitionList))
 		},
@@ -573,11 +573,11 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 		},
 		func(metavar Doc, _ bool, help Option[Doc]) {
 			buf.token(TokenBlockStart(BlockItemTerm))
-			buf.doc(metavar)
+			buf.Doc(metavar)
 			buf.token(TokenBlockEnd(BlockItemTerm))
 			if help, ok := help.Unpack(); ok {
 				buf.token(TokenBlockStart(BlockItemBody))
-				buf.doc(help)
+				buf.Doc(help)
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
 		},
@@ -587,7 +587,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 			buf.token(TokenBlockEnd(BlockItemTerm))
 			if help, ok := help.Unpack(); ok {
 				buf.token(TokenBlockStart(BlockItemBody))
-				buf.doc(help)
+				buf.Doc(help)
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
 		},
@@ -601,7 +601,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 			buf.token(TokenBlockEnd(BlockItemTerm))
 			if help, ok := help.Unpack(); ok {
 				buf.token(TokenBlockStart(BlockItemBody))
-				buf.doc(help)
+				buf.Doc(help)
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
 		},
@@ -611,7 +611,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 			buf.token(TokenBlockEnd(BlockItemTerm))
 			if help, ok := help.Unpack(); ok {
 				buf.token(TokenBlockStart(BlockItemBody))
-				buf.doc(help)
+				buf.Doc(help)
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
 			if env, ok := env.Unpack(); ok {
@@ -625,8 +625,8 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 				if include_env {
 					buf.write_str(fmt.Sprintf("[env:%v%v]", env, val), StyleText)
 				} else {
-					buf.text("Uses environment variable ")
-					buf.literal(env)
+					buf.Text("Uses environment variable ")
+					buf.Literal(env)
 				}
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
@@ -640,7 +640,7 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 
 			if help, ok := help.Unpack(); ok {
 				buf.token(TokenBlockStart(BlockItemBody))
-				buf.doc(help)
+				buf.Doc(help)
 				buf.token(TokenBlockEnd(BlockItemBody))
 			}
 
@@ -659,8 +659,8 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 				if include_env {
 					buf.write_str(fmt.Sprintf("[env:%v%v]", env, val), StyleText)
 				} else {
-					buf.text("Uses environment variable ")
-					buf.literal(env)
+					buf.Text("Uses environment variable ")
+					buf.Literal(env)
 				}
 
 				buf.token(TokenBlockEnd(BlockItemBody))
@@ -710,13 +710,13 @@ func render_help(
 
 	if t, ok := info.descr.Unpack(); ok {
 		buf.token(TokenBlockStart(BlockBlock))
-		buf.doc(t)
+		buf.Doc(t)
 		buf.token(TokenBlockEnd(BlockBlock))
 	}
 
 	buf.token(TokenBlockStart(BlockBlock))
 	if usage, ok := info.usage.Unpack(); ok {
-		buf.doc(usage)
+		buf.Doc(usage)
 	} else {
 		buf.write_str("Usage", StyleEmphasis)
 		buf.write_str(": ", StyleText)
@@ -729,7 +729,7 @@ func render_help(
 
 	if t, ok := info.header.Unpack(); ok {
 		buf.token(TokenBlockStart(BlockBlock))
-		buf.doc(t)
+		buf.Doc(t)
 		buf.token(TokenBlockEnd(BlockBlock))
 	}
 
@@ -741,7 +741,7 @@ func render_help(
 
 	if footer, ok := info.footer.Unpack(); ok {
 		buf.token(TokenBlockStart(BlockBlock))
-		buf.doc(footer)
+		buf.Doc(footer)
 		buf.token(TokenBlockEnd(BlockBlock))
 	}
 	return buf

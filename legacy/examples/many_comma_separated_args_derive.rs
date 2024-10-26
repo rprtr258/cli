@@ -27,5 +27,5 @@ struct Opts {
 }
 
 fn main() {
-    println!("{:?}", opts().to_options().run());
+    fmt.Println(opts().to_options().run());
 }

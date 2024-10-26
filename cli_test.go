@@ -581,7 +581,7 @@ func wtf_shenanigans_2(t *testing.T) {
 }
 
 func de_yoda(t *testing.T) {
-	parser := Pair(short('a').Switch(), short('b').Switch()).to_options()
+	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
 
 	{
 		r, err := parser.run_inner(Argsfrom())

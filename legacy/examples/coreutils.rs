@@ -283,5 +283,5 @@ pub enum Options {
 fn main() {
     let parser = options();
 
-    println!("{:?}", parser.run());
+    fmt.Println(parser.run());
 }

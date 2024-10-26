@@ -1,4 +1,4 @@
-//! Simple dynamic completion example
+// Simple dynamic completion example
 
 #![allow(dead_code)]
 use bpaf::*;
@@ -60,5 +60,5 @@ pub struct Options {
 }
 
 fn main() {
-    println!("{:?}", options().run());
+    fmt.Println(options().run());
 }

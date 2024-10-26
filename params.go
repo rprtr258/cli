@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding"
 	"os"
 
 	"github.com/rprtr258/fun"
@@ -162,8 +161,8 @@ func (self NamedArg) Env(variable string) NamedArg {
 // documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
-func (self NamedArg) Help(help Doc) NamedArg {
-	self.help = Valid(help)
+func (self NamedArg) Help(help string) NamedArg {
+	self.help = Valid(newDocFromString(help))
 	return self
 }
 
@@ -186,8 +185,8 @@ func (self NamedArg) Switch() Parser[bool] {
 //
 // More generic version of [`switch`](NamedArgswitch) that can use arbitrary type instead of
 // [`bool`].
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
-func flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/Flag.md"))]
+func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 	return build_flag_parser(present, Valid(absent), self)
 }
 
@@ -198,18 +197,17 @@ func flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 // Works best in combination with other parsers.
 //
 // In derive style API `bpaf` would transform field-less enum variants into a parser
-// that accepts one of it's variant names as `req_flag`. Additionally `bpaf` handles `()`
-// fields as `req_flag`.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
-func req_flag[T any](self NamedArg, present T) Parser[T] {
-	p := build_flag_parser(present, Invalid[T](), self)
-	return Parser[T]{p.eval, p.meta}
+// that accepts one of it's variant names as `ReqFlag`. Additionally `bpaf` handles `()`
+// fields as `ReqFlag`.
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/ReqFlag.md"))]
+func ReqFlag[T any](self NamedArg, present T) ParseFlag[T] {
+	return build_flag_parser(present, Invalid[T](), self)
 }
 
 // Argument
 //
 // A short (`-a`) or long (`--name`) name followed by  either a space or `=` and
-// then by a string literal.  `-f foo`, `--flag bar` or `-o=-` are all valid argument examples. Note, string
+// then by a string literal.  `-f foo`, `--flag bar` or `-o=-` are all valid Argument examples. Note, string
 // literal can't start with `-` unless separated from the flag with `=`. For short flags value
 // can follow immediately: `-fbar`.
 //
@@ -221,11 +219,16 @@ func req_flag[T any](self NamedArg, present T) Parser[T] {
 // usually in capital letters. For example for an abstract file parameter it could be
 // `"FILE"`, for a username - `"USER"`, etc.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/Argument.md"))]
 //
 // You can further restrict it using [`adjacent`](ParseArgumentadjacent)
-func argument[T encoding.TextUnmarshaler](self NamedArg, metavar string) ParseArgument[T] {
-	return build_argument[T](self, metavar)
+func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) ParseArgument[T] {
+	return ParseArgument[T]{
+		named:    self,
+		metavar:  metavar,
+		adjacent: false,
+		p:        p,
+	}
 }
 
 // `adjacent` requires for the argument to be present in the same word as the flag:
@@ -247,20 +250,20 @@ func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 // too.
 //
 // # Important restriction
-// When parsing command arguments from command lines you should have parsers for all your
+// When parsing Command arguments from Command lines you should have parsers for all your
 // named values before parsers for commands and positional items. In derive API fields parsed as
 // positional should be at the end of your `struct`/`enum`. Same rule applies
 // to parsers with positional fields or commands inside: such parsers should go to the end as well.
 //
 // Use [`check_invariants`](OptionParsercheck_invariants) in your test to ensure correctness.
 //
-// For example for non positional `non_pos` and a command `command` parsers
+// For example for non positional `non_pos` and a Command `Command` parsers
 // ```rust
 // # use bpaf*;
 // # non_pos := || short('n').switch();
-// # command := || pure(struct{}{}).to_options().command("POS");
-// valid := construct(non_pos(), command());
-// invalid := construct(command(), non_pos());
+// # Command := || pure(struct{}{}).to_options().Command("POS");
+// valid := construct(non_pos(), Command());
+// invalid := construct(Command(), non_pos());
 // ```
 //
 // **`bpaf` panics during help generation unless if this restriction holds**
@@ -268,12 +271,12 @@ func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 // You can attach a single visible short alias and multiple hiddden short and long aliases
 // using [`short`](ParseCommandshort) and [`long`](ParseCommandlong) methods.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/Command.md"))]
 //
 // To represent multiple possible commands it is convenient to use enums
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/command_enum.md"))]
-func (self OptionParser[T]) command(name string) ParseCommand[T] {
-	return ParseCommand[T]{
+func (self OptionParser[T]) Command(name string) *ParseCommand[T] {
+	return &ParseCommand[T]{
 		longs:     []string{name},
 		shorts:    nil,
 		help:      self.short_descr(),
@@ -348,8 +351,8 @@ type ParseCommand[T any] struct {
 //	mystery  This command performs a mystery operation
 //
 // ```
-func (self *ParseCommand[P]) Help(help Doc) *ParseCommand[P] {
-	self.help = Valid(help)
+func (self *ParseCommand[P]) Help(help string) *ParseCommand[P] {
+	self.help = Valid(newDocFromString(help))
 	return self
 }
 
@@ -392,7 +395,10 @@ func (self *ParseCommand[P]) Adjacent() *ParseCommand[P] {
 	return self
 }
 
-// impl[T] Parser[T] for  {
+func (self ParseCommand[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
+}
+
 func (self ParseCommand[T]) eval(args *State) Result[T] {
 	// used to avoid allocations for short names
 	tmp := ""
@@ -490,6 +496,10 @@ type ParseFlag[T any] struct {
 	named   NamedArg
 }
 
+func (self ParseFlag[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
+}
+
 // impl<T: Clone > Parser[T] for ParseFlag[T] {
 func (self ParseFlag[T]) eval(args *State) Result[T] {
 	if args.take_flag(self.named) || find_map(self.named.env, func(e string) Option[string] {
@@ -545,19 +555,16 @@ func (self *ParseArgument[T]) help(help Doc) *ParseArgument[T] {
 	return self
 }
 
-func build_argument[T any](named NamedArg, metavar string) ParseArgument[T] {
-	return ParseArgument[T]{
-		named:    named,
-		metavar:  metavar,
-		adjacent: false,
-	}
-}
-
 // Parser for a named argument, created with [`argument`](NamedArgargument).
 type ParseArgument[T any] struct {
 	named    NamedArg
 	metavar  string
 	adjacent bool
+	p        func(string) (T, error)
+}
+
+func (self ParseArgument[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 // Restrict parsed arguments to have both flag and a value in the same word:
@@ -623,13 +630,17 @@ func (self ParseArgument[T]) take_argument(args *State) Result[string] {
 	}
 }
 
-func (self ParseArgument[T]) eval(args *State) Result[string] {
+func (self ParseArgument[T]) eval(args *State) Result[T] {
 	os, err := self.take_argument(args).unpack()
 	if err != nil {
-		return Err[string](err)
+		return Err[T](err)
 	}
 
-	return Ok(os)
+	t, errr := self.p(os)
+	if errr != nil {
+		return Err[T](Error(MessageParseFailed(args.current, errr.Error())))
+	}
+	return Ok(t)
 }
 
 func (self ParseArgument[T]) meta() Meta {
@@ -637,14 +648,6 @@ func (self ParseArgument[T]) meta() Meta {
 		return MetaItem(item)
 	} else {
 		return MetaSkip
-	}
-}
-
-func build_positional[T any](metavar string) ParsePositional[T] {
-	return ParsePositional[T]{
-		metavar:  metavar,
-		help:     Invalid[Doc](),
-		position: PositionUnrestricted,
 	}
 }
 
@@ -656,29 +659,16 @@ type ParsePositional[T any] struct {
 	metavar  string
 	help     Option[Doc]
 	position Position
+	p        func(string) (T, error)
 }
 
-type Position func(
-	Unrestricted func(),
-	Strict func(),
-	NonStrict func(),
+type Position uint8
+
+const (
+	PositionUnrestricted Position = iota
+	PositionStrict
+	PositionNonStrict
 )
-
-var PositionUnrestricted Position = func(Unrestricted, _, _ func()) {
-	if Unrestricted != nil {
-		Unrestricted()
-	}
-}
-var PositionStrict Position = func(_, Strict, _ func()) {
-	if Strict != nil {
-		Strict()
-	}
-}
-var PositionNonStrict Position = func(_, _, NonStrict func()) {
-	if NonStrict != nil {
-		NonStrict()
-	}
-}
 
 // Add a help message to a [`positional`] parser
 //
@@ -692,9 +682,13 @@ var PositionNonStrict Position = func(_, _, NonStrict func()) {
 // documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
-func (self *ParsePositional[T]) Help(help Doc) *ParsePositional[T] {
-	self.help = Valid(help)
+func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
+	self.help = Valid(newDocFromString(help))
 	return self
+}
+
+func (self *ParsePositional[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
 }
 
 // Changes positional parser to be a "strict" positional
@@ -732,12 +726,16 @@ func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 	return self
 }
 
-func (self ParsePositional[T]) eval(args *State) Result[string] {
+func (self ParsePositional[T]) eval(args *State) Result[T] {
 	os, err := parse_pos_word(args, Metavar(self.metavar), self.help, self.position).unpack()
 	if err != nil {
-		return Err[string](err)
+		return Err[T](err)
 	}
-	return Ok(os)
+	t, errr := self.p(os)
+	if errr != nil {
+		return Err[T](Error(MessageParseFail(errr.Error())))
+	}
+	return Ok(t)
 }
 
 func (self ParsePositional[T]) meta() Meta {
@@ -745,11 +743,9 @@ func (self ParsePositional[T]) meta() Meta {
 		Metavar(self.metavar),
 		self.help,
 	))
-	self.position(
-		nil,
-		func() { meta = MetaStrict(meta) },
-		nil,
-	)
+	if self.position == PositionStrict {
+		meta = MetaStrict(meta)
+	}
 	return meta
 }
 
@@ -768,20 +764,12 @@ func parse_pos_word(
 		return Err[string](err)
 	}
 
-	position(
-		nil,
-		func() {
-			if !is_strict {
-				args.push_pos_sep()
-				err = Error(MessageStrictPos(ix, metavar))
-			}
-		},
-		func() {
-			if is_strict {
-				err = Error(MessageNonStrictPos(ix, metavar))
-			}
-		},
-	)
+	if position == PositionStrict && !is_strict {
+		args.push_pos_sep()
+		err = Error(MessageStrictPos(ix, metavar))
+	} else if position == PositionNonStrict && is_strict {
+		err = Error(MessageNonStrictPos(ix, metavar))
+	}
 	if err != nil {
 		return Err[string](err)
 	}
@@ -802,6 +790,10 @@ type ParseAny[T any] struct {
 	anywhere bool
 }
 
+func (self ParseAny[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta}
+}
+
 func (self ParseAny[T]) item() Item {
 	return ItemAny(
 		self.metavar,
@@ -812,8 +804,8 @@ func (self ParseAny[T]) item() Item {
 
 // Add a help message to [`any`] parser.
 // See examples in [`any`]
-func (self *ParseAny[T]) Help(help Doc) *ParseAny[T] {
-	self.help = Valid(help)
+func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
+	self.help = Valid(newDocFromString(help))
 	return self
 }
 

@@ -69,5 +69,5 @@ fn main() {
     }
 
     let options = parser.run();
-    println!("{:?}", options);
+    fmt.Println(options);
 }

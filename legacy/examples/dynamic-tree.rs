@@ -76,5 +76,5 @@ fn make_parser(item: &Cog) -> Box<dyn Parser<&'static str>> {
 fn main() {
     let cfg = config();
     let command = make_parser(&cfg).to_options().run();
-    println!("{:?}", command);
+    fmt.Println(command);
 }

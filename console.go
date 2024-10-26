@@ -41,62 +41,52 @@ const MAX_TAB = 24
 const MAX_WIDTH = 100
 
 // Default to dull color if colors are enabled,
-type Color func(
-	Monochrome func(),
-	Dull func(),
-	Bright func(),
+type Color uint8
+
+const (
+	ColorMonochrome Color = iota
+	ColorDull
+	ColorBright
 )
 
 func (c Color) IsMonochrome() bool {
-	var res bool
-	c(func() { res = true }, nil, nil)
-	return res
+	return c == ColorMonochrome
 }
 
-var ColorMonochrome Color = func(Monochrome, Dull, Bright func()) {
-	if Monochrome != nil {
-		Monochrome()
-	}
-}
-var ColorDull Color = func(Monochrome, Dull, Bright func()) {
-	if Dull != nil {
-		Dull()
-	}
-}
-var ColorBright Color = func(Monochrome, Dull, Bright func()) {
-	if Bright != nil {
-		Bright()
-	}
-}
+var Colordefault = ColorMonochrome
 
-func Colordefault() Color {
-	return ColorMonochrome
-}
-
-func (self Color) push_str(style Style, res *string, item string) {
-	self(
-		func() {
-			*res += item
-		},
-		func() {
-			style(
-				func() { *res += item },
-				func() { *res += item /*.underline().bold()*/ },
-				func() { *res += item /*.bold()*/ },
-				func() { *res += item /*.underline()*/ },
-				func() { *res += item /*.bold().red()*/ },
-			)
-		},
-		func() {
-			style(
-				func() { *res += item },
-				func() { *res += item /*.yellow().bold()*/ },
-				func() { *res += item /*.green().bold()*/ },
-				func() { *res += item /*.blue().bold()*/ },
-				func() { *res += item /*.red().bold()*/ },
-			)
-		},
-	)
+func (self Color) push_str(style Style, item string) string {
+	switch self {
+	case ColorMonochrome:
+		return item
+	case ColorDull:
+		switch style {
+		case StyleText:
+			return item
+		case StyleEmphasis:
+			return item /*.underline().bold()*/
+		case StyleLiteral:
+			return item /*.bold()*/
+		case StyleMetavar:
+			return item /*.underline()*/
+		case StyleInvalid:
+			return item /*.bold().red()*/
+		}
+	case ColorBright:
+		switch style {
+		case StyleText:
+			return item
+		case StyleEmphasis:
+			return item /*.yellow().bold()*/
+		case StyleLiteral:
+			return item /*.green().bold()*/
+		case StyleMetavar:
+			return item /*.blue().bold()*/
+		case StyleInvalid:
+			return item /*.red().bold()*/
+		}
+	}
+	return ""
 }
 
 const PADDING = "                                                  "
@@ -118,28 +108,25 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 		in_term := false
 		// looking for widest term below MAX_TAB
 		for _, token := range self.tokens {
-			token(
-				func(bytes int, style Style) {
-					if in_term {
-						current += len(self.payload[byte_pos : byte_pos+bytes])
+			switch {
+			case token.isText:
+				if in_term {
+					current += len(self.payload[byte_pos : byte_pos+token.bytes])
+				}
+				byte_pos += token.bytes
+			case token.isStart:
+				if token.block == BlockItemTerm {
+					in_term = true
+					current = 0
+				}
+			default:
+				if token.block == BlockItemTerm {
+					in_term = false
+					if current > tabstop && current <= MAX_TAB {
+						tabstop = current
 					}
-					byte_pos += bytes
-				},
-				func(block Block) {
-					if block == BlockItemTerm {
-						in_term = true
-						current = 0
-					}
-				},
-				func(block Block) {
-					if block == BlockItemTerm {
-						in_term = false
-						if current > tabstop && current <= MAX_TAB {
-							tabstop = current
-						}
-					}
-				},
-			)
+				}
+			}
 		}
 		byte_pos = 0
 	}
@@ -159,129 +146,131 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	pending_margin := false
 
 	for _, token := range self.tokens {
-		token(
-			func(bytes int, style Style) {
-				input := self.payload[byte_pos : byte_pos+bytes]
-				byte_pos += bytes
+		switch {
+		case token.isText:
+			bytes, style := token.bytes, token.style
+			input := self.payload[byte_pos : byte_pos+bytes]
+			byte_pos += bytes
 
-				if skip.enabled() {
-					return
-				}
+			if skip.enabled() {
+				continue
+			}
 
-				for chunk := range split(input) {
-					chunk(
-						func(s string, w uint) {
-							margin := last(margins).OrDefault(0)
-							if res != "" {
-								if (pending_newline || pending_blank_line) && !strings.HasSuffix(res, "\n") {
-									char_pos = 0
-									res += "\n"
+			for chunk := range split(input) {
+				chunk(
+					func(s string, w uint) {
+						margin := last(margins).OrDefault(0)
+						if res != "" {
+							if (pending_newline || pending_blank_line) && !strings.HasSuffix(res, "\n") {
+								char_pos = 0
+								res += "\n"
+							}
+							if pending_blank_line && !strings.HasSuffix(res, "\n\n") {
+								res += "\n"
+							}
+							if char_pos+len(s) > int(max_width) {
+								char_pos = 0
+								res = strings.TrimRight(res, " \n")
+								res += "\n"
+								if s == " " {
+									return
 								}
-								if pending_blank_line && !strings.HasSuffix(res, "\n\n") {
-									res += "\n"
-								}
-								if char_pos+len(s) > int(max_width) {
-									char_pos = 0
-									res = strings.TrimRight(res, " \n")
-									res += "\n"
-									if s == " " {
-										return
-									}
-								}
 							}
+						}
 
-							pushed := 0
-							if int(margin) >= char_pos {
-								missing := int(margin) - char_pos
-								res += PADDING[:missing]
-								char_pos = int(margin)
-								pushed = missing
-							}
-							if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
-								missing := 2 - pushed
-								res += PADDING[:missing]
-								char_pos += missing
-							}
+						pushed := 0
+						if int(margin) >= char_pos {
+							missing := int(margin) - char_pos
+							res += PADDING[:missing]
+							char_pos = int(margin)
+							pushed = missing
+						}
+						if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
+							missing := 2 - pushed
+							res += PADDING[:missing]
+							char_pos += missing
+						}
 
-							pending_newline = false
-							pending_blank_line = false
-							pending_margin = false
+						pending_newline = false
+						pending_blank_line = false
+						pending_margin = false
 
-							color.push_str(style, &res, s)
-							char_pos += int(w)
-						},
-						func() {
-							res += "\n"
-							char_pos = 0
-							if !full {
-								skip.enable()
-								return
-							}
-						},
-						func() {
-							res += "\n"
-							char_pos = 0
-						},
-					)
+						res += color.push_str(style, s)
+						char_pos += int(w)
+					},
+					func() {
+						res += "\n"
+						char_pos = 0
+						if !full {
+							skip.enable()
+							return
+						}
+					},
+					func() {
+						res += "\n"
+						char_pos = 0
+					},
+				)
+			}
+		case token.isStart:
+			block := token.block
+			stack = append(stack, block)
+			margin := last(margins).OrDefault(0)
+
+			switch block {
+			case BlockHeader, BlockSection2:
+				pending_newline = true
+				margins = append(margins, margin)
+			case BlockSection3:
+				pending_newline = true
+				margins = append(margins, margin+2)
+			case BlockItemTerm:
+				pending_newline = true
+				margins = append(margins, margin+4)
+			case BlockItemBody:
+				margins = append(margins, margin+uint(tabstop)+2)
+				pending_margin = true
+			case BlockInlineBlock:
+				skip.push()
+			case BlockBlock:
+				margins = append(margins, margin)
+			case BlockDefinitionList, BlockMeta, BlockMono:
+			case BlockTermRef:
+				if color.IsMonochrome() {
+					res += "`"
+					char_pos += 1
 				}
-			},
-			func(block Block) {
-				stack = append(stack, block)
-				margin := last(margins).OrDefault(0)
+			}
+		default:
+			block := token.block
+			if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
+				panic("assert")
+			}
 
-				switch block {
-				case BlockHeader, BlockSection2:
-					pending_newline = true
-					margins = append(margins, margin)
-				case BlockSection3:
-					pending_newline = true
-					margins = append(margins, margin+2)
-				case BlockItemTerm:
-					pending_newline = true
-					margins = append(margins, margin+4)
-				case BlockItemBody:
-					margins = append(margins, margin+uint(tabstop)+2)
-					pending_margin = true
-				case BlockInlineBlock:
-					skip.push()
-				case BlockBlock:
-					margins = append(margins, margin)
-				case BlockDefinitionList, BlockMeta, BlockMono:
-				case BlockTermRef:
-					if color.IsMonochrome() {
-						res += "`"
-						char_pos += 1
-					}
-				}
-			},
-			func(block Block) {
-				if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
-					panic("assert")
-				}
-
+			if len(margins) > 0 {
 				margins = margins[:len(margins)-1]
-				switch block {
-				case BlockItemBody:
-					pending_margin = false
-				case BlockHeader,
-					BlockSection2,
-					BlockSection3,
-					BlockItemTerm,
-					BlockDefinitionList,
-					BlockMeta,
-					BlockMono:
-				case BlockInlineBlock:
-					skip.pop()
-				case BlockBlock:
-					pending_blank_line = true
-				case BlockTermRef:
-					if color.IsMonochrome() {
-						res += "`"
-						char_pos += 1
-					}
+			}
+			switch block {
+			case BlockItemBody:
+				pending_margin = false
+			case BlockHeader,
+				BlockSection2,
+				BlockSection3,
+				BlockItemTerm,
+				BlockDefinitionList,
+				BlockMeta,
+				BlockMono:
+			case BlockInlineBlock:
+				skip.pop()
+			case BlockBlock:
+				pending_blank_line = true
+			case BlockTermRef:
+				if color.IsMonochrome() {
+					res += "`"
+					char_pos += 1
 				}
-			},
-		)
+			}
+		}
 	}
 	if pending_newline || pending_blank_line {
 		res += "\n"

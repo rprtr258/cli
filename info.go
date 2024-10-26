@@ -29,8 +29,8 @@ func NewInfo() Info {
 		header:          Invalid[Doc](),
 		footer:          Invalid[Doc](),
 		usage:           Invalid[Doc](),
-		help_arg:        short('h').Long("help").Help(newDocFromString("Prints help information")),
-		version_arg:     short('V').Long("version").Help(newDocFromString("Prints version information")),
+		help_arg:        Short('h').Long("help").Help("Prints help information"),
+		version_arg:     Short('V').Long("version").Help("Prints version information"),
 		help_if_no_args: false,
 		max_width:       100,
 	}
@@ -67,11 +67,11 @@ type OptionParser[T any] struct {
 //	}
 //
 //	fn main() {
-//	    let verbosity: uint = verbosity().run();
+//	    let verbosity: uint = verbosity().Run();
 //	}
 //
 // ```
-func (self OptionParser[T]) run() T {
+func (self OptionParser[T]) Run() T {
 	t, err := self.run_inner(current_args())
 	if err != nil {
 		err.print_message(self.info.max_width)
@@ -176,12 +176,14 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	res := self.inner.eval(args)
-	var parseFailure ParseFailure
-	res.Err(nil, nil, nil, nil, nil, func(failure ParseFailure) {
-		parseFailure = failure
-	}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
-	if parseFailure != nil {
-		return *new(T), parseFailure
+	if res.Err != nil {
+		var parseFailure ParseFailure
+		res.Err(nil, nil, nil, nil, nil, func(failure ParseFailure) {
+			parseFailure = failure
+		}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
+		if parseFailure != nil {
+			return *new(T), parseFailure
+		}
 	}
 
 	if comp, ok := args.check_complete().Unpack(); ok {
@@ -202,7 +204,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	// handle --help and --version messages
-	if extra, err := self.info.eval(args).unpack(); err == nil {
+	if extra, ok := self.info.eval(args).unpack(); ok == nil {
 		detailed := false
 		var buffer Doc
 		extra(
@@ -219,8 +221,8 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 			func(v Doc) {
 				tmp := Doc{}
 				tmp.token(TokenBlockStart(BlockBlock))
-				tmp.text("Version: ")
-				tmp.doc(v)
+				tmp.Text("Version: ")
+				tmp.Doc(v)
 				tmp.token(TokenBlockEnd(BlockBlock))
 				buffer = tmp
 			},
@@ -298,7 +300,7 @@ func (self *OptionParser[T]) version(version Doc) *OptionParser[T] {
 //	   short('s')
 //	       .switch()
 //	       .to_options()
-//	       .descr("This is a description")
+//	       .Descr("This is a description")
 //	       .header("This is a header")
 //	       .footer("This is a footer")
 //	}
@@ -350,14 +352,83 @@ func (self *OptionParser[T]) version(version Doc) *OptionParser[T] {
 //
 // This is a footer
 // ```
-func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
-	self.info.descr = Valid(descr)
+func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
+	self.info.descr = Valid(newDocFromString(descr))
 	return self
 }
 
-// Set the header field
+// Set the Header field
 //
-// `bpaf` displays the header between the usage line and a list of the available fun.Options in `--help` output
+// `bpaf` displays the Header between the usage line and a list of the available fun.Options in `--help` output
+//
+// # Combinatoric usage
+// ```rust
+// # use bpaf*;
+//
+//	fn fun.Options()OptionParser<bool>  {
+//	   short('s')
+//	       .switch()
+//	       .to_options()
+//	       .descr("This is a description")
+//	       .Header("This is a Header")
+//	       .footer("This is a footer")
+//	}
+//
+// ```
+//
+// # Derive usage
+//
+// `bpaf_derive` uses doc comments on the `struct` / `enum` to derive description, it skips single empty
+// lines and uses double empty lines break it into blocks. `bpaf_derive` would use first block as the
+// description, second block - Header, third block - footer.
+//
+// ```rust
+// # use bpaf*;
+//
+// #[bpaf(options, version)]
+// // This is a description
+// //
+// //
+// // This is a Header
+// //
+// //
+// // This is a footer
+// //
+// //
+// // This is just a comment
+//
+//	struct fun.Options {
+//	    #[bpaf(short)]
+//	    switch bool
+//	}
+//
+// ```
+//
+// # Example
+//
+// ```console
+// This is a description
+//
+// Usage: [-s]
+//
+// # This is a Header
+//
+// Available fun.Options:
+//
+//	-s
+//	-h, --help     Prints help information
+//	-V, --version  Prints version information
+//
+// This is a footer
+// ```
+func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
+	self.info.header = Valid(newDocFromString(header))
+	return self
+}
+
+// Set the Footer field
+//
+// `bpaf` displays the Footer after list of the available fun.Options in `--help` output
 //
 // # Combinatoric usage
 // ```rust
@@ -369,7 +440,7 @@ func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
 //	       .to_options()
 //	       .descr("This is a description")
 //	       .header("This is a header")
-//	       .footer("This is a footer")
+//	       .Footer("This is a Footer")
 //	}
 //
 // ```
@@ -378,7 +449,7 @@ func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
 //
 // `bpaf_derive` uses doc comments on the `struct` / `enum` to derive description, it skips single empty
 // lines and uses double empty lines break it into blocks. `bpaf_derive` would use first block as the
-// description, second block - header, third block - footer.
+// description, second block - header, third block - Footer.
 //
 // ```rust
 // # use bpaf*;
@@ -390,7 +461,7 @@ func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
 // // This is a header
 // //
 // //
-// // This is a footer
+// // This is a Footer
 // //
 // //
 // // This is just a comment
@@ -417,86 +488,17 @@ func (self *OptionParser[T]) descr(descr Doc) *OptionParser[T] {
 //	-h, --help     Prints help information
 //	-V, --version  Prints version information
 //
-// This is a footer
+// This is a Footer
 // ```
-func (self *OptionParser[T]) header(header Doc) *OptionParser[T] {
-	self.info.header = Valid(header)
+func (self *OptionParser[T]) Footer(footer string) *OptionParser[T] {
+	self.info.footer = Valid(newDocFromString(footer))
 	return self
 }
 
-// Set the footer field
+// Set custom Usage field
 //
-// `bpaf` displays the footer after list of the available fun.Options in `--help` output
-//
-// # Combinatoric usage
-// ```rust
-// # use bpaf*;
-//
-//	fn fun.Options()OptionParser<bool>  {
-//	   short('s')
-//	       .switch()
-//	       .to_options()
-//	       .descr("This is a description")
-//	       .header("This is a header")
-//	       .footer("This is a footer")
-//	}
-//
-// ```
-//
-// # Derive usage
-//
-// `bpaf_derive` uses doc comments on the `struct` / `enum` to derive description, it skips single empty
-// lines and uses double empty lines break it into blocks. `bpaf_derive` would use first block as the
-// description, second block - header, third block - footer.
-//
-// ```rust
-// # use bpaf*;
-//
-// #[bpaf(options, version)]
-// // This is a description
-// //
-// //
-// // This is a header
-// //
-// //
-// // This is a footer
-// //
-// //
-// // This is just a comment
-//
-//	struct fun.Options {
-//	    #[bpaf(short)]
-//	    switch bool
-//	}
-//
-// ```
-//
-// # Example
-//
-// ```console
-// This is a description
-//
-// Usage: [-s]
-//
-// # This is a header
-//
-// Available fun.Options:
-//
-//	-s
-//	-h, --help     Prints help information
-//	-V, --version  Prints version information
-//
-// This is a footer
-// ```
-func (self *OptionParser[T]) footer(footer Doc) *OptionParser[T] {
-	self.info.footer = Valid(footer)
-	return self
-}
-
-// Set custom usage field
-//
-// Custom usage field to use instead of one derived by `bpaf`.
-func (self *OptionParser[T]) usage(usage Doc) *OptionParser[T] {
+// Custom Usage field to use instead of one derived by `bpaf`.
+func (self *OptionParser[T]) Usage(usage Doc) *OptionParser[T] {
 	self.info.usage = Valid(usage)
 	return self
 }
@@ -509,7 +511,7 @@ func (self *OptionParser[T]) usage(usage Doc) *OptionParser[T] {
 // At the moment this method is not directly supported by derive API,
 // but since it gives you an object of [`OptionParser[T]`](OptionParser)
 // type you can alter it using Combinatoric API:
-func (self *OptionParser[T]) with_usage(f func(Doc) Doc) *OptionParser[T] {
+func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 	buf := Doc{}
 	buf.write_meta(self.inner.meta(), true)
 	self.info.usage = Valid(f(buf))
@@ -573,16 +575,16 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 // # use bpaf*;
 // # func fun.Options()OptionParser<bool> { short('a').switch().to_options() }
 // // create fun.Option parser in a usual way, derive or combinatoric API
-// opts := fun.Options().fallback_to_usage().run();
+// opts := fun.Options().FallbackToUsage().run();
 // ```
 //
-// For derive macro you can specify `fallback_to_usage` in top level annotations
+// For derive macro you can specify `FallbackToUsage` in top level annotations
 // for fun.Options and for individual commands if fallback to useage is the desired behavior:
 //
 // ```ignore
 //
 //	enum Commands {
-//	    #[bpaf(command, fallback_to_usage)]
+//	    #[bpaf(command, FallbackToUsage)]
 //	    Action {
 //	        ...
 //	    }
@@ -594,7 +596,7 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 //
 // ```ignore
 //
-// #[bpaf(options, fallback_to_usage)]
+// #[bpaf(options, FallbackToUsage)]
 //
 //	struct fun.Options {
 //	    ...
@@ -605,7 +607,7 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 //	}
 //
 // ```
-func (self *OptionParser[T]) fallback_to_usage() *OptionParser[T] {
+func (self *OptionParser[T]) FallbackToUsage() *OptionParser[T] {
 	self.info.help_if_no_args = true
 	return self
 }
@@ -622,12 +624,12 @@ func (self *OptionParser[T]) max_width(width uint) *OptionParser[T] {
 	return self
 }
 
-func (self Info) mk_help_parser() Parser[struct{}] {
-	return req_flag(self.help_arg, struct{}{})
+func (self Info) mk_help_parser() ParseFlag[struct{}] {
+	return ReqFlag(self.help_arg, struct{}{})
 }
 
-func (self Info) mk_version_parser() Parser[struct{}] {
-	return req_flag(self.version_arg, struct{}{})
+func (self Info) mk_version_parser() ParseFlag[struct{}] {
+	return ReqFlag(self.version_arg, struct{}{})
 }
 
 func (self Info) eval(args *State) Result[ExtraParams] {

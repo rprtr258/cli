@@ -230,14 +230,9 @@ func (self ParseFailure) exit_code() int {
 	return res
 }
 
-// Deprecated: Please use ParseFailureprint_message, with two s
-func (self ParseFailure) print_mesage(max_width uint) {
-	self.print_message(max_width)
-}
-
 // Prints a message to `stdout` or `stderr` appropriate to the failure.
 func (self ParseFailure) print_message(max_width uint) {
-	color := Colordefault()
+	color := Colordefault
 	self(
 		func(msg Doc, full bool) {
 			fmt.Println(msg.render_console(full, color, max_width))
@@ -246,9 +241,7 @@ func (self ParseFailure) print_message(max_width uint) {
 			fmt.Print(s)
 		},
 		func(msg Doc) {
-			error := ""
-			color.push_str(StyleInvalid, &error, "Error: ")
-
+			error := color.push_str(StyleInvalid, "Error: ")
 			fmt.Fprintln(os.Stderr, error+msg.render_console(true, color, max_width))
 		},
 	)
@@ -333,23 +326,23 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 	(*self)(
 		func(name string) {
 			// Error: environment variable FOO is not set
-			doc.text("environment variable ")
+			doc.Text("environment variable ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.invalid(name)
+			doc.Invalid(name)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" is not set")
+			doc.Text(" is not set")
 		},
 		func(s string) {
 			// Error: <message from some or fail>
-			doc.text(s)
+			doc.Text(s)
 		},
 		func(s string) {
 			// Error: <message from some or fail>
-			doc.text(s)
+			doc.Text(s)
 		},
 		func(s string) {
 			// Error: <message from pure_with>
-			doc.text(s)
+			doc.Text(s)
 		},
 		func([]MissingItem) {
 			// this case is handled above(?)
@@ -359,49 +352,49 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		func(f ParseFailure) { /* doc = f */ }, // TODO: insta return
 		func(_ uint, metavar Metavar) {
 			// Error: FOO expected to be  in the right side of --
-			doc.text("expected ")
+			doc.Text("expected ")
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.metavar(metavar)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" to be on the right side of ")
+			doc.Text(" to be on the right side of ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.literal("--")
+			doc.Literal("--")
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
 		func(_ uint, metavar Metavar) {
 			// Error: FOO expected to be on the left side of --
-			doc.text("expected ")
+			doc.Text("expected ")
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.metavar(metavar)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" to be on the left side of ")
+			doc.Text(" to be on the left side of ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.literal("--")
+			doc.Literal("--")
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
 		func(mix Option[uint], s string) {
 			// Error: couldn't parse FIELD: <FromStr message>
-			doc.text("couldn't parse")
+			doc.Text("couldn't parse")
 			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
-				doc.text(" ")
+				doc.Text(" ")
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.invalid(field)
+				doc.Invalid(field)
 				doc.token(TokenBlockEnd(BlockTermRef))
 			}
-			doc.text(": ")
-			doc.text(s)
+			doc.Text(": ")
+			doc.Text(s)
 		},
 		func(mix Option[uint], s string) {
 			// Error: ( FIELD:  | check failed: ) <message from guard>
 			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.invalid(field)
+				doc.Invalid(field)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(": ")
+				doc.Text(": ")
 			} else {
-				doc.text("check failed: ")
+				doc.Text("check failed: ")
 			}
-			doc.text(s)
+			doc.Text(s)
 		},
 		func(x int, mv Metavar) {
 			// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
@@ -412,30 +405,30 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 				os := a.os_str
 
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(arg, StyleLiteral)
+				doc.write(arg.GoString(), StyleLiteral)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(" requires an argument ")
+				doc.Text(" requires an argument ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.metavar(mv)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(", got a flag ")
+				doc.Text(", got a flag ")
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(GS(os), StyleInvalid)
+				doc.write(os, StyleInvalid)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(", try ")
+				doc.Text(", try ")
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(arg, StyleLiteral)
-				doc.literal("=")
-				doc.write(GS(os), StyleLiteral)
+				doc.write(arg.GoString(), StyleLiteral)
+				doc.Literal("=")
+				doc.write(os, StyleLiteral)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(" to use it as an argument")
+				doc.Text(" to use it as an argument")
 			} else {
 				// "Some" part of this branch is actually unreachable
 				arg := &args.items[x]
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(arg, StyleLiteral)
+				doc.write(arg.GoString(), StyleLiteral)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(" requires an argument ")
+				doc.Text(" requires an argument ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.metavar(mv)
 				doc.token(TokenBlockEnd(BlockTermRef))
@@ -445,9 +438,9 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			// Error: --foo is not expected in this context
 			item := &args.items[ix]
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(item, StyleInvalid)
+			doc.write(item.GoString(), StyleInvalid)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" is not expected in this context")
+			doc.Text(" is not expected in this context")
 		},
 		func(ix int, name string) {
 			// Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
@@ -458,34 +451,34 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			s := args.items[ix].os_str
 
 			if name, ok := First(args.path).Unpack(); ok {
-				doc.literal(name)
-				doc.text(" supports ")
+				doc.Literal(name)
+				doc.Text(" supports ")
 			} else {
-				doc.text("app supports ")
+				doc.Text("app supports ")
 			}
 
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.literal("-")
+			doc.Literal("-")
 			doc.write_char(first, StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" as both an fun.Option and an fun.Option-argument, try to split ")
+			doc.Text(" as both an fun.Option and an fun.Option-argument, try to split ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(GS(s), StyleLiteral)
+			doc.write(s, StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" into individual fun.Options (")
-			doc.literal("-")
+			doc.Text(" into individual fun.Options (")
+			doc.Literal("-")
 			doc.write_char(first, StyleLiteral)
-			doc.literal(" -")
+			doc.Literal(" -")
 			doc.write_char(second, StyleLiteral)
-			doc.literal(" ..")
-			doc.text(") or use ")
+			doc.Literal(" ..")
+			doc.Text(") or use ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.literal("-")
+			doc.Literal("-")
 			doc.write_char(first, StyleLiteral)
-			doc.literal("=")
-			doc.literal(rest)
+			doc.Literal("=")
+			doc.Literal(rest)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" syntax to disambiguate")
+			doc.Text(" syntax to disambiguate")
 		},
 		func(ix uint, suggestion Suggestion) {
 			// Error: No such (flag|argument|command), did you mean  ...
@@ -505,65 +498,65 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 						)
 					}
 
-					doc.text("no such ")
-					doc.text(ty)
-					doc.text(": ")
+					doc.Text("no such ")
+					doc.Text(ty)
+					doc.Text(": ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.invalid(actual)
+					doc.Invalid(actual)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text(", did you mean ")
+					doc.Text(", did you mean ")
 					doc.token(TokenBlockStart(BlockTermRef))
 
 					v(
 						func(name string) {
-							doc.literal(name)
+							doc.Literal(name)
 						},
 						func(f ShortLong) {
 							f(
 								func(s byte) {
-									doc.literal("-")
+									doc.Literal("-")
 									doc.write_char(s, StyleLiteral)
 								},
 								func(l string) {
-									doc.literal("--")
-									doc.literal(l)
+									doc.Literal("--")
+									doc.Literal(l)
 								},
 								func(_ byte, l string) {
-									doc.literal("--")
-									doc.literal(l)
+									doc.Literal("--")
+									doc.Literal(l)
 								},
 							)
 						},
 					)
 
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text("?")
+					doc.Text("?")
 				},
 				func(name string) {
-					doc.text("no such flag: ")
+					doc.Text("no such flag: ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal("-")
-					doc.literal(name)
+					doc.Literal("-")
+					doc.Literal(name)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text(" (with one dash), did you mean ")
+					doc.Text(" (with one dash), did you mean ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal("--")
-					doc.literal(name)
+					doc.Literal("--")
+					doc.Literal(name)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text("?")
+					doc.Text("?")
 				},
 				func(name byte) {
-					doc.text("no such flag: ")
+					doc.Text("no such flag: ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal("--")
+					doc.Literal("--")
 					doc.write_char(name, StyleLiteral)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text(" (with two dashes), did you mean ")
+					doc.Text(" (with two dashes), did you mean ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal("-")
+					doc.Literal("-")
 					doc.write_char(name, StyleLiteral)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text("?")
+					doc.Text("?")
 				},
 				func(x string, v Variant) {
 					var ty string
@@ -571,37 +564,37 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 						func(string) { ty = "subcommand" },
 						func(ShortLong) { ty = "flag" },
 					)
-					doc.text(ty)
-					doc.text(" ")
+					doc.Text(ty)
+					doc.Text(" ")
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal(actual)
+					doc.Literal(actual)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text(
+					doc.Text(
 						" is not valid in this context, did you mean to pass it to command ",
 					)
 					doc.token(TokenBlockStart(BlockTermRef))
-					doc.literal(x)
+					doc.Literal(x)
 					doc.token(TokenBlockEnd(BlockTermRef))
-					doc.text("?")
+					doc.Text("?")
 				},
 			)
 		},
 		func(winner, loser uint) {
 			// Error: --intel cannot be used at the same time as --att
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(&args.items[loser], StyleLiteral)
+			doc.write(args.items[loser].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" cannot be used at the same time as ")
+			doc.Text(" cannot be used at the same time as ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(&args.items[winner], StyleLiteral)
+			doc.write(args.items[winner].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
 		func(exp []Item, actual Option[uint]) {
 			// Error: Expected (no arguments|--foo), got ..., pass --help
-			doc.text("expected ")
+			doc.Text("expected ")
 			switch len(exp) {
 			case 0:
-				doc.text("no arguments")
+				doc.Text("no arguments")
 			case 1:
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write_item(exp[0])
@@ -610,7 +603,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write_item(exp[0])
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(" or ")
+				doc.Text(" or ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write_item(exp[1])
 				doc.token(TokenBlockEnd(BlockTermRef))
@@ -618,34 +611,34 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write_item(exp[0])
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(", ")
+				doc.Text(", ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write_item(exp[1])
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(", or more")
+				doc.Text(", or more")
 			}
 
 			if actual, ok := actual.Unpack(); ok {
-				doc.text(", got ")
+				doc.Text(", got ")
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(&args.items[actual], StyleInvalid)
+				doc.write(args.items[actual].GoString(), StyleInvalid)
 				doc.token(TokenBlockEnd(BlockTermRef))
-				doc.text(". Pass ")
+				doc.Text(". Pass ")
 			} else {
-				doc.text(", pass ")
+				doc.Text(", pass ")
 			}
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.literal("--help")
+			doc.Literal("--help")
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" for usage information")
+			doc.Text(" for usage information")
 		},
 		func(_ uint, loser uint) {
 			// Error: argument FOO cannot be used multiple times in this context
-			doc.text("argument ")
+			doc.Text("argument ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(&args.items[loser], StyleLiteral)
+			doc.write(args.items[loser].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
-			doc.text(" cannot be used multiple times in this context")
+			doc.Text(" cannot be used multiple times in this context")
 		},
 	)
 

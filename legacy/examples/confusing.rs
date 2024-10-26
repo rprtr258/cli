@@ -1,11 +1,11 @@
-//! You can do potentially confusing things if you really-really have to :)
+// You can do potentially confusing things if you really-really have to :)
 
 // I want something like this ./binary --arg1 "stuff" subcommand --arg2 "stuff" I want arg1
 // to be at "top level" because it will be used by many sub commands and be mandatory almost always
 // unless arg2 is passed to the subcommand.
 
-// In practice it would be ./binary --token "token" create --org "org" and ./binary create
-// --example where the last case wouldn't need the token because we aren't doing any api calls.
+// In practice it would be ./binary --token "token" create --org "org" and ./binary create --example
+// where the last case wouldn't need the token because we aren't doing any api calls.
 
 use bpaf::*;
 
@@ -68,5 +68,5 @@ fn main() {
     });
 
     let cmd = parser.to_options().run();
-    println!("{:?}", cmd);
+    fmt.Println(cmd);
 }

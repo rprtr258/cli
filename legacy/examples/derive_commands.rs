@@ -55,5 +55,5 @@ fn is_version(v: &str) -> bool {
 }
 
 fn main() {
-    println!("{:?}", action().fallback_to_usage().run());
+    fmt.Println(action().fallback_to_usage().run());
 }

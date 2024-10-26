@@ -156,60 +156,24 @@ func (m Meta) IsSkip() bool {
 // - top level
 // - one of "and" elements
 // - one of "or" elements
-type StrictNorm func(
+type StrictNorm uint8
+
+const (
 	// starting at the top and looking for Strict inside
-	Pull func(),
-	Push func(),
+	StrictNormPull StrictNorm = iota
+	StrictNormPush
 	// Already accounted for one, can strip the rest
-	Strip func(),
+	StrictNormStrip
 )
 
-func StrictNormPull() StrictNorm {
-	return func(Pull, Push, Strip func()) {
-		if Pull != nil {
-			Pull()
-		}
-	}
-}
-func StrictNormPush() StrictNorm {
-	return func(Pull, Push, Strip func()) {
-		if Push != nil {
-			Push()
-		}
-	}
-}
-func StrictNormStrip() StrictNorm {
-	return func(Pull, Push, Strip func()) {
-		if Strip != nil {
-			Strip()
-		}
-	}
-}
-
-func (self StrictNorm) IsPull() bool {
-	var res bool
-	self(func() { res = true }, nil, nil)
-	return res
-}
-
-func (self StrictNorm) IsPush() bool {
-	var res bool
-	self(nil, func() { res = true }, nil)
-	return res
-}
-
-func (self StrictNorm) IsStrip() bool {
-	var res bool
-	self(nil, nil, func() { res = true })
-	return res
-}
+func (self StrictNorm) IsPull() bool  { return self == StrictNormPull }
+func (self StrictNorm) IsPush() bool  { return self == StrictNormPush }
+func (self StrictNorm) IsStrip() bool { return self == StrictNormStrip }
 
 func (self *StrictNorm) push() {
-	(*self)(
-		func() { *self = StrictNormPush() },
-		nil,
-		nil,
-	)
+	if *self == StrictNormPull {
+		*self = StrictNormPush
+	}
 }
 
 // Used by normalization function to collapse duplicated commands.
@@ -299,12 +263,14 @@ func (self Meta) positional_invariant_check(verbose bool) {
 
 func (self Meta) normalized(for_usage bool) Meta {
 	m := self
-	norm := StrictNormPull()
+	norm := StrictNormPull
 	m.normalize(for_usage, &norm)
 	// stip outer () around meta unless inner
 	m(nil, nil, nil, func(i Meta) { m = i }, nil, nil, nil, nil, nil, nil, nil, nil)
 	m(nil, func([]Meta) { m = MetaRequired(m) }, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
-	norm(nil, func() { m = MetaStrict(m) }, nil)
+	if norm == StrictNormPush {
+		m = MetaStrict(m)
+	}
 	return m
 }
 
@@ -346,7 +312,7 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 			case this_norm.IsPull() || target.IsStrip():
 			case target.IsPull() && this_norm.IsPush():
 				*self = MetaStrict(*self)
-				*target = StrictNormStrip()
+				*target = StrictNormStrip
 			default:
 				*target = this_norm
 			}
