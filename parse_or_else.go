@@ -54,20 +54,23 @@ func this_or_that_picks_first(
 	e1, a_ok := err_a.Unpack()
 	e2, b_ok := err_b.Unpack()
 	type resT fun.Pair[bool, Option[uint]]
-	var res Result[resT]
+	var (
+		res    resT
+		resErr Error
+	)
 	switch {
 	case !a_ok && !b_ok:
 		if args.len() == args_a.len() && args_a.len() == args_b.len() {
-			res = Ok(resT{true, Invalid[uint]()})
+			res = resT{true, Invalid[uint]()}
 		} else {
 			a, b := args_a.pick_winner(*args_b)
-			res = Ok(resT{a, b})
+			res = resT{a, b}
 		}
 	case a_ok && b_ok:
-		res = Err[resT](e1.combine_with(e2))
+		resErr = e1.combine_with(e2)
 	// otherwise either a or b are success, true means a is success
 	default:
-		res = Ok(resT{!a_ok, Invalid[uint]()})
+		res = resT{!a_ok, Invalid[uint]()}
 	}
 
 	{
@@ -125,7 +128,7 @@ func this_or_that_picks_first(
 		}
 	}
 
-	if bbb, errrr := res.unpack(); errrr == nil { // or else no winner, keep the completions but don't touch args otherwise
+	if bbb, errrr := res, resErr; errrr == nil { // or else no winner, keep the completions but don't touch args otherwise
 		ix := bbb.V
 		if bbb.K {
 			if win, ok := ix.Unpack(); ok {
@@ -144,7 +147,7 @@ func this_or_that_picks_first(
 		comp.extend_comps(*comp_stash)
 	}
 
-	resres, err := res.unpack()
+	resres, err := res, resErr
 	if err != nil {
 		return false, err
 	}
