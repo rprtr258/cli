@@ -110,13 +110,13 @@ func starts_withb(s string, prefix byte) bool {
 	return strings.HasPrefix(s, string(prefix))
 }
 
-func find_map[T, R any](xs []T, f func(T) Option[R]) Option[R] {
+func find_map[T, R any](xs []T, f func(T) (R, bool)) (R, bool) {
 	for _, x := range xs {
-		if res := f(x); res.Valid {
-			return res
+		if res, ok := f(x); ok {
+			return res, true
 		}
 	}
-	return Invalid[R]()
+	return *new(R), false
 }
 
 func is_empty[T any](xs []T) bool {

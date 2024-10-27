@@ -14,10 +14,10 @@ func (self ParseFlag[T]) Parser() Parser[T] {
 }
 
 func (self ParseFlag[T]) eval(args *State) (T, Error) {
-	if args.take_flag(self.named) || find_map(self.named.env, func(e string) Option[string] {
-		r, ok := os.LookupEnv(e)
-		return Option[string]{r, ok}
-	}).Valid {
+	if args.take_flag(self.named) || func() bool {
+		_, ok := find_map(self.named.env, os.LookupEnv)
+		return ok
+	}() {
 		if args.touching_last_remove() {
 			args.push_flag(self.named)
 		}

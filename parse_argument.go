@@ -62,10 +62,7 @@ func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
 		return w, nil
 	} else {
 		args.push_argument(self.named, self.metavar)
-		if val, ok := find_map(self.named.env, func(e string) Option[string] {
-			r, ok := os.LookupEnv(e)
-			return Option[string]{r, ok}
-		}).Unpack(); ok {
+		if val, ok := find_map(self.named.env, os.LookupEnv); ok {
 			args.current = Invalid[int]()
 			return val, nil
 		}

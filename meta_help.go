@@ -411,23 +411,26 @@ func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
 	}
 }
 
-func (self Meta) peek_front_ty() Option[HiTy] {
-	var res Option[HiTy]
+func (self Meta) peek_front_ty() (HiTy, bool) {
+	var (
+		res HiTy
+		ok  bool
+	)
 	self(
-		func(xs []Meta) { res = find_map(xs, (Meta).peek_front_ty) },
-		func(xs []Meta) { res = find_map(xs, (Meta).peek_front_ty) },
-		func(x Meta) { res = x.peek_front_ty() },
-		func(x Meta) { res = x.peek_front_ty() },
-		func(x Meta) { res = x.peek_front_ty() },
-		func(i Item) { res = Valid(HiTyFromItem(i)) },
-		func(x Meta) { res = x.peek_front_ty() },
-		func(x Meta, _ Doc) { res = x.peek_front_ty() },
-		func(x Meta, _ Doc) { res = x.peek_front_ty() },
+		func(xs []Meta) { res, ok = find_map(xs, (Meta).peek_front_ty) },
+		func(xs []Meta) { res, ok = find_map(xs, (Meta).peek_front_ty) },
+		func(x Meta) { res, ok = x.peek_front_ty() },
+		func(x Meta) { res, ok = x.peek_front_ty() },
+		func(x Meta) { res, ok = x.peek_front_ty() },
+		func(i Item) { res, ok = HiTyFromItem(i), true },
+		func(x Meta) { res, ok = x.peek_front_ty() },
+		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
+		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
 		nil,
-		func(x Meta, _ Doc) { res = x.peek_front_ty() },
+		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
 		nil,
 	)
-	return res
+	return res, ok
 }
 
 // Recursively classify contents of the Meta
