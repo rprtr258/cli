@@ -296,14 +296,16 @@ func only_once(args State, cur int) Option[int] {
 		return Invalid[int]()
 	}
 
-	var offsetO Option[int]
+	var (
+		offset int
+		okk    bool
+	)
 	v.value(
-		func(s byte, _ bool) { offsetO = position(iter, func(a Arg) bool { return a.match_short(s) }) },
-		func(l string, _ bool) { offsetO = position(iter, func(a Arg) bool { return a.match_long(l) }) },
+		func(s byte, _ bool) { offset, okk = position(iter, func(a Arg) bool { return a.match_short(s) }) },
+		func(l string, _ bool) { offset, okk = position(iter, func(a Arg) bool { return a.match_long(l) }) },
 		nil, nil, nil,
 	)
-	offset, ok := offsetO.Unpack()
-	if !ok {
+	if !okk {
 		return Invalid[int]()
 	}
 	return Valid(cur - offset - 1)

@@ -164,15 +164,15 @@ func fromPull[T any](next func() (T, bool)) iter.Seq[T] {
 	}
 }
 
-func position[T any](it iter.Seq[T], f func(T) bool) Option[int] {
+func position[T any](it iter.Seq[T], f func(T) bool) (int, bool) {
 	i := 0
 	for x := range it {
 		if f(x) {
-			return Valid(i)
+			return i, true
 		}
 		i++
 	}
-	return Invalid[int]()
+	return 0, false
 }
 
 func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
