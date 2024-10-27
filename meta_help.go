@@ -485,7 +485,7 @@ func (self *HelpItems) append_meta(meta Meta) {
 	}
 	GO(self, meta, false)
 }
-func (self HelpItems) find_group() Option[Range] {
+func (self HelpItems) find_group() (Range, bool) {
 	start, end := -1, -1
 	for i, x := range self.items {
 		var isStart, isEnd bool
@@ -503,9 +503,9 @@ func (self HelpItems) find_group() Option[Range] {
 		}
 	}
 	if start == -1 || end == -1 {
-		return Invalid[Range]()
+		return Range{}, false
 	}
-	return Valid(Range{start, end + 1})
+	return Range{start, end + 1}, true
 }
 
 func HiTyFromItem(value Item) HiTy {
@@ -788,7 +788,7 @@ func (self Dedup) check(item HelpItem) bool {
 
 func (self Doc) write_help_item_groups(items HelpItems, include_env bool) {
 	for {
-		rangee, ok := items.find_group().Unpack()
+		rangee, ok := items.find_group()
 		if !ok {
 			break
 		}
