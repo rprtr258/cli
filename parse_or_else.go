@@ -100,8 +100,8 @@ func this_or_that_picks_first(
 							break CHECK
 						}
 					}
-					a, ok1 := args_a.present(ix).Unpack()
-					b, ok2 := args_b.present(ix).Unpack()
+					a, ok1 := args_a.present(ix)
+					b, ok2 := args_b.present(ix)
 					if ok1 && ok2 {
 						switch {
 						case b:

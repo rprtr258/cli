@@ -221,11 +221,11 @@ type State struct {
 }
 
 // Check if item at ixth position is still present (was not parsed)
-func (self State) present(ix int) Option[bool] {
+func (self State) present(ix int) (bool, bool) {
 	if ix >= len(self.item_state) {
-		return Invalid[bool]()
+		return false, false
 	}
-	return Valid(self.item_state[ix].present())
+	return self.item_state[ix].present(), true
 }
 
 func (self State) depth() uint {
@@ -486,7 +486,7 @@ func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
 			return ArgRangesIterItem{}, false
 		}
 		self.cur += 1
-		if v := self.args.present(cur); v.Valid && !v.Value {
+		if v, ok := self.args.present(cur); ok && !v {
 			continue
 		}
 		if cur+self.width > len(self.args.items) {
