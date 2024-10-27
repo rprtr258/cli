@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     package: String,
@@ -26,7 +26,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]
 pub struct Options {

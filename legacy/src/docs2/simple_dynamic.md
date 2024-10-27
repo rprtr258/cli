@@ -1,6 +1,6 @@
 <details><summary><tt>examples/simple_dynamic.rs</tt></summary>
 
-```no_run
+```rust
 //! Simple dynamic completion example
 
 #![allow(dead_code)]

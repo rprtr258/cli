@@ -1,6 +1,6 @@
 <details><summary><tt>examples/derive_show_asm.rs</tt></summary>
 
-```no_run
+```rust
 //! Parsing snippet from cargo-show-asm
 //! Derive + typed fallback + external both with and without name
 

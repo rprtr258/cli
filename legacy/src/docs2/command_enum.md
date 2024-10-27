@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub enum Options {
     /// Run a binary
@@ -57,7 +57,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]
 pub enum Options {

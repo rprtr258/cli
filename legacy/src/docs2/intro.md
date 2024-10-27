@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 use bpaf::*;
 
 #[derive(Debug, Clone)]
@@ -21,7 +21,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 use bpaf::*;
 
 #[derive(Debug, Clone, Bpaf)]

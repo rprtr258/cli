@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone)]
@@ -26,7 +26,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 use std::collections::BTreeSet;
 
 #[derive(Debug, Clone, Bpaf)]

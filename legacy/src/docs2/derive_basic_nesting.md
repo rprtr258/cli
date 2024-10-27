@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 pub enum Format {
     /// Produce output in HTML format

@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     number: u32,
@@ -23,7 +23,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 fn twice_the_num(s: String) -> Result<u32, ParseIntError> {
     Ok(u32::from_str(&s)? * 2)
 }

@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 
 pub fn options() -> OptionParser<f64> {
     let miles = long("distance")

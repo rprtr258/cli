@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub enum Output {
     ToFile(PathBuf),

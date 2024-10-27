@@ -15,7 +15,7 @@ implement a newtype along with `FromStr` implementation to get validation for fr
 parsing.
 
 
-```no_run
+```rust
 # use std::str::FromStr;
 # use bpaf::*;
 #[derive(Debug, Clone, Copy)]

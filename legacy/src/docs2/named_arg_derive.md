@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 const DB: &str = "DATABASE_VAR";
 
 #[derive(Debug, Clone, Bpaf)]

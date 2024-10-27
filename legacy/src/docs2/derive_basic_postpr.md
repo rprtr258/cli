@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 fn small(size: &usize) -> bool {
     *size < 10
 }

@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 use bpaf::*;
 
 #[derive(Debug, Clone, Bpaf)]

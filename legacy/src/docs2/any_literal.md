@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     block_size: usize,
@@ -63,7 +63,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 // This example is still technically derive API, but derive is limited to gluing
 // things together and keeping macro complexity under control.
 #[derive(Debug, Clone, Bpaf)]

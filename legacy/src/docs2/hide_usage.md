@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     argument: u32,
@@ -27,7 +27,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[allow(dead_code)]
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]

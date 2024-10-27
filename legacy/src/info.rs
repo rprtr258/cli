@@ -64,7 +64,7 @@ impl<T> OptionParser<T> {
     /// Execute the [`OptionParser`], extract a parsed value or print some diagnostic and exit
     ///
     /// # Usage
-    /// ```no_run
+    /// ```rust
     /// # use bpaf::*;
     /// /// Parses number of repetitions of `-v` on a command line
     /// fn verbosity() -> OptionParser<usize> {
@@ -102,7 +102,7 @@ impl<T> OptionParser<T> {
     /// want to control the exit code or you need to perform a custom cleanup.
     ///
     /// # Usage
-    /// ```no_run
+    /// ```rust
     /// # use bpaf::*;
     /// /// Parses number of repetitions of `-v` on a command line
     /// fn verbosity() -> OptionParser<usize> {
@@ -600,7 +600,7 @@ impl<T> OptionParser<T> {
     /// (max help width exceeding 120 symbols, etc), currently not in use
     ///
     /// Best used as part of your test suite:
-    /// ```no_run
+    /// ```rust
     /// # use bpaf::*;
     /// #[test]
     /// fn check_options() {

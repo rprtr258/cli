@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     name: String,
@@ -32,7 +32,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 /// suggest completions for the input
 fn completer(input: &String) -> Vec<(&'static str, Option<&'static str>)> {
     let names = ["Yuri", "Lupusregina", "Solution", "Shizu", "Entoma"];

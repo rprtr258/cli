@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Rectangle {
     width: u32,
@@ -44,7 +44,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 pub struct Rectangle {
     /// Width of the rectangle

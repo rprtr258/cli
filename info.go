@@ -50,7 +50,7 @@ type OptionParser[T any] struct {
 // Execute the [`OptionParser`], extract a parsed value or print some diagnostic and exit
 //
 // # Usage
-// ```no_run
+// ```rust
 // # use bpaf*;
 // // Parses number of repetitions of `-v` on a command line
 //
@@ -520,7 +520,7 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 // (max help width exceeding 120 symbols, etc), currently not in use
 //
 // Best used as part of your test suite:
-// ```no_run
+// ```rust
 // # use bpaf*;
 // #[test]
 // func check_options() {

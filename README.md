@@ -1,3 +1,6 @@
+https://rustmagazine.org/issue-2/applicative-parsing/
+https://pkg.go.dev/github.com/fluhus/godoc-tricks
+
 go-flags: a go library for parsing command line arguments
 =========================================================
 

@@ -1194,7 +1194,7 @@ pub trait Parser<T> {
     /// Generally, you'd want to use [`Parser::to_options`] to finalize the parser and [`OptionParser::run`],
     /// but this also works for simple cases:
     ///
-    /// ```no_run
+    /// ```rust
     /// # use bpaf::*;
     /// fn main() {
     ///     let name = short('n').long("name").argument::<String>("USER").run();
@@ -1364,7 +1364,7 @@ pub fn env(variable: &'static str) -> NamedArg {
 /// When using combinatoric API you can specify the type with turbofish, for parsing types
 /// that don't implement [`FromStr`] you can use consume a `String`/`OsString` first and parse
 /// it by hand.
-/// ```no_run
+/// ```rust
 /// # use bpaf::*;
 /// fn parse_pos() -> impl Parser<usize> {
 ///     positional::<usize>("POS")

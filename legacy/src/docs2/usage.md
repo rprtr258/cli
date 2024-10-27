@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Options {
     release: bool,
@@ -31,7 +31,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options, usage("Usage: my_program [--release] [--binary=BIN] ..."))]
 pub struct Options {

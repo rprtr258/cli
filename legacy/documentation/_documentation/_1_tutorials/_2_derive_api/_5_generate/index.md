@@ -7,7 +7,7 @@ depends on the name of the type and gives either a composable parser (`Parser`) 
 
 You can customize the function name with `generate` annotation at the top level:
 
-```no_run
+```rust
 # use bpaf::*;
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options, generate(my_options))]

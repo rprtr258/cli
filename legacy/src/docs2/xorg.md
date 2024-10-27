@@ -1,6 +1,6 @@
 <details><summary><tt>examples/xorg.rs</tt></summary>
 
-```no_run
+```rust
 /// A way to represent xorg like flags, not a typical usage
 use bpaf::*;
 #[derive(Debug, Clone)]

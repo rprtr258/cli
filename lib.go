@@ -813,7 +813,7 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 // Generally, you'd want to use [`Parserto_options`] to finalize the parser and [`OptionParserrun`],
 // but this also works for simple cases:
 //
-// ```no_run
+// ```rust
 // # use bpaf*;
 //
 //	func main() {
@@ -856,36 +856,6 @@ func pure[T any](val T) ParsePure[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/PureWith.md"))]
 func PureWith[T any](val func() Result[T]) ParsePureWith[T] {
 	return ParsePureWith[T]{val}
-}
-
-// Fail with a fixed error message
-//
-// This parser produces `T` of any type but instead of producing it when asked - it fails
-// with a custom error message. Can be useful for creating custom logic
-//
-// # Combinatoric usage
-// ```rust
-// # use bpaf*;
-//
-//	func must_agree()impl Parser<()> {
-//	    a := long("accept").req_flag(struct{}{});
-//	    no_a := Fail("You must accept the license agreement with --agree before proceeding");
-//	    construct([a, no_a])
-//	}
-//
-// ```
-//
-// # Example
-// ```console
-// $ app
-// // exits with "You must accept the license agreement with --agree before proceeding"
-// $ app --agree
-// // succeeds
-// ```
-func Fail[T any](msg string) ParseFail[T] {
-	return ParseFail[T]{
-		field1: msg,
-	}
 }
 
 // Parse a [`flag`](NamedArgflag)/[`switch`](NamedArgswitch)/[`argument`](NamedArgargument) that has a Short name
@@ -961,7 +931,7 @@ func Env(variable string) NamedArg {
 // When using combinatoric API you can specify the type with turbofish, for parsing types
 // that don't implement [`FromStr`] you can use consume a `String`/`string` first and parse
 // it by hand.
-// ```no_run
+// ```rust
 // # use bpaf*;
 //
 //	func parse_pos()impl Parser[uint] {
@@ -1115,6 +1085,7 @@ func Choice[T any](parsers ...Parser[T]) Parser[T] {
 		p := Fail[T]("Invalid choice usage")
 		return Parser[T]{p.eval, MetaSkip}
 	}
+
 	this := parsers[0]
 	for _, that := range parsers[1:] {
 		p := ParseOrElse[T]{this, that}

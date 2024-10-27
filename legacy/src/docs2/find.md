@@ -1,6 +1,6 @@
 <details><summary><tt>examples/find.rs</tt></summary>
 
-```no_run
+```rust
 //! This is not a typical bpaf usage,
 //! but you should be able to replicate command line used by find
 

@@ -1,5 +1,5 @@
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]
 pub struct Options {

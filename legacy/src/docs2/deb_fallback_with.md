@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 fn try_to_get_version() -> Result<usize, &'static str> {
     Ok(42)
 }
@@ -27,7 +27,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 fn try_to_get_version() -> Result<usize, &'static str> {
     Ok(42)
 }

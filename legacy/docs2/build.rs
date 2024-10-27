@@ -167,7 +167,7 @@ fn import_example(example: &Path, name: &str) -> Result<String> {
             let mut res = String::new();
 
             res += \"<details><summary><tt>{example_name}</tt></summary>\\n\\n\";
-            res += \"```no_run\\n\";
+            res += \"```rust\\n\";
             res += &std::fs::read_to_string({example:?}).unwrap();
             res += \"\\n```\\n\\n\";
             res += \"</details>\\n\\n\";

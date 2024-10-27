@@ -36,7 +36,7 @@ fn import_escaped_source(
     if both {
         writeln!(res, "<details><summary>{title}</summary>").unwrap();
     }
-    writeln!(res, "\n```no_run").unwrap();
+    writeln!(res, "\n```rust").unwrap();
     let mut skip = false;
     for line in std::fs::read_to_string(path).unwrap().lines() {
         if line == "//" {

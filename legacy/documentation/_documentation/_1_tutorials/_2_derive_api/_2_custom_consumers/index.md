@@ -19,7 +19,7 @@ You can change it with annotations like `switch`, `argument` or `positional`
 With arguments that consume a value you can specify its type using turbofish-line syntax
 
 
-```no_run
+```rust
 # use bpaf::*;
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]

@@ -785,17 +785,6 @@ func (self ParsePureWith[T]) meta() Meta {
 	return MetaSkip
 }
 
-// Parser that fails without consuming any input, created with [`fail`](cratefail).
-type ParseFail[T any] struct {
-	field1 string
-}
-
-// impl[T] Parser[T] for ParseFail[T] {
-func (self ParseFail[T]) eval(args *State) (T, Error) {
-	args.current = Invalid[int]()
-	return *new(T), Error(MessageParseFail(self.field1))
-}
-
 // Parser that transforms parsed value with a function, created with [`map`](Parsermap).
 type ParseMap[T, R any] struct {
 	inner  Parser[T]

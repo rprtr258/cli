@@ -1,6 +1,6 @@
 <details><summary>Combinatoric example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone)]
 pub struct Cmd {
     flag: bool,
@@ -41,7 +41,7 @@ fn main() {
 </details>
 <details><summary>Derive example</summary>
 
-```no_run
+```rust
 #[derive(Debug, Clone, Bpaf)]
 // `command` annotation with no name gets the name from the object it is attached to,
 // but you can override it using something like #[bpaf(command("my_command"))]

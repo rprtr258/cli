@@ -2,7 +2,7 @@
 
 You can test values your parser produces and expected output
 
-```no_run
+```rust
 # use bpaf::*;
 #[derive(Debug, Clone, Bpaf)]
 #[bpaf(options)]

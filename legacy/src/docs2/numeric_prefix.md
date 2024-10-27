@@ -1,6 +1,6 @@
 <details><summary><tt>examples/numeric_prefix.rs</tt></summary>
 
-```no_run
+```rust
 /// You can parse multiple positional elements with earlier being optional as well
 /// This example takes two - optional numeric prefix and a command name:
 ///
