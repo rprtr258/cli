@@ -668,7 +668,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 	saw_command := false
 	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) Option[Item] {
 		var cmd bool
-		i.item(
+		i.item.v(
 			nil,
 			nil,
 			func(string, Option[byte], Option[Doc], Meta, Info) { cmd = true },

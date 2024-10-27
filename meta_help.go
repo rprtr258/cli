@@ -507,7 +507,7 @@ func (self HelpItems) find_group() Option[Range] {
 
 func HiTyFromItem(value Item) HiTy {
 	var res HiTy
-	value(
+	value.v(
 		func(_ Doc, anywhere bool, _ Option[Doc]) {
 			res = fun.IF(anywhere, HiTyFlag, HiTyPositional)
 		},
@@ -521,7 +521,7 @@ func HiTyFromItem(value Item) HiTy {
 
 func HelpItemFromItem(item Item) HelpItem {
 	var res HelpItem
-	item(
+	item.v(
 		func(metavar Doc, anywhere bool, help Option[Doc]) {
 			res = HelpItemAny(metavar, anywhere, help)
 		},

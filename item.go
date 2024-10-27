@@ -1,48 +1,50 @@
 package cli
 
 // TODO: move out Option[Doc]
-type Item func(
-	Any func(
-		metavar Doc,
-		// used by any, moves it from positionals into arguments
-		anywhere bool,
-		help Option[Doc],
-	),
-	// Positional item, consumed from the the front of the arguments
-	// <FILE>
-	Positional func(metavar Metavar, help Option[Doc]),
-	Command func(
-		name string,
-		short Option[byte],
-		help Option[Doc],
-		meta Meta,
-		info Info,
-	),
-	// short or long name, consumed anywhere
-	// -f
-	// --file
-	Flag func(
-		name ShortLong,
-		// used for disambiguation
-		shorts []byte,
-		env Option[string],
-		help Option[Doc],
-	),
-	// Short or long name followed by a value, consumed anywhere
-	// -f <VAL>
-	// --file <VAL>
-	Argument func(
-		name ShortLong,
-		// used for disambiguation
-		shorts []byte,
-		metavar Metavar,
-		env Option[string],
-		help Option[Doc],
-	),
-)
+type Item struct {
+	v func(
+		Any func(
+			metavar Doc,
+			// used by any, moves it from positionals into arguments
+			anywhere bool,
+			help Option[Doc],
+		),
+		// Positional item, consumed from the the front of the arguments
+		// <FILE>
+		Positional func(metavar Metavar, help Option[Doc]),
+		Command func(
+			name string,
+			short Option[byte],
+			help Option[Doc],
+			meta Meta,
+			info Info,
+		),
+		// short or long name, consumed anywhere
+		// -f
+		// --file
+		Flag func(
+			name ShortLong,
+			// used for disambiguation
+			shorts []byte,
+			env Option[string],
+			help Option[Doc],
+		),
+		// Short or long name followed by a value, consumed anywhere
+		// -f <VAL>
+		// --file <VAL>
+		Argument func(
+			name ShortLong,
+			// used for disambiguation
+			shorts []byte,
+			metavar Metavar,
+			env Option[string],
+			help Option[Doc],
+		),
+	)
+}
 
 func ItemAny(metavar Doc, anywhere bool, help Option[Doc]) Item {
-	return func(
+	return Item{func(
 		Any func(Doc, bool, Option[Doc]),
 		_ func(Metavar, Option[Doc]),
 		_ func(string, Option[byte], Option[Doc], Meta, Info),
@@ -52,11 +54,11 @@ func ItemAny(metavar Doc, anywhere bool, help Option[Doc]) Item {
 		if Any != nil {
 			Any(metavar, anywhere, help)
 		}
-	}
+	}}
 }
 
 func ItemPositional(metavar Metavar, help Option[Doc]) Item {
-	return func(
+	return Item{func(
 		_ func(Doc, bool, Option[Doc]),
 		Positional func(Metavar, Option[Doc]),
 		_ func(string, Option[byte], Option[Doc], Meta, Info),
@@ -66,11 +68,11 @@ func ItemPositional(metavar Metavar, help Option[Doc]) Item {
 		if Positional != nil {
 			Positional(metavar, help)
 		}
-	}
+	}}
 }
 
 func ItemCommand(name string, short Option[byte], help Option[Doc], meta Meta, info Info) Item {
-	return func(
+	return Item{func(
 		_ func(Doc, bool, Option[Doc]),
 		_ func(Metavar, Option[Doc]),
 		Command func(string, Option[byte], Option[Doc], Meta, Info),
@@ -80,11 +82,11 @@ func ItemCommand(name string, short Option[byte], help Option[Doc], meta Meta, i
 		if Command != nil {
 			Command(name, short, help, meta, info)
 		}
-	}
+	}}
 }
 
 func ItemFlag(name ShortLong, shorts []byte, env Option[string], help Option[Doc]) Item {
-	return func(
+	return Item{func(
 		_ func(Doc, bool, Option[Doc]),
 		_ func(Metavar, Option[Doc]),
 		_ func(string, Option[byte], Option[Doc], Meta, Info),
@@ -94,11 +96,11 @@ func ItemFlag(name ShortLong, shorts []byte, env Option[string], help Option[Doc
 		if Flag != nil {
 			Flag(name, shorts, env, help)
 		}
-	}
+	}}
 }
 
 func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[string], help Option[Doc]) Item {
-	return func(
+	return Item{func(
 		_ func(Doc, bool, Option[Doc]),
 		_ func(Metavar, Option[Doc]),
 		_ func(string, Option[byte], Option[Doc], Meta, Info),
@@ -108,12 +110,12 @@ func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[str
 		if Argument != nil {
 			Argument(name, shorts, metavar, env, help)
 		}
-	}
+	}}
 }
 
 func (self Item) is_pos() bool {
 	var res bool
-	self(
+	self.v(
 		func(_ Doc, anywhere bool, _ Option[Doc]) { res = !anywhere },
 		func(Metavar, Option[Doc]) { res = true },
 		func(string, Option[byte], Option[Doc], Meta, Info) { res = true },
@@ -125,7 +127,7 @@ func (self Item) is_pos() bool {
 
 // Normalize name inside [`ShortLong`] into either short or long
 func (self *Item) normalize(short bool) {
-	(*self)(
+	self.v(
 		nil,
 		nil,
 		nil,

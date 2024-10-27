@@ -112,7 +112,7 @@ func (self Doc) write_shortlong(name ShortLong) {
 }
 
 func (self Doc) write_item(item Item) {
-	item(
+	item.v(
 		func(metavar Doc, _ bool, _ Option[Doc]) {
 			self.Doc(metavar)
 		},

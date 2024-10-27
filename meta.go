@@ -187,7 +187,7 @@ func (self Meta) is_command() bool {
 		nil,
 		nil,
 		func(i Item) {
-			i(nil, nil, func(string, Option[byte], Option[Doc], Meta, Info) { res = true }, nil, nil)
+			i.v(nil, nil, func(string, Option[byte], Option[Doc], Meta, Info) { res = true }, nil, nil)
 		},
 		nil,
 		func(m Meta, _ Doc) { res = m.is_command() },
@@ -238,7 +238,7 @@ func (self Meta) positional_invariant_check(verbose bool) {
 				case i.is_pos():
 					*is_pos = true
 				}
-				i(nil, nil, func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
+				i.v(nil, nil, func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
 					command_pos := false
 					if v {
 						fmt.Printf("Checking\n%#v\n", meta)
@@ -487,7 +487,7 @@ func (self Meta) collect_shorts(flags *[]byte, args *[]byte) {
 		func(m Meta) { m.collect_shorts(flags, args) },
 		func(m Meta) { m.collect_shorts(flags, args) },
 		func(m Item) {
-			m(
+			m.v(
 				nil, nil,
 				func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
 					meta.collect_shorts(flags, args)
