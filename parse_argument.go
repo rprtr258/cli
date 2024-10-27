@@ -50,16 +50,16 @@ func (self ParseArgument[T]) item() Option[Item] {
 	))
 }
 
-func (self ParseArgument[T]) take_argument(args *State) Result[string] {
+func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
 	wopt, err := args.take_arg(self.named, self.adjacent, Metavar(self.metavar)).unpack()
 	if err != nil {
 		args.push_argument(self.named, self.metavar)
-		return Err[string](err)
+		return "", err
 	} else if w, ok := wopt.Unpack(); ok {
 		if args.touching_last_remove() {
 			args.push_metavar(self.metavar, self.named.help, true)
 		}
-		return Ok(w)
+		return w, nil
 	} else {
 		args.push_argument(self.named, self.metavar)
 		if val, ok := find_map(self.named.env, func(e string) Option[string] {
@@ -67,7 +67,7 @@ func (self ParseArgument[T]) take_argument(args *State) Result[string] {
 			return Option[string]{r, ok}
 		}).Unpack(); ok {
 			args.current = Invalid[int]()
-			return Ok(val)
+			return val, nil
 		}
 
 		if item, ok := self.item().Unpack(); ok {
@@ -76,9 +76,9 @@ func (self ParseArgument[T]) take_argument(args *State) Result[string] {
 				position: args.scope.start(),
 				scope:    args.scope,
 			}
-			return Err[string](Error(MessageMissing(missing)))
+			return "", Error(MessageMissing(missing))
 		} else if name, ok := First(self.named.env).Unpack(); ok {
-			return Err[string](Error(MessageNoEnv(name)))
+			return "", Error(MessageNoEnv(name))
 		} else {
 			panic("unreachable!()")
 		}
@@ -86,7 +86,7 @@ func (self ParseArgument[T]) take_argument(args *State) Result[string] {
 }
 
 func (self ParseArgument[T]) eval(args *State) (T, Error) {
-	os, err := self.take_argument(args).unpack()
+	os, err := self.take_argument(args)
 	if err != nil {
 		return *new(T), err
 	}
