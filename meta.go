@@ -301,7 +301,7 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 		for_usage bool,
 		norm *StrictNorm,
 		or bool,
-	) Option[Meta] {
+	) (Meta, bool) {
 		final_norm := *norm
 		for i := range *xs {
 			this_norm := *norm
@@ -323,25 +323,25 @@ func (self *Meta) normalize(for_usage bool, norm *StrictNorm) {
 
 		switch len(*xs) {
 		case 0:
-			return Valid(MetaSkip)
+			return MetaSkip, true
 		case 1:
 			res := (*xs)[0]
 			*xs = (*xs)[1:]
-			return Valid(res)
+			return res, true
 		default:
-			return Invalid[Meta]()
+			return nil, false
 		}
 	}
 
 	(*self)(
 		func(xs []Meta) {
-			if replacement, ok := normalize_vec(&xs, for_usage, norm, false).Unpack(); ok {
+			if replacement, ok := normalize_vec(&xs, for_usage, norm, false); ok {
 				*self = replacement
 			}
 		},
 		// or should have either () or [] around it
 		func(xs []Meta) {
-			if replacement, ok := normalize_vec(&xs, for_usage, norm, true).Unpack(); ok {
+			if replacement, ok := normalize_vec(&xs, for_usage, norm, true); ok {
 				*self = replacement
 			} else {
 				saw_cmd := false
