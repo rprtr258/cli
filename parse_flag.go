@@ -27,7 +27,7 @@ func (self ParseFlag[T]) eval(args *State) (T, Error) {
 		if ok, okk := self.absent.Unpack(); okk {
 			return ok, nil
 		} else {
-			if item, ok := self.named.flag_item().Unpack(); ok {
+			if item, ok := self.named.flag_item(); ok {
 				missing := MissingItem{
 					item:     item,
 					position: args.scope.start(),
@@ -44,7 +44,7 @@ func (self ParseFlag[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseFlag[T]) meta() Meta {
-	if item, ok := self.named.flag_item().Unpack(); ok {
+	if item, ok := self.named.flag_item(); ok {
 		return item.required(!self.absent.Valid)
 	} else {
 		return MetaSkip

@@ -40,12 +40,12 @@ type NamedArg struct {
 	help  Option[Doc]
 }
 
-func (self NamedArg) flag_item() Option[Item] {
+func (self NamedArg) flag_item() (Item, bool) {
 	x, ok := ShortLongtry_from(self)
 	if !ok {
-		return Invalid[Item]()
+		return Item{}, false
 	}
-	return Valid(ItemFlag(x, self.short, First(self.env), self.help))
+	return ItemFlag(x, self.short, First(self.env), self.help), true
 }
 
 // Add a short name to a flag/switch/argument
