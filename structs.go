@@ -515,41 +515,6 @@ func (self ParseLast[T]) meta() Meta {
 	return MetaMany(MetaRequired(self.inner.meta))
 }
 
-// Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-// and return `None` if any are missing. Created with [optional](Parser::optional). Implements
-// [catch](ParseOptional::catch)
-type ParseOptional[T any] struct {
-	inner Parser[T]
-	catch bool
-}
-
-func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
-	len := uint(math.MaxUint)
-	return parse_option(self.inner, &len, args, self.catch)
-}
-
-// Handle parse failures for fun.Optional parsers
-//
-// Can be useful to decide to skip parsing of some items on a command line.
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-//
-// Those examples are very artificial and designed to show what difference `catch` makes, to
-// actually parse arguments like in examples you should [parse](Parserparse) or construct
-// enum with alternative branches
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/optional_catch.md"))]
-func (self *ParseOptional[T]) Catch() *ParseOptional[T] {
-	self.catch = true
-	return self
-}
-
-func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
-	return Parser[Option[T]]{self.eval, MetaOptional(self.inner.meta)}
-}
-
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
@@ -586,14 +551,12 @@ func parse_option[T any](
 	}
 	// we keep including values for as long as we consume values from the argument
 	// list or at least one value
-	return func() Option[T] {
-		if lll := uint(args.len()); lll < *len {
-			*len = lll
-			return Valid(val)
-		} else {
-			return Invalid[T]()
-		}
-	}(), nil
+	if lll := uint(args.len()); lll < *len {
+		*len = lll
+		return Valid(val), nil
+	} else {
+		return Invalid[T](), nil
+	}
 }
 
 // Parser that transforms parsed value with a function, created with [map](Parsermap).

@@ -304,29 +304,6 @@ type Parser[T any] struct {
 	meta Meta
 }
 
-// {{{ fun.Optional
-// Turn a required argument into an fun.Optional one
-//
-// `Optional` converts any missing items into `Invalid()` and passes the remaining parsing
-// failures untouched. With an extra [catch](ParseOptionalcatch) statement, you can handle
-// those failures too.
-//
-// # Derive usage
-//
-// By default, `bpaf` would automatically use fun.Optional for fields of type `Option[T]`,
-// for as long as it's not prevented from doing so by present postprocessing fun.Options.
-// But it's also possible to specify it explicitly.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Optional.md"))]
-// TODO: compiler ne mogyet v return Parser[Option[T]] in method
-// }}}
-func Optional[T any](self Parser[T]) *ParseOptional[T] {
-	return &ParseOptional[T]{
-		inner: self,
-		catch: false,
-	}
-}
-
 // Count how many times the inner parser succeeds, and return that number.
 //
 // When you are dealing with a parser that can succeed without consuming
