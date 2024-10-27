@@ -143,10 +143,10 @@ func filter[T any](it iter.Seq[T], f func(T) bool) iter.Seq[T] {
 	}
 }
 
-func filter_map[T, R any](it iter.Seq[T], f func(T) Option[R]) iter.Seq[R] {
+func filter_map[T, R any](it iter.Seq[T], f func(T) (R, bool)) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for x := range it {
-			if y, ok := f(x).Unpack(); ok && !yield(y) {
+			if y, ok := f(x); ok && !yield(y) {
 				break
 			}
 		}

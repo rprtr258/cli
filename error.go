@@ -665,7 +665,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 	best_scope := best_item.scope
 
 	saw_command := false
-	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) Option[Item] {
+	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) (Item, bool) {
 		var cmd bool
 		i.item.v(
 			nil,
@@ -676,9 +676,9 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 		)
 		if i.scope == best_scope && !(saw_command && cmd) {
 			saw_command = saw_command || cmd
-			return Valid(i.item)
+			return i.item, true
 		} else {
-			return Invalid[Item]()
+			return Item{}, false
 		}
 	}))
 
