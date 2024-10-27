@@ -263,26 +263,26 @@ func check_conflicts(args State) (Message, bool) {
 	return MessageConflict(winner, loser), true
 }
 
-func textual_part(args State, ixxx Option[int]) Option[string] {
+func textual_part(args State, ixxx Option[int]) (string, bool) {
 	ixx, ok := ixxx.Unpack()
 	if !ok {
-		return Invalid[string]()
+		return "", false
 	}
 
 	ix, ok := get(args.items, ixx).Unpack()
 	if !ok {
-		return Invalid[string]()
+		return "", false
 	}
 
-	res := Invalid[string]()
+	res, ok := "", false
 	ix.value(
 		nil,
 		nil,
-		func() { res = Valid(ix.str) },
-		func() { res = Valid(ix.str) },
-		func() { res = Valid(ix.str) },
+		func() { res, ok = ix.str, true },
+		func() { res, ok = ix.str, true },
+		func() { res, ok = ix.str, true },
 	)
-	return res
+	return res, ok
 }
 
 func only_once(args State, cur int) (int, bool) {
@@ -384,7 +384,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		func(mix Option[uint], s string) {
 			// Error: couldn't parse FIELD: <FromStr message>
 			doc.Text("couldn't parse")
-			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
+			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
 				doc.Text(" ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.Invalid(field)
@@ -395,7 +395,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		},
 		func(mix Option[uint], s string) {
 			// Error: ( FIELD:  | check failed: ) <message from guard>
-			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}).Unpack(); ok {
+			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.Invalid(field)
 				doc.token(TokenBlockEnd(BlockTermRef))
