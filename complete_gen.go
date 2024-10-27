@@ -553,10 +553,10 @@ func stris_empty(s string) bool {
 }
 
 // check if argument can possibly switch the argument passed in and returns a preferrable replacement
-func arg_matches(arg string, name ShortLong) Option[string] {
+func arg_matches(arg string, name ShortLong) (string, bool) {
 	// "" and "-" switch any flag
 	if arg == "" || arg == "-" {
-		return Valid(preferred_name(name))
+		return preferred_name(name), true
 	}
 
 	can_switch := false
@@ -571,10 +571,10 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 	can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) })
 
 	if !can_switch {
-		return Invalid[string]()
+		return "", false
 	}
 
-	return Valid(preferred_name(name))
+	return preferred_name(name), true
 }
 
 func cmd_matches(arg string, name string, short Option[byte]) (string, bool) {
@@ -644,7 +644,7 @@ F:
 
 		item(
 			func(extra CompExtra, name ShortLong) {
-				if long, ok := arg_matches(arg, name).Unpack(); ok {
+				if long, ok := arg_matches(arg, name); ok {
 					items = append(items, ShowComp{
 						pretty: long,
 						subst:  long,
@@ -657,7 +657,7 @@ F:
 				name ShortLong,
 				metavar string,
 			) {
-				if long, ok := arg_matches(arg, name).Unpack(); ok {
+				if long, ok := arg_matches(arg, name); ok {
 					items = append(items, ShowComp{
 						pretty: fmt.Sprintf("%v=%v", long, metavar),
 						subst:  long,
