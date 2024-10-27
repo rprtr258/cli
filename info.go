@@ -200,7 +200,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	// handle --help and --version messages
-	if extra, ok := self.info.eval(args).unpack(); ok == nil {
+	if extra, ok := self.info.eval(args); ok == nil {
 		detailed := false
 		var buffer Doc
 		extra(
@@ -628,20 +628,20 @@ func (self Info) mk_version_parser() ParseFlag[struct{}] {
 	return ReqFlag(self.version_arg, struct{}{})
 }
 
-func (self Info) eval(args *State) Result[ExtraParams] {
+func (self Info) eval(args *State) (ExtraParams, Error) {
 	help := self.mk_help_parser()
 	if _, err := help.eval(args); err == nil {
-		return Ok(ExtraParamsHelp(true))
+		return ExtraParamsHelp(true), nil
 	}
 
 	if version, ok := self.version.Unpack(); ok {
 		if _, err := self.mk_version_parser().eval(args); err == nil {
-			return Ok(ExtraParamsVersion(version))
+			return ExtraParamsVersion(version), nil
 		}
 	}
 
 	// error message is not actually used anywhere
-	return Err[ExtraParams](Error(MessageParseFail("not a version or help")))
+	return *new(ExtraParams), Error(MessageParseFail("not a version or help"))
 }
 
 func (self Info) meta() Meta {
