@@ -278,9 +278,9 @@ func textual_part(args State, ixxx Option[int]) Option[string] {
 	ix.value(
 		nil,
 		nil,
-		func() { res = Valid(ix.os_str) },
-		func() { res = Valid(ix.os_str) },
-		func() { res = Valid(ix.os_str) },
+		func() { res = Valid(ix.str) },
+		func() { res = Valid(ix.str) },
+		func() { res = Valid(ix.str) },
 	)
 	return res
 }
@@ -409,7 +409,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			a, ok := args.get(x + 1).Unpack()
 			if ok && (a.IsShort() || a.IsLong()) {
 				arg := &args.items[x]
-				os := a.os_str
+				os := a.str
 
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write(arg.GoString(), StyleLiteral)
@@ -455,7 +455,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			first := name[0]
 			second := name[1]
 			rest := name[2:]
-			s := args.items[ix].os_str
+			s := args.items[ix].str
 
 			if name, ok := First(args.path).Unpack(); ok {
 				doc.Literal(name)

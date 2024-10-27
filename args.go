@@ -600,7 +600,7 @@ func (self *State) take_arg(
 		ww.value(nil, nil, func() { res = true }, func() { res = true }, nil)
 		return res
 	}() {
-		val = ww.os_str
+		val = ww.str
 	} else {
 		return Err[Option[string]](Error(MessageNoArgument(key_ix, metavar)))
 	}
@@ -639,7 +639,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 	if ok {
 		self.current = Valid(ix)
 		self.remove(ix)
-		return ix, strict, w.os_str, nil
+		return ix, strict, w.str, nil
 	} else {
 		scope := self.scope
 		missing := MissingItem{
@@ -658,7 +658,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 func (self *State) take_cmd(w string) bool {
 	next := self.items_iter()
 	ix, a, ok := next()
-	if !ok || a.os_str != w {
+	if !ok || a.str != w {
 		goto INVALID
 	}
 

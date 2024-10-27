@@ -5,8 +5,8 @@ import "fmt"
 // Preprocessed command line argument
 // [string] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
-	os_str string
-	value  func(
+	str   string
+	value func(
 		// short flag: `-f`
 		//
 		// bool indicates if following item is also part of this Short
@@ -34,7 +34,7 @@ type Arg struct {
 }
 
 func ArgShort(c byte, b bool, s string) Arg {
-	return Arg{os_str: s, value: func(Short func(byte, bool), _ func(string, bool), _, _, _ func()) {
+	return Arg{str: s, value: func(Short func(byte, bool), _ func(string, bool), _, _, _ func()) {
 		if Short != nil {
 			Short(c, b)
 		}
@@ -42,7 +42,7 @@ func ArgShort(c byte, b bool, s string) Arg {
 }
 
 func ArgLong(s string, b bool, os string) Arg {
-	return Arg{os_str: os, value: func(_ func(byte, bool), Long func(string, bool), _, _, _ func()) {
+	return Arg{str: os, value: func(_ func(byte, bool), Long func(string, bool), _, _, _ func()) {
 		if Long != nil {
 			Long(s, b)
 		}
@@ -50,7 +50,7 @@ func ArgLong(s string, b bool, os string) Arg {
 }
 
 func ArgArgWord(s string) Arg {
-	return Arg{os_str: s, value: func(_ func(byte, bool), _ func(string, bool), ArgWord, _, _ func()) {
+	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), ArgWord, _, _ func()) {
 		if ArgWord != nil {
 			ArgWord()
 		}
@@ -58,7 +58,7 @@ func ArgArgWord(s string) Arg {
 }
 
 func ArgWord(s string) Arg {
-	return Arg{os_str: s, value: func(_ func(byte, bool), _ func(string, bool), _, Word, _ func()) {
+	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), _, Word, _ func()) {
 		if Word != nil {
 			Word()
 		}
@@ -66,7 +66,7 @@ func ArgWord(s string) Arg {
 }
 
 func ArgPosWord(s string) Arg {
-	return Arg{os_str: s, value: func(_ func(byte, bool), _ func(string, bool), _, _, PosWord func()) {
+	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), _, _, PosWord func()) {
 		if PosWord != nil {
 			PosWord()
 		}
@@ -116,11 +116,11 @@ func (self Arg) match_long(val string) bool {
 func (self Arg) String() string {
 	var res string
 	self.value(
-		func(c byte, b bool) { res = fmt.Sprintf("Short(%s, %c, %v)", self.os_str, c, b) },
-		func(l string, b bool) { res = fmt.Sprintf("Long(%s, %s, %v)", self.os_str, l, b) },
-		func() { res = fmt.Sprintf("ArgWord(%s)", self.os_str) },
-		func() { res = fmt.Sprintf("Word(%s)", self.os_str) },
-		func() { res = fmt.Sprintf("PosWord(%s)", self.os_str) },
+		func(c byte, b bool) { res = fmt.Sprintf("Short(%s, %c, %v)", self.str, c, b) },
+		func(l string, b bool) { res = fmt.Sprintf("Long(%s, %s, %v)", self.str, l, b) },
+		func() { res = fmt.Sprintf("ArgWord(%s)", self.str) },
+		func() { res = fmt.Sprintf("Word(%s)", self.str) },
+		func() { res = fmt.Sprintf("PosWord(%s)", self.str) },
 	)
 	return res
 }
@@ -146,9 +146,9 @@ func (self Arg) GoString() string {
 	self.value(
 		func(c byte, _ bool) { res = fmt.Sprintf("-%c", c) },
 		func(l string, _ bool) { res = fmt.Sprintf("--%s", l) },
-		func() { res = self.os_str },
-		func() { res = self.os_str },
-		func() { res = self.os_str },
+		func() { res = self.str },
+		func() { res = self.str },
+		func() { res = self.str },
 	)
 	return res
 }

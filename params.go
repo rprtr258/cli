@@ -706,7 +706,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 			func(_ string, c bool) { next = c },
 			nil, nil, nil,
 		)
-		os := x.os_str
+		os := x.str
 		if i, ok := (self.check)(os).Unpack(); ok {
 			args.remove(ix)
 			if next {

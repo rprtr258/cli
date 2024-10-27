@@ -414,14 +414,14 @@ func (self Arg) and_os_string() Option[string] {
 	res := Invalid[string]()
 	self.value(
 		func(byte, bool) {
-			if self.os_str != "" {
-				res = Valid(self.os_str)
+			if self.str != "" {
+				res = Valid(self.str)
 			}
 		},
-		func(string, bool) { res = Valid(self.os_str) },
-		func() { res = Valid(self.os_str) },
-		func() { res = Valid(self.os_str) },
-		func() { res = Valid(self.os_str) },
+		func(string, bool) { res = Valid(self.str) },
+		func() { res = Valid(self.str) },
+		func() { res = Valid(self.str) },
+		func() { res = Valid(self.str) },
 	)
 	return res
 }
@@ -464,7 +464,7 @@ func (self State) check_complete() Option[string] {
 
 	next, cancel := iter.Pull2(func(yield func(Arg, string) bool) {
 		for s := range rev(self.items) {
-			if s.os_str != "" && !yield(s, s.os_str) {
+			if s.str != "" && !yield(s, s.str) {
 				break
 			}
 		}

@@ -79,7 +79,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 	}
 
 	// suggesting typos for parts of group of short names (-vvv, typo in third v) would be strange
-	if arg.os_str == "" {
+	if arg.str == "" {
 		return_(0, nil, false)
 	}
 	// don't try to suggest fixes for typos in strictly positional items
@@ -87,7 +87,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 		return_(0, nil, false)
 	}
 	// it also should be a printable name
-	actual := arg.os_str
+	actual := arg.str
 
 	// all the help items one level deep
 	hi := HelpItemsdefault()

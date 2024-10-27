@@ -374,7 +374,7 @@ func this_or_that_picks_first(
 					// All other strings are either valid named items or valid positional items
 					// those are hopefully follow the right logic for being parsed/not parsed
 					if ix+1 == len(args_a.items) {
-						os := arg.os_str
+						os := arg.str
 						if os == "" || os == "-" || os == "--" {
 							break CHECK
 						}
