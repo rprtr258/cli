@@ -727,7 +727,7 @@ func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 }
 
 func (self ParsePositional[T]) eval(args *State) Result[T] {
-	os, err := parse_pos_word(args, Metavar(self.metavar), self.help, self.position).unpack()
+	os, err := parse_pos_word(args, Metavar(self.metavar), self.help, self.position)
 	if err != nil {
 		return Err[T](err)
 	}
@@ -754,14 +754,14 @@ func parse_pos_word(
 	metavar Metavar,
 	help Option[Doc],
 	position Position,
-) Result[string] {
+) (string, Error) {
 	ix, is_strict, word, err := args.take_positional_word(metavar)
 	if err != nil {
 		if !args.check_no_pos_ahead() {
 			args.push_metavar(string(metavar), help, false)
 			args.set_no_pos_ahead()
 		}
-		return Err[string](err)
+		return "", err
 	}
 
 	if position == PositionStrict && !is_strict {
@@ -771,14 +771,14 @@ func parse_pos_word(
 		err = Error(MessageNonStrictPos(ix, metavar))
 	}
 	if err != nil {
-		return Err[string](err)
+		return "", err
 	}
 
 	if args.touching_last_remove() && !args.check_no_pos_ahead() {
 		args.push_metavar(string(metavar), help, false)
 		args.set_no_pos_ahead()
 	}
-	return Ok(word)
+	return word, nil
 }
 
 // Consume an arbitrary value that satisfies a condition, created with [`any`], implements
