@@ -114,6 +114,18 @@ func (self Arg) match_long(val string) bool {
 	return res
 }
 
+func (self Arg) String() string {
+	var res string
+	self.value(
+		func(c byte, b bool) { res = fmt.Sprintf("Short(%s, %c, %v)", self.os_str, c, b) },
+		func(l string, b bool) { res = fmt.Sprintf("Long(%s, %s, %v)", self.os_str, l, b) },
+		func() { res = fmt.Sprintf("ArgWord(%s)", self.os_str) },
+		func() { res = fmt.Sprintf("Word(%s)", self.os_str) },
+		func() { res = fmt.Sprintf("PosWord(%s)", self.os_str) },
+	)
+	return res
+}
+
 // short flag disambiguations:
 //
 // Short flags | short arg
