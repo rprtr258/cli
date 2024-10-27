@@ -363,7 +363,7 @@ func MessageF[T any](m Message, fs MessageFs[T]) T {
 	return res
 }
 
-func (self Message) to_string() string {
+func (self Message) String() string {
 	return MessageF(self, MessageFs[string]{
 		func(a string) string { return fmt.Sprintf("NoEnv(%#v)", a) },
 		func(a string) string { return fmt.Sprintf("ParseSome(%#v)", a) },

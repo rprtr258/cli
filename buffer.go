@@ -25,42 +25,42 @@ type MetaInfo = Meta
 // Append a fragment of plain Text to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Text(text string) {
+func (self *Doc) Text(text string) {
 	self.write_str(text, StyleText)
 }
 
 // Append a fragment of Literal text to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Literal(text string) {
+func (self *Doc) Literal(text string) {
 	self.write_str(text, StyleLiteral)
 }
 
 // Append a fragment of text with Emphasis to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Emphasis(text string) {
+func (self *Doc) Emphasis(text string) {
 	self.write_str(text, StyleEmphasis)
 }
 
 // Append a fragment of unexpected user input to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Invalid(text string) {
+func (self *Doc) Invalid(text string) {
 	self.write_str(text, StyleInvalid)
 }
 
 // Append a fragment of parser metadata to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Meta(meta MetaInfo, for_usage bool) {
+func (self *Doc) Meta(meta MetaInfo, for_usage bool) {
 	self.write_meta(meta, for_usage)
 }
 
 // Append a `Doc` to [`Doc`]
 //
 // See [`Doc`] for usage examples
-func (self Doc) Doc(buf Doc) {
+func (self *Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
 	self.tokens = append(self.tokens, buf.tokens...)
 	self.payload += buf.payload
@@ -69,7 +69,7 @@ func (self Doc) Doc(buf Doc) {
 
 // Append a `Doc` to [`Doc`] for plaintext documents try to format
 // first line as a help section header
-func (self Doc) EmDoc(buf Doc) {
+func (self *Doc) EmDoc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
 	if v, ok := First(buf.tokens).Unpack(); ok && v.isText {
 		bytes := v.bytes
@@ -94,7 +94,7 @@ func (self Doc) EmDoc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockEnd(BlockInlineBlock))
 }
 
-func (self Doc) write_shortlong(name ShortLong) {
+func (self *Doc) write_shortlong(name ShortLong) {
 	if name.is_short() {
 		self.write_char('-', StyleLiteral)
 		self.write_char(name.Short, StyleLiteral)
@@ -105,7 +105,7 @@ func (self Doc) write_shortlong(name ShortLong) {
 	}
 }
 
-func (self Doc) write_item(item Item) {
+func (self *Doc) write_item(item Item) {
 	item.v(
 		func(metavar Doc, _ bool) {
 			self.Doc(metavar)
@@ -127,7 +127,7 @@ func (self Doc) write_item(item Item) {
 	)
 }
 
-func (self Doc) write_meta(meta Meta, for_usage bool) {
+func (self *Doc) write_meta(meta Meta, for_usage bool) {
 	var gO func(meta Meta, f *Doc)
 	gO = func(meta Meta, f *Doc) {
 		meta(
@@ -177,7 +177,7 @@ func (self Doc) write_meta(meta Meta, for_usage bool) {
 
 	meta = meta.normalized(for_usage)
 	self.token(TokenBlockStart(BlockMono))
-	gO(meta, &self)
+	gO(meta, self)
 	self.token(TokenBlockEnd(BlockMono))
 }
 

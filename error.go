@@ -134,7 +134,7 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 type Error Message
 
 func (self Error) to_string() string {
-	return Message(self).to_string()
+	return Message(self).String()
 }
 
 func (self Error) combine_with(other Error) Error {
@@ -441,6 +441,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			doc.write(item.GoString(), StyleInvalid)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" is not expected in this context")
+			fmt.Println(doc)
 		},
 		func(ix int, name string) {
 			// Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
