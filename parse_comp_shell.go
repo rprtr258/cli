@@ -27,7 +27,7 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 	depth := args.depth()
 	if comp, ok := args.comp_mut(); ok {
 		for _, ci := range comp_items {
-			if is_argument, ok := ci.is_metavar().Unpack(); ok {
+			if is_argument, ok := ci.is_metavar(); ok {
 				comp.push_shell(self.op, is_argument, depth)
 			} else {
 				comp.push_comp(ci)

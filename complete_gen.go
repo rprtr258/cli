@@ -363,10 +363,10 @@ func (self Comp) depth() uint {
 // completer needs to replace meta placeholder with actual values - uses this
 //
 // value indicates if it's an argument or a positional meta
-func (self Comp) is_metavar() Option[bool] {
-	res := Invalid[bool]()
-	self(nil, nil, nil, nil, func(_ CompExtra, _ string, is_argument bool) { res = Valid(is_argument) }, nil)
-	return res
+func (self Comp) is_metavar() (bool, bool) {
+	var res, ok bool
+	self(nil, nil, nil, nil, func(_ CompExtra, _ string, is_argument bool) { res, ok = is_argument, true }, nil)
+	return res, ok
 }
 
 func (self *Comp) set_group(group string) {

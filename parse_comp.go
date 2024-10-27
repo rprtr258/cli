@@ -43,8 +43,7 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 	depth := args.depth()
 	if comp, ok := args.comp_mut(); ok {
 		for _, ci := range comp_items {
-			is_meta := ci.is_metavar()
-			if is_arg, ok := is_meta.Unpack(); ok {
+			if is_arg, ok := ci.is_metavar(); ok {
 				suggestions := self.op(res)
 				// strip metavar when completion makes a single good suggestion
 				// TODO: get back if
