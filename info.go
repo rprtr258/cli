@@ -149,14 +149,12 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	return self.run_subparser(&state)
 }
 
-// Run subparser, implementation detail
 func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	// process should work like this:
 	// - inner parser is evaluated, it returns Error
 	// - if error is finalized (ParseFailure) - it is simply propagated outwards,
 	//   otherwise we are making a few attempts at improving it after dealing with
 	//   autocomplete/help
-	//
 	// - generate autocomplete, if enabled
 	// - produce --help, --version
 	// - Try to improve error message and finalize it otherwise
