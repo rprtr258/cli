@@ -5,7 +5,7 @@ import "github.com/rprtr258/fun"
 // Create parser from a function, [construct](crateconstruct) uses it internally
 type ParseCon[T any] struct {
 	// inner parser closure
-	inner func(bool, *State) Result[T]
+	inner func(bool, *State) (T, Error)
 	// metas for inner parsers
 	meta Meta
 	// To produce a better error messages while parsing constructed values
@@ -21,9 +21,9 @@ func (self ParseCon[T]) Parser() Parser[T] {
 }
 
 func (self ParseCon[T]) eval(args *State) (T, Error) {
-	res := self.inner(self.failfast, args)
+	res, err := self.inner(self.failfast, args)
 	args.current = Invalid[int]()
-	return res.unpack()
+	return res, err
 }
 
 // Automagically restrict the inner parser scope to accept Adjacent values only
@@ -92,17 +92,17 @@ func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
 func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
 	meta := MetaAnd(pa.meta, pb.meta)
 	type R = fun.Pair[A, B]
-	inner := func(failfast bool, args *State) Result[R] {
+	inner := func(failfast bool, args *State) (R, Error) {
 		verbose, err := pa.eval(args)
 		if failfast && err != nil {
-			return Err[R](err)
+			return *new(R), err
 		}
 		quiet, err := pb.eval(args)
 		if err != nil {
-			return Err[R](err)
+			return *new(R), err
 		}
 		args.current = Invalid[int]()
-		return Ok(R{verbose, quiet})
+		return R{verbose, quiet}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}
 }
