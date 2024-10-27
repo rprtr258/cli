@@ -128,9 +128,9 @@ func this_or_that_picks_first(
 		}
 	}
 
-	if bbb, errrr := res, resErr; errrr == nil { // or else no winner, keep the completions but don't touch args otherwise
-		ix := bbb.V
-		if bbb.K {
+	if resErr == nil { // or else no winner, keep the completions but don't touch args otherwise
+		ix := res.V
+		if res.K {
 			if win, ok := ix.Unpack(); ok {
 				args_a.save_conflicts(*args_b, int(win))
 			}
