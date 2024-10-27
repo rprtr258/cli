@@ -22,6 +22,7 @@ func main() {
 			Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
 			Parser(),
 		func(path string) cli.Result[*os.File] {
+			fmt.Printf("%q\n", path)
 			f, err := os.Open(string(path))
 			if err != nil {
 				return cli.Err[*os.File](cli.Error(cli.MessageParseFail(err.Error())))

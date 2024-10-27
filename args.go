@@ -350,8 +350,9 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 				return 0, Arg{}, false
 			}
 			if args.item_state[cur].present() {
-				defer func() { cur++ }()
-				return cur, args.items[cur], true
+				a, b := cur, args.items[cur]
+				cur++
+				return a, b, true
 			}
 		}
 	}
@@ -551,8 +552,7 @@ func (self State) take_flag(named NamedArg) bool {
 		ix int
 		ok bool
 	)
-	iter := self.items_iter()
-	for i, arg := range push2(iter) {
+	for i, arg := range push2(self.items_iter()) {
 		if named.matches_arg(arg, false) {
 			ix = i
 			ok = true
@@ -578,8 +578,7 @@ func (self State) take_arg(
 		key_ix int
 		ok     bool
 	)
-	iter := self.items_iter()
-	for i, arg := range push2(iter) {
+	for i, arg := range push2(self.items_iter()) {
 		if named.matches_arg(arg, adjacent) {
 			key_ix = i
 			ok = true
