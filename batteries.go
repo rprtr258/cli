@@ -161,7 +161,7 @@ func toggle_flag[T any](
 //
 // ```
 func get_usage[T any](parser OptionParser[fmt.Formatter]) string {
-	x, e := parser.run_inner(Argsfrom("--help"))
+	x, e := parser.run_inner(newArgs("--help"))
 	if e == nil {
 		panic(x)
 	}

@@ -2,11 +2,9 @@ package cli
 
 import (
 	"bytes"
-	"iter"
 	"math"
 	"os"
 	"path/filepath"
-	"slices"
 	"unicode/utf8"
 )
 
@@ -40,14 +38,14 @@ import (
 // require.True(t,value);
 // ```
 type Args struct {
-	items iter.Seq[string]
+	items []string
 	name  Option[string]
 	c_rev Option[uint]
 }
 
-func Argsfrom(value ...string) Args {
+func newArgs(value ...string) Args {
 	return Args{
-		items: slices.Values(value),
+		items: value,
 		name:  Invalid[string](),
 		c_rev: Invalid[uint](),
 	}
@@ -97,19 +95,11 @@ func (self *Args) set_name(name string) *Args {
 	return self
 }
 
-func newArgs(value []string) Args {
-	return Args{
-		items: slices.Values(value),
-		name:  Invalid[string](),
-		c_rev: Invalid[uint](),
-	}
-}
-
 // Get a list of command line arguments from OS
 func current_args() Args {
 	name := os.Args[0]
 	return Args{
-		items: slices.Values(os.Args[1:]),
+		items: os.Args[1:],
 		name:  Valid(filepath.Base(name)),
 		c_rev: Invalid[uint](),
 	}
@@ -292,7 +282,7 @@ func stateconstruct(
 	}
 
 LOOP:
-	for os := range args.items {
+	for _, os := range args.items {
 		if pos_only {
 			items = append(items, ArgPosWord(os))
 			continue

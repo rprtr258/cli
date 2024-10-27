@@ -584,13 +584,13 @@ func de_yoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
 
 	{
-		r, err := parser.run_inner(Argsfrom())
+		r, err := parser.run_inner(newArgs())
 		require.Nil(t, err)
 		require.Equal(t, r, fun.Pair[bool, bool]{false, false})
 	}
 
 	{
-		r, err := parser.run_inner(Argsfrom("-a", "-b"))
+		r, err := parser.run_inner(newArgs("-a", "-b"))
 		require.Nil(t, err)
 		require.Equal(t, r, fun.Pair[bool, bool]{true, true})
 	}

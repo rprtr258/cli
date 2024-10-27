@@ -10,7 +10,7 @@ import (
 var M Metavar = Metavar("M")
 
 func Statefrom(value []string) State {
-	args := Argsfrom(value...)
+	args := newArgs(value...)
 	msg := Invalid[Message]()
 	res := stateconstruct(args, nil, nil, &msg)
 	if err, ok := msg.Unpack(); ok {
@@ -38,7 +38,7 @@ func long_flag_and_positional(t *testing.T) {
 }
 
 func multiple_short_flags(t *testing.T) {
-	args := Argsfrom("-vvv")
+	args := newArgs("-vvv")
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{'v'}, []byte{}, &err)
 	require.True(t, a.take_flag(Short('v')))
@@ -152,7 +152,7 @@ func positionals_after_double_dash3(t *testing.T) {
 }
 
 func ambiguity_towards_flag(t *testing.T) {
-	args := Argsfrom("-abc")
+	args := newArgs("-abc")
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{}, &err)
 
@@ -162,7 +162,7 @@ func ambiguity_towards_flag(t *testing.T) {
 }
 
 func ambiguity_towards_argument(t *testing.T) {
-	args := Argsfrom("-abc")
+	args := newArgs("-abc")
 	err := Invalid[Message]()
 	a := stateconstruct(args, []byte{}, []byte{'a'}, &err)
 
@@ -171,7 +171,7 @@ func ambiguity_towards_argument(t *testing.T) {
 }
 
 func ambiguity_towards_error(t *testing.T) {
-	args := Argsfrom("-abc")
+	args := newArgs("-abc")
 	err := Invalid[Message]()
 	_ = stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{'a'}, &err)
 	require.True(t, err.Valid)
