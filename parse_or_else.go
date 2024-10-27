@@ -147,11 +147,10 @@ func this_or_that_picks_first(
 		comp.extend_comps(*comp_stash)
 	}
 
-	resres, err := res, resErr
-	if err != nil {
-		return false, err
+	if resErr != nil {
+		return false, resErr
 	}
-	return resres.K, nil
+	return res.K, nil
 }
 
 func (self ParseOrElse[T]) eval(args *State) (T, Error) {
