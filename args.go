@@ -345,14 +345,16 @@ LOOP:
 func (self *State) items_iter() func() (int, Arg, bool) {
 	args, cur := self, self.scope[0]
 	return func() (int, Arg, bool) {
-		for ; ; cur++ {
+		for {
 			if !args.scope.contains(cur) || cur >= len(args.item_state) {
 				return 0, Arg{}, false
 			}
 			if args.item_state[cur].present() {
 				a, b := cur, args.items[cur]
+				cur++
 				return a, b, true
 			}
+			cur++
 		}
 	}
 }
@@ -551,7 +553,8 @@ func (self *State) take_flag(named NamedArg) bool {
 		ix int
 		ok bool
 	)
-	for i, arg := range push2(self.items_iter()) {
+	iter := push2(self.items_iter())
+	for i, arg := range iter {
 		if named.matches_arg(arg, false) {
 			ix = i
 			ok = true
@@ -577,7 +580,8 @@ func (self *State) take_arg(
 		key_ix int
 		ok     bool
 	)
-	for i, arg := range push2(self.items_iter()) {
+	iter := push2(self.items_iter())
+	for i, arg := range iter {
 		if named.matches_arg(arg, adjacent) {
 			key_ix = i
 			ok = true
@@ -617,7 +621,8 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 		w      Arg
 		ok     bool
 	)
-	for ixix, arg := range push2(self.items_iter()) {
+	iter := push2(self.items_iter())
+	for ixix, arg := range iter {
 		arg.value(nil, nil, nil, func() {
 			ix = ixix
 			strict, ok = false, true

@@ -500,7 +500,6 @@ func (self ParseFlag[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-// impl<T: Clone > Parser[T] for ParseFlag[T] {
 func (self ParseFlag[T]) eval(args *State) (T, Error) {
 	if args.take_flag(self.named) || find_map(self.named.env, func(e string) Option[string] {
 		r, ok := os.LookupEnv(e)
