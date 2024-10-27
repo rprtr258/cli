@@ -2,8 +2,7 @@ package cli
 
 import "math"
 
-// Apply inner parser several times and collect results into `FromIterator`, created with
-// [collect](Parsercollect),
+// Apply inner parser several times and collect results into `FromIterator`, created with [Parsercollect],
 // Implements [catch](ParseCollectcatch)
 type ParseCollect[T any] struct {
 	inner Parser[T]
@@ -44,4 +43,27 @@ func (self ParseCollect[T]) eval(args *State) Result[[]T] {
 
 func (self ParseCollect[T]) meta() Meta {
 	return MetaMany(MetaRequired(self.inner.meta))
+}
+
+// {{{ collect
+// Transform parser into a collection parser
+//
+// A generic variant of [many](Parsermany), instead of collecting into a vector
+// it collects into any collection that implements [FromIterator] trait
+//
+// `collect` preserves any parsing failures and propagates them outwards, with extra
+// [catch](ParseCollectcatch) statement you can instead stop at the first value
+// that failed to parse and ignore it and all the subsequent ones.
+//
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/collect.md"))]
+//
+// `collect` will collect at most one result that does not consume anything from the argument
+// list allowing using it in combination of any parsers with a fallback. After the first one
+// it will keep collecting the results as long as they consume something.
+// }}}
+func (self Parser[T]) collect() ParseCollect[T] {
+	return ParseCollect[T]{
+		inner: self,
+		catch: false,
+	}
 }

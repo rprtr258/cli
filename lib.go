@@ -304,34 +304,10 @@ type Parser[T any] struct {
 	meta Meta
 }
 
-// {{{ collect
-// Transform parser into a collection parser
-//
-// A generic variant of [many](Parsermany), instead of collecting into a vector
-// it collects into any collection that implements [FromIterator] trait
-//
-// `collect` preserves any parsing failures and propagates them outwards, with extra
-// [catch](ParseCollectcatch) statement you can instead stop at the first value
-// that failed to parse and ignore it and all the subsequent ones.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/collect.md"))]
-//
-// `collect` will collect at most one result that does not consume anything from the argument
-// list allowing using it in combination of any parsers with a fallback. After the first one
-// it will keep collecting the results as long as they consume something.
-func (self Parser[T]) collect() ParseCollect[T] {
-	return ParseCollect[T]{
-		inner: self,
-		catch: false,
-	}
-}
-
-// }}}
-
 // {{{ some
 // Consume one or more items from a command line and collect them into a [Vec]
 //
-// Takes a string used as an error message if there are no specified parameters
+// # Takes a string used as an error message if there are no specified parameters
 //
 // `some` preserves any parsing failures and propagates them outwards, with an extra
 // [catch](ParseSomecatch) statement you can instead stop at the first value
@@ -347,7 +323,7 @@ func (self Parser[T]) collect() ParseCollect[T] {
 // [many](Parsermany) also collects results to a vector but succeeds with
 // no matching values. [collect](Parsercollect) collects results into a [FromIterator]
 // structure
-
+// }}}
 func (self Parser[T]) Some(message string) ParseSome[T] {
 	return ParseSome[T]{
 		inner:   self,
@@ -355,8 +331,6 @@ func (self Parser[T]) Some(message string) ParseSome[T] {
 		catch:   false,
 	}
 }
-
-// }}}
 
 // {{{ fun.Optional
 // Turn a required argument into an fun.Optional one
