@@ -355,13 +355,12 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 	args, cur := self, self.scope[0]
 	return func() (int, Arg, bool) {
 		for {
-			ix := cur
-			if !args.scope.contains(ix) || ix >= len(args.item_state) {
+			if !args.scope.contains(cur) || cur >= len(args.item_state) {
 				return 0, Arg{}, false
 			}
-			cur++
-			if args.item_state[ix].present() {
-				return ix, args.items[ix], true
+			if args.item_state[cur].present() {
+				defer func() { cur++ }()
+				return cur, args.items[cur], true
 			}
 		}
 	}
