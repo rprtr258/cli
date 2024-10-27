@@ -206,3 +206,42 @@ complete -F _completion_example completion-example
 Completion requires the parser fun.Option PassDoubleDash and is therefore enforced if the environment variable `GO_FLAGS_COMPLETION` is set.
 
 Customized completion for argument values is supported by implementing the `flags.Completer` interface for the argument value type. An example of a type which does so is the `flags.Filename` type, an alias of string allowing simple filename completion. A slice or array argument value whose element type implements `flags.Completer` will also be completed.
+
+# Tools to define primitive parsers
+## Ways to consume data
+
+### Flag
+- [flag](NamedArgflag) - a string that consists of two dashes (`--flag`) and a name and a single dash and a single character (`-f`) created with [long](NamedArglong) and [short](NamedArgshort) respectively. Depending if this name is present or absent on the command line primitive flag parser produces one of two values. User can combine several short flags in a single invocation: `-a -b -c` is the same as `-abc`.
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
+
+### Required flag
+Similar to `flag`, but instead of falling back to the second value required flag parser would fail. Mostly useful in combination with other parsers, created with [NamedArgreq_flag].
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
+
+### Switch
+A special case of a flag that gets decoded into a `bool`, mostly serves as a convenient shortcut to `.flag(true, false)`. Created with [NamedArgswitch].
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
+
+### Argument
+A short or long `flag` followed by either a space or `=` and then by a string literal.  `-f foo`, `--flag bar` or `-o=-` are all valid argument examples. Note, string literal can't start with `-` unless separated from the flag with `=`. For short flags value can follow immediately: `-fbar`.
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
+
+### Positional
+A positional argument with no additonal name, for example in `vim main.rs` `main.rs` is a positional argument. Can't start with `-`, created with [positional].
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
+
+### Any
+Also a positional argument with no additional name, but unlike [positional] itself, [any] isn't restricted to positional looking structure and would consume any items as they appear on a command line. Can be useful to collect anything unused to pass to other applications.
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
+#![cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
+
+### Command
+A command defines a starting point for an independent subparser. Name must be a valid utf8 string. For example `cargo build` invokes command `"build"` and after `"build"` `cargo` starts accepting values it won't accept otherwise
+
+#![cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
