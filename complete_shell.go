@@ -79,44 +79,6 @@ func ShellCompFile(mask Option[string]) ShellComp {
 	}
 }
 
-// Parser that inserts static shell completion into bpaf's dynamic shell completion
-type ParseCompShell[T any] struct {
-	inner Parser[T]
-	op    ShellComp
-}
-
-func (self ParseCompShell[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.inner.meta}
-}
-
-func (self ParseCompShell[T]) eval(args *State) (T, Error) {
-	// same as with ParseComp the goal is to replace metavars added by inner parser
-	// with a completion that would call a bash script.
-	// unlike ParseComp we don't care if inner parser succeeds
-
-	// stash old completions
-	comp_items := []Comp{}
-	args.swap_comps_with(&comp_items)
-
-	res := newResult(self.inner.eval(args))
-
-	// at this point comp_items contains values added by the inner parser
-	args.swap_comps_with(&comp_items)
-
-	depth := args.depth()
-	if comp, ok := args.comp_mut().Unpack(); ok {
-		for _, ci := range comp_items {
-			if is_argument, ok := ci.is_metavar().Unpack(); ok {
-				comp.push_shell(self.op, is_argument, depth)
-			} else {
-				comp.push_comp(ci)
-			}
-		}
-	}
-
-	return res.unpack()
-}
-
 func render_zsh(
 	items []ShowComp,
 	ops []ShellComp,

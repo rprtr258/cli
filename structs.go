@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"iter"
 )
 
 // Parser that substitutes missing value with a function results but not parser
@@ -291,73 +290,6 @@ func parse_option[T any](
 	} else {
 		return Invalid[T](), nil
 	}
-}
-
-// Parser that replaces metavar placeholders with actual info in shell completion
-type ParseComp[T any] struct {
-	inner Parser[T]
-	op    func(T) iter.Seq2[string, Option[string]]
-	group Option[string]
-}
-
-func (self ParseComp[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.inner.meta}
-}
-
-// Attach group name to parsed values
-func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
-	self.group = Valid(group)
-	return self
-}
-
-func (self ParseComp[T]) eval(args *State) (T, Error) {
-	// stash old
-	comp_items := []Comp(nil)
-	args.swap_comps_with(&comp_items)
-
-	res := newResult(self.inner.eval(args))
-
-	// restore old, now metavars added by inner parser, if any, are in comp_items
-	args.swap_comps_with(&comp_items)
-
-	if comp, ok := args.comp_mut().Unpack(); ok {
-		if res.Err != nil {
-			comp.extend_comps(comp_items)
-			return res.unpack()
-		}
-	}
-
-	// res := res?;
-
-	// completion function generates suggestions based on the parsed inner value, for
-	// that `res` must contain a parsed value
-	depth := args.depth()
-	if comp, ok := args.comp_mut().Unpack(); ok {
-		for _, ci := range comp_items {
-			is_meta := ci.is_metavar()
-			if is_arg, ok := is_meta.Unpack(); ok {
-				suggestions := self.op(res.Value)
-				// strip metavar when completion makes a single good suggestion
-				// TODO: get back if
-				// if len(suggestions) != 1 {
-				// 	comp.push_comp(ci)
-				// }
-				for replacement, description := range suggestions {
-					group := self.group
-					comp.push_value(
-						replacement,
-						description,
-						group,
-						depth,
-						is_arg,
-					)
-				}
-			} else {
-				comp.push_comp(ci)
-			}
-		}
-	}
-	return res.unpack()
 }
 
 // type ParseCompStyle[T any] struct {

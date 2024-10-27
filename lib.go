@@ -1,8 +1,6 @@
 package cli
 
 import (
-	"iter"
-
 	"github.com/rprtr258/fun"
 )
 
@@ -539,90 +537,6 @@ func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
 func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[T] {
 	return ParseWithGroupHelp[T]{inner: self, f: f}
-}
-
-// {{{ comp
-// Dynamic shell completion
-//
-// Allows to generate autocompletion information for the shell. Completer places generated input
-// in place of metavar placeholders, so running `completer` on something that doesn't have a
-// [positional] or an [argument](NamedArgargument) doesn't make much sense.
-//
-// Takes a function as a parameter that tries to complete partial input to a full one with an
-// fun.Optional description. `bpaf` would substitute a current positional item or an argument with an empty
-// string if a value isn't available yet so it's best to run `complete` where parsing can't fail:
-// right after [argument](NamedArgargument) or [positional], but this isn't enforced.
-//
-// # Example
-// ```console
-// $ app --name L<TAB>
-// $ app --name Lupusregina _
-// ```
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/complete.md"))]
-//
-// ## A simple example
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/simple_dynamic.md"))]
-//
-// ## More detailed example
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
-// }}}
-func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) ParseComp[T] {
-	return ParseComp[T]{
-		inner: self,
-		op:    op,
-		group: Invalid[string](),
-	}
-}
-
-// {{{
-// Static shell completion
-//
-// Allows to ask existing shell completion to provide some information such as a file or
-// directory names or pass through existing shell completion scripts, see
-// [ShellComp](complete_shellShellComp) for accessible functionality
-//
-// Places function calls in place of metavar placeholder, so running `complete_shell` on
-// something that doesn't have a [positional] or [argument](NamedArgargument) doesn't
-// make much sense.
-//
-// # Example
-// ```console
-// $ app --output C<TAB>
-// $ app --output Cargo.toml _
-// ```
-//
-// # Combinatoric usage
-// ```rust
-// # use bpaf*;
-//
-//	func output()impl Parser<String> {
-//	    long("output")
-//	        .help("Cargo.toml file to use as output")
-//	        .argument("OUTPUT")
-//	        .complete_shell(ShellCompFile { mask: Valid("*.toml") })
-//	}
-//
-// ```
-//
-// # Derive usage
-// ```rust
-// # use bpaf*;
-//
-//	struct fun.Options {
-//	    // Cargo.toml file to use as output
-//	    #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: Valid("*.toml") }))]
-//	    output string,
-//	}
-//
-// ```
-//
-// For multiple file types correct mask syntax is `"*.(toml|md)"`.
-// }}}
-func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
-	return ParseCompShell[T]{inner: self, op: op}
 }
 
 // consume
