@@ -668,17 +668,6 @@ func (self Parser[T]) run() T {
 	return self.ToOptions().Run()
 }
 
-// Deprecated: You should switch from command(name, sub) to sub.command(name)
-func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
-	return ParseCommand[T]{
-		longs:     []string{name},
-		shorts:    nil,
-		help:      subparser.short_descr(),
-		subparser: subparser,
-		adjacent:  false,
-	}
-}
-
 // Strip a command name if present at the front when used as a `cargo` command
 //
 // When implementing a cargo subcommand parser needs to be able to skip the first argument which
