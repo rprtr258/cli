@@ -659,7 +659,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 				cmp.Compare(ab, bb),
 			)
 		},
-	).Unpack()
+	)
 	if !ok {
 		return MessageParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}

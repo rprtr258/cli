@@ -175,7 +175,7 @@ func position[T any](it iter.Seq[T], f func(T) bool) (int, bool) {
 	return 0, false
 }
 
-func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
+func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) (T, bool) {
 	ok := false
 	var res T
 	for x := range xs {
@@ -184,7 +184,7 @@ func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
 			ok = true
 		}
 	}
-	return Option[T]{res, ok}
+	return res, ok
 }
 
 func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
