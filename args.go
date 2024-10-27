@@ -345,13 +345,12 @@ LOOP:
 func (self *State) items_iter() func() (int, Arg, bool) {
 	args, cur := self, self.scope[0]
 	return func() (int, Arg, bool) {
-		for {
+		for ; ; cur++ {
 			if !args.scope.contains(cur) || cur >= len(args.item_state) {
 				return 0, Arg{}, false
 			}
 			if args.item_state[cur].present() {
 				a, b := cur, args.items[cur]
-				cur++
 				return a, b, true
 			}
 		}
@@ -547,7 +546,7 @@ func (self State) swap_comps_with(comps *[]Comp) {
 // Get a short or long flag: `-f` / `--flag`
 //
 // Returns false if value isn't present
-func (self State) take_flag(named NamedArg) bool {
+func (self *State) take_flag(named NamedArg) bool {
 	var (
 		ix int
 		ok bool
@@ -569,7 +568,7 @@ func (self State) take_flag(named NamedArg) bool {
 //
 // Returns Ok(Invalid()) if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
-func (self State) take_arg(
+func (self *State) take_arg(
 	named NamedArg,
 	adjacent bool,
 	metavar Metavar,
@@ -611,7 +610,7 @@ func (self State) take_arg(
 //
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
-func (self State) take_positional_word(metavar Metavar) (int, bool, string, Error) {
+func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Error) {
 	var (
 		ix     int
 		strict bool
@@ -651,7 +650,7 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 }
 
 // take a static string argument from the first present argument
-func (self State) take_cmd(w string) bool {
+func (self *State) take_cmd(w string) bool {
 	next := self.items_iter()
 	ix, a, ok := next()
 	if !ok || a.os_str != w {
