@@ -304,28 +304,7 @@ type Parser[T any] struct {
 	meta Meta
 }
 
-// Count how many times the inner parser succeeds, and return that number.
-//
-// When you are dealing with a parser that can succeed without consuming
-// anything from a command line - `bpaf` will Count first such success as well.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Count.md"))]
-func (self Parser[T]) Count() ParseCount[T] {
-	return ParseCount[T]{
-		inner: self,
-	}
-}
-
-// Apply the inner parser as many times as it succeeds, return the last value
-//
-// You can use this to allow users to pick contradicting fun.Options
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/last.md"))]
-func (self Parser[T]) last() ParseLast[T] {
-	return ParseLast[T]{inner: self}
-}
-
 // Parse
-// {{{ Parse
 // Apply a failing transformation to a contained value
 //
 // Transformation preserves the present/absent state of the value: to Parse an fun.Optional value you
@@ -356,25 +335,6 @@ func Parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, R] {
 	}
 }
 
-// Map - Apply a pure transformation to a contained value
-//
-// A common case of the [parse](Parserparse) method, exists mostly for convenience.
-//
-// # Derive usage:
-// The `map` takes a single parameter: function name to call. This function should transform
-// the value produced by the parser into a new value of the same or different type.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/map.md"))]
-func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
-	p := ParseMap[T, R]{
-		inner:  self,
-		map_fn: Map,
-	}
-	return Parser[R]{p.eval, p.inner.meta}
-}
-
-// }}}
-
 // {{{ Guard
 // Validate or fail with a message
 //
@@ -384,6 +344,7 @@ func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
 // Derive variant of the `Guard` takes a function name instead of a closure, mostly to keep things
 // clean. The second argument can be either a string literal or a constant name for a static [str].
 //
+// }}}
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Guard.md"))]
 func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
 	return ParseGuard[T]{
@@ -392,8 +353,6 @@ func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
 		message: message,
 	}
 }
-
-// }}}
 
 // combine
 // {{{ Fallback
@@ -409,6 +368,7 @@ func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
 // not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackdisplay_fallback) and
 // [debug_fallback](ParseFallbackdebug_fallback).
+// }}}
 func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 	return &ParseFallback[T]{
 		inner:     self,
@@ -416,8 +376,6 @@ func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 		value_str: "",
 	}
 }
-
-// }}}
 
 // {{{ fallback_with
 // Use value produced by this function as default if the value isn't present
@@ -431,6 +389,7 @@ func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 // By default fallback value will not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackWithdisplay_fallback) and
 // [debug_fallback](ParseFallbackWithdebug_fallback).
+// }}}
 func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T] {
 	return ParseFallbackWith[T]{
 		inner:     self,
@@ -438,8 +397,6 @@ func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith
 		value_str: "",
 	}
 }
-
-// }}}
 
 // {{{ or_else
 // If first parser fails - try the second one
@@ -516,14 +473,13 @@ func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith
 // Suppose program accepts one of two mutually exclusive switches `-a` and `-b`
 // and both are present error message should point at the second flag
 // Deprecated: instead of a.or_else(b) you should use construct([a, b])
+// }}}
 func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 	return ParseOrElse[T]{
 		this: self,
 		that: alt,
 	}
 }
-
-// }}}
 
 // misc
 // {{{ Hide
@@ -533,12 +489,11 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 // backward compatibility or hidden aliases
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Hide.md"))]
+// }}}
 func (self Parser[T]) Hide() Parser[T] {
 	p := ParseHide[T]{inner: self}
 	return Parser[T]{p.eval, MetaSkip}
 }
-
-// }}}
 
 // Ignore this parser when generating a usage line
 //
@@ -571,14 +526,13 @@ func (self Parser[T]) CustomUsage(usage Doc) ParseUsage[T] {
 // from the inner parser and an empty line after the block.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/GroupHelp.md"))]
+// }}}
 func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 	return ParseGroupHelp[T]{
 		inner:   self,
 		message: newDocFromString(message),
 	}
 }
-
-// }}}
 
 // Make a help message for a complex parser from its [MetaInfo]
 //
@@ -614,7 +568,7 @@ func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[T
 // ## More detailed example
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
-
+// }}}
 func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) ParseComp[T] {
 	return ParseComp[T]{
 		inner: self,
@@ -622,8 +576,6 @@ func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) Par
 		group: Invalid[string](),
 	}
 }
-
-// }}}
 
 // {{{
 // Static shell completion
@@ -645,32 +597,33 @@ func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) Par
 // # Combinatoric usage
 // ```rust
 // # use bpaf*;
-// func output()impl Parser<String> {
-//     long("output")
-//         .help("Cargo.toml file to use as output")
-//         .argument("OUTPUT")
-//         .complete_shell(ShellCompFile { mask: Valid("*.toml") })
-// }
+//
+//	func output()impl Parser<String> {
+//	    long("output")
+//	        .help("Cargo.toml file to use as output")
+//	        .argument("OUTPUT")
+//	        .complete_shell(ShellCompFile { mask: Valid("*.toml") })
+//	}
+//
 // ```
 //
 // # Derive usage
 // ```rust
 // # use bpaf*;
 //
-// struct fun.Options {
-//     // Cargo.toml file to use as output
-//     #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: Valid("*.toml") }))]
-//     output string,
-// }
+//	struct fun.Options {
+//	    // Cargo.toml file to use as output
+//	    #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: Valid("*.toml") }))]
+//	    output string,
+//	}
+//
 // ```
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.
-
+// }}}
 func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
 	return ParseCompShell[T]{inner: self, op: op}
 }
-
-// }}}
 
 // consume
 // {{{ ToOptions
@@ -689,14 +642,13 @@ func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
 //
 // # See also
 // There's some methods implemented on [OptionParser] directly to customize the appearance
+// }}}
 func (self Parser[T]) ToOptions() *OptionParser[T] {
 	return &OptionParser[T]{
 		info:  NewInfo(),
 		inner: self,
 	}
 }
-
-// }}}
 
 // Finalize and run the parser
 //
@@ -833,91 +785,4 @@ func Choice[T any](parsers ...Parser[T]) Parser[T] {
 		this = Parser[T]{p.eval, p.this.meta.or(p.that.meta)}
 	}
 	return this
-}
-
-func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
-	meta := MetaAnd(nil)
-	type R = fun.Pair[A, B]
-	inner := func(failfast bool, args *State) Result[R] {
-		verbose, err := pa.eval(args)
-		if failfast && err != nil {
-			return Err[R](err)
-		}
-		quiet, err := pb.eval(args)
-		if err != nil {
-			return Err[R](err)
-		}
-		args.current = Invalid[int]()
-		return Ok(R{verbose, quiet})
-	}
-	return &ParseCon[R]{inner, meta, false}
-}
-
-func Map2[A, B, R any](
-	pa Parser[A],
-	pb Parser[B],
-	f func(A, B) R,
-) Parser[R] {
-	return Map(Pair(pa, pb).Parser(), func(x fun.Pair[A, B]) R { return f(x.K, x.V) })
-}
-
-func Map3[A, B, C, R any](
-	pa Parser[A],
-	pb Parser[B],
-	pc Parser[C],
-	f func(A, B, C) R,
-) Parser[R] {
-	return Map(Pair(Pair(pa, pb).Parser(), pc).Parser(), func(x fun.Pair[fun.Pair[A, B], C]) R { return f(x.K.K, x.K.V, x.V) })
-}
-
-func Map4[A, B, C, D, R any](
-	pa Parser[A],
-	pb Parser[B],
-	pc Parser[C],
-	pd Parser[D],
-	f func(A, B, C, D) R,
-) Parser[R] {
-	return Map(Pair(
-		Pair(
-			pa,
-			pb,
-		).Parser(),
-		Pair(
-			pc,
-			pd,
-		).Parser(),
-	).Parser(), func(x fun.Pair[fun.Pair[A, B], fun.Pair[C, D]]) R {
-		return f(x.K.K, x.K.V, x.V.K, x.V.V)
-	})
-}
-
-// TODO: Map5
-
-func Map6[A, B, C, D, E, F, R any](
-	pa Parser[A],
-	pb Parser[B],
-	pc Parser[C],
-	pd Parser[D],
-	pe Parser[E],
-	pf Parser[F],
-	f func(A, B, C, D, E, F) R,
-) Parser[R] {
-	return Map(Pair(
-		Pair(
-			Pair(
-				pa,
-				pb,
-			).Parser(),
-			Pair(
-				pc,
-				pd,
-			).Parser(),
-		).Parser(),
-		Pair(
-			pe,
-			pf,
-		).Parser(),
-	).Parser(), func(x fun.Pair[fun.Pair[fun.Pair[A, B], fun.Pair[C, D]], fun.Pair[E, F]]) R {
-		return f(x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V.K, x.V.V)
-	})
 }

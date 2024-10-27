@@ -647,7 +647,7 @@ func (self Info) eval(args *State) Result[ExtraParams] {
 func (self Info) meta() Meta {
 	help := self.mk_help_parser().meta()
 	if self.version.Valid {
-		return MetaAnd([]Meta{help, self.mk_version_parser().meta()})
+		return MetaAnd(help, self.mk_version_parser().meta())
 	} else {
 		return help
 	}

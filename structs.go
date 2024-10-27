@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"iter"
-	"math"
 
 	"github.com/rprtr258/fun"
 )
@@ -454,67 +453,6 @@ func (self ParseGuard[T]) eval(args *State) (T, Error) {
 	}
 }
 
-// Apply inner parser as many times as it succeeds while consuming something and return this number
-type ParseCount[T any] struct {
-	inner Parser[T]
-}
-
-func (self ParseCount[T]) Parser() Parser[int] {
-	return Parser[int]{self.eval, MetaMany(MetaOptional(self.inner.meta))}
-}
-
-func (self ParseCount[T]) eval(args *State) (int, Error) {
-	res := 0
-	current := args.len()
-	len := uint(math.MaxUint)
-	for {
-		vv, err := parse_option(self.inner, &len, args, false)
-		if err != nil {
-			return 0, err
-		}
-		if !vv.Valid {
-			break
-		}
-		res += 1
-		if current == args.len() {
-			break
-		}
-		current = args.len()
-	}
-	return res, nil
-}
-
-// Apply inner parser as many times as it succeeds while consuming something and return this number
-type ParseLast[T any] struct {
-	inner Parser[T]
-}
-
-func (self ParseLast[T]) eval(args *State) (T, Error) {
-	last := Invalid[T]()
-	current := args.len()
-	len := uint(math.MaxUint)
-	for {
-		val, err := parse_option(self.inner, &len, args, false)
-		if err != nil || !val.Valid {
-			break
-		}
-		last = val
-		if current == args.len() {
-			break
-		}
-		current = args.len()
-	}
-	if last, ok := last.Unpack(); ok {
-		return last, nil
-	} else {
-		return self.inner.eval(args)
-	}
-}
-
-func (self ParseLast[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
-}
-
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
@@ -557,108 +495,6 @@ func parse_option[T any](
 	} else {
 		return Invalid[T](), nil
 	}
-}
-
-// Parser that transforms parsed value with a function, created with [map](Parsermap).
-type ParseMap[T, R any] struct {
-	inner  Parser[T]
-	map_fn func(T) R
-}
-
-func (self ParseMap[T, R]) eval(args *State) (R, Error) {
-	t, e := self.inner.eval(args)
-	if e != nil {
-		return *new(R), e
-	}
-	return self.map_fn(t), nil
-}
-
-// Create parser from a function, [construct](crateconstruct) uses it internally
-type ParseCon[T any] struct {
-	// inner parser closure
-	inner func(bool, *State) Result[T]
-	// metas for inner parsers
-	meta Meta
-	// To produce a better error messages while parsing constructed values
-	// we want to look at all the items so values that can be consumed are consumed
-	// autocomplete relies on the same logic
-	//
-	// However when dealing with adjacent restriction detecting the first item relies on failing
-	// fast
-	failfast bool
-}
-
-func (self ParseCon[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
-}
-
-func (self ParseCon[T]) eval(args *State) (T, Error) {
-	res := self.inner(self.failfast, args)
-	args.current = Invalid[int]()
-	return res.unpack()
-}
-
-// Automagically restrict the inner parser scope to accept Adjacent values only
-//
-// `Adjacent` can solve surprisingly wide variety of problems: sequential command chaining,
-// multi-value arguments, fun.Option-structs to name a few. If you want to run a parser on a
-// sequential subset of arguments - `Adjacent` might be able to help you. Check the examples
-// for better intuition.
-//
-// Let's consider two examples with consumed items marked in bold and constructor containing
-// parsers for `-c` and `-d`.
-//
-// - <code>**-a** -b **-c** -d</code>
-// - <code>**-a** **-c** -b -d</code>
-//
-// In the first example `-b` breaks the adjacency for all the consumed items so parsing will fail,
-// while here in the second one all the consumed items are Adjacent to each other so
-// parsing will succeed.
-//
-// # Multi-value arguments
-//
-// Parsing things like `--point X Y Z`
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_0.md"))]
-//
-// # Structure groups
-//
-// Parsing things like `--rect --width W --height H --rect --height H --width W`
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_1.md"))]
-//
-// # Chaining commands
-// This example explains [Adjacent](crateparamsParseCommandadjacent), but the same idea holds.
-// Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag`
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
-//
-// # Capturing everything between markers
-//
-// Parsing things like `find . --exec foo {} -bar ; --more`
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_3.md"))]
-//
-// # Multi-value arguments with fun.Optional flags
-//
-// Parsing things like `--foo ARG1 --flag --inner ARG2`
-//
-// So you can parse things while parsing things. Not sure why you might need this, but you can
-// :)
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_4.md"))]
-//
-// # Performance and other considerations
-//
-// `bpaf` can run adjacently restricted parsers multiple times to refine the guesses. It's
-// best not to have complex inter-fields verification since they might trip up the detection
-// logic: instead of restricting, for example "sum of two fields to be 5 or greater" *inside* the
-// `Adjacent` parser, you can restrict it *outside*, once `Adjacent` done the parsing.
-//
-// There's also similar method [Adjacent](crateparsersParseArgument) that allows to restrict argument
-// parser to work only for arguments where both key and a value are in the same shell word:
-// `-f=bar` or `-fbar`, but not `-f bar`.
-func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
-	self.failfast = true
-	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.meta}}
 }
 
 // Parser that replaces metavar placeholders with actual info in shell completion

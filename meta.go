@@ -35,7 +35,7 @@ type Meta func(
 	Strict func(Meta),
 )
 
-func MetaAnd(xs []Meta) Meta {
+func MetaAnd(xs ...Meta) Meta {
 	return func(And, _ func([]Meta), _, _, _ func(Meta), _ func(Item), _ func(Meta), _, _ func(Meta, Doc), _ func(), _ func(Meta, Doc), _ func(Meta)) {
 		if And != nil {
 			And(xs)
