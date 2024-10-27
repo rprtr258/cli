@@ -521,8 +521,7 @@ func (self ParseArgument[T]) meta() Meta {
 	}
 }
 
-// Consume an arbitrary value that satisfies a condition, created with [any], implements
-// [anywhere](ParseAnyanywhere).
+// Consume an arbitrary value that satisfies a condition, created with [any], implements [anywhere](ParseAnyanywhere).
 type ParseAny[T any] struct {
 	metavar  Doc
 	help     Option[Doc]

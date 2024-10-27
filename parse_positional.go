@@ -117,3 +117,51 @@ func (self ParsePositional[T]) meta() Meta {
 	}
 	return meta
 }
+
+// Parse a Positional argument
+//
+// For named flags and arguments ordering generally doesn't matter: most programs would
+// understand `-O2 -v` the same way as `-v -O2`, but for Positional items order matters: in *nix
+// `cat hello world` and `cat world hello` would display contents of the same two files but in
+// a different order.
+//
+// When using combinatoric API you can specify the type with turbofish, for parsing types
+// that don't implement [FromStr] you can use consume a `String`/`string` first and parse
+// it by hand.
+//
+//	func parse_pos() Parser[uint] {
+//	    return Positional[uint]("POS")
+//	}
+//
+// # Important restriction
+// To parse Positional arguments from a command line you should place parsers for all your
+// named values before parsers for Positional items and commands. In derive API fields parsed as
+// Positional items or commands should be at the end of your `struct`/`enum`. The same rule applies
+// to parsers with Positional fields or commands inside: such parsers should go to the end as well.
+//
+// Use [`check_invariants`](OptionParsercheck_invariants) in your test to ensure correctness.
+//
+// For example for non-Positional `non_pos` and Positional `pos` parsers
+//
+//	# non_pos := short('n').switch();
+//	# pos := Positional[string]("POS");
+//	valid := Pair(non_pos, pos);
+//	invalid := Pair(pos, non_pos);
+//
+// **`bpaf` panics during help generation unless this restriction holds**
+//
+// Without using `--` `bpaf` would only accept items that don't start with `-` as Positional, you
+// can use [any] to work around this restriction.
+//
+// By default `bpaf` accepts Positional items with or without `--` where values permit, you can
+// further restrict the parser to accept Positional items only on the right side of `--` using
+// [strict](ParsePositionalstrict).
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/Positional.md"))]
+func Positional[T any](metavar string, parse func(string) (T, error)) *ParsePositional[T] {
+	return &ParsePositional[T]{
+		metavar:  metavar,
+		help:     Invalid[Doc](),
+		position: PositionUnrestricted,
+		p:        parse,
+	}
+}
