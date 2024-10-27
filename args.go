@@ -620,9 +620,9 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 		ok     bool
 	)
 	for _, arg := range push2(self.items_iter()) {
-		arg.value(nil, nil, func() {
+		arg.value(nil, nil, nil, func() {
 			strict, ok = false, true
-		}, nil, func() {
+		}, func() {
 			strict, ok = true, true
 		})
 	}
