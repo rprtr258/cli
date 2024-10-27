@@ -192,19 +192,19 @@ import (
 // validates a single value and then consumes multiple of them already validated, while `b` first
 // consumes and then performs validation. The former approach is usually more readable.
 // ```rust
-// # use bpaf*;
-// # func simple() {
-// a := short('a').argument[uint]("N")
 //
-//	.guard(|&a| a < 10, "`a` must be below 10")
-//	.many();
+//	use bpaf*;
 //
-// b := short('b').argument[uint]("N")
+//	func simple() {
+//	  a := short('a').argument[uint]("N")
+//	    .guard(|&a| a < 10, "`a` must be below 10")
+//	    .many();
 //
-//	.many()
-//	.guard(|bs| bs.iter().all(|&b| b < 10), "`b` must be below 10");
+//	  b := short('b').argument[uint]("N")
+//	   .many()
+//	   .guard(|bs| bs.iter().all(|&b| b < 10), "`b` must be below 10");
+//	}
 //
-// # }
 // ```
 //
 // The same logic applies to derive API - the current type depends on the order of annotations:
@@ -301,7 +301,7 @@ type Parser[T any] struct {
 	// Mostly internal implementation details, you can try using it to test your parsers
 	// it's possible to move this function from the trait to the structs but having it
 	// in the trait ensures the composition always works
-	meta func() Meta
+	meta Meta
 }
 
 // change shape
@@ -331,7 +331,7 @@ func Many[T any](self Parser[T]) Parser[[]T] {
 		inner: self,
 		catch: false,
 	}
-	return Parser[[]T]{p.eval, p.meta}
+	return Parser[[]T]{p.eval, MetaMany(MetaOptional(p.inner.meta))}
 }
 
 // }}}
@@ -480,7 +480,7 @@ func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
 		inner:  self,
 		map_fn: Map,
 	}
-	return Parser[R]{p.eval, p.meta}
+	return Parser[R]{p.eval, p.inner.meta}
 }
 
 // }}}
@@ -645,7 +645,7 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Hide.md"))]
 func (self Parser[T]) Hide() Parser[T] {
 	p := ParseHide[T]{inner: self}
-	return Parser[T]{p.eval, p.meta}
+	return Parser[T]{p.eval, MetaSkip}
 }
 
 // }}}
@@ -1080,9 +1080,10 @@ func Any[T any](metavar string, check func(string) Option[T]) *ParseAny[T] {
 func Literal(val string) Parser[struct{}] {
 	p := Any("", func(s string) Option[struct{}] {
 		return Option[struct{}]{struct{}{}, s == val}
-	}) /*.
-	  metavar(&[(val, cratebufferStyleLiteral)][..])*/
-	return Parser[struct{}]{p.eval, p.meta}
+	}).Metavar(NewDocFromPairs([]fun.Pair[string, Style]{
+		{val, StyleLiteral},
+	}))
+	return Parser[struct{}]{p.eval, MetaItem(p.item())}
 }
 
 // Strip a command name if present at the front when used as a `cargo` command
@@ -1112,12 +1113,12 @@ func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 func Choice[T any](parsers ...Parser[T]) Parser[T] {
 	if len(parsers) == 0 {
 		p := Fail[T]("Invalid choice usage")
-		return Parser[T]{p.eval, p.meta}
+		return Parser[T]{p.eval, MetaSkip}
 	}
 	this := parsers[0]
 	for _, that := range parsers[1:] {
 		p := ParseOrElse[T]{this, that}
-		this = Parser[T]{p.eval, p.meta}
+		this = Parser[T]{p.eval, p.this.meta.or(p.that.meta)}
 	}
 	return this
 }

@@ -178,7 +178,7 @@ func (self NamedArg) Help(help string) NamedArg {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
 func (self NamedArg) Switch() Parser[bool] {
 	p := build_flag_parser(true, Valid(false), self)
-	return Parser[bool]{p.eval, p.meta}
+	return Parser[bool]{p.eval, p.meta()}
 }
 
 // Flag with custom present/absent values
@@ -396,7 +396,7 @@ func (self *ParseCommand[P]) Adjacent() *ParseCommand[P] {
 }
 
 func (self ParseCommand[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, MetaItem(self.item())}
 }
 
 func (self ParseCommand[T]) eval(args *State) (T, Error) {
@@ -467,16 +467,12 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 	}
 }
 
-func (self ParseCommand[T]) meta() Meta {
-	return MetaItem(self.item())
-}
-
 func (self ParseCommand[T]) item() Item {
 	return ItemCommand(
 		self.longs[0],
 		First(self.shorts),
 		self.help,
-		self.subparser.inner.meta(),
+		self.subparser.inner.meta,
 		self.subparser.info,
 	)
 }
@@ -497,7 +493,7 @@ type ParseFlag[T any] struct {
 }
 
 func (self ParseFlag[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.meta()}
 }
 
 func (self ParseFlag[T]) eval(args *State) (T, Error) {
@@ -563,7 +559,7 @@ type ParseArgument[T any] struct {
 }
 
 func (self ParseArgument[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.meta()}
 }
 
 // Restrict parsed arguments to have both flag and a value in the same word:
@@ -687,7 +683,7 @@ func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
 }
 
 func (self *ParsePositional[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.meta()}
 }
 
 // Changes positional parser to be a "strict" positional
@@ -790,7 +786,7 @@ type ParseAny[T any] struct {
 }
 
 func (self ParseAny[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, MetaItem(self.item())}
 }
 
 func (self ParseAny[T]) item() Item {
@@ -854,8 +850,4 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 		scope:    args.scope,
 	}
 	return *new(T), Error(MessageMissing(missing_item))
-}
-
-func (self ParseAny[T]) meta() Meta {
-	return MetaItem(self.item())
 }

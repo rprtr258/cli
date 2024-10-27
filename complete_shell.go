@@ -86,7 +86,7 @@ type ParseCompShell[T any] struct {
 }
 
 func (self ParseCompShell[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.inner.meta}
 }
 
 func (self ParseCompShell[T]) eval(args *State) (T, Error) {
@@ -115,10 +115,6 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 	}
 
 	return res.unpack()
-}
-
-func (self ParseCompShell[T]) meta() Meta {
-	return self.inner.meta()
 }
 
 func render_zsh(

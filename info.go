@@ -135,7 +135,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	// prepare available short flags and arguments for disambiguation
 	short_flags := []byte(nil)
 	short_args := []byte(nil)
-	self.inner.meta().collect_shorts(&short_flags, &short_args)
+	self.inner.meta.collect_shorts(&short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)
 	err := Invalid[Message]()
@@ -143,7 +143,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 
 	// this only handles disambiguation failure in construct
 	if msg, ok := err.Unpack(); ok && !state.comp_ref().Valid {
-		return *new(T), fun.Ptr(Message(msg)).render(state, self.inner.meta())
+		return *new(T), fun.Ptr(Message(msg)).render(state, self.inner.meta)
 	}
 
 	return self.run_subparser(&state)
@@ -165,7 +165,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		buffer := render_help(
 			args.path,
 			self.info,
-			self.inner.meta(),
+			self.inner.meta,
 			self.info.meta(),
 			true,
 		)
@@ -209,7 +209,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 				buffer = render_help(
 					args.path,
 					self.info,
-					self.inner.meta(),
+					self.inner.meta,
 					self.info.meta(),
 					true,
 				)
@@ -225,7 +225,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		)
 		return *new(T), ParseFailureStdout(buffer, detailed)
 	}
-	return *new(T), err.render(*args, self.inner.meta())
+	return *new(T), err.render(*args, self.inner.meta)
 }
 
 // Get first line of description if Available
@@ -509,7 +509,7 @@ func (self *OptionParser[T]) Usage(usage Doc) *OptionParser[T] {
 // type you can alter it using Combinatoric API:
 func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 	buf := Doc{}
-	buf.write_meta(self.inner.meta(), true)
+	buf.write_meta(self.inner.meta, true)
 	self.info.usage = Valid(f(buf))
 	return self
 }
@@ -535,7 +535,7 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 //
 // `check_invariants` indicates problems with panic
 func (self OptionParser[T]) check_invariants(bool) {
-	self.inner.meta().positional_invariant_check(true)
+	self.inner.meta.positional_invariant_check(true)
 }
 
 // Customize parser for `--help`

@@ -40,7 +40,7 @@ func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 }
 
 func (self ParseFallbackWith[T]) meta() Meta {
-	m := MetaOptional(self.inner.meta())
+	m := MetaOptional(self.inner.meta)
 	if self.value_str == "" {
 		return m
 	} else {
@@ -56,7 +56,7 @@ type ParseGroupHelp[T any] struct {
 }
 
 func (self ParseGroupHelp[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.meta()}
 }
 
 // impl<T, P> Parser[T] for ParseGroupHelp<P>
@@ -70,7 +70,7 @@ func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseGroupHelp[T]) meta() Meta {
-	meta := self.inner.meta()
+	meta := self.inner.meta
 	return MetaSubsection(meta, self.message)
 }
 
@@ -86,7 +86,7 @@ func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseWithGroupHelp[T]) meta() Meta {
-	meta := self.inner.meta()
+	meta := self.inner.meta
 	buf := (self.f)(MetaInfo(meta))
 
 	return MetaSubsection(meta, buf)
@@ -140,7 +140,7 @@ func (self ParseSome[T]) eval(args *State) Result[[]T] {
 }
 
 func (self ParseSome[P]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta()))
+	return MetaMany(MetaRequired(self.inner.meta))
 }
 
 // Apply inner parser several times and collect results into `FromIterator`, created with
@@ -184,7 +184,7 @@ func (self ParseCollect[T]) eval(args *State) Result[[]T] {
 }
 
 func (self ParseCollect[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta()))
+	return MetaMany(MetaRequired(self.inner.meta))
 }
 
 // Parser that returns results as usual but not shown in `--help` output, created with
@@ -211,10 +211,6 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 	return res.unpack()
 }
 
-func (self ParseHide[P]) meta() Meta {
-	return MetaSkip
-}
-
 // Parser that hides inner parser from usage line
 //
 // No other changes to the inner parser
@@ -231,7 +227,7 @@ func (self ParseUsage[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseUsage[P]) meta() Meta {
-	return MetaCustomUsage(self.inner.meta(), self.usage)
+	return MetaCustomUsage(self.inner.meta, self.usage)
 }
 
 // Parser that tries to either of two parsers and uses one that succeeeds, created with
@@ -296,10 +292,6 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	} else {
 		return res_b.unwrap(), nil
 	}
-}
-
-func (self ParseOrElse[T]) meta() Meta {
-	return self.this.meta().or(self.that.meta())
 }
 
 // Given two possible errors along with to sets of arguments produce a new error or an instruction
@@ -449,7 +441,7 @@ type ParseWith[T, R any] struct {
 }
 
 func (self ParseWith[T, R]) Parser() Parser[R] {
-	return Parser[R]{self.eval, self.meta}
+	return Parser[R]{self.eval, self.inner.meta}
 }
 
 // impl<T, P, F, E, R> Parser<R> for ParseWith<T, P, F, E, R>
@@ -467,12 +459,7 @@ func (self ParseWith[T, R]) eval(args *State) (R, Error) {
 	return r, nil
 }
 
-func (self ParseWith[T, R]) meta() Meta {
-	return self.inner.meta()
-}
-
-// Parser that substitutes missing value but not parse failure, created with
-// [`fallback`](Parserfallback).
+// Parser that substitutes missing value but not parse failure, created with [`fallback`](Parserfallback).
 type ParseFallback[T any] struct {
 	inner     Parser[T]
 	value     T
@@ -480,7 +467,7 @@ type ParseFallback[T any] struct {
 }
 
 func (self ParseFallback[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.meta()}
 }
 
 func (self ParseFallback[T]) eval(args *State) (T, Error) {
@@ -499,7 +486,7 @@ func (self ParseFallback[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseFallback[T]) meta() Meta {
-	m := MetaOptional(self.inner.meta())
+	m := MetaOptional(self.inner.meta)
 	if self.value_str == "" {
 		return m
 	} else {
@@ -568,7 +555,7 @@ type ParseGuard[T any] struct {
 }
 
 func (self ParseGuard[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.inner.meta}
 }
 
 // impl<T, P, F> Parser[T] for ParseGuard<P, F>
@@ -584,17 +571,13 @@ func (self ParseGuard[T]) eval(args *State) (T, Error) {
 	}
 }
 
-func (self ParseGuard[T]) meta() Meta {
-	return self.inner.meta()
-}
-
 // Apply inner parser as many times as it succeeds while consuming something and return this number
 type ParseCount[T any] struct {
 	inner Parser[T]
 }
 
 func (self ParseCount[T]) Parser() Parser[int] {
-	return Parser[int]{self.eval, self.meta}
+	return Parser[int]{self.eval, MetaMany(MetaOptional(self.inner.meta))}
 }
 
 func (self ParseCount[T]) eval(args *State) (int, Error) {
@@ -616,10 +599,6 @@ func (self ParseCount[T]) eval(args *State) (int, Error) {
 		current = args.len()
 	}
 	return res, nil
-}
-
-func (self ParseCount[T]) meta() Meta {
-	return MetaMany(MetaOptional(self.inner.meta()))
 }
 
 // Apply inner parser as many times as it succeeds while consuming something and return this number
@@ -651,7 +630,7 @@ func (self ParseLast[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseLast[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta()))
+	return MetaMany(MetaRequired(self.inner.meta))
 }
 
 // Apply inner parser, return a value in `Some` if items requested by it are all present, restore
@@ -665,10 +644,6 @@ type ParseOptional[T any] struct {
 func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
 	len := uint(math.MaxUint)
 	return parse_option(self.inner, &len, args, self.catch)
-}
-
-func (self ParseOptional[T]) meta() Meta {
-	return MetaOptional(self.inner.meta())
 }
 
 // Handle parse failures for fun.Optional parsers
@@ -690,7 +665,7 @@ func (self *ParseOptional[T]) Catch() *ParseOptional[T] {
 }
 
 func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
-	return Parser[Option[T]]{self.eval, self.meta}
+	return Parser[Option[T]]{self.eval, MetaOptional(self.inner.meta)}
 }
 
 // Apply inner parser several times and collect results into `Vec`, created with
@@ -780,12 +755,7 @@ func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-func (self ParseMany[T]) meta() Meta {
-	return MetaMany(MetaOptional(self.inner.meta()))
-}
-
-// Parser that returns a given value without consuming anything, created with
-// [`pure`](cratepure).
+// Parser that returns a given value without consuming anything, created with [`pure`](cratepure).
 type ParsePure[T any] struct {
 	inner T
 }
@@ -826,10 +796,6 @@ func (self ParseFail[T]) eval(args *State) (T, Error) {
 	return *new(T), Error(MessageParseFail(self.field1))
 }
 
-func (self ParseFail[T]) meta() Meta {
-	return MetaSkip
-}
-
 // Parser that transforms parsed value with a function, created with [`map`](Parsermap).
 type ParseMap[T, R any] struct {
 	inner  Parser[T]
@@ -842,10 +808,6 @@ func (self ParseMap[T, R]) eval(args *State) (R, Error) {
 		return *new(R), e
 	}
 	return self.map_fn(t), nil
-}
-
-func (self ParseMap[T, R]) meta() Meta {
-	return self.inner.meta()
 }
 
 // Create parser from a function, [`construct`](crateconstruct) uses it internally
@@ -864,7 +826,7 @@ type ParseCon[T any] struct {
 }
 
 func (self ParseCon[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.Meta}
+	return Parser[T]{self.eval, self.meta}
 }
 
 // impl<T, P> Parser[T] for ParseCon<P>
@@ -872,10 +834,6 @@ func (self ParseCon[T]) eval(args *State) (T, Error) {
 	res := self.inner(self.failfast, args)
 	args.current = Invalid[int]()
 	return res.unpack()
-}
-
-func (self ParseCon[P]) Meta() Meta {
-	return self.meta
 }
 
 // Automagically restrict the inner parser scope to accept Adjacent values only
@@ -938,7 +896,7 @@ func (self ParseCon[P]) Meta() Meta {
 // `-f=bar` or `-fbar`, but not `-f bar`.
 func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
 	self.failfast = true
-	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.Meta}}
+	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.meta}}
 }
 
 // Parser that replaces metavar placeholders with actual info in shell completion
@@ -950,7 +908,7 @@ type ParseComp[T any] struct {
 }
 
 func (self ParseComp[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, self.inner.meta}
 }
 
 // Attach group name to parsed values
@@ -1009,42 +967,30 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 	return res.unpack()
 }
 
-func (self ParseComp[T]) meta() Meta {
-	return self.inner.meta()
-}
+// type ParseCompStyle[T any] struct {
+// 	inner Parser[T]
+// 	style CompleteDecor
+// }
 
-/*
+// func (self ParseCompStyle[T]) eval(args *State) (T, Error) {
+// 	comp_items := nil
+// 	args.swap_comps_with(&comp_items)
+// 	res := self.inner.eval(args)
+// 	args.swap_comps_with(&comp_items)
+// 	args.extend_with_style(self.style, &comp_items)
+// 	return res
+// }
 
-pub struct ParseCompStyle<P> {
-    inner P
-    style: CompleteDecor,
-}
-
-
-impl<P, T> Parser[T] for ParseCompStyle<P>
-where
-    P: Parser[T] + Sized,
-{
-    func eval(&self, args: &mut State)Result[T] {
-        comp_items := nil;
-        args.swap_comps_with(&mut comp_items);
-        res := self.inner.eval(args);
-        args.swap_comps_with(&mut comp_items);
-        args.extend_with_style(self.style, &mut comp_items);
-        res
-    }
-
-    func meta(&self)Meta {
-        self.inner.meta()
-    }
-}*/
+// func (self ParseCompStyle[T]) meta() Meta {
+// 	return self.inner.meta()
+// }
 
 type ParseAdjacent[T any] struct {
 	inner Parser[T]
 }
 
 func (self ParseAdjacent[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta}
+	return Parser[T]{self.eval, MetaAdjacent(self.inner.meta)}
 }
 
 // impl<P, T> Parser[T] for ParseAdjacent<P>
@@ -1052,7 +998,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 	original_scope := args.scope
 
 	var first_item Item
-	inner_meta := self.inner.meta()
+	inner_meta := self.inner.meta
 
 	item, ok := Metafirst_item(inner_meta).Unpack()
 	if !ok {
@@ -1139,9 +1085,4 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 
 	stdmemswap(args, best_args)
 	return *new(T), Error(best_error)
-}
-
-func (self ParseAdjacent[T]) meta() Meta {
-	meta := self.inner.meta()
-	return MetaAdjacent(meta)
 }
