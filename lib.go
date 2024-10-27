@@ -765,24 +765,3 @@ func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 	skip := Optional(Literal(cmd)).Parser().Hide()
 	return Map(Pair(skip, parser).Parser(), func(x fun.Pair[Option[struct{}], T]) T { return x.V })
 }
-
-// Choose between several parsers specified at runtime
-//
-// You can use this function to create multiple parsers that produce the same type of value at a runtime
-// and let bpaf to pick one that best fits best. This function is designed to work in Combinatoric
-// API, but you can use it in Derive API with `extern`.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Choice.md"))]
-func Choice[T any](parsers ...Parser[T]) Parser[T] {
-	if len(parsers) == 0 {
-		p := Fail[T]("Invalid choice usage")
-		return Parser[T]{p.eval, MetaSkip}
-	}
-
-	this := parsers[0]
-	for _, that := range parsers[1:] {
-		p := ParseOrElse[T]{this, that}
-		this = Parser[T]{p.eval, p.this.meta.or(p.that.meta)}
-	}
-	return this
-}
