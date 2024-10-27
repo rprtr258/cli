@@ -87,22 +87,22 @@ type ParseFallbackWith[T any] struct {
 	value_str string
 }
 
-func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
+func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
 	clone := args
 	ok, e := self.inner.eval(clone)
 	if e == nil {
 		stdmemswap(args, clone)
-		return Ok(ok)
+		return ok, nil
 	} else {
 		args.swap_comps(clone)
 		if Message(e).can_catch() {
 			ok, e := self.fallback()
 			if e != nil {
-				return Err[T](Error(MessagePureFailed(e.String())))
+				return *new(T), Error(MessagePureFailed(e.String()))
 			}
-			return Ok(ok)
+			return ok, nil
 		} else {
-			return Err[T](Error(e))
+			return *new(T), Error(e)
 		}
 	}
 }
