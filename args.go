@@ -219,8 +219,9 @@ type State struct {
 
 	comp Option[Complete]
 
-	//        // A way to customize behavior for --help and error handling
-	//        improve_error: superImprove,
+	// A way to customize behavior for --help and error handling
+	// improve_error: superImprove,
+
 	// Describes scope current parser will be consuming elements from. Usually it will be
 	// considering the whole sequence of (unconsumed) arguments, but for "adjacent"
 	// scope starts on the right of the first consumed item and might end before the end
@@ -238,21 +239,6 @@ func (self State) present(ix int) Option[bool] {
 
 func (self State) depth() uint {
 	return uint(len(self.path))
-}
-
-func ArgsIter(args *State, cur int) func() (int, Arg, bool) {
-	return func() (int, Arg, bool) {
-		for {
-			ix := cur
-			if !args.scope.contains(ix) || ix >= len(args.item_state) {
-				return 0, Arg{}, false
-			}
-			cur++
-			if args.item_state[ix].present() {
-				return ix, args.items[ix], true
-			}
-		}
-	}
 }
 
 func (self State) check_no_pos_ahead() bool {
@@ -348,12 +334,11 @@ LOOP:
 	}
 
 	path := []string{}
-
-	comp := comp_scanner.done()
-
 	if name, ok := args.name.Unpack(); ok {
 		path = append(path, name)
 	}
+
+	comp := comp_scanner.done()
 	return State{
 		items,
 		item_state,
@@ -367,10 +352,19 @@ LOOP:
 
 // creates iterator over remaining elements
 func (self *State) items_iter() func() (int, Arg, bool) {
-	return ArgsIter(
-		self,
-		self.scope[0],
-	)
+	args, cur := self, self.scope[0]
+	return func() (int, Arg, bool) {
+		for {
+			ix := cur
+			if !args.scope.contains(ix) || ix >= len(args.item_state) {
+				return 0, Arg{}, false
+			}
+			cur++
+			if args.item_state[ix].present() {
+				return ix, args.items[ix], true
+			}
+		}
+	}
 }
 
 func (self *State) remove(index int) {
