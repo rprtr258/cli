@@ -21,7 +21,7 @@ func this_or_that_picks_first(
 	args_a *State,
 	args_b *State,
 	comp_stash *[]Comp,
-) Result[bool] {
+) (bool, Error) {
 	// if higher depth parser succeeds - it takes a priority
 	// completion from different depths should never mix either
 	switch ccc := cmp.Compare(args_a.depth(), args_b.depth()); {
@@ -33,9 +33,9 @@ func this_or_that_picks_first(
 		}
 		err, ok := err_b.Unpack()
 		if !ok {
-			return Ok(false)
+			return false, nil
 		}
-		return Err[bool](err)
+		return false, err
 	case ccc == 0:
 	case ccc > 0:
 		stdmemswap(args, args_a)
@@ -45,9 +45,9 @@ func this_or_that_picks_first(
 		}
 		err, ok := err_a.Unpack()
 		if !ok {
-			return Ok(true)
+			return true, nil
 		}
-		return Err[bool](err)
+		return false, err
 	}
 
 	// otherwise pick based on the left most or successful one
@@ -146,9 +146,9 @@ func this_or_that_picks_first(
 
 	resres, err := res.unpack()
 	if err != nil {
-		return Err[bool](err)
+		return false, err
 	}
-	return Ok(resres.K)
+	return resres.K, nil
 }
 
 func (self ParseOrElse[T]) eval(args *State) (T, Error) {
@@ -196,7 +196,7 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 		args_a,
 		args_b,
 		&comp_items,
-	).unpack()
+	)
 	if err != nil {
 		return *new(T), err
 	}
