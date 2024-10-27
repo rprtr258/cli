@@ -29,7 +29,7 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 	// restore old, now metavars added by inner parser, if any, are in comp_items
 	args.swap_comps_with(&comp_items)
 
-	if comp, ok := args.comp_mut().Unpack(); ok && err != nil {
+	if comp, ok := args.comp_mut(); ok && err != nil {
 		comp.extend_comps(comp_items)
 		return *new(T), err
 	}
@@ -41,7 +41,7 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 	// completion function generates suggestions based on the parsed inner value, for
 	// that `res` must contain a parsed value
 	depth := args.depth()
-	if comp, ok := args.comp_mut().Unpack(); ok {
+	if comp, ok := args.comp_mut(); ok {
 		for _, ci := range comp_items {
 			is_meta := ci.is_metavar()
 			if is_arg, ok := is_meta.Unpack(); ok {

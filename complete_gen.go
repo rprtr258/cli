@@ -194,7 +194,7 @@ func Completenew(output_rev uint) Complete {
 // Add a new completion hint for flag, if needed
 func (self *State) push_flag(named NamedArg) {
 	depth := self.depth()
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		if name, ok := ShortLongtry_from(named); ok {
 			comp.comps = append(comp.comps, CompFlag(
 				CompExtra{
@@ -211,7 +211,7 @@ func (self *State) push_flag(named NamedArg) {
 // Add a new completion hint for an argument, if needed
 func (self *State) push_argument(named NamedArg, metavar string) {
 	depth := self.depth()
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		if name, ok := ShortLongtry_from(named); ok {
 			comp.comps = append(comp.comps, CompArgument(
 				CompExtra{
@@ -236,7 +236,7 @@ func (self *State) push_metavar(
 	is_argument bool,
 ) {
 	depth := self.depth()
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		extra := CompExtra{
 			depth: depth,
 			group: Invalid[string](),
@@ -254,7 +254,7 @@ func (self *State) push_command(
 	help Option[Doc],
 ) {
 	depth := self.depth()
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		comp.comps = append(comp.comps, CompCommand(
 			CompExtra{
 				depth: depth,
@@ -269,7 +269,7 @@ func (self *State) push_command(
 
 // Clear collected completions if enabled
 func (self *State) clear_comps() {
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		comp.comps = comp.comps[:0]
 	}
 }
@@ -279,7 +279,7 @@ func (self *State) clear_comps() {
 // In practice it's "--"
 func (self *State) push_pos_sep() {
 	depth := self.depth()
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		comp.comps = append(comp.comps, CompValue(
 			CompExtra{
 				depth: depth,
@@ -294,7 +294,7 @@ func (self *State) push_pos_sep() {
 
 // Insert a bunch of items
 func (self *State) push_with_group(group Option[string], comps *[]Comp) {
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		for i := range *comps {
 			if group, ok := group.Unpack(); ok {
 				(*comps)[i].set_group(group)
@@ -457,7 +457,7 @@ func PrefixLong(s string) Prefix {
 // `self.comp`, this part goes over collected heads and generates possible completions from
 // that
 func (self State) check_complete() Option[string] {
-	comp, ok := self.comp_ref().Unpack()
+	comp, ok := self.comp_ref()
 	if !ok {
 		return Invalid[string]()
 	}

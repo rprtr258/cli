@@ -28,7 +28,7 @@ func this_or_that_picks_first(
 	case ccc < 0:
 		stdmemswap(args, args_b)
 
-		if comp, ok := args.comp_mut().Unpack(); ok {
+		if comp, ok := args.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
 		}
 		err, ok := err_b.Unpack()
@@ -40,7 +40,7 @@ func this_or_that_picks_first(
 	case ccc > 0:
 		stdmemswap(args, args_a)
 
-		if comp, ok := args.comp_mut().Unpack(); ok {
+		if comp, ok := args.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
 		}
 		err, ok := err_a.Unpack()
@@ -82,8 +82,8 @@ func this_or_that_picks_first(
 			//
 			// This is needed to preserve completion from a choice between a positional and a flag
 			// See https://github.com/pacak/bpaf/issues/303 for more details
-			_, ok1 := args_a.comp_mut().Unpack()
-			_, ok2 := args_b.comp_mut().Unpack()
+			_, ok1 := args_a.comp_mut()
+			_, ok2 := args_b.comp_mut()
 			if ok1 && ok2 {
 			CHECK:
 				for ix, arg := range args_a.items {
@@ -116,8 +116,8 @@ func this_or_that_picks_first(
 			}
 		}
 
-		a, ok1 := args_a.comp_mut().Unpack()
-		b, ok2 := args_b.comp_mut().Unpack()
+		a, ok1 := args_a.comp_mut()
+		b, ok2 := args_b.comp_mut()
 		if ok1 && ok2 {
 			if keep_a {
 				*comp_stash = append(*comp_stash, a.drain_comps()...)
@@ -143,7 +143,7 @@ func this_or_that_picks_first(
 		}
 	}
 
-	if comp, ok := args.comp_mut().Unpack(); ok {
+	if comp, ok := args.comp_mut(); ok {
 		comp.extend_comps(*comp_stash)
 	}
 

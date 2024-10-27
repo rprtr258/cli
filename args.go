@@ -527,12 +527,12 @@ func (self State) touching_last_remove() bool {
 	return self.comp.Valid && len(self.items)-1 == self.current.OrDefault(math.MaxInt)
 }
 
-func (self *State) comp_mut() Option[*Complete] {
-	return Option[*Complete]{&self.comp.Value, self.comp.Valid}
+func (self *State) comp_mut() (*Complete, bool) {
+	return &self.comp.Value, self.comp.Valid
 }
 
-func (self State) comp_ref() Option[Complete] {
-	return self.comp
+func (self State) comp_ref() (Complete, bool) {
+	return self.comp.Unpack()
 }
 
 func (self *State) swap_comps(other *State) {
@@ -540,7 +540,7 @@ func (self *State) swap_comps(other *State) {
 }
 
 func (self State) swap_comps_with(comps *[]Comp) {
-	if comp, ok := self.comp_mut().Unpack(); ok {
+	if comp, ok := self.comp_mut(); ok {
 		comp.swap_comps(comps)
 	}
 }
