@@ -51,7 +51,7 @@ func (self ParseArgument[T]) item() Option[Item] {
 }
 
 func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
-	wopt, err := args.take_arg(self.named, self.adjacent, Metavar(self.metavar)).unpack()
+	wopt, err := args.take_arg(self.named, self.adjacent, Metavar(self.metavar))
 	if err != nil {
 		args.push_argument(self.named, self.metavar)
 		return "", err

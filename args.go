@@ -575,7 +575,7 @@ func (self *State) take_arg(
 	named NamedArg,
 	adjacent bool,
 	metavar Metavar,
-) Result[Option[string]] {
+) (Option[string], Error) {
 	var (
 		key_ix int
 		ok     bool
@@ -590,7 +590,7 @@ func (self *State) take_arg(
 	}
 
 	if !ok {
-		return Ok(Invalid[string]())
+		return Invalid[string](), nil
 	}
 
 	val_ix := key_ix + 1
@@ -602,12 +602,12 @@ func (self *State) take_arg(
 	}() {
 		val = ww.str
 	} else {
-		return Err[Option[string]](Error(MessageNoArgument(key_ix, metavar)))
+		return Option[string]{}, Error(MessageNoArgument(key_ix, metavar))
 	}
 	self.current = Valid(val_ix)
 	self.remove(key_ix)
 	self.remove(val_ix)
-	return Ok(Valid(val))
+	return Valid(val), nil
 }
 
 // gets first positional argument present
