@@ -254,13 +254,13 @@ func (self ParseFailure) print_message(max_width uint) {
 	)
 }
 
-func check_conflicts(args State) Option[Message] {
+func check_conflicts(args State) (Message, bool) {
 	loserwinner, ok := args.conflict()
 	if !ok {
-		return Invalid[Message]()
+		return nil, false
 	}
 	loser, winner := loserwinner.start(), loserwinner.end()
-	return Valid(MessageConflict(winner, loser))
+	return MessageConflict(winner, loser), true
 }
 
 func textual_part(args State, ixxx Option[int]) Option[string] {
@@ -318,7 +318,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		},
 		nil, nil, nil, nil, nil, nil,
 		func(ix uint) {
-			if conflict, ok := check_conflicts(args).Unpack(); ok {
+			if conflict, ok := check_conflicts(args); ok {
 				*self = conflict
 			} else if prev_ix, ok := only_once(args, int(ix)).Unpack(); ok {
 				*self = MessageOnlyOnce(prev_ix, int(ix))
