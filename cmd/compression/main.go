@@ -9,8 +9,8 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-func compression() cli.Parser[uint] {
-	return cli.Any("COMP", func(s string) cli.Option[uint] {
+var compression cli.Parser[uint] = cli.
+	Any("COMP", func(s string) cli.Option[uint] {
 		x, err := strconv.ParseInt(s, 10, 64)
 		if err == nil && -9 <= x && x <= -1 {
 			return cli.Valid(uint(-x))
@@ -18,17 +18,16 @@ func compression() cli.Parser[uint] {
 			return cli.Invalid[uint]()
 		}
 	}).
-		Metavar(cli.NewDocFromPairs([]fun.Pair[string, cli.Style]{
-			{"-1", cli.StyleLiteral},
-			{" to ", cli.StyleText},
-			{"-9", cli.StyleLiteral},
-		})).
-		Help("Compression level").
-		Anywhere().
-		Parser()
-}
+	Metavar(cli.NewDocFromPairs([]fun.Pair[string, cli.Style]{
+		{"-1", cli.StyleLiteral},
+		{" to ", cli.StyleText},
+		{"-9", cli.StyleLiteral},
+	})).
+	Help("Compression level").
+	Anywhere().
+	Parser()
 
 func main() {
-	opts := compression().ToOptions().Run()
+	opts := compression.Run()
 	fmt.Println(opts)
 }

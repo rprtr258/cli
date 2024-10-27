@@ -13,7 +13,6 @@ func main() {
 	opt := cli.Many(cli.ReqFlag(cli.Short('f'), struct{}{}).Parser()).
 		Guard(func(x []struct{}) bool { return len(x) >= 2 }, "at least two arguments are required").
 		Parser().
-		ToOptions().
 		Run()
 
 	fmt.Println(opt)

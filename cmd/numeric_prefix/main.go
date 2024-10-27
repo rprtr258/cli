@@ -24,7 +24,7 @@ type Options struct {
 	command string
 }
 
-func options() *cli.OptionParser[Options] {
+var options = func() cli.Parser[Options] {
 	prefix := cli.Optional(cli.Positional("PREFIX", func(s string) (uint, error) {
 		u, err := strconv.ParseUint(s, 10, 64)
 		return uint(u), err
@@ -36,9 +36,9 @@ func options() *cli.OptionParser[Options] {
 		return s, nil
 	}).Help("Required command name").Parser()
 
-	return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Option[uint], string]) Options { return Options{x.K, x.V} }).ToOptions()
-}
+	return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Option[uint], string]) Options { return Options{x.K, x.V} })
+}()
 
 func main() {
-	fmt.Println(options().Run())
+	fmt.Println(options.Run())
 }

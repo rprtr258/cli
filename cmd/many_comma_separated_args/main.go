@@ -11,8 +11,8 @@ import (
 )
 
 // --ports 1,2,3 --ports 4,5   => [1,2,3,4,5]
-func args() cli.Parser[[]uint16] {
-	return cli.Map(cli.Many(cli.Argument(cli.Long("ports").
+var args cli.Parser[[]uint16] = cli.
+	Map(cli.Many(cli.Argument(cli.Long("ports").
 		Help("Comma separated list of ports"),
 		"PORTS", func(s string) ([]uint16, error) {
 			parts := strings.Split(s, ",")
@@ -28,8 +28,7 @@ func args() cli.Parser[[]uint16] {
 		}).Parser()), func(nested [][]uint16) []uint16 {
 		return fun.ConcatMap(func(x []uint16) []uint16 { return x }, nested...)
 	})
-}
 
 func main() {
-	fmt.Println(args().ToOptions().Run())
+	fmt.Println(args.Run())
 }

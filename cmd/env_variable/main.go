@@ -19,7 +19,7 @@ func main() {
 			return s, nil
 		}).Parser()
 
-	opts := cli.Map(key, func(key string) Opts { return Opts{key} }).ToOptions().Run()
+	opts := cli.Map(key, func(key string) Opts { return Opts{key} }).Run()
 
 	fmt.Println(opts)
 }

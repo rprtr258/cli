@@ -39,7 +39,6 @@ func main() {
 		Command("foo").
 		Help("command for doing foo").Parser(),
 		CommandFoo).
-		ToOptions().
 		Run()
 
 	fmt.Println(opt)

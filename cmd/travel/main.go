@@ -18,19 +18,17 @@ type Segment func(
 )
 
 func SegmentTime(x float64) Segment {
-	return func(
-		f func(float64),
-		_ func(_, _ float64),
-	) {
-		f(x)
+	return func(f func(float64), _ func(_, _ float64)) {
+		if f != nil {
+			f(x)
+		}
 	}
 }
 func SegmentSpeedDistance(speed, dist float64) Segment {
-	return func(
-		_ func(float64),
-		f func(speed, dist float64),
-	) {
-		f(speed, dist)
+	return func(_ func(float64), f func(speed, dist float64)) {
+		if f != nil {
+			f(speed, dist)
+		}
 	}
 }
 
@@ -44,25 +42,25 @@ func main() {
 	// Speed can be given by KPH or MPH. Distance - either miles or km.
 
 	// parsers for speeds. Both speeds are converted to the same units
-	mph := cli.Map(cli.Argument[float64](cli.Long("mph").
+	mph := cli.Map(cli.Argument(cli.Long("mph").
 		Help("speed in MPH"),
 		"SPEED", parseFloat64).Parser(),
 		func(x float64) float64 { return x * 1.6 })
-	kph := cli.Argument[float64](cli.Long("kph").Help("Speed in KPH"), "SPEED", parseFloat64)
+	kph := cli.Argument(cli.Long("kph").Help("Speed in KPH"), "SPEED", parseFloat64)
 
 	// speed is either kph or mph, conversion to mph is handled by the parser
 	speed := cli.Choice(mph, kph.Parser())
 
 	// parsers for distances, both are converted to the same units
-	km := cli.Argument[float64](cli.Long("km").Help("Distance in KM"), "KMs", parseFloat64)
-	mi := cli.Map(cli.Argument[float64](cli.Long("mi").
+	km := cli.Argument(cli.Long("km").Help("Distance in KM"), "KMs", parseFloat64)
+	mi := cli.Map(cli.Argument(cli.Long("mi").
 		Help("distance in miles"),
 		"MILES", parseFloat64).Parser(),
 		func(x float64) float64 { return x * 1.6 })
 	dist := cli.Choice(mi, km.Parser())
 
 	// time, presumably in seconds
-	time := cli.Argument[float64](cli.Long("time").
+	time := cli.Argument(cli.Long("time").
 		Help("Travel time in hours"),
 		"TIME", parseFloat64)
 

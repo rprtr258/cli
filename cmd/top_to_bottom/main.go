@@ -42,34 +42,34 @@ var verbose cli.Parser[uint] = cli.
 
 // an argument, parsed and with default value
 var speed cli.Parser[float64] = cli.
-	Argument[float64](cli.Short('s').
-	Long("speed").
-	Help("Set speed"), "SPEED", func(s string) (float64, error) {
-	return strconv.ParseFloat(s, 64)
-}).
+	Argument(cli.Short('s').
+		Long("speed").
+		Help("Set speed"), "SPEED", func(s string) (float64, error) {
+		return strconv.ParseFloat(s, 64)
+	}).
 	Parser().
 	Fallback(42.0).
 	Parser()
 
 var output cli.Parser[PathBuf] = cli.
-	Argument[PathBuf](cli.Short('o').
-	Long("output").
-	Help("output file"),
-	"OUTPUT", parsePathBuf).
+	Argument(cli.Short('o').
+		Long("output").
+		Help("output file"),
+		"OUTPUT", parsePathBuf).
 	Parser()
 
 // no magical name transmogrifications.
 var nb_cars cli.Parser[uint32] = cli.
-	Argument[uint32](cli.Short('n').
-	Long("nb-cars"),
-	"N", func(s string) (uint32, error) {
-		u, err := strconv.ParseUint(s, 10, 32)
-		return uint32(u), err
-	}).
+	Argument(cli.Short('n').
+		Long("nb-cars"),
+		"N", func(s string) (uint32, error) {
+			u, err := strconv.ParseUint(s, 10, 32)
+			return uint32(u), err
+		}).
 	Parser()
 
 var files_to_process cli.Parser[[]PathBuf] = cli.
-	Many(cli.Argument[PathBuf](cli.Short('f').
+	Many(cli.Argument(cli.Short('f').
 		Long("file").
 		Help("File to process"), "FILE", parsePathBuf).Parser())
 
@@ -84,6 +84,6 @@ func main() {
 		files_to_process,
 		func(debug bool, verbose uint, speed float64, output PathBuf, nb_cars uint32, files_to_process []PathBuf) Out {
 			return Out{debug, verbose, speed, output, nb_cars, files_to_process}
-		})).ToOptions().Run()
+		})).Run()
 	fmt.Println(opt)
 }

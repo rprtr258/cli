@@ -64,7 +64,7 @@ func parseString(s string) (string, error) {
 	return s, nil
 }
 
-func opts() Opts {
+var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 	sensor := cli.ReqFlag(cli.Long("sensor"), struct{}{})
 	device := cli.Argument[string](cli.Long("sensor-device"),
 		"DEVICE", parseString).
@@ -91,9 +91,9 @@ func opts() Opts {
 		).Adjacent().Parser(), func(x fun.Pair[fun.Pair[fun.Pair[struct{}, string], fun.Pair[string, uint]], uint]) Sensor {
 			return Sensor{x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V}
 		})) // TODO: adjacent must be after Map somehow
-	return cli.Map(sensors, func(x []Sensor) Opts { return Opts{x} }).ToOptions().Run()
-}
+	return cli.Map(sensors, func(x []Sensor) Opts { return Opts{x} })
+}()
 
 func main() {
-	fmt.Println(opts())
+	fmt.Println(opts.Run())
 }

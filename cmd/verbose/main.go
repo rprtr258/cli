@@ -48,6 +48,6 @@ func main() {
 
 	parser := cli.Pair(verbose.Parser(), trim)
 
-	opt := parser.Parser().ToOptions().Run()
+	opt := parser.Parser().Run()
 	fmt.Println(opt)
 }

@@ -578,7 +578,7 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 //	}
 //
 // ```
-func (self Parser[T]) run() T {
+func (self Parser[T]) Run() T {
 	return self.ToOptions().Run()
 }
 
