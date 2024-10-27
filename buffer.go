@@ -295,7 +295,7 @@ func (self *Doc) write(input string, style Style) {
 	self.set_style(len(self.payload)-old_len, style)
 }
 
-func (self Doc) set_style(lenn int, style Style) {
+func (self *Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
 	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
 	if n := len(self.tokens); n == 0 || !self.tokens[n-1].isText {
