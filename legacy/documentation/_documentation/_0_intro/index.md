@@ -20,7 +20,7 @@ and match both in a single parser
 `bpaf` tries hard to let you move as many invariants about the user input you are
 trying to parse into rust types: for mutually exclusive options you can get `enum` with
 exclusive items going into separate branches, and you can collect results into types like
-[`BTreeSet`](std::collections::BTreeSet), or whatever custom type you might have with
+[BTreeSet](std::collections::BTreeSet), or whatever custom type you might have with
 custom parsing. Ideas for
 [making invalid states unrepresentable](https://geeklaunch.io/blog/make-invalid-states-unrepresentable/)
 and [using parsing over validation](https://lexi-lambda.github.io/blog/2019/11/05/parse-don-t-validate/)

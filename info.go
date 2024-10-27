@@ -8,13 +8,13 @@ import (
 
 // Information about the parser
 // /
-// No longer public, users are only interacting with it via [`OptionParser`]
+// No longer public, users are only interacting with it via [OptionParser]
 type Info struct {
-	version         Option[Doc] // version field, see [`version`][Infoversion]
-	descr           Option[Doc] // Custom description field, see [`descr`][Infodescr]
-	header          Option[Doc] // Custom header field, see [`header`][Infoheader]
-	footer          Option[Doc] // Custom footer field, see [`footer`][Infofooter]
-	usage           Option[Doc] // Custom usage field, see [`usage`][Infousage]
+	version         Option[Doc] // version field, see [version][Infoversion]
+	descr           Option[Doc] // Custom description field, see [descr][Infodescr]
+	header          Option[Doc] // Custom header field, see [header][Infoheader]
+	footer          Option[Doc] // Custom footer field, see [footer][Infofooter]
+	usage           Option[Doc] // Custom usage field, see [usage][Infousage]
 	help_arg        NamedArg
 	version_arg     NamedArg
 	help_if_no_args bool
@@ -35,7 +35,7 @@ func NewInfo() Info {
 	}
 }
 
-// Ready to run [`Parser`] with additional information attached
+// Ready to run [Parser] with additional information attached
 //
 // Created with [`to_options`](Parserto_options)
 //
@@ -47,7 +47,7 @@ type OptionParser[T any] struct {
 	info  Info
 }
 
-// Execute the [`OptionParser`], extract a parsed value or print some diagnostic and exit
+// Execute the [OptionParser], extract a parsed value or print some diagnostic and exit
 //
 // # Usage
 // ```rust
@@ -79,7 +79,7 @@ func (self OptionParser[T]) Run() T {
 	return t
 }
 
-// Execute the [`OptionParser`] and produce a values for unit tests or manual processing
+// Execute the [OptionParser] and produce a values for unit tests or manual processing
 //
 // ```rust
 // # use bpaf*;
@@ -118,17 +118,17 @@ func (self OptionParser[T]) Run() T {
 // # */
 // ```
 //
-// See also [`Args`] and it's `From` impls to produce input and
+// See also [Args] and it's `From` impls to produce input and
 // [`ParseFailureunwrap_stderr`] / [`ParseFailureunwrap_stdout`] for processing results.
 //
 // # Errors
 //
-// If parser can't produce desired result `run_inner` returns [`ParseFailure`]
+// If parser can't produce desired result `run_inner` returns [ParseFailure]
 // which represents runtime behavior: one branch to print something to stdout and exit with
 // success and the other branch to print something to stderr and exit with failure.
 //
 // `bpaf` generates contents of this `ParseFailure` using expected textual output from
-// [`parse`](Parserparse), stdout/stderr isn't actually captured.
+// [parse](Parserparse), stdout/stderr isn't actually captured.
 //
 // Exact string reperentations may change between versions including minor releases.
 func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
@@ -230,7 +230,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 
 // Get first line of description if Available
 //
-// Used internally to avoid duplicating description for [`command`].
+// Used internally to avoid duplicating description for [command].
 func (self OptionParser[T]) short_descr() Option[Doc] {
 	return self.info.descr.and_then(func(d Doc) Option[Doc] {
 		v, ok := Doc.first_line(d)

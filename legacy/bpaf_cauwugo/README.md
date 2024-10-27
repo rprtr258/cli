@@ -20,7 +20,7 @@ $ cauwugo --bpaf-complete-style-fish
 $ cauwugo --bpaf-complete-style-elvish
 ```
 
-And if you are using [`bpaf`](https://crates.io/crates/bpaf) with `autocomplete` feature
+And if you are using [bpaf](https://crates.io/crates/bpaf) with `autocomplete` feature
 you can enable completion passthough for your workspace/package.
 
 ```toml

@@ -4,8 +4,8 @@
 //!
 //! ## Flag
 //!
-//! - [`flag`](NamedArg::flag) - a string that consists of two dashes (`--flag`) and a name and a single
-//! dash and a single character (`-f`) created with [`long`](NamedArg::long) and [`short`](NamedArg::short)
+//! - [flag](NamedArg::flag) - a string that consists of two dashes (`--flag`) and a name and a single
+//! dash and a single character (`-f`) created with [long](NamedArg::long) and [short](NamedArg::short)
 //! respectively. Depending if this name is present or absent on the command line
 //! primitive flag parser produces one of two values. User can combine several short flags in a single
 //! invocation: `-a -b -c` is the same as `-abc`.
@@ -38,13 +38,13 @@
 //! ## Positional
 //!
 //! A positional argument with no additonal name, for example in `vim main.rs` `main.rs`
-//! is a positional argument. Can't start with `-`, created with [`positional`].
+//! is a positional argument. Can't start with `-`, created with [positional].
 //!
 #![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 //!
 //! ## Any
 //!
-//! Also a positional argument with no additional name, but unlike [`positional`] itself, [`any`]
+//! Also a positional argument with no additional name, but unlike [positional] itself, [any]
 //! isn't restricted to positional looking structure and would consume any items as they appear on
 //! a command line. Can be useful to collect anything unused to pass to other applications.
 //!
@@ -73,16 +73,16 @@ use crate::{
 #[cfg(doc)]
 use crate::{any, command, env, long, positional, short};
 
-/// A named thing used to create [`flag`](NamedArg::flag), [`switch`](NamedArg::switch) or
-/// [`argument`](NamedArg::argument)
+/// A named thing used to create [flag](NamedArg::flag), [switch](NamedArg::switch) or
+/// [argument](NamedArg::argument)
 ///
 /// # Combinatoric usage
 ///
 /// Named items (`argument`, `flag` and `switch`) can have up to 2 visible names (one short and one long)
 /// and multiple hidden short and long aliases if needed. It's also possible to consume items from
-/// environment variables using [`env`](NamedArg::env()). You usually start with [`short`] or [`long`]
-/// function, then apply [`short`](NamedArg::short) / [`long`](NamedArg::long) / [`env`](NamedArg::env()) /
-/// [`help`](NamedArg::help) repeatedly to build a desired set of names then transform it into
+/// environment variables using [env](NamedArg::env()). You usually start with [short] or [long]
+/// function, then apply [short](NamedArg::short) / [long](NamedArg::long) / [env](NamedArg::env()) /
+/// [help](NamedArg::help) repeatedly to build a desired set of names then transform it into
 /// a parser using `flag`, `switch` or `positional`.
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_combine.md"))]
@@ -147,7 +147,7 @@ impl NamedArg {
     ///
     /// You can specify it multiple times, `bpaf` would use items past the first one as hidden aliases.
     ///
-    /// For [`flag`](NamedArg::flag) and [`switch`](NamedArg::switch) environment variable being present
+    /// For [flag](NamedArg::flag) and [switch](NamedArg::switch) environment variable being present
     /// gives the same result as the flag being present, allowing to implement things like `NO_COLOR`
     /// variables:
     ///
@@ -169,8 +169,8 @@ impl NamedArg {
     /// 3. `bpaf` preserves linebreaks followed by a line that starts with a space
     /// 4. Linebreaks are removed otherwise
     ///
-    /// You can pass anything that can be converted into [`Doc`], if you are not using
-    /// documentation generation functionality ([`doc`](crate::doc)) this can be `&str`.
+    /// You can pass anything that can be converted into [Doc], if you are not using
+    /// documentation generation functionality ([doc](crate::doc)) this can be `&str`.
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
     #[must_use]
@@ -184,12 +184,12 @@ impl NamedArg {
 
     /// Simple boolean flag
     ///
-    /// A special case of a [`flag`](NamedArg::flag) that gets decoded into a `bool`, mostly serves as a convenient
+    /// A special case of a [flag](NamedArg::flag) that gets decoded into a `bool`, mostly serves as a convenient
     /// shortcut to `.flag(true, false)`.
     ///
     /// In Derive API bpaf would use `switch` for `bool` fields inside named structs that don't
-    /// have other consumer annotations ([`flag`](NamedArg::flag),
-    /// [`argument`](NamedArg::argument), etc).
+    /// have other consumer annotations ([flag](NamedArg::flag),
+    /// [argument](NamedArg::argument), etc).
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
     #[must_use]
@@ -199,8 +199,8 @@ impl NamedArg {
 
     /// Flag with custom present/absent values
     ///
-    /// More generic version of [`switch`](NamedArg::switch) that can use arbitrary type instead of
-    /// [`bool`].
+    /// More generic version of [switch](NamedArg::switch) that can use arbitrary type instead of
+    /// [bool].
     #[cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
     #[must_use]
     pub fn flag<T>(self, present: T, absent: T) -> ParseFlag<T>
@@ -212,7 +212,7 @@ impl NamedArg {
 
     /// Required flag with custom value
     ///
-    /// Similar to [`flag`](NamedArg::flag) takes no option arguments, but would only
+    /// Similar to [flag](NamedArg::flag) takes no option arguments, but would only
     /// succeed if user specifies its name on a command line.
     /// Works best in combination with other parsers.
     ///
@@ -236,7 +236,7 @@ impl NamedArg {
     /// can follow immediately: `-fbar`.
     ///
     /// When using combinatoring API you can specify the type with turbofish, for parsing types
-    /// that don't implement [`FromStr`] you can use consume a `String`/`OsString` first and parse
+    /// that don't implement [FromStr] you can use consume a `String`/`OsString` first and parse
     /// it by hands.
     ///
     /// For `metavar` value you should pick something short and descriptive about the parameter,
@@ -245,7 +245,7 @@ impl NamedArg {
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
     ///
-    /// You can further restrict it using [`adjacent`](ParseArgument::adjacent)
+    /// You can further restrict it using [adjacent](ParseArgument::adjacent)
     #[must_use]
     pub fn argument<T>(self, metavar: &'static str) -> ParseArgument<T>
     where
@@ -292,7 +292,7 @@ impl<T> OptionParser<T> {
     /// **`bpaf` panics during help generation unless if this restriction holds**
     ///
     /// You can attach a single visible short alias and multiple hiddden short and long aliases
-    /// using [`short`](ParseCommand::short) and [`long`](ParseCommand::long) methods.
+    /// using [short](ParseCommand::short) and [long](ParseCommand::long) methods.
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
     ///
@@ -313,9 +313,9 @@ impl<T> OptionParser<T> {
     }
 }
 
-/// Builder structure for the [`command`]
+/// Builder structure for the [command]
 ///
-/// Created with [`command`], implements parser for the inner structure, gives access to [`help`](ParseCommand::help).
+/// Created with [command], implements parser for the inner structure, gives access to [help](ParseCommand::help).
 pub struct ParseCommand<T> {
     pub(crate) longs: Vec<&'static str>,
     pub(crate) shorts: Vec<char>,
@@ -330,7 +330,7 @@ impl<P> ParseCommand<P> {
     ///
     /// `bpaf` uses this description along with the command name
     /// in help output so it shouldn't exceed one or two lines. If `help` isn't specified
-    /// `bpaf` falls back to [`descr`](OptionParser::descr) from the inner parser.
+    /// `bpaf` falls back to [descr](OptionParser::descr) from the inner parser.
     ///
     /// # Combinatoric usage
     ///
@@ -352,7 +352,7 @@ impl<P> ParseCommand<P> {
     ///
     /// # Derive usage
     /// `bpaf_derive` uses doc comments for inner parser, no specific options are available.
-    /// See [`descr`](OptionParser::descr) for more details
+    /// See [descr](OptionParser::descr) for more details
     /// ```rust
     /// # use bpaf::*;
     /// /// This command performs a mystery operation
@@ -383,7 +383,7 @@ impl<P> ParseCommand<P> {
 
     /// Add a custom short alias for a command
     ///
-    /// Behavior is similar to [`short`](NamedArg::short), only first short name is visible.
+    /// Behavior is similar to [short](NamedArg::short), only first short name is visible.
     #[must_use]
     pub fn short(mut self, short: char) -> Self {
         self.shorts.push(short);
@@ -392,7 +392,7 @@ impl<P> ParseCommand<P> {
 
     /// Add a custom hidden long alias for a command
     ///
-    /// Behavior is similar to [`long`](NamedArg::long), but since you had to specify the first long
+    /// Behavior is similar to [long](NamedArg::long), but since you had to specify the first long
     /// name when making the command - this one becomes a hidden alias.
     #[must_use]
     pub fn long(mut self, long: &'static str) -> Self {
@@ -609,7 +609,7 @@ fn build_argument<T>(named: NamedArg, metavar: &'static str) -> ParseArgument<T>
     }
 }
 
-/// Parser for a named argument, created with [`argument`](NamedArg::argument).
+/// Parser for a named argument, created with [argument](NamedArg::argument).
 #[derive(Clone)]
 pub struct ParseArgument<T> {
     ty: PhantomData<T>,
@@ -622,7 +622,7 @@ impl<T> ParseArgument<T> {
     /// Restrict parsed arguments to have both flag and a value in the same word:
     ///
     /// In other words adjacent restricted `ParseArgument` would accept `--flag=value` or
-    /// `-fbar` but not `--flag value`. Note, this is different from [`adjacent`](crate::ParseCon::adjacent),
+    /// `-fbar` but not `--flag value`. Note, this is different from [adjacent](crate::ParseCon::adjacent),
     /// just plays a similar role.
     ///
     /// Should allow to parse some of the more unusual things
@@ -714,10 +714,10 @@ pub(crate) fn build_positional<T>(metavar: &'static str) -> ParsePositional<T> {
     }
 }
 
-/// Parse a positional item, created with [`positional`](crate::positional)
+/// Parse a positional item, created with [positional](crate::positional)
 ///
-/// You can add extra information to positional parsers with [`help`](Self::help),
-/// [`strict`](Self::strict), or [`non_strict`](Self::non_strict) on this struct.
+/// You can add extra information to positional parsers with [help](Self::help),
+/// [strict](Self::strict), or [`non_strict`](Self::non_strict) on this struct.
 #[derive(Clone)]
 pub struct ParsePositional<T> {
     metavar: &'static str,
@@ -734,7 +734,7 @@ enum Position {
 }
 
 impl<T> ParsePositional<T> {
-    /// Add a help message to a [`positional`] parser
+    /// Add a help message to a [positional] parser
     ///
     /// `bpaf` converts doc comments and string into help by following those rules:
     /// 1. Everything up to the first blank line is included into a "short" help message
@@ -742,8 +742,8 @@ impl<T> ParsePositional<T> {
     /// 3. `bpaf` preserves linebreaks followed by a line that starts with a space
     /// 4. Linebreaks are removed otherwise
     ///
-    /// You can pass anything that can be converted into [`Doc`], if you are not using
-    /// documentation generation functionality ([`doc`](crate::doc)) this can be `&str`.
+    /// You can pass anything that can be converted into [Doc], if you are not using
+    /// documentation generation functionality ([doc](crate::doc)) this can be `&str`.
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
     #[must_use]
@@ -868,8 +868,8 @@ where
     }
 }
 
-/// Consume an arbitrary value that satisfies a condition, created with [`any`], implements
-/// [`anywhere`](ParseAny::anywhere).
+/// Consume an arbitrary value that satisfies a condition, created with [any], implements
+/// [anywhere](ParseAny::anywhere).
 pub struct ParseAny<T> {
     pub(crate) metavar: Doc,
     pub(crate) help: Option<Doc>,
@@ -886,8 +886,8 @@ impl<T> ParseAny<T> {
         }
     }
 
-    /// Add a help message to [`any`] parser.
-    /// See examples in [`any`]
+    /// Add a help message to [any] parser.
+    /// See examples in [any]
     #[must_use]
     pub fn help<M: Into<Doc>>(mut self, help: M) -> Self {
         self.help = Some(help.into());
@@ -895,7 +895,7 @@ impl<T> ParseAny<T> {
     }
 
     /// Replace metavar with a custom value
-    /// See examples in [`any`]
+    /// See examples in [any]
     #[must_use]
     pub fn metavar<M: Into<Doc>>(mut self, metavar: M) -> Self {
         self.metavar = metavar.into();
@@ -905,10 +905,10 @@ impl<T> ParseAny<T> {
     /// Try to apply the parser to each unconsumed element instead of just the front one
     ///
     /// By default `any` tries to parse just the front unconsumed item behaving similar to
-    /// [`positional`] parser, `anywhere` changes it so it applies to every unconsumed item,
+    /// [positional] parser, `anywhere` changes it so it applies to every unconsumed item,
     /// similar to argument parser.
     ///
-    /// See examples in [`any`]
+    /// See examples in [any]
     #[must_use]
     pub fn anywhere(mut self) -> Self {
         self.anywhere = true;

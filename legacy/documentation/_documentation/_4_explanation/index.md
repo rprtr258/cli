@@ -178,7 +178,7 @@ assert_eq!(pick_number(empty, empty), empty);
 
 ## `Parser` trait and `construct!` macro
 
-[`Parser`] trait defines a context for values and gives access to `Functor` laws and [`construct!`]
+[Parser] trait defines a context for values and gives access to `Functor` laws and [`construct!`]
 macro allows to compose several values according to `Applicative` and `Alternative` laws.
 
 ## So why use `Applicative Functors` then?
@@ -228,14 +228,14 @@ functor, but not how the values are parsed or how they can be extracted.
 ## Putting the values into a context
 
 Similarly to how `Reader` defined above `bpaf`'s `Parsers` don't actually have values inside
-until they are executed. Instead starting points ([`flag`](NamedArg::flag), [`positional`],
-[`argument`](NamedArg::argument), etc) define what exactly needs to be consumed, various mapping
+until they are executed. Instead starting points ([flag](NamedArg::flag), [positional],
+[argument](NamedArg::argument), etc) define what exactly needs to be consumed, various mapping
 functions define transformations, [`construct!`] composes them and defines the relative order
-values should be consumed. Not everything present inside [`Parser`] can be repesented in terms
-of plain applicative functors - specifically [`parse`](Parser::parse) is not and it is best
+values should be consumed. Not everything present inside [Parser] can be repesented in terms
+of plain applicative functors - specifically [parse](Parser::parse) is not and it is best
 though of as a function that takes one applicative and gives a different applicative back.
-The actual values will show up inside once `bpaf` starts running the [`OptionParser`] with
-[`run`](OptionParser::run).
+The actual values will show up inside once `bpaf` starts running the [OptionParser] with
+[run](OptionParser::run).
 
 ## Taking the results out
 

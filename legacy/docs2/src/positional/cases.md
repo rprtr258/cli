@@ -28,4 +28,4 @@ Without using `--` `bpaf` would only accept items that don't start with `-` as p
 > --detailed
 > --verbose
 
-You can use [`any`] to work around this restriction.
+You can use [any] to work around this restriction.

@@ -32,4 +32,4 @@ If neither is present - it fails - parser for `output` expects one of its branch
 
 > -s 330
 
-But this can be fixed with [`optional`](Parser::optional) (not included in this example).
+But this can be fixed with [optional](Parser::optional) (not included in this example).

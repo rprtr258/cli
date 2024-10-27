@@ -1,4 +1,4 @@
-Here [`choice`] function is used to create an option for each possible desert item
+Here [choice] function is used to create an option for each possible desert item
 
 > --help
 

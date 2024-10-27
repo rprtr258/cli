@@ -33,10 +33,10 @@ fn test_value() {
 }
 ```
 
-[`OptionParser::run_inner`] takes [`Args`] or anything that can be converted to it, in most
+[`OptionParser::run_inner`] takes [Args] or anything that can be converted to it, in most
 cases using a static slice with strings is enough.
 
-Easiest way to consume [`ParseFailure`] for testing purposes is with
+Easiest way to consume [ParseFailure] for testing purposes is with
 [`ParseFailure::unwrap_stderr`] and [`ParseFailure::unwrap_stdout`] - result will lack any colors
 even with them enabled which makes testing easier.
 

@@ -45,7 +45,7 @@ should go first since `bpaf` picks an earlier parser if everything else is equal
 does not matter. In this example `construct!([miles, km])` produces the same results as
 `construct!([km, miles])` and only `--help` message is going to be different.
 
-Parsers created with [`construct!`] still implement the [`Parser`] trait so you can apply more
+Parsers created with [`construct!`] still implement the [Parser] trait so you can apply more
 transformation on top. For example same as you can make a simple parser optional - you can make
 a composite parser optional. Parser transformed this way will succeed if both `--alpha` and
 `--beta` are present or neither of them:

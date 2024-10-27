@@ -12,6 +12,6 @@ Other than that `bpaf` tries its best to provide a helpful error messages
 
 >
 
-And if all parsers are satisfied [`run`](OptionParser::run) produces the result
+And if all parsers are satisfied [run](OptionParser::run) produces the result
 
 > -i 10

@@ -240,12 +240,12 @@ experience
 
 `bpaf` performs no parameter names validation, in fact having multiple parameters with the same
 name is fine, and you can combine them as alternatives and performs no fallback other than
-[`fallback`][__link10]. You need to pay attention to the order of the alternatives inside the
+[fallback][__link10]. You need to pay attention to the order of the alternatives inside the
 macro: parser that consumes the left most available argument on a command line wins, if this is
 the same - left most parser wins. So to parse a parameter `--test` that can be both
-[`switch`][__link11] and [`argument`][__link12] you should put the argument one first.
+[switch][__link11] and [argument][__link12] you should put the argument one first.
 
-You must place [`positional`][__link13] items at the end of a structure in derive API or
+You must place [positional][__link13] items at the end of a structure in derive API or
 consume them as last arguments in derive API.
 
 
@@ -262,8 +262,8 @@ names, but also argument and positional item values.
 	```
 
 
-2. Decorate [`argument`][__link14] and [`positional`][__link15] parsers with
-    [`complete`][__link16] to autocomplete argument values
+2. Decorate [argument][__link14] and [positional][__link15] parsers with
+    [complete][__link16] to autocomplete argument values
 
 
 3. Depending on your shell, it generates the appropriate completion file and place it to wherever your

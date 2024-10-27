@@ -98,15 +98,15 @@ func verbose_by_slice[T any](
 // Pick last passed value between two different flags
 //
 // Usually `bpaf` only allows to parse a single instance for every invocation unless
-// you specify [`many`](Parsermany) or [`some`](Parsersome). `toggle_flag` would consume
+// you specify [many](Parsermany) or [some](Parsersome). `toggle_flag` would consume
 // multiple instances of two different flags and returns last specified value.
 //
 // This function relies on a fact that selection between two different parsers prefers left most
 // value. This helps to preserve relative order of parsrs.
 // You can use similar approach to combine multiple flags accounting for their relative order.
 //
-// Parser returns `Optional[T]` value, you can add a fallback with [`map`](Parsermap) or turn
-// missing value info failure with a custom error message with [`parse`](Parserparse).
+// Parser returns `Optional[T]` value, you can add a fallback with [map](Parsermap) or turn
+// missing value info failure with a custom error message with [parse](Parserparse).
 //
 // # Example
 // ```console

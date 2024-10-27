@@ -2,11 +2,11 @@
 
 This example implements syntax similar to `dd` command. The main idea is to implement something to
 make it simple to make parsers for `PREFIX=SUFFIX`, where prefix is fixed for each parser - for
-example `if=` or `of=` and suffix is parsed with usual [`FromStr`](std::str::FromStr) trait.
+example `if=` or `of=` and suffix is parsed with usual [FromStr](std::str::FromStr) trait.
 
 The function `tag` serves this purpose. It performs the following steps:
 
-- consume any item that starts with a prefix at any argument position with [`any`] and
+- consume any item that starts with a prefix at any argument position with [any] and
   [`ParseAny::anywhere`]
 - attaches help message and custom metadata to make `--help` friendlier
 - parses suffix with [`Parser::parse`]

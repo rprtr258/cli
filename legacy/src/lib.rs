@@ -41,9 +41,9 @@
 //! Both APIs can achieve the same results, you can use one that better suits your needs. You can
 //! find documentation with more examples following those links.
 //!
-//! - For an argument with a name you define [`NamedArg`] using a combination of [`short`],
-//!   [`long`] and [`env`](crate::env()). At the same time you can attach
-//!   [`help`](NamedArg::help).
+//! - For an argument with a name you define [NamedArg] using a combination of [short],
+//!   [long] and [env](crate::env()). At the same time you can attach
+//!   [help](NamedArg::help).
 //! - [`NamedArg::switch`] - simple switch that returns `true` if it's present on a command
 //!   line and `false` otherwise.
 //! - [`NamedArg::flag`] - a variant of `switch` that lets you return one of two custom
@@ -51,37 +51,37 @@
 //! - [`NamedArg::req_flag`] - a variant of `switch` that only only succeeds when it's name
 //!   is present on a command line
 //! - [`NamedArg::argument`] - named argument containing a value, you can further
-//!   customize it with [`adjacent`](crate::parsers::ParseArgument::adjacent)
-//! - [`positional`] - positional argument, you can further customize it with
-//!   [`strict`](ParsePositional::strict)
+//!   customize it with [adjacent](crate::parsers::ParseArgument::adjacent)
+//! - [positional] - positional argument, you can further customize it with
+//!   [strict](ParsePositional::strict)
 //! - [`OptionParser::command`] - subcommand parser.
-//! - [`any`] and its specialized version [`literal`] are escape hatches that can parse anything
+//! - [any] and its specialized version [literal] are escape hatches that can parse anything
 //!   not fitting into usual classification.
-//! - [`pure`] and [`pure_with`] - a way to generate a value that can be composed without parsing
+//! - [pure] and [`pure_with`] - a way to generate a value that can be composed without parsing
 //!   it from the command line.
 //!
 //! ## Transforming and changing parsers
 //!
 //! By default primitive parsers gives you back a single `bool`, a single `PathBuf` or a single
-//! value produced by [`FromStr`] trait, etc. You can further transform it by chaining methods from
-//! [`Parser`] trait, some of those methods are applied automagically if you are using derive API.
+//! value produced by [FromStr] trait, etc. You can further transform it by chaining methods from
+//! [Parser] trait, some of those methods are applied automagically if you are using derive API.
 //!
 //! `bpaf` distinguishes two types of parse failures - "value is absent" and
 //! "value is present but invalid", most parsers listed in this section only handle the first
 //! type of failure by default, but you can use their respective `catch` method to handle the later
 //! one.
 //!
-//! - [`fallback`](Parser::fallback) and [`fallback_with`](Parser::fallback_with) - return a
+//! - [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with) - return a
 //!   different value if parser fails to find what it is looking for. Generated help for former
 //!   can be updated to include default value using
 //!   [`display_fallback`](ParseFallback::display_fallback) and
 //!   [`debug_fallback`](ParseFallback::debug_fallback) .
-//! - [`optional`](Parser::optional) - return `None` if value is missing instead of failing, see
-//!   also [`catch`](ParseOptional::catch) .
-//! - [`many`](Parser::many), [`some`](Parser::some) and [`collect`](Parser::collect) - collect
+//! - [optional](Parser::optional) - return `None` if value is missing instead of failing, see
+//!   also [catch](ParseOptional::catch) .
+//! - [many](Parser::many), [some](Parser::some) and [collect](Parser::collect) - collect
 //!   multiple values into a collection, usually a vector, see their respective
-//!   [`catch`](ParseMany::catch), [`catch`](ParseSome::catch) and [`catch`](ParseCollect::catch).
-//! - [`map`](Parser::map), [`parse`](Parser::parse) and [`guard`](Parser::guard) - transform
+//!   [catch](ParseMany::catch), [catch](ParseSome::catch) and [catch](ParseCollect::catch).
+//! - [map](Parser::map), [parse](Parser::parse) and [guard](Parser::guard) - transform
 //!   and/or validate value produced by a parser
 //! - [`to_options`](Parser::to_options) - finalize the parser and prepare to run it
 //!
@@ -95,7 +95,7 @@
 //! All fields in a struct needs to be successfully parsed in order for the parser to succeed
 //! and only one variant from enum will consume its values at a time.
 //!
-//! You can use [`adjacent`](ParseCon::adjacent) annotation to parse multiple flags as an adjacent
+//! You can use [adjacent](ParseCon::adjacent) annotation to parse multiple flags as an adjacent
 //! group allowing for more unusual scenarios such as multiple value arguments or chained commands.
 //!
 //! ## Improving user experience
@@ -104,33 +104,33 @@
 //! in various `help` methods to generate `--help` documentation, you can further improve it
 //! using those methods:
 //!
-//! - [`hide_usage`](Parser::hide_usage) and [`hide`](Parser::hide) - hide the parser from
+//! - [`hide_usage`](Parser::hide_usage) and [hide](Parser::hide) - hide the parser from
 //!   generated *Usage* line or whole generated help
 //! - [`group_help`](Parser::group_help) and [`with_group_help`](Parser::with_group_help) -
 //!   add a common description shared by several parsers
 //! - [`custom_usage`](Parser::custom_usage) - customize usage for a primitive or composite parser
-//! - [`usage`](OptionParser::usage) and [`with_usage`](OptionParser::with_usage) lets you to
+//! - [usage](OptionParser::usage) and [`with_usage`](OptionParser::with_usage) lets you to
 //!   customize whole usage line as a whole either by completely overriding it or by building around it.
 //!
 //! By default with completion enabled `bpaf` would complete names for flags, arguments and
 //! commands. You can also generate completion for argument values, possible positionals, etc.
 //! This requires enabling **autocomplete** cargo feature.
 //!
-//! - [`complete`](Parser::complete) and [`complete_shell`](Parser::complete_shell)
+//! - [complete](Parser::complete) and [`complete_shell`](Parser::complete_shell)
 //!
 //! And finally you can generate documentation for command line in markdown, html and manpage
 //! formats using [`render_markdown`](OptionParser::render_markdown),
 //! [`render_html`](OptionParser::render_html) and [`render_manpage`](OptionParser::render_manpage),
-//! for more detailed info see [`doc`] module
+//! for more detailed info see [doc] module
 //!
 //! ## Testing your parsers and running them
 //! - You can [`OptionParser::run`] the parser on the arguments passed on the command line
 //! - [`check_invariants`](OptionParser::check_invariants) checks for a few invariants in the
 //!   parser `bpaf` relies on
-//! - [`run_inner`](OptionParser::run_inner) runs the parser with custom [`Args`] you can create
-//!   either explicitly or implicitly using one of the [`From`] implementations, `Args` can be
+//! - [`run_inner`](OptionParser::run_inner) runs the parser with custom [Args] you can create
+//!   either explicitly or implicitly using one of the [From] implementations, `Args` can be
 //!   customized with [`set_comp`](Args::set_comp) and [`set_name`](Args::set_name).
-//! - [`ParseFailure`] contains the parse outcome, you can consume it either by hands or using one
+//! - [ParseFailure] contains the parse outcome, you can consume it either by hands or using one
 //!   of [`exit_code`](ParseFailure::exit_code), [`unwrap_stdout`](ParseFailure::unwrap_stdout) and
 //!   [`unwrap_stderr`](ParseFailure::unwrap_stderr)
 //!
@@ -155,7 +155,7 @@
 //!    ```
 //!    Disabled by default.
 //!
-//!  - `docgen`: generate documentation from help declaration, see [`OptionParser::render_markdown`] and [`doc`](crate::doc). Disabled by default.
+//!  - `docgen`: generate documentation from help declaration, see [`OptionParser::render_markdown`] and [doc](crate::doc). Disabled by default.
 
 
 
@@ -472,10 +472,10 @@ macro_rules! construct {
 ///
 /// # Overview
 ///
-/// It's best to think of an object implementing [`Parser`] trait as a container with a value
+/// It's best to think of an object implementing [Parser] trait as a container with a value
 /// inside that is composable with other `Parser` containers using [`construct!`] and the only
-/// way to extract this value is by transforming it to [`OptionParser`] with
-/// [`to_options`](Parser::to_options) and running it with [`run`](OptionParser::run). At which
+/// way to extract this value is by transforming it to [OptionParser] with
+/// [`to_options`](Parser::to_options) and running it with [run](OptionParser::run). At which
 /// point you either get your value out or `bpaf` would generate a message describing a problem
 /// (missing argument, validation failure, user requested help, etc) and the program would
 /// exit.
@@ -484,7 +484,7 @@ macro_rules! construct {
 /// there are no lifetimes other than static.
 ///
 /// When consuming the values you can jump straight to a value that implements
-/// [`FromStr`] trait and then transform it into something that your program would use. Alternatively,
+/// [FromStr] trait and then transform it into something that your program would use. Alternatively,
 /// you can consume either `String` or `OsString` and parse that by hand. It's better to perform
 /// as much parsing and validation inside the `Parser` as possible so the program itself gets
 /// strictly typed and correct value while the user gets immediate feedback on what's wrong with the
@@ -553,8 +553,8 @@ macro_rules! construct {
 ///
 /// Every method defined on this trait belongs to the `postprocessing` section of the field
 /// annotation. `bpaf` would try to figure out what chain to use for as long as there are no
-/// options changing the type: you can use [`fallback`](Parser::fallback_with),
-/// [`fallback_with`](Parser::fallback_with), [`guard`](Parser::guard), [`hide`](Parser::hide`) and
+/// options changing the type: you can use [fallback](Parser::fallback_with),
+/// [`fallback_with`](Parser::fallback_with), [guard](Parser::guard), [hide](Parser::hide`) and
 /// [`group_help`](Parser::group_help) but not the rest of them.
 ///
 /// ```rust
@@ -602,10 +602,10 @@ pub trait Parser<T> {
 
     // change shape
     // {{{ many
-    /// Consume zero or more items from a command line and collect them into a [`Vec`]
+    /// Consume zero or more items from a command line and collect them into a [Vec]
     ///
     /// `many` preserves any parsing failures and propagates them outwards, with an extra
-    /// [`catch`](ParseMany::catch) statement you can instead stop at the first value
+    /// [catch](ParseMany::catch) statement you can instead stop at the first value
     /// that failed to parse and ignore it and all the subsequent ones.
     ///
     /// `many` will collect at most one result that does not consume anything from the argument
@@ -618,8 +618,8 @@ pub trait Parser<T> {
     #[cfg_attr(not(doctest), doc = include_str!("docs2/many.md"))]
     ///
     /// # See also
-    /// [`some`](Parser::some) also collects results to a vector but requires at least one
-    /// element to succeed, [`collect`](Parser::collect) collects results into a [`FromIterator`]
+    /// [some](Parser::some) also collects results to a vector but requires at least one
+    /// element to succeed, [collect](Parser::collect) collects results into a [FromIterator]
     /// structure
     fn many(self) -> ParseMany<Self>
     where
@@ -635,11 +635,11 @@ pub trait Parser<T> {
     // {{{ collect
     /// Transform parser into a collection parser
     ///
-    /// A generic variant of [`many`](Parser::many), instead of collecting into a vector
-    /// it collects into any collection that implements [`FromIterator`] trait
+    /// A generic variant of [many](Parser::many), instead of collecting into a vector
+    /// it collects into any collection that implements [FromIterator] trait
     ///
     /// `collect` preserves any parsing failures and propagates them outwards, with extra
-    /// [`catch`](ParseCollect::catch) statement you can instead stop at the first value
+    /// [catch](ParseCollect::catch) statement you can instead stop at the first value
     /// that failed to parse and ignore it and all the subsequent ones.
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/collect.md"))]
@@ -661,12 +661,12 @@ pub trait Parser<T> {
     // }}}
 
     // {{{ some
-    /// Consume one or more items from a command line and collect them into a [`Vec`]
+    /// Consume one or more items from a command line and collect them into a [Vec]
     ///
     /// Takes a string used as an error message if there are no specified parameters
     ///
     /// `some` preserves any parsing failures and propagates them outwards, with an extra
-    /// [`catch`](ParseSome::catch) statement you can instead stop at the first value
+    /// [catch](ParseSome::catch) statement you can instead stop at the first value
     /// that failed to parse and ignore it and all the subsequent ones.
     ///
     /// `some` will collect at most one result that does not consume anything from the argument
@@ -676,8 +676,8 @@ pub trait Parser<T> {
     #[cfg_attr(not(doctest), doc = include_str!("docs2/some.md"))]
     ///
     /// # See also
-    /// [`many`](Parser::many) also collects results to a vector but succeeds with
-    /// no matching values. [`collect`](Parser::collect) collects results into a [`FromIterator`]
+    /// [many](Parser::many) also collects results to a vector but succeeds with
+    /// no matching values. [collect](Parser::collect) collects results into a [FromIterator]
     /// structure
 
     #[must_use]
@@ -697,7 +697,7 @@ pub trait Parser<T> {
     /// Turn a required argument into an optional one
     ///
     /// `optional` converts any missing items into `None` and passes the remaining parsing
-    /// failures untouched. With an extra [`catch`](ParseOptional::catch) statement, you can handle
+    /// failures untouched. With an extra [catch](ParseOptional::catch) statement, you can handle
     /// those failures too.
     ///
     /// # Derive usage
@@ -754,17 +754,17 @@ pub trait Parser<T> {
     /// Apply a failing transformation to a contained value
     ///
     /// Transformation preserves the present/absent state of the value: to parse an optional value you
-    /// can either first try to `parse` it and then mark it as [`optional`](Parser::optional) or first
-    /// deal with the optionality and then parse a value wrapped in [`Option`]. In most cases
+    /// can either first try to `parse` it and then mark it as [optional](Parser::optional) or first
+    /// deal with the optionality and then parse a value wrapped in [Option]. In most cases
     /// the former approach is more concise.
     ///
-    /// Similarly, it is possible to parse multiple items with [`many`](Parser::many) or
-    /// [`some`](Parser::some) by either parsing a single item first and then turning it into a [`Vec`]
-    /// or collecting them into a [`Vec`] first and then parsing the whole vector. The former approach
+    /// Similarly, it is possible to parse multiple items with [many](Parser::many) or
+    /// [some](Parser::some) by either parsing a single item first and then turning it into a [Vec]
+    /// or collecting them into a [Vec] first and then parsing the whole vector. The former approach
     /// is more concise.
     ///
     /// This is a most general of transforming parsers and you can express
-    /// [`map`](Parser::map) and [`guard`](Parser::guard) in terms of it.
+    /// [map](Parser::map) and [guard](Parser::guard) in terms of it.
     ///
     /// Examples are a bit artificial, to parse a value from a string you can specify
     /// the type directly in the `argument`'s turbofish and then apply `map`.
@@ -794,7 +794,7 @@ pub trait Parser<T> {
     // {{{ map
     /// Apply a pure transformation to a contained value
     ///
-    /// A common case of the [`parse`](Parser::parse) method, exists mostly for convenience.
+    /// A common case of the [parse](Parser::parse) method, exists mostly for convenience.
     ///
     /// # Derive usage:
     /// The `map` takes a single parameter: function name to call. This function should transform
@@ -823,7 +823,7 @@ pub trait Parser<T> {
     ///
     /// # Derive usage
     /// Derive variant of the `guard` takes a function name instead of a closure, mostly to keep things
-    /// clean. The second argument can be either a string literal or a constant name for a static [`str`].
+    /// clean. The second argument can be either a string literal or a constant name for a static [str].
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/guard.md"))]
     ///
@@ -876,7 +876,7 @@ pub trait Parser<T> {
     #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
     ///
     /// # See also
-    /// [`fallback`](Parser::fallback) implements similar logic expect that failures aren't expected.
+    /// [fallback](Parser::fallback) implements similar logic expect that failures aren't expected.
     /// By default fallback value will not be shown in the `--help` output, you can change that by using
     /// [`display_fallback`](ParseFallbackWith::display_fallback) and
     /// [`debug_fallback`](ParseFallbackWith::debug_fallback).
@@ -1054,7 +1054,7 @@ pub trait Parser<T> {
     }
     // }}}
 
-    /// Make a help message for a complex parser from its [`MetaInfo`]
+    /// Make a help message for a complex parser from its [MetaInfo]
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
     fn with_group_help<F>(self, f: F) -> ParseWithGroupHelp<Self, F>
@@ -1070,12 +1070,12 @@ pub trait Parser<T> {
     ///
     /// Allows to generate autocompletion information for the shell. Completer places generated input
     /// in place of metavar placeholders, so running `completer` on something that doesn't have a
-    /// [`positional`] or an [`argument`](NamedArg::argument) doesn't make much sense.
+    /// [positional] or an [argument](NamedArg::argument) doesn't make much sense.
     ///
     /// Takes a function as a parameter that tries to complete partial input to a full one with an
     /// optional description. `bpaf` would substitute a current positional item or an argument with an empty
     /// string if a value isn't available yet so it's best to run `complete` where parsing can't fail:
-    /// right after [`argument`](NamedArg::argument) or [`positional`], but this isn't enforced.
+    /// right after [argument](NamedArg::argument) or [positional], but this isn't enforced.
     ///
     /// # Example
     /// ```console
@@ -1113,10 +1113,10 @@ pub trait Parser<T> {
     ///
     /// Allows to ask existing shell completion to provide some information such as a file or
     /// directory names or pass through existing shell completion scripts, see
-    /// [`ShellComp`](complete_shell::ShellComp) for accessible functionality
+    /// [ShellComp](complete_shell::ShellComp) for accessible functionality
     ///
     /// Places function calls in place of metavar placeholder, so running `complete_shell` on
-    /// something that doesn't have a [`positional`] or [`argument`](NamedArg::argument) doesn't
+    /// something that doesn't have a [positional] or [argument](NamedArg::argument) doesn't
     /// make much sense.
     ///
     /// # Example
@@ -1162,22 +1162,22 @@ pub trait Parser<T> {
 
     // consume
     // {{{ to_options
-    /// Transform `Parser` into [`OptionParser`] to get ready to [`run`](OptionParser::run) it
+    /// Transform `Parser` into [OptionParser] to get ready to [run](OptionParser::run) it
     ///
     ///
     /// # Derive usage
-    /// Add a top-level `options` annotation to generate [`OptionParser`] instead of default
-    /// [`Parser`].
+    /// Add a top-level `options` annotation to generate [OptionParser] instead of default
+    /// [Parser].
     ///
     /// In addition to `options` annotation, you can also specify either `version` or
     /// `version(value)` annotation. The former uses version from `cargo`, later uses the
     /// specified value which should be an expression of type `&'static str`, see
-    /// [`version`](OptionParser::version).
+    /// [version](OptionParser::version).
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/to_options.md"))]
     ///
     /// # See also
-    /// There's some methods implemented on [`OptionParser`] directly to customize the appearance
+    /// There's some methods implemented on [OptionParser] directly to customize the appearance
     fn to_options(self) -> OptionParser<T>
     where
         Self: Sized + Parser<T> + 'static,
@@ -1231,7 +1231,7 @@ pub trait Parser<T> {
 /// with [`construct!`]. As with any parsers, `T` should be `Clone` and `Debug`.
 ///
 /// Both `pure` and [`pure_with`] are designed to put values into structures, to generate fallback
-/// you should be using [`fallback`](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
+/// you should be using [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
 ///
 /// See also [`pure_with`] for a pure computation that can fail.
 ///
@@ -1243,15 +1243,15 @@ pub fn pure<T>(val: T) -> ParsePure<T> {
 
 /// Wrap a calculated value into a `Parser`
 ///
-/// This parser represents a possibly failing equivalent to [`pure`].
+/// This parser represents a possibly failing equivalent to [pure].
 /// It produces `T` by invoking the provided callback without consuming anything from the command
 /// line, which can be useful with [`construct!`]. As with any parsers, `T` should be `Clone`
 /// and `Debug`.
 ///
-/// Both [`pure`] and `pure_with` are designed to put values into structures, to generate fallback
-/// you should be using [`fallback`](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
+/// Both [pure] and `pure_with` are designed to put values into structures, to generate fallback
+/// you should be using [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
 ///
-/// See also [`pure`] for a pure computation that can't fail.
+/// See also [pure] for a pure computation that can't fail.
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/pure_with.md"))]
 pub fn pure_with<T, F, E>(val: F) -> ParsePureWith<T, F, E>
@@ -1292,10 +1292,10 @@ pub fn fail<T>(msg: &'static str) -> ParseFail<T> {
     }
 }
 
-/// Parse a [`flag`](NamedArg::flag)/[`switch`](NamedArg::switch)/[`argument`](NamedArg::argument) that has a short name
+/// Parse a [flag](NamedArg::flag)/[switch](NamedArg::switch)/[argument](NamedArg::argument) that has a short name
 ///
-/// You can chain multiple [`short`](NamedArg::short), [`long`](NamedArg::long) and
-/// [`env`](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
+/// You can chain multiple [short](NamedArg::short), [long](NamedArg::long) and
+/// [env](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
 ///  `bpaf` would use items past the first one as hidden aliases.
 #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
 #[must_use]
@@ -1308,10 +1308,10 @@ pub fn short(short: char) -> NamedArg {
     }
 }
 
-/// Parse a [`flag`](NamedArg::flag)/[`switch`](NamedArg::switch)/[`argument`](NamedArg::argument) that has a long name
+/// Parse a [flag](NamedArg::flag)/[switch](NamedArg::switch)/[argument](NamedArg::argument) that has a long name
 ///
-/// You can chain multiple [`short`](NamedArg::short), [`long`](NamedArg::long) and
-/// [`env`](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
+/// You can chain multiple [short](NamedArg::short), [long](NamedArg::long) and
+/// [env](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
 ///  `bpaf` would use items past the first one as hidden aliases.
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
@@ -1327,11 +1327,11 @@ pub fn long(long: &'static str) -> NamedArg {
 
 /// Parse an environment variable
 ///
-/// You can chain multiple [`short`](NamedArg::short), [`long`](NamedArg::long) and
-/// [`env`](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
+/// You can chain multiple [short](NamedArg::short), [long](NamedArg::long) and
+/// [env](NamedArg::env()) for multiple names. You can specify multiple names of the same type,
 ///  `bpaf` would use items past the first one as hidden aliases.
 ///
-/// For [`flag`](NamedArg::flag) and [`switch`](NamedArg::switch) environment variable being present
+/// For [flag](NamedArg::flag) and [switch](NamedArg::switch) environment variable being present
 /// gives the same result as the flag being present, allowing to implement things like `NO_COLOR`
 /// variables:
 ///
@@ -1362,7 +1362,7 @@ pub fn env(variable: &'static str) -> NamedArg {
 /// a different order.
 ///
 /// When using combinatoric API you can specify the type with turbofish, for parsing types
-/// that don't implement [`FromStr`] you can use consume a `String`/`OsString` first and parse
+/// that don't implement [FromStr] you can use consume a `String`/`OsString` first and parse
 /// it by hand.
 /// ```rust
 /// # use bpaf::*;
@@ -1391,11 +1391,11 @@ pub fn env(variable: &'static str) -> NamedArg {
 /// **`bpaf` panics during help generation unless this restriction holds**
 ///
 /// Without using `--` `bpaf` would only accept items that don't start with `-` as positional, you
-/// can use [`any`] to work around this restriction.
+/// can use [any] to work around this restriction.
 ///
 /// By default `bpaf` accepts positional items with or without `--` where values permit, you can
 /// further restrict the parser to accept positional items only on the right side of `--` using
-/// [`strict`](ParsePositional::strict).
+/// [strict](ParsePositional::strict).
 #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 #[must_use]
 pub fn positional<T>(metavar: &'static str) -> ParsePositional<T> {
@@ -1419,14 +1419,14 @@ where
 
 /// Parse a single arbitrary item from a command line
 ///
-/// **`any` is designed to consume items that don't fit into the usual [`flag`](NamedArg::flag)
-/// /[`switch`](NamedArg::switch)/[`argument`](NamedArg::argument)/[`positional`]/
-/// [`command`](OptionParser::command) classification, in most cases you don't need to use it**
+/// **`any` is designed to consume items that don't fit into the usual [flag](NamedArg::flag)
+/// /[switch](NamedArg::switch)/[argument](NamedArg::argument)/[positional]/
+/// [command](OptionParser::command) classification, in most cases you don't need to use it**
 ///
-/// By default, `any` behaves similarly to [`positional`] so you should be using it near the
+/// By default, `any` behaves similarly to [positional] so you should be using it near the
 /// rightmost end of the consumer struct and it will only try to parse the first unconsumed item
 /// on the command line. It is possible to lift this restriction by calling
-/// [`anywhere`](ParseAny::anywhere) on the parser.
+/// [anywhere](ParseAny::anywhere) on the parser.
 ///
 /// `check` argument is a function from any type `I` that implements `FromStr` to `T`.
 /// Usually this should be `String` or `OsString`, but feel free to experiment. When
@@ -1436,7 +1436,7 @@ where
 /// unconsumed items, otherwise, `any` fails.
 ///
 /// # Use `any` to capture the remaining arguments
-/// Normally you would use [`positional`] with [`strict`](ParsePositional::strict) annotation for
+/// Normally you would use [positional] with [strict](ParsePositional::strict) annotation for
 /// that, but using any allows you to blur the boundary between arguments for child process and self
 /// process a bit more.
 #[cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
@@ -1447,12 +1447,12 @@ where
 ///
 /// # Use `any` to parse a non standard argument
 /// Normally `any` would try to display itself as a usual metavariable in the usage line and
-/// generated help, you can customize that with [`metavar`](ParseAny::metavar) method:
+/// generated help, you can customize that with [metavar](ParseAny::metavar) method:
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
 ///
 /// # See also
-/// [`literal`] - a specialized version of `any` that tries to parse a fixed literal
+/// [literal] - a specialized version of `any` that tries to parse a fixed literal
 #[must_use]
 pub fn any<I, T, F>(metavar: &str, check: F) -> ParseAny<T>
 where
@@ -1474,17 +1474,17 @@ where
     }
 }
 
-/// A specialized version of [`any`] that consumes an arbitrary string
+/// A specialized version of [any] that consumes an arbitrary string
 ///
-/// By default `literal` behaves similarly to [`positional`] so you should be using it near the
+/// By default `literal` behaves similarly to [positional] so you should be using it near the
 /// rightmost end of the consumer struct and it will only try to parse the first unconsumed
 /// item on the command line. It is possible to lift this restriction by calling
-/// [`anywhere`](ParseAny::anywhere) on the parser.
+/// [anywhere](ParseAny::anywhere) on the parser.
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
 ///
 /// # See also
-/// [`any`] - a generic version of `literal` that uses function to decide if value is to be parsed
+/// [any] - a generic version of `literal` that uses function to decide if value is to be parsed
 /// or not.
 #[must_use]
 pub fn literal(val: &'static str) -> ParseAny<()> {

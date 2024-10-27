@@ -176,5 +176,5 @@ div.bpaf-doc  { padding-left: 1em; }
 </div>
 
 
-But this can be fixed with [`optional`](Parser::optional) (not included in this example).
+But this can be fixed with [optional](Parser::optional) (not included in this example).
 </details>

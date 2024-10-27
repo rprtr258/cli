@@ -2,7 +2,7 @@ use std::ffi::{OsStr, OsString};
 
 /// Preprocessed command line argument
 ///
-/// [`OsString`] in Short/Long correspond to orignal command line item used for errors
+/// [OsString] in Short/Long correspond to orignal command line item used for errors
 #[derive(Debug, Clone, Eq, PartialEq)]
 pub(crate) enum Arg {
     /// short flag: `-f`
@@ -92,7 +92,7 @@ pub(crate) enum ArgType {
     Long,
 }
 
-/// split [`OsString`] into argument specific bits
+/// split [OsString] into argument specific bits
 ///
 /// takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
 /// "--" - type, "name" - name, must be representable as utf8, "=" - optional, "value" - flag
@@ -104,7 +104,7 @@ pub(crate) enum ArgType {
 ///
 /// argument is optional and can be non valid utf8.
 ///
-/// The idea is to split the [`OsString`] into opaque parts by looking only at the parts simple parts
+/// The idea is to split the [OsString] into opaque parts by looking only at the parts simple parts
 /// and let stdlib to handle the decoding of those parts.
 ///
 /// performance wise this (at least on unix) works some small number percentage slower than the

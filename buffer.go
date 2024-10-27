@@ -19,47 +19,47 @@ func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 //
 // This is a newtype around internal parser metainfo representation, generated
 // with [`Parserwith_group_help`](crateParserwith_group_help) and consumed by
-// [`Docmeta`](Docmeta)
+// [Docmeta](Docmeta)
 type MetaInfo = Meta
 
-// Append a fragment of plain Text to [`Doc`]
+// Append a fragment of plain Text to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Text(text string) {
 	self.write_str(text, StyleText)
 }
 
-// Append a fragment of Literal text to [`Doc`]
+// Append a fragment of Literal text to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Literal(text string) {
 	self.write_str(text, StyleLiteral)
 }
 
-// Append a fragment of text with Emphasis to [`Doc`]
+// Append a fragment of text with Emphasis to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Emphasis(text string) {
 	self.write_str(text, StyleEmphasis)
 }
 
-// Append a fragment of unexpected user input to [`Doc`]
+// Append a fragment of unexpected user input to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Invalid(text string) {
 	self.write_str(text, StyleInvalid)
 }
 
-// Append a fragment of parser metadata to [`Doc`]
+// Append a fragment of parser metadata to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Meta(meta MetaInfo, for_usage bool) {
 	self.write_meta(meta, for_usage)
 }
 
-// Append a `Doc` to [`Doc`]
+// Append a `Doc` to [Doc]
 //
-// See [`Doc`] for usage examples
+// See [Doc] for usage examples
 func (self *Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
 	self.tokens = append(self.tokens, buf.tokens...)
@@ -67,7 +67,7 @@ func (self *Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockEnd(BlockInlineBlock))
 }
 
-// Append a `Doc` to [`Doc`] for plaintext documents try to format
+// Append a `Doc` to [Doc] for plaintext documents try to format
 // first line as a help section header
 func (self *Doc) EmDoc(buf Doc) {
 	self.tokens = append(self.tokens, TokenBlockStart(BlockInlineBlock))
@@ -181,7 +181,7 @@ func (self *Doc) write_meta(meta Meta, for_usage bool) {
 	self.token(TokenBlockEnd(BlockMono))
 }
 
-// Style of a text fragment inside of [`Doc`]
+// Style of a text fragment inside of [Doc]
 type Style uint8
 
 const (
@@ -205,7 +205,7 @@ const (
 	BlockInlineBlock    // inserted when block is written into a block. single blank line in the input fast forward until the end of current inline block
 	BlockTermRef        // inline displayed with `` in monochrome or not when rendered with colors. In markdown this becomes a link to a term if one is defined
 	BlockMeta           // Surrounds metavars block in manpage used only inside render_manpage at the moment
-	BlockMono           // Monospaced font that goes around [`Meta`]
+	BlockMono           // Monospaced font that goes around [Meta]
 )
 
 // Token = Text | BlockStart | BlockEnd

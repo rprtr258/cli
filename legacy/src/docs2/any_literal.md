@@ -28,7 +28,7 @@ where
         // item on a command line instead of trying and failing on the first one
         .anywhere()
         // At this point parser produces `String` while consumer might expect some other
-        // type. [`parse`](Parser::parse) handles that
+        // type. [parse](Parser::parse) handles that
         .parse(|s| s.parse())
 }
 
@@ -123,7 +123,7 @@ where
         // item on a command line instead of trying and failing on the first one
         .anywhere()
         // At this point parser produces `String` while consumer might expect some other
-        // type. [`parse`](Parser::parse) handles that
+        // type. [parse](Parser::parse) handles that
         .parse(|s| s.parse())
 }
 

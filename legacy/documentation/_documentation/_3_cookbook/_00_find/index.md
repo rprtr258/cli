@@ -6,7 +6,7 @@ An Example for `find` shows how to implement 3 different unusual options:
 - an option that captures everything until the next fixed character
 - an option that takes a set of characters: `-mode -rw`, `mode /rw`
 
-In all cases, long name with a single dash is implemented by the [`literal`] with
+In all cases, long name with a single dash is implemented by the [literal] with
 [`ParseAny::anywhere`](crate::parsers::ParseAny::anywhere) with some items made `adjacent` to it.
 
 To parse `-user bob` this is simply literal `-user` adjacent to a positional item with `map` to

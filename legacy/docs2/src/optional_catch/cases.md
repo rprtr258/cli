@@ -4,7 +4,7 @@ takes two values
 > --help
 
 When executed with no parameters it produces four `None` values - all parsers succeed by the
-nature of them being [`optional`](Parser::optional)
+nature of them being [optional](Parser::optional)
 
 >
 

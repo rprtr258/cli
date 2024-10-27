@@ -26,7 +26,7 @@ fn file_parser() -> OptionParser<PathBuf> {
 }
 ```
 
-You can use any type for as long as it implements [`FromStr`]. To parse items that don't
+You can use any type for as long as it implements [FromStr]. To parse items that don't
 implement it you can first parse a `String` or `OsString` and then use [`Parser::parse`], see
 [the next chapter](super::super::_1_chaining) on how to do that.
 

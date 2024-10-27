@@ -159,7 +159,7 @@ impl Args<'_> {
     }
 }
 
-/// Shows which branch of [`ParseOrElse`] parsed the argument
+/// Shows which branch of [ParseOrElse] parsed the argument
 #[derive(Debug, Clone, Copy, Eq, PartialEq)]
 pub(crate) enum ItemState {
     /// Value is yet to be parsed
@@ -246,7 +246,7 @@ fn disambiguate_short(
 }
 
 pub use inner::State;
-/// Hides [`State`] internal implementation
+/// Hides [State] internal implementation
 mod inner {
     use std::{ops::Range, rc::Rc};
 
@@ -265,7 +265,7 @@ mod inner {
         remaining: usize,
 
         #[doc(hidden)]
-        /// Used to render an error message for [`parse`][crate::Parser::parse]
+        /// Used to render an error message for [parse][crate::Parser::parse]
         /// contains an index of a currently consumed item if we are parsing a single
         /// item
         pub current: Option<usize>,

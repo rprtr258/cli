@@ -56,7 +56,7 @@ pub(crate) enum Escape {
     /// - replace `'\''` with APOSTROPHE if Apostrophes handling is enabled
     Special,
 
-    /// Similar to [`Special`](Escape::Special) but also replaces `'\n'` with `' '`
+    /// Similar to [Special](Escape::Special) but also replaces `'\n'` with `' '`
     SpecialNoNewline,
 
     /// Input is written as is
@@ -66,7 +66,7 @@ pub(crate) enum Escape {
 #[cfg(test)]
 /// Escape a sequence of string slices according to escaping rules and store results to `String`
 ///
-/// See also [`escape`] if it is desired to reuse existing storage capacity
+/// See also [escape] if it is desired to reuse existing storage capacity
 pub(crate) fn escape_to_string<'a, I>(items: I, ap: Apostrophes) -> String
 where
     I: IntoIterator<Item = (&'a Escape, &'a str)>,

@@ -119,7 +119,7 @@ div.bpaf-doc  { padding-left: 1em; }
 </div>
 
 
-And if all parsers are satisfied [`run`](OptionParser::run) produces the result
+And if all parsers are satisfied [run](OptionParser::run) produces the result
 
 
 <div class='bpaf-doc'>

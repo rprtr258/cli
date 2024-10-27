@@ -1,7 +1,7 @@
 #### Improving the user experience
 
 Once you have the final parser done there are still a few ways you can improve user experience.
-[`OptionParser`] comes equipped with a few methods that let you set version number,
+[OptionParser] comes equipped with a few methods that let you set version number,
 description, help message header and footer and so on.
 
 #![cfg_attr(not(doctest), doc = include_str!("docs2/compose_basic_to_options.md"))]

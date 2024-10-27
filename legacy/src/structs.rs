@@ -1,4 +1,4 @@
-//! Structures that implement different methods on [`Parser`] trait
+//! Structures that implement different methods on [Parser] trait
 use crate::{
     args::State,
     buffer::MetaInfo,
@@ -113,8 +113,8 @@ where
 }
 
 /// Apply inner parser several times and collect results into `Vec`, created with
-/// [`some`](Parser::some), requires for at least one item to be available to succeed.
-/// Implements [`catch`](ParseMany::catch)
+/// [some](Parser::some), requires for at least one item to be available to succeed.
+/// Implements [catch](ParseMany::catch)
 pub struct ParseSome<P> {
     pub(crate) inner: P,
     pub(crate) message: &'static str,
@@ -129,8 +129,8 @@ impl<P> ParseSome<P> {
     /// When parser succeeds - `catch` version would return a value as usual
     /// if it fails - `catch` would restore all the consumed values and return None.
     ///
-    /// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-    /// and [`ParseSome`], behavior should be identical for all of them.
+    /// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+    /// and [ParseSome], behavior should be identical for all of them.
     #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
     pub fn catch(mut self) -> Self {
         self.catch = true;
@@ -163,8 +163,8 @@ where
 }
 
 /// Apply inner parser several times and collect results into `FromIterator`, created with
-/// [`collect`](Parser::collect),
-/// Implements [`catch`](ParseCollect::catch)
+/// [collect](Parser::collect),
+/// Implements [catch](ParseCollect::catch)
 pub struct ParseCollect<P, C, T> {
     pub(crate) inner: P,
     pub(crate) catch: bool,
@@ -179,8 +179,8 @@ impl<T, C, P> ParseCollect<P, C, T> {
     /// When parser succeeds - `catch` version would return a value as usual
     /// if it fails - `catch` would restore all the consumed values and return None.
     ///
-    /// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-    /// and [`ParseSome`], behavior should be identical for all of them.
+    /// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+    /// and [ParseSome], behavior should be identical for all of them.
     #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
     pub fn catch(mut self) -> Self {
         self.catch = true;
@@ -445,7 +445,7 @@ fn this_or_that_picks_first(
 }
 
 /// Parser that transforms parsed value with a failing function, created with
-/// [`parse`](Parser::parse)
+/// [parse](Parser::parse)
 pub struct ParseWith<T, P, F, E, R> {
     pub(crate) inner: P,
     pub(crate) inner_res: PhantomData<T>,
@@ -474,7 +474,7 @@ where
 }
 
 /// Parser that substitutes missing value but not parse failure, created with
-/// [`fallback`](Parser::fallback).
+/// [fallback](Parser::fallback).
 pub struct ParseFallback<P, T> {
     pub(crate) inner: P,
     pub(crate) value: T,
@@ -517,7 +517,7 @@ where
 }
 
 impl<P, T: std::fmt::Display> ParseFallback<P, T> {
-    /// Show [`fallback`](Parser::fallback) value in `--help` using [`Display`](std::fmt::Display)
+    /// Show [fallback](Parser::fallback) value in `--help` using [Display](std::fmt::Display)
     /// representation
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
@@ -529,7 +529,7 @@ impl<P, T: std::fmt::Display> ParseFallback<P, T> {
 }
 
 impl<P, T: std::fmt::Debug> ParseFallback<P, T> {
-    /// Show [`fallback`](Parser::fallback) value in `--help` using [`Debug`](std::fmt::Debug)
+    /// Show [fallback](Parser::fallback) value in `--help` using [Debug](std::fmt::Debug)
     /// representation
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
@@ -544,7 +544,7 @@ impl<P, T: std::fmt::Display, F, E> ParseFallbackWith<T, P, F, E>
 where
     F: Fn() -> Result<T, E>,
 {
-    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [`Display`](std::fmt::Display)
+    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [Display](std::fmt::Display)
     /// representation
     ///
     /// If fallback function fails - no value will show up
@@ -563,7 +563,7 @@ impl<P, T: std::fmt::Debug, F, E> ParseFallbackWith<T, P, F, E>
 where
     F: Fn() -> Result<T, E>,
 {
-    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [`Debug`](std::fmt::Debug)
+    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [Debug](std::fmt::Debug)
     /// representation
     ///
     /// If fallback function fails - no value will show up
@@ -578,7 +578,7 @@ where
     }
 }
 
-/// Parser fails with a message if check returns false, created with [`guard`](Parser::guard).
+/// Parser fails with a message if check returns false, created with [guard](Parser::guard).
 pub struct ParseGuard<P, F> {
     pub(crate) inner: P,
     pub(crate) check: F,
@@ -668,8 +668,8 @@ where
 }
 
 /// Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-/// and return `None` if any are missing. Created with [`optional`](Parser::optional). Implements
-/// [`catch`](ParseOptional::catch)
+/// and return `None` if any are missing. Created with [optional](Parser::optional). Implements
+/// [catch](ParseOptional::catch)
 pub struct ParseOptional<P> {
     pub(crate) inner: P,
     pub(crate) catch: bool,
@@ -697,11 +697,11 @@ impl<P> ParseOptional<P> {
     /// When parser succeeds - `catch` version would return a value as usual
     /// if it fails - `catch` would restore all the consumed values and return None.
     ///
-    /// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-    /// and [`ParseSome`], behavior should be identical for all of them.
+    /// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+    /// and [ParseSome], behavior should be identical for all of them.
     ///
     /// Those examples are very artificial and designed to show what difference `catch` makes, to
-    /// actually parse arguments like in examples you should [`parse`](Parser::parse) or construct
+    /// actually parse arguments like in examples you should [parse](Parser::parse) or construct
     /// enum with alternative branches
     #[cfg_attr(not(doctest), doc = include_str!("docs2/optional_catch.md"))]
     pub fn catch(mut self) -> Self {
@@ -711,7 +711,7 @@ impl<P> ParseOptional<P> {
 }
 
 /// Apply inner parser several times and collect results into `Vec`, created with
-/// [`many`](Parser::many), implements [`catch`](ParseMany::catch).
+/// [many](Parser::many), implements [catch](ParseMany::catch).
 pub struct ParseMany<P> {
     pub(crate) inner: P,
     pub(crate) catch: bool,
@@ -725,8 +725,8 @@ impl<P> ParseMany<P> {
     /// When parser succeeds - `catch` version would return a value as usual
     /// if it fails - `catch` would restore all the consumed values and return None.
     ///
-    /// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-    /// and [`ParseSome`], behavior should be identical for all of them.
+    /// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+    /// and [ParseSome], behavior should be identical for all of them.
     #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
     pub fn catch(mut self) -> Self {
         self.catch = true;
@@ -799,7 +799,7 @@ where
 }
 
 /// Parser that returns a given value without consuming anything, created with
-/// [`pure`](crate::pure).
+/// [pure](crate::pure).
 pub struct ParsePure<T>(pub(crate) T);
 impl<T: Clone + 'static> Parser<T> for ParsePure<T> {
     fn eval(&self, args: &mut State) -> Result<T, Error> {
@@ -831,7 +831,7 @@ impl<T: Clone + 'static, F: Fn() -> Result<T, E>, E: ToString> Parser<T>
     }
 }
 
-/// Parser that fails without consuming any input, created with [`fail`](crate::fail).
+/// Parser that fails without consuming any input, created with [fail](crate::fail).
 pub struct ParseFail<T> {
     pub(crate) field1: &'static str,
     pub(crate) field2: PhantomData<T>,
@@ -847,7 +847,7 @@ impl<T> Parser<T> for ParseFail<T> {
     }
 }
 
-/// Parser that transforms parsed value with a function, created with [`map`](Parser::map).
+/// Parser that transforms parsed value with a function, created with [map](Parser::map).
 pub struct ParseMap<T, P, F, R> {
     pub(crate) inner: P,
     pub(crate) inner_res: PhantomData<T>,
@@ -930,7 +930,7 @@ impl<T> ParseCon<T> {
     #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_1.md"))]
     ///
     /// # Chaining commands
-    /// This example explains [`adjacent`](crate::params::ParseCommand::adjacent), but the same idea holds.
+    /// This example explains [adjacent](crate::params::ParseCommand::adjacent), but the same idea holds.
     /// Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag`
     ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
@@ -957,7 +957,7 @@ impl<T> ParseCon<T> {
     /// logic: instead of restricting, for example "sum of two fields to be 5 or greater" *inside* the
     /// `adjacent` parser, you can restrict it *outside*, once `adjacent` done the parsing.
     ///
-    /// There's also similar method [`adjacent`](crate::parsers::ParseArgument) that allows to restrict argument
+    /// There's also similar method [adjacent](crate::parsers::ParseArgument) that allows to restrict argument
     /// parser to work only for arguments where both key and a value are in the same shell word:
     /// `-f=bar` or `-fbar`, but not `-f bar`.
     pub fn adjacent(mut self) -> ParseAdjacent<Self> {

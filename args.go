@@ -113,7 +113,7 @@ const (
 	ItemStateKindParsed                        // Value was parsed
 )
 
-// Shows which branch of [`ParseOrElse`] parsed the argument
+// Shows which branch of [ParseOrElse] parsed the argument
 type ItemState struct {
 	kind     ItemStateKind
 	conflict int
@@ -200,7 +200,7 @@ type State struct {
 	// performance optimization mostly - tracks removed item and gives cheap is_empty and len
 	remaining int
 
-	// Used to render an error message for [`parse`][crateParserparse]
+	// Used to render an error message for [parse][crateParserparse]
 	// contains an index of a currently consumed item if we are parsing a single
 	// item
 	current Option[int]

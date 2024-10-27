@@ -10,19 +10,19 @@ use crate::{
 
 /// Information about the parser
 ///
-/// No longer public, users are only interacting with it via [`OptionParser`]
+/// No longer public, users are only interacting with it via [OptionParser]
 #[derive(Debug, Clone)]
 #[doc(hidden)]
 pub struct Info {
-    /// version field, see [`version`][Info::version]
+    /// version field, see [version][Info::version]
     pub version: Option<Doc>,
-    /// Custom description field, see [`descr`][Info::descr]
+    /// Custom description field, see [descr][Info::descr]
     pub descr: Option<Doc>,
-    /// Custom header field, see [`header`][Info::header]
+    /// Custom header field, see [header][Info::header]
     pub header: Option<Doc>,
-    /// Custom footer field, see [`footer`][Info::footer]
+    /// Custom footer field, see [footer][Info::footer]
     pub footer: Option<Doc>,
-    /// Custom usage field, see [`usage`][Info::usage]
+    /// Custom usage field, see [usage][Info::usage]
     pub usage: Option<Doc>,
     pub help_arg: NamedArg,
     pub version_arg: NamedArg,
@@ -48,7 +48,7 @@ impl Default for Info {
     }
 }
 
-/// Ready to run [`Parser`] with additional information attached
+/// Ready to run [Parser] with additional information attached
 ///
 /// Created with [`to_options`](Parser::to_options)
 ///
@@ -61,7 +61,7 @@ pub struct OptionParser<T> {
 }
 
 impl<T> OptionParser<T> {
-    /// Execute the [`OptionParser`], extract a parsed value or print some diagnostic and exit
+    /// Execute the [OptionParser], extract a parsed value or print some diagnostic and exit
     ///
     /// # Usage
     /// ```rust
@@ -96,9 +96,9 @@ impl<T> OptionParser<T> {
         }
     }
 
-    /// Execute the [`OptionParser`], extract a parsed value or return a [`ParseFailure`]
+    /// Execute the [OptionParser], extract a parsed value or return a [ParseFailure]
     ///
-    /// In most cases using [`run`](OptionParser::run) is sufficient, you can use `try_run` if you
+    /// In most cases using [run](OptionParser::run) is sufficient, you can use `try_run` if you
     /// want to control the exit code or you need to perform a custom cleanup.
     ///
     /// # Usage
@@ -139,7 +139,7 @@ impl<T> OptionParser<T> {
     ///
     /// # Errors
     ///
-    /// [`ParseFailure`] represents parsing errors, autocomplete results and generated `--help`
+    /// [ParseFailure] represents parsing errors, autocomplete results and generated `--help`
     /// output.
     #[deprecated = "You should switch to equivalent parser.run_inner(Args::current_args())"]
     pub fn try_run(self) -> Result<T, ParseFailure>
@@ -149,7 +149,7 @@ impl<T> OptionParser<T> {
         self.run_inner(Args::current_args())
     }
 
-    /// Execute the [`OptionParser`] and produce a values for unit tests or manual processing
+    /// Execute the [OptionParser] and produce a values for unit tests or manual processing
     ///
     /// ```rust
     /// # use bpaf::*;
@@ -181,17 +181,17 @@ impl<T> OptionParser<T> {
     /// # */
     /// ```
     ///
-    /// See also [`Args`] and it's `From` impls to produce input and
+    /// See also [Args] and it's `From` impls to produce input and
     /// [`ParseFailure::unwrap_stderr`] / [`ParseFailure::unwrap_stdout`] for processing results.
     ///
     /// # Errors
     ///
-    /// If parser can't produce desired result `run_inner` returns [`ParseFailure`]
+    /// If parser can't produce desired result `run_inner` returns [ParseFailure]
     /// which represents runtime behavior: one branch to print something to stdout and exit with
     /// success and the other branch to print something to stderr and exit with failure.
     ///
     /// `bpaf` generates contents of this `ParseFailure` using expected textual output from
-    /// [`parse`](Parser::parse), stdout/stderr isn't actually captured.
+    /// [parse](Parser::parse), stdout/stderr isn't actually captured.
     ///
     /// Exact string reperentations may change between versions including minor releases.
     pub fn run_inner<'a>(&self, args: impl Into<Args<'a>>) -> Result<T, ParseFailure>
@@ -302,7 +302,7 @@ impl<T> OptionParser<T> {
 
     /// Get first line of description if Available
     ///
-    /// Used internally to avoid duplicating description for [`command`].
+    /// Used internally to avoid duplicating description for [command].
     #[must_use]
     pub(crate) fn short_descr(&self) -> Option<Doc> {
         self.info.descr.as_ref().and_then(Doc::first_line)

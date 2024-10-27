@@ -69,9 +69,9 @@ impl Roff {
 
     /// Chainable setter for `strip_newlines` field
     ///
-    /// `strip_newlines` specifies if [`render`](Self::render) should keep all the newline characters
+    /// `strip_newlines` specifies if [render](Self::render) should keep all the newline characters
     /// inside added text newlines can come with a special meaning, for example adding a section
-    /// header relies, newlines are automatically stripped from [`control`](Self::control) arguments.
+    /// header relies, newlines are automatically stripped from [control](Self::control) arguments.
     pub(crate) fn strip_newlines(&mut self, state: bool) -> &mut Self {
         self.strip_newlines = state;
         self

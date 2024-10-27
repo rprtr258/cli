@@ -1,5 +1,5 @@
-In `--help` message `req_flag` look similarly to [`switch`](NamedArg::switch) and
-[`flag`](NamedArg::flag)
+In `--help` message `req_flag` look similarly to [switch](NamedArg::switch) and
+[flag](NamedArg::flag)
 
 > --help
 
@@ -11,12 +11,12 @@ While `style` takes one of several possible values
 
 > --agree
 
-It is possible to alter the behavior using [`fallback`](Parser::fallback) or
-[`hide`](Parser::hide).
+It is possible to alter the behavior using [fallback](Parser::fallback) or
+[hide](Parser::hide).
 
 > --agree --intel
 
 While parser for `style` takes any posted output - it won't take multiple of them at once
-(unless other combinators such as [`many`](Parser::many) permit it) or [`last`](Parser::last).
+(unless other combinators such as [many](Parser::many) permit it) or [last](Parser::last).
 
 > --agree --att --llvm

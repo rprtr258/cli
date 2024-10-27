@@ -136,7 +136,7 @@ Options { exec: Some(["foo", "--bar"]), switch: true }
 </div>
 
 
-This example uses [`some`](Parser::some) to make sure there are some parameters, but that's
+This example uses [some](Parser::some) to make sure there are some parameters, but that's
 optional.
 
 

@@ -160,7 +160,7 @@ func (self Item) is_pos() bool {
 	return res
 }
 
-// Normalize name inside [`ShortLong`] into either short or long
+// Normalize name inside [ShortLong] into either short or long
 func (self *Item) normalize(short bool) {
 	self.v(
 		nil,
@@ -225,7 +225,7 @@ func (self ShortLong) eq(other string) bool {
 	}
 }
 
-// Changes [`ShortLong`](ShortLongShortLong) variant into either short or long depending,
+// Changes [ShortLong](ShortLongShortLong) variant into either short or long depending,
 // leaves both Short and Long untouched
 func (self *ShortLong) normalize(short bool) {
 	if !self.is_both() {

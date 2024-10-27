@@ -10,7 +10,7 @@ names, but also argument and positional item values.
 	bpaf = { version = "0.9", features = ["autocomplete"] }
 	```
 
-2. Decorate [`argument`](crate::parsers::NamedArg::argument) and [`positional`] parsers with
+2. Decorate [argument](crate::parsers::NamedArg::argument) and [positional] parsers with
     [`Parser::complete`] to provide completion functions for arguments
 
 

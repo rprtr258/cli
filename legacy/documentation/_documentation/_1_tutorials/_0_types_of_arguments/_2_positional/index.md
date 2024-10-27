@@ -14,4 +14,4 @@ $ man <span style="font-weight: bold">gcc</span>
 
 #![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 
-For more detailed info see [`positional`](crate::positional) and
+For more detailed info see [positional](crate::positional) and

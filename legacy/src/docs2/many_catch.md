@@ -102,7 +102,7 @@ div.bpaf-doc  { padding-left: 1em; }
 
 
 When executed with no parameters it produces four `[]` values - all parsers succeed by the
-nature of them being [`many`](Parser::many)
+nature of them being [many](Parser::many)
 
 
 <div class='bpaf-doc'>

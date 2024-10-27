@@ -108,8 +108,8 @@ fn main() {
 </details>
 <details><summary>Output</summary>
 
-In `--help` message `req_flag` look similarly to [`switch`](NamedArg::switch) and
-[`flag`](NamedArg::flag)
+In `--help` message `req_flag` look similarly to [switch](NamedArg::switch) and
+[flag](NamedArg::flag)
 
 
 <div class='bpaf-doc'>
@@ -188,8 +188,8 @@ div.bpaf-doc  { padding-left: 1em; }
 </div>
 
 
-It is possible to alter the behavior using [`fallback`](Parser::fallback) or
-[`hide`](Parser::hide).
+It is possible to alter the behavior using [fallback](Parser::fallback) or
+[hide](Parser::hide).
 
 
 <div class='bpaf-doc'>
@@ -199,7 +199,7 @@ Options { agree: (), style: Intel, report: Undecided }
 
 
 While parser for `style` takes any posted output - it won't take multiple of them at once
-(unless other combinators such as [`many`](Parser::many) permit it) or [`last`](Parser::last).
+(unless other combinators such as [many](Parser::many) permit it) or [last](Parser::last).
 
 
 <div class='bpaf-doc'>

@@ -93,8 +93,8 @@ func (self ParseWithGroupHelp[T]) meta() Meta {
 }
 
 // Apply inner parser several times and collect results into `Vec`, created with
-// [`some`](Parsersome), requires for at least one item to be available to succeed.
-// Implements [`catch`](ParseManycatch)
+// [some](Parsersome), requires for at least one item to be available to succeed.
+// Implements [catch](ParseManycatch)
 type ParseSome[T any] struct {
 	inner   Parser[T]
 	message string
@@ -107,8 +107,8 @@ type ParseSome[T any] struct {
 // When parser succeeds - `catch` version would return a value as usual
 // if it fails - `catch` would restore all the consumed values and return Invalid().
 //
-// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-// and [`ParseSome`], behavior should be identical for all of them.
+// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+// and [ParseSome], behavior should be identical for all of them.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
 func (self *ParseSome[T]) Catch() *ParseSome[T] {
 	self.catch = true
@@ -144,8 +144,8 @@ func (self ParseSome[P]) meta() Meta {
 }
 
 // Apply inner parser several times and collect results into `FromIterator`, created with
-// [`collect`](Parsercollect),
-// Implements [`catch`](ParseCollectcatch)
+// [collect](Parsercollect),
+// Implements [catch](ParseCollectcatch)
 type ParseCollect[T any] struct {
 	inner Parser[T]
 	catch bool
@@ -157,8 +157,8 @@ type ParseCollect[T any] struct {
 // When parser succeeds - `catch` version would return a value as usual
 // if it fails - `catch` would restore all the consumed values and return Invalid().
 //
-// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-// and [`ParseSome`], behavior should be identical for all of them.
+// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+// and [ParseSome], behavior should be identical for all of them.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
 func (self *ParseCollect[T]) Catch() *ParseCollect[T] {
 	self.catch = true
@@ -188,7 +188,7 @@ func (self ParseCollect[T]) meta() Meta {
 }
 
 // Parser that returns results as usual but not shown in `--help` output, created with
-// [`Parserhide`]
+// [Parserhide]
 type ParseHide[T any] struct {
 	inner Parser[T]
 }
@@ -434,7 +434,7 @@ func this_or_that_picks_first(
 }
 
 // Parser that transforms parsed value with a failing function, created with
-// [`parse`](Parserparse)
+// [parse](Parserparse)
 type ParseWith[T, R any] struct {
 	inner    Parser[T]
 	parse_fn func(T) Result[R]
@@ -459,7 +459,7 @@ func (self ParseWith[T, R]) eval(args *State) (R, Error) {
 	return r, nil
 }
 
-// Parser that substitutes missing value but not parse failure, created with [`fallback`](Parserfallback).
+// Parser that substitutes missing value but not parse failure, created with [fallback](Parserfallback).
 type ParseFallback[T any] struct {
 	inner     Parser[T]
 	value     T
@@ -496,7 +496,7 @@ func (self ParseFallback[T]) meta() Meta {
 }
 
 // impl<P, T: stdfmtDisplay> ParseFallback<P, T> {
-// Show [`fallback`](Parserfallback) value in `--help` using [`Display`](stdfmtDisplay)
+// Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay)
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
@@ -505,7 +505,7 @@ func (self *ParseFallback[T]) DisplayFallback() ParseFallback[T] {
 	return *self
 }
 
-// Show [`fallback`](Parserfallback) value in `--help` using [`Debug`](stdfmtDebug)
+// Show [fallback](Parserfallback) value in `--help` using [Debug](stdfmtDebug)
 // representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
@@ -516,7 +516,7 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 
 // impl<P, T: stdfmtDisplay, F, E>
 // F: func()Result[T, E],
-// Show [`fallback_with`](Parserfallback_with) value in `--help` using [`Display`](stdfmtDisplay)
+// Show [`fallback_with`](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
 // representation
 //
 // # If fallback function fails - no value will show up
@@ -533,7 +533,7 @@ func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 //
 //	F: func()Result[T, E],
 //
-// Show [`fallback_with`](Parserfallback_with) value in `--help` using [`Debug`](stdfmtDebug)
+// Show [`fallback_with`](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
 // representation
 //
 // # If fallback function fails - no value will show up
@@ -547,7 +547,7 @@ func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
 	return self
 }
 
-// Parser fails with a message if check returns false, created with [`guard`](Parserguard).
+// Parser fails with a message if check returns false, created with [guard](Parserguard).
 type ParseGuard[T any] struct {
 	inner   Parser[T]
 	check   func(T) bool
@@ -634,8 +634,8 @@ func (self ParseLast[T]) meta() Meta {
 }
 
 // Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-// and return `None` if any are missing. Created with [`optional`](Parser::optional). Implements
-// [`catch`](ParseOptional::catch)
+// and return `None` if any are missing. Created with [optional](Parser::optional). Implements
+// [catch](ParseOptional::catch)
 type ParseOptional[T any] struct {
 	inner Parser[T]
 	catch bool
@@ -652,11 +652,11 @@ func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
 // When parser succeeds - `catch` version would return a value as usual
 // if it fails - `catch` would restore all the consumed values and return Invalid().
 //
-// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-// and [`ParseSome`], behavior should be identical for all of them.
+// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+// and [ParseSome], behavior should be identical for all of them.
 //
 // Those examples are very artificial and designed to show what difference `catch` makes, to
-// actually parse arguments like in examples you should [`parse`](Parserparse) or construct
+// actually parse arguments like in examples you should [parse](Parserparse) or construct
 // enum with alternative branches
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/optional_catch.md"))]
 func (self *ParseOptional[T]) Catch() *ParseOptional[T] {
@@ -669,7 +669,7 @@ func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
 }
 
 // Apply inner parser several times and collect results into `Vec`, created with
-// [`many`](Parsermany), implements [`catch`](ParseManycatch).
+// [many](Parsermany), implements [catch](ParseManycatch).
 type ParseMany[T any] struct {
 	inner Parser[T]
 	catch bool
@@ -681,8 +681,8 @@ type ParseMany[T any] struct {
 // When parser succeeds - `catch` version would return a value as usual
 // if it fails - `catch` would restore all the consumed values and return Invalid().
 //
-// There's several structures that implement this attribute: [`ParseOptional`], [`ParseMany`]
-// and [`ParseSome`], behavior should be identical for all of them.
+// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+// and [ParseSome], behavior should be identical for all of them.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
 func (self *ParseMany[T]) Catch() *ParseMany[T] {
 	self.catch = true
@@ -755,7 +755,7 @@ func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-// Parser that returns a given value without consuming anything, created with [`pure`](cratepure).
+// Parser that returns a given value without consuming anything, created with [pure](cratepure).
 type ParsePure[T any] struct {
 	inner T
 }
@@ -785,7 +785,7 @@ func (self ParsePureWith[T]) meta() Meta {
 	return MetaSkip
 }
 
-// Parser that transforms parsed value with a function, created with [`map`](Parsermap).
+// Parser that transforms parsed value with a function, created with [map](Parsermap).
 type ParseMap[T, R any] struct {
 	inner  Parser[T]
 	map_fn func(T) R
@@ -799,7 +799,7 @@ func (self ParseMap[T, R]) eval(args *State) (R, Error) {
 	return self.map_fn(t), nil
 }
 
-// Create parser from a function, [`construct`](crateconstruct) uses it internally
+// Create parser from a function, [construct](crateconstruct) uses it internally
 type ParseCon[T any] struct {
 	// inner parser closure
 	inner func(bool, *State) Result[T]
@@ -853,7 +853,7 @@ func (self ParseCon[T]) eval(args *State) (T, Error) {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_1.md"))]
 //
 // # Chaining commands
-// This example explains [`Adjacent`](crateparamsParseCommandadjacent), but the same idea holds.
+// This example explains [Adjacent](crateparamsParseCommandadjacent), but the same idea holds.
 // Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag`
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
@@ -880,7 +880,7 @@ func (self ParseCon[T]) eval(args *State) (T, Error) {
 // logic: instead of restricting, for example "sum of two fields to be 5 or greater" *inside* the
 // `Adjacent` parser, you can restrict it *outside*, once `Adjacent` done the parsing.
 //
-// There's also similar method [`Adjacent`](crateparsersParseArgument) that allows to restrict argument
+// There's also similar method [Adjacent](crateparsersParseArgument) that allows to restrict argument
 // parser to work only for arguments where both key and a value are in the same shell word:
 // `-f=bar` or `-fbar`, but not `-f bar`.
 func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {

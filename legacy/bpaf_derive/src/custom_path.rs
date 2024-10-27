@@ -6,8 +6,8 @@ use syn::{
 };
 
 /// Implements [`syn::visit_mut::VisitMut`] to find
-/// those [`Path`](syn::Path)s which match
-/// [`query`](Self::target) and replace them with [`target`](Self::target).
+/// those [Path](syn::Path)s which match
+/// [query](Self::target) and replace them with [target](Self::target).
 pub(crate) struct CratePathReplacer {
     /// The prefix to search for within an input path.
     query: syn::Path,
@@ -23,7 +23,7 @@ impl CratePathReplacer {
         }
     }
 
-    /// Check if both [`query`](Self::query) and `input` have the same leading
+    /// Check if both [query](Self::query) and `input` have the same leading
     /// path segment (`::`) responsible for marking [a path as
     /// "global"](https://doc.rust-lang.org/reference/procedural-macros.html#procedural-macro-hygiene).
     ///
@@ -32,7 +32,7 @@ impl CratePathReplacer {
         self.query.leading_colon.is_some() && input.leading_colon.is_some()
     }
 
-    /// Check if the initial segments of `input` match [`query`](Self::query).
+    /// Check if the initial segments of `input` match [query](Self::query).
     ///
     /// If these do not match, no replacement will be performed.
     fn path_segments_match(&self, input: &mut syn::Path) -> bool {
@@ -43,8 +43,8 @@ impl CratePathReplacer {
             .all(|(f, o)| f == o)
     }
 
-    /// Replaces the prefix of `input` with those of [`target`](Self::target) if
-    /// the `input` path's prefix matches [`query`](Self::query).
+    /// Replaces the prefix of `input` with those of [target](Self::target) if
+    /// the `input` path's prefix matches [query](Self::query).
     fn replace_path_if_match(&self, input: &mut syn::Path) {
         if self.path_global_match(input) && self.path_segments_match(input) {
             input.leading_colon = self.target.leading_colon;
@@ -175,8 +175,8 @@ impl CratePathReplacer {
         result_tree
     }
 
-    /// Replaces the prefix of `input` with those of [`target`](Self::target) if
-    /// the `input` path's prefix matches [`query`](Self::query).
+    /// Replaces the prefix of `input` with those of [target](Self::target) if
+    /// the `input` path's prefix matches [query](Self::query).
     fn replace_item_use_if_match(&self, input: &mut syn::ItemUse) {
         if self.item_use_global_match(input) {
             if let Some((matched_prefix, suffix)) = Self::item_use_segments_match(

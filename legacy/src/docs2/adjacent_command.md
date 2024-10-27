@@ -161,7 +161,7 @@ div.bpaf-doc  { padding-left: 1em; }
 
 Normally you can use one command at a time, but making commands `adjacent` lets
 parser to succeed after consuming an adjacent block only and leaving leftovers for the rest of
-the parser, consuming them as a `Vec<Cmd>` with [`many`](Parser::many) allows to chain multiple
+the parser, consuming them as a `Vec<Cmd>` with [many](Parser::many) allows to chain multiple
 items sequentially
 
 

@@ -26,7 +26,7 @@ fn main() {
 
 <details><summary>Output</summary>
 
-Here [`choice`] function is used to create an option for each possible desert item
+Here [choice] function is used to create an option for each possible desert item
 
 
 <div class='bpaf-doc'>

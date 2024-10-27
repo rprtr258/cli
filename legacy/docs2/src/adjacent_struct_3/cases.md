@@ -7,7 +7,7 @@ inside the exec vector. Extra options can go either before or after the block.
 
 > --exec foo --bar ; -s
 
-This example uses [`some`](Parser::some) to make sure there are some parameters, but that's
+This example uses [some](Parser::some) to make sure there are some parameters, but that's
 optional.
 
 > --exec ;

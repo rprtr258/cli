@@ -49,47 +49,47 @@ import (
 //! Both APIs can achieve the same results, you can use one that better suits your needs. You can
 //! find documentation with more examples following those links.
 //!
-//! - For an argument with a name you define [`NamedArg`] using a combination of [`short`],
-//!   [`long`] and [`env`](crateenv()). At the same time you can attach
-//!   [`help`](NamedArghelp).
-//! - [`NamedArgswitch`] - simple switch that returns `true` if it's present on a command
+//! - For an argument with a name you define [NamedArg] using a combination of [short],
+//!   [long] and [env](crateenv()). At the same time you can attach
+//!   [help](NamedArghelp).
+//! - [NamedArgswitch] - simple switch that returns `true` if it's present on a command
 //!   line and `false` otherwise.
-//! - [`NamedArgflag`] - a variant of `switch` that lets you return one of two custom
+//! - [NamedArgflag] - a variant of `switch` that lets you return one of two custom
 //!   values, for example `ColorOn` and `ColorOff`.
 //! - [`NamedArgreq_flag`] - a variant of `switch` that only only succeeds when it's name
 //!   is present on a command line
-//! - [`NamedArgargument`] - named argument containing a value, you can further
-//!   customize it with [`adjacent`](crateparsersParseArgumentadjacent)
-//! - [`positional`] - positional argument, you can further customize it with
-//!   [`strict`](ParsePositionalstrict)
-//! - [`OptionParsercommand`] - subcommand parser.
-//! - [`any`] and its specialized version [`literal`] are escape hatches that can parse anything
+//! - [NamedArgargument] - named argument containing a value, you can further
+//!   customize it with [adjacent](crateparsersParseArgumentadjacent)
+//! - [positional] - positional argument, you can further customize it with
+//!   [strict](ParsePositionalstrict)
+//! - [OptionParsercommand] - subcommand parser.
+//! - [any] and its specialized version [literal] are escape hatches that can parse anything
 //!   not fitting into usual classification.
-//! - [`pure`] and [`pure_with`] - a way to generate a value that can be composed without parsing
+//! - [pure] and [`pure_with`] - a way to generate a value that can be composed without parsing
 //!   it from the command line.
 //!
 //! ## Transforming and changing parsers
 //!
 //! By default primitive parsers gives you back a single `bool`, a single `PathBuf` or a single
-//! value produced by [`FromStr`] trait, etc. You can further transform it by chaining methods from
-//! [`Parser`] trait, some of those methods are applied automagically if you are using derive API.
+//! value produced by [FromStr] trait, etc. You can further transform it by chaining methods from
+//! [Parser] trait, some of those methods are applied automagically if you are using derive API.
 //!
 //! `bpaf` distinguishes two types of parse failures - "value is absent" and
 //! "value is present but invalid", most parsers listed in this section only handle the first
 //! type of failure by default, but you can use their respective `catch` method to handle the later
 //! one.
 //!
-//! - [`fallback`](Parserfallback) and [`fallback_with`](Parserfallback_with) - return a
+//! - [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with) - return a
 //!   different value if parser fails to find what it is looking for. Generated help for former
 //!   can be updated to include default value using
 //!   [`display_fallback`](ParseFallbackdisplay_fallback) and
 //!   [`debug_fallback`](ParseFallbackdebug_fallback) .
-//! - [`optional`](Parseroptional) - return `Invalid()` if value is missing instead of failing, see
-//!   also [`catch`](ParseOptionalcatch) .
-//! - [`many`](Parsermany), [`some`](Parsersome) and [`collect`](Parsercollect) - collect
+//! - [optional](Parseroptional) - return `Invalid()` if value is missing instead of failing, see
+//!   also [catch](ParseOptionalcatch) .
+//! - [many](Parsermany), [some](Parsersome) and [collect](Parsercollect) - collect
 //!   multiple values into a collection, usually a vector, see their respective
-//!   [`catch`](ParseManycatch), [`catch`](ParseSomecatch) and [`catch`](ParseCollectcatch).
-//! - [`map`](Parsermap), [`parse`](Parserparse) and [`guard`](Parserguard) - transform
+//!   [catch](ParseManycatch), [catch](ParseSomecatch) and [catch](ParseCollectcatch).
+//! - [map](Parsermap), [parse](Parserparse) and [guard](Parserguard) - transform
 //!   and/or validate value produced by a parser
 //! - [`to_options`](Parserto_options) - finalize the parser and prepare to run it
 //!
@@ -98,12 +98,12 @@ import (
 //! Once you have parsers for all the primitive fields figured out you can start combining them
 //! together to produce a parser for a final result - data type you designed in the step one.
 //! For derive API you apply annotations to data types with `#[derive(Bpaf)`] and `#[bpaf(..)]`,
-//! with combinatoric API you use [`construct`](crateconstruct) macro.
+//! with combinatoric API you use [construct](crateconstruct) macro.
 //!
 //! All fields in a struct needs to be successfully parsed in order for the parser to succeed
 //! and only one variant from enum will consume its values at a time.
 //!
-//! You can use [`adjacent`](ParseConadjacent) annotation to parse multiple flags as an adjacent
+//! You can use [adjacent](ParseConadjacent) annotation to parse multiple flags as an adjacent
 //! group allowing for more unusual scenarios such as multiple value arguments or chained commands.
 //!
 //! ## Improving user experience
@@ -112,33 +112,33 @@ import (
 //! in various `help` methods to generate `--help` documentation, you can further improve it
 //! using those methods:
 //!
-//! - [`hide_usage`](Parserhide_usage) and [`hide`](Parserhide) - hide the parser from
+//! - [`hide_usage`](Parserhide_usage) and [hide](Parserhide) - hide the parser from
 //!   generated *Usage* line or whole generated help
 //! - [`group_help`](Parsergroup_help) and [`with_group_help`](Parserwith_group_help) -
 //!   add a common description shared by several parsers
 //! - [`custom_usage`](Parsercustom_usage) - customize usage for a primitive or composite parser
-//! - [`usage`](OptionParserusage) and [`with_usage`](OptionParserwith_usage) lets you to
+//! - [usage](OptionParserusage) and [`with_usage`](OptionParserwith_usage) lets you to
 //!   customize whole usage line as a whole either by completely overriding it or by building around it.
 //!
 //! By default with completion enabled `bpaf` would complete names for flags, arguments and
 //! commands. You can also generate completion for argument values, possible positionals, etc.
 //! This requires enabling **autocomplete** cargo feature.
 //!
-//! - [`complete`](Parsercomplete) and [`complete_shell`](Parsercomplete_shell)
+//! - [complete](Parsercomplete) and [`complete_shell`](Parsercomplete_shell)
 //!
 //! And finally you can generate documentation for command line in markdown, html and manpage
 //! formats using [`render_markdown`](OptionParserrender_markdown),
 //! [`render_html`](OptionParserrender_html) and [`render_manpage`](OptionParserrender_manpage),
-//! for more detailed info see [`doc`] module
+//! for more detailed info see [doc] module
 //!
 //! ## Testing your parsers and running them
-//! - You can [`OptionParserrun`] the parser on the arguments passed on the command line
+//! - You can [OptionParserrun] the parser on the arguments passed on the command line
 //! - [`check_invariants`](OptionParsercheck_invariants) checks for a few invariants in the
 //!   parser `bpaf` relies on
-//! - [`run_inner`](OptionParserrun_inner) runs the parser with custom [`Args`] you can create
-//!   either explicitly or implicitly using one of the [`From`] implementations, `Args` can be
+//! - [`run_inner`](OptionParserrun_inner) runs the parser with custom [Args] you can create
+//!   either explicitly or implicitly using one of the [From] implementations, `Args` can be
 //!   customized with [`set_comp`](Argsset_comp) and [`set_name`](Argsset_name).
-//! - [`ParseFailure`] contains the parse outcome, you can consume it either by hands or using one
+//! - [ParseFailure] contains the parse outcome, you can consume it either by hands or using one
 //!   of [`exit_code`](ParseFailureexit_code), [`unwrap_stdout`](ParseFailureunwrap_stdout) and
 //!   [`unwrap_stderr`](ParseFailureunwrap_stderr)
 //!
@@ -163,16 +163,16 @@ import (
 //!    ```
 //!    Disabled by default.
 //!
-//!  - `docgen`: generate documentation from help declaration, see [`OptionParserrender_markdown`] and [`doc`](cratedoc). Disabled by default.
+//!  - `docgen`: generate documentation from help declaration, see [`OptionParserrender_markdown`] and [doc](cratedoc). Disabled by default.
 
 // Simple or composed argument parser
 //
 // # Overview
 //
-// It's best to think of an object implementing [`Parser`] trait as a container with a value
-// inside that is composable with other `Parser` containers using [`construct`] and the only
-// way to extract this value is by transforming it to [`OptionParser`] with
-// [`to_options`](Parserto_options) and running it with [`run`](OptionParserrun). At which
+// It's best to think of an object implementing [Parser] trait as a container with a value
+// inside that is composable with other `Parser` containers using [construct] and the only
+// way to extract this value is by transforming it to [OptionParser] with
+// [`to_options`](Parserto_options) and running it with [run](OptionParserrun). At which
 // point you either get your value out or `bpaf` would generate a message describing a problem
 // (missing argument, validation failure, user requested help, etc) and the program would
 // exit.
@@ -181,7 +181,7 @@ import (
 // there are no lifetimes other than static.
 //
 // When consuming the values you can jump straight to a value that implements
-// [`FromStr`] trait and then transform it into something that your program would use. Alternatively,
+// [FromStr] trait and then transform it into something that your program would use. Alternatively,
 // you can consume either `String` or `string` and parse that by hand. It's better to perform
 // as much parsing and validation inside the `Parser` as possible so the program itself gets
 // strictly typed and correct value while the user gets immediate feedback on what's wrong with the
@@ -257,8 +257,8 @@ import (
 //
 // Every method defined on this trait belongs to the `postprocessing` section of the field
 // annotation. `bpaf` would try to figure out what chain to use for as long as there are no
-// fun.Options changing the type: you can use [`fallback`](Parserfallback_with),
-// [`fallback_with`](Parserfallback_with), [`guard`](Parserguard), [`hide`](Parserhide`) and
+// fun.Options changing the type: you can use [fallback](Parserfallback_with),
+// [`fallback_with`](Parserfallback_with), [guard](Parserguard), [hide](Parserhide`) and
 // [`group_help`](Parsergroup_help) but not the rest of them.
 //
 // ```rust
@@ -306,10 +306,10 @@ type Parser[T any] struct {
 
 // change shape
 // {{{ Many
-// Consume zero or more items from a command line and collect them into a [`Vec`]
+// Consume zero or more items from a command line and collect them into a [Vec]
 //
 // `Many` preserves any parsing failures and propagates them outwards, with an extra
-// [`catch`](ParseManycatch) statement you can instead stop at the first value
+// [catch](ParseManycatch) statement you can instead stop at the first value
 // that failed to parse and ignore it and all the subsequent ones.
 //
 // `Many` will collect at most one result that does not consume anything from the argument
@@ -322,8 +322,8 @@ type Parser[T any] struct {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Many.md"))]
 //
 // # See also
-// [`some`](Parsersome) also collects results to a vector but requires at least one
-// element to succeed, [`collect`](Parsercollect) collects results into a [`FromIterator`]
+// [some](Parsersome) also collects results to a vector but requires at least one
+// element to succeed, [collect](Parsercollect) collects results into a [FromIterator]
 // structure
 // TODO: compiler ne mogyet v return Parser[[]T] in method
 func Many[T any](self Parser[T]) Parser[[]T] {
@@ -339,11 +339,11 @@ func Many[T any](self Parser[T]) Parser[[]T] {
 // {{{ collect
 // Transform parser into a collection parser
 //
-// A generic variant of [`many`](Parsermany), instead of collecting into a vector
-// it collects into any collection that implements [`FromIterator`] trait
+// A generic variant of [many](Parsermany), instead of collecting into a vector
+// it collects into any collection that implements [FromIterator] trait
 //
 // `collect` preserves any parsing failures and propagates them outwards, with extra
-// [`catch`](ParseCollectcatch) statement you can instead stop at the first value
+// [catch](ParseCollectcatch) statement you can instead stop at the first value
 // that failed to parse and ignore it and all the subsequent ones.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/collect.md"))]
@@ -361,12 +361,12 @@ func (self Parser[T]) collect() ParseCollect[T] {
 // }}}
 
 // {{{ some
-// Consume one or more items from a command line and collect them into a [`Vec`]
+// Consume one or more items from a command line and collect them into a [Vec]
 //
 // Takes a string used as an error message if there are no specified parameters
 //
 // `some` preserves any parsing failures and propagates them outwards, with an extra
-// [`catch`](ParseSomecatch) statement you can instead stop at the first value
+// [catch](ParseSomecatch) statement you can instead stop at the first value
 // that failed to parse and ignore it and all the subsequent ones.
 //
 // `some` will collect at most one result that does not consume anything from the argument
@@ -376,8 +376,8 @@ func (self Parser[T]) collect() ParseCollect[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/some.md"))]
 //
 // # See also
-// [`many`](Parsermany) also collects results to a vector but succeeds with
-// no matching values. [`collect`](Parsercollect) collects results into a [`FromIterator`]
+// [many](Parsermany) also collects results to a vector but succeeds with
+// no matching values. [collect](Parsercollect) collects results into a [FromIterator]
 // structure
 
 func (self Parser[T]) Some(message string) ParseSome[T] {
@@ -394,7 +394,7 @@ func (self Parser[T]) Some(message string) ParseSome[T] {
 // Turn a required argument into an fun.Optional one
 //
 // `Optional` converts any missing items into `Invalid()` and passes the remaining parsing
-// failures untouched. With an extra [`catch`](ParseOptionalcatch) statement, you can handle
+// failures untouched. With an extra [catch](ParseOptionalcatch) statement, you can handle
 // those failures too.
 //
 // # Derive usage
@@ -439,17 +439,17 @@ func (self Parser[T]) last() ParseLast[T] {
 // Apply a failing transformation to a contained value
 //
 // Transformation preserves the present/absent state of the value: to Parse an fun.Optional value you
-// can either first try to `Parse` it and then mark it as [`optional`](Parseroptional) or first
-// deal with the fun.Optionality and then Parse a value wrapped in [`Option`]. In most cases
+// can either first try to `Parse` it and then mark it as [optional](Parseroptional) or first
+// deal with the fun.Optionality and then Parse a value wrapped in [Option]. In most cases
 // the former approach is more concise.
 //
-// Similarly, it is possible to Parse multiple items with [`many`](Parsermany) or
-// [`some`](Parsersome) by either parsing a single item first and then turning it into a [`Vec`]
-// or collecting them into a [`Vec`] first and then parsing the whole vector. The former approach
+// Similarly, it is possible to Parse multiple items with [many](Parsermany) or
+// [some](Parsersome) by either parsing a single item first and then turning it into a [Vec]
+// or collecting them into a [Vec] first and then parsing the whole vector. The former approach
 // is more concise.
 //
 // This is a most general of transforming parsers and you can express
-// [`map`](Parsermap) and [`guard`](Parserguard) in terms of it.
+// [map](Parsermap) and [guard](Parserguard) in terms of it.
 //
 // Examples are a bit artificial, to Parse a value from a string you can specify
 // the type directly in the `argument`'s turbofish and then apply `map`.
@@ -468,7 +468,7 @@ func Parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, R] {
 
 // Map - Apply a pure transformation to a contained value
 //
-// A common case of the [`parse`](Parserparse) method, exists mostly for convenience.
+// A common case of the [parse](Parserparse) method, exists mostly for convenience.
 //
 // # Derive usage:
 // The `map` takes a single parameter: function name to call. This function should transform
@@ -492,7 +492,7 @@ func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
 //
 // # Derive usage
 // Derive variant of the `Guard` takes a function name instead of a closure, mostly to keep things
-// clean. The second argument can be either a string literal or a constant name for a static [`str`].
+// clean. The second argument can be either a string literal or a constant name for a static [str].
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Guard.md"))]
 func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
@@ -537,7 +537,7 @@ func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
 //
 // # See also
-// [`fallback`](Parserfallback) implements similar logic expect that failures aren't expected.
+// [fallback](Parserfallback) implements similar logic expect that failures aren't expected.
 // By default fallback value will not be shown in the `--help` output, you can change that by using
 // [`display_fallback`](ParseFallbackWithdisplay_fallback) and
 // [`debug_fallback`](ParseFallbackWithdebug_fallback).
@@ -690,7 +690,7 @@ func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 
 // }}}
 
-// Make a help message for a complex parser from its [`MetaInfo`]
+// Make a help message for a complex parser from its [MetaInfo]
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
 func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[T] {
@@ -702,12 +702,12 @@ func (self Parser[T]) with_group_help(f func(MetaInfo) Doc) ParseWithGroupHelp[T
 //
 // Allows to generate autocompletion information for the shell. Completer places generated input
 // in place of metavar placeholders, so running `completer` on something that doesn't have a
-// [`positional`] or an [`argument`](NamedArgargument) doesn't make much sense.
+// [positional] or an [argument](NamedArgargument) doesn't make much sense.
 //
 // Takes a function as a parameter that tries to complete partial input to a full one with an
 // fun.Optional description. `bpaf` would substitute a current positional item or an argument with an empty
 // string if a value isn't available yet so it's best to run `complete` where parsing can't fail:
-// right after [`argument`](NamedArgargument) or [`positional`], but this isn't enforced.
+// right after [argument](NamedArgargument) or [positional], but this isn't enforced.
 //
 // # Example
 // ```console
@@ -740,10 +740,10 @@ func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) Par
 //
 // Allows to ask existing shell completion to provide some information such as a file or
 // directory names or pass through existing shell completion scripts, see
-// [`ShellComp`](complete_shellShellComp) for accessible functionality
+// [ShellComp](complete_shellShellComp) for accessible functionality
 //
 // Places function calls in place of metavar placeholder, so running `complete_shell` on
-// something that doesn't have a [`positional`] or [`argument`](NamedArgargument) doesn't
+// something that doesn't have a [positional] or [argument](NamedArgargument) doesn't
 // make much sense.
 //
 // # Example
@@ -784,21 +784,21 @@ func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
 
 // consume
 // {{{ ToOptions
-// Transform `Parser` into [`OptionParser`] to get ready to [`run`](OptionParserrun) it
+// Transform `Parser` into [OptionParser] to get ready to [run](OptionParserrun) it
 //
 // # Derive usage
-// Add a top-level `options` annotation to generate [`OptionParser`] instead of default
-// [`Parser`].
+// Add a top-level `options` annotation to generate [OptionParser] instead of default
+// [Parser].
 //
 // In addition to `options` annotation, you can also specify either `version` or
 // `version(value)` annotation. The former uses version from `cargo`, later uses the
 // specified value which should be an expression of type `string`, see
-// [`version`](OptionParserversion).
+// [version](OptionParserversion).
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/ToOptions.md"))]
 //
 // # See also
-// There's some methods implemented on [`OptionParser`] directly to customize the appearance
+// There's some methods implemented on [OptionParser] directly to customize the appearance
 func (self Parser[T]) ToOptions() *OptionParser[T] {
 	return &OptionParser[T]{
 		info:  NewInfo(),
@@ -810,7 +810,7 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 
 // Finalize and run the parser
 //
-// Generally, you'd want to use [`Parserto_options`] to finalize the parser and [`OptionParserrun`],
+// Generally, you'd want to use [`Parserto_options`] to finalize the parser and [OptionParserrun],
 // but this also works for simple cases:
 //
 // ```rust
@@ -829,10 +829,10 @@ func (self Parser[T]) run() T {
 // Parser that produces a fixed value
 //
 // This parser produces `T` without consuming anything from the command line, which can be useful
-// with [`construct`]. As with any parsers, `T` should be `Clone` and `Debug`.
+// with [construct]. As with any parsers, `T` should be `Clone` and `Debug`.
 //
 // Both `pure` and [`pure_with`] are designed to put values into structures, to generate fallback
-// you should be using [`fallback`](Parserfallback) and [`fallback_with`](Parserfallback_with).
+// you should be using [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with).
 //
 // See also [`pure_with`] for a pure computation that can fail.
 //
@@ -843,82 +843,19 @@ func pure[T any](val T) ParsePure[T] {
 
 // Wrap a calculated value into a `Parser`
 //
-// This parser represents a possibly failing equivalent to [`pure`].
+// This parser represents a possibly failing equivalent to [pure].
 // It produces `T` by invoking the provided callback without consuming anything from the command
-// line, which can be useful with [`construct`]. As with any parsers, `T` should be `Clone`
+// line, which can be useful with [construct]. As with any parsers, `T` should be `Clone`
 // and `Debug`.
 //
-// Both [`pure`] and `PureWith` are designed to put values into structures, to generate fallback
-// you should be using [`fallback`](Parserfallback) and [`fallback_with`](Parserfallback_with).
+// Both [pure] and `PureWith` are designed to put values into structures, to generate fallback
+// you should be using [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with).
 //
-// See also [`pure`] for a pure computation that can't fail.
+// See also [pure] for a pure computation that can't fail.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/PureWith.md"))]
 func PureWith[T any](val func() Result[T]) ParsePureWith[T] {
 	return ParsePureWith[T]{val}
-}
-
-// Parse a [`flag`](NamedArgflag)/[`switch`](NamedArgswitch)/[`argument`](NamedArgargument) that has a Short name
-//
-// You can chain multiple [`Short`](NamedArgshort), [`long`](NamedArglong) and
-// [`env`](NamedArgenv()) for multiple names. You can specify multiple names of the same type,
-//
-//	`bpaf` would use items past the first one as hidden aliases.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func Short(short byte) NamedArg {
-	return NamedArg{
-		short: []byte{short},
-		env:   nil,
-		long:  nil,
-		help:  Invalid[Doc](),
-	}
-}
-
-// Parse a [`flag`](NamedArgflag)/[`switch`](NamedArgswitch)/[`argument`](NamedArgargument) that has a Long name
-//
-// You can chain multiple [`short`](NamedArgshort), [`Long`](NamedArglong) and
-// [`env`](NamedArgenv()) for multiple names. You can specify multiple names of the same type,
-//
-//	`bpaf` would use items past the first one as hidden aliases.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func Long(long string) NamedArg {
-	return NamedArg{
-		short: nil,
-		long:  []string{long},
-		env:   nil,
-		help:  Invalid[Doc](),
-	}
-}
-
-// Parse an environment variable
-//
-// You can chain multiple [`short`](NamedArgshort), [`long`](NamedArglong) and
-// [`Env`](NamedArgenv()) for multiple names. You can specify multiple names of the same type,
-//
-//	`bpaf` would use items past the first one as hidden aliases.
-//
-// For [`flag`](NamedArgflag) and [`switch`](NamedArgswitch) environment variable being present
-// gives the same result as the flag being present, allowing to implement things like `NO_COLOR`
-// variables:
-//
-// ```console
-// $ NO_COLOR=1 app --do-something
-// ```
-//
-// If you don't specify a short or a long name - whole argument is going to be absent from the
-// help message. Use it combined with a named or positional argument to have a hidden fallback
-// that wouldn't leak sensitive info.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func Env(variable string) NamedArg {
-	return NamedArg{
-		short: nil,
-		long:  nil,
-		help:  Invalid[Doc](),
-		env:   []string{variable},
-	}
 }
 
 // Parse a Positional argument
@@ -929,7 +866,7 @@ func Env(variable string) NamedArg {
 // a different order.
 //
 // When using combinatoric API you can specify the type with turbofish, for parsing types
-// that don't implement [`FromStr`] you can use consume a `String`/`string` first and parse
+// that don't implement [FromStr] you can use consume a `String`/`string` first and parse
 // it by hand.
 // ```rust
 // # use bpaf*;
@@ -960,11 +897,11 @@ func Env(variable string) NamedArg {
 // **`bpaf` panics during help generation unless this restriction holds**
 //
 // Without using `--` `bpaf` would only accept items that don't start with `-` as Positional, you
-// can use [`any`] to work around this restriction.
+// can use [any] to work around this restriction.
 //
 // By default `bpaf` accepts Positional items with or without `--` where values permit, you can
 // further restrict the parser to accept Positional items only on the right side of `--` using
-// [`strict`](ParsePositionalstrict).
+// [strict](ParsePositionalstrict).
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Positional.md"))]
 func Positional[T any](metavar string, parse func(string) (T, error)) *ParsePositional[T] {
 	return &ParsePositional[T]{
@@ -988,14 +925,14 @@ func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 
 // Parse a single arbitrary item from a command line
 //
-// **`any` is designed to consume items that don't fit into the usual [`flag`](NamedArgflag)
-// /[`switch`](NamedArgswitch)/[`argument`](NamedArgargument)/[`positional`]/
-// [`command`](OptionParsercommand) classification, in most cases you don't need to use it**
+// **`any` is designed to consume items that don't fit into the usual [flag](NamedArgflag)
+// /[switch](NamedArgswitch)/[argument](NamedArgargument)/[positional]/
+// [command](OptionParsercommand) classification, in most cases you don't need to use it**
 //
-// By default, `any` behaves similarly to [`positional`] so you should be using it near the
+// By default, `any` behaves similarly to [positional] so you should be using it near the
 // rightmost end of the consumer struct and it will only try to parse the first unconsumed item
 // on the command line. It is possible to lift this restriction by calling
-// [`anywhere`](ParseAnyanywhere) on the parser.
+// [anywhere](ParseAnyanywhere) on the parser.
 //
 // `check` argument is a function from any type `I` that implements `FromStr` to `T`.
 // Usually this should be `String` or `string`, but feel free to experiment. When
@@ -1005,7 +942,7 @@ func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 // unconsumed items, otherwise, `any` fails.
 //
 // # Use `any` to capture the remaining arguments
-// Normally you would use [`positional`] with [`strict`](ParsePositionalstrict) annotation for
+// Normally you would use [positional] with [strict](ParsePositionalstrict) annotation for
 // that, but using any allows you to blur the boundary between arguments for child process and self
 // process a bit more.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
@@ -1016,12 +953,12 @@ func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 //
 // # Use `any` to parse a non standard argument
 // Normally `any` would try to display itself as a usual metavariable in the usage line and
-// generated help, you can customize that with [`metavar`](ParseAnymetavar) method:
+// generated help, you can customize that with [metavar](ParseAnymetavar) method:
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
 //
 // # See also
-// [`literal`] - a specialized version of `any` that tries to parse a fixed literal
+// [literal] - a specialized version of `any` that tries to parse a fixed literal
 func Any[T any](metavar string, check func(string) Option[T]) *ParseAny[T] {
 	return &ParseAny[T]{
 		metavar: NewDocFromPairs([]fun.Pair[string, Style]{
@@ -1035,17 +972,17 @@ func Any[T any](metavar string, check func(string) Option[T]) *ParseAny[T] {
 	}
 }
 
-// A specialized version of [`any`] that consumes an arbitrary string
+// A specialized version of [any] that consumes an arbitrary string
 //
-// By default `Literal` behaves similarly to [`positional`] so you should be using it near the
+// By default `Literal` behaves similarly to [positional] so you should be using it near the
 // rightmost end of the consumer struct and it will only try to parse the first unconsumed
 // item on the command line. It is possible to lift this restriction by calling
-// [`anywhere`](ParseAnyanywhere) on the parser.
+// [anywhere](ParseAnyanywhere) on the parser.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
 //
 // # See also
-// [`any`] - a generic version of `Literal` that uses function to decide if value is to be parsed
+// [any] - a generic version of `Literal` that uses function to decide if value is to be parsed
 // or not.
 func Literal(val string) Parser[struct{}] {
 	p := Any("", func(s string) Option[struct{}] {

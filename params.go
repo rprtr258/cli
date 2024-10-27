@@ -12,8 +12,8 @@ import (
 //!
 //! ## Flag
 //!
-//! - [`flag`](NamedArgflag) - a string that consists of two dashes (`--flag`) and a name and a single
-//! dash and a single character (`-f`) created with [`long`](NamedArglong) and [`short`](NamedArgshort)
+//! - [flag](NamedArgflag) - a string that consists of two dashes (`--flag`) and a name and a single
+//! dash and a single character (`-f`) created with [long](NamedArglong) and [short](NamedArgshort)
 //! respectively. Depending if this name is present or absent on the command line
 //! primitive flag parser produces one of two values. User can combine several short flags in a single
 //! invocation: `-a -b -c` is the same as `-abc`.
@@ -30,7 +30,7 @@ import (
 //! ## Switch
 //!
 //! A special case of a flag that gets decoded into a `bool`, mostly serves as a convenient
-//! shortcut to `.flag(true, false)`. Created with [`NamedArgswitch`].
+//! shortcut to `.flag(true, false)`. Created with [NamedArgswitch].
 //!
 // #![cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
 //!
@@ -46,13 +46,13 @@ import (
 //! ## Positional
 //!
 //! A positional argument with no additonal name, for example in `vim main.rs` `main.rs`
-//! is a positional argument. Can't start with `-`, created with [`positional`].
+//! is a positional argument. Can't start with `-`, created with [positional].
 //!
 // #![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 //!
 //! ## Any
 //!
-//! Also a positional argument with no additional name, but unlike [`positional`] itself, [`any`]
+//! Also a positional argument with no additional name, but unlike [positional] itself, [any]
 //! isn't restricted to positional looking structure and would consume any items as they appear on
 //! a command line. Can be useful to collect anything unused to pass to other applications.
 //!
@@ -68,123 +68,10 @@ import (
 // #![cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
 //!
 
-// A named thing used to create [`flag`](NamedArgflag), [`switch`](NamedArgswitch) or
-// [`argument`](NamedArgargument)
-//
-// # Combinatoric usage
-//
-// Named items (`argument`, `flag` and `switch`) can have up to 2 visible names (one short and one long)
-// and multiple hidden short and long aliases if needed. It's also possible to consume items from
-// environment variables using [`env`](NamedArgenv()). You usually start with [`short`] or [`long`]
-// function, then apply [`short`](NamedArgshort) / [`long`](NamedArglong) / [`env`](NamedArgenv()) /
-// [`help`](NamedArghelp) repeatedly to build a desired set of names then transform it into
-// a parser using `flag`, `switch` or `positional`.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_combine.md"))]
-//
-// # Derive usage
-//
-// When using derive API it is possible to omit some or all the details:
-//  1. If no naming information is present at all - `bpaf` would use field name as a long name
-//     (or a short name if field name consists of a single character)
-//  2. If `short` or `long` annotation is present without an argument - `bpaf` would use first character
-//     or a full name as long and short name respectively. It won't try to add implicit long or
-//     short name from the previous item.
-//  3. If `short` or `long` annotation is present with an argument - those are values `bpaf` would
-//     use instead of the original field name
-//  4. You can specify many `short` and `long` names, any past the first one of each type will
-//     become hidden aliases
-//  5. If `env(arg)` annotation is present - in addition to long/short names derived according to
-//     rules 1..3 `bpaf` would also parse environment variable `arg` which can be a string literal
-//     or an expression.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/named_arg_derive.md"))]
-type NamedArg struct {
-	short []byte
-	long  []string
-	env   []string
-	help  Option[Doc]
-}
-
-func (self NamedArg) flag_item() Option[Item] {
-	x, ok := ShortLongtry_from(self).Unpack()
-	if !ok {
-		return Invalid[Item]()
-	}
-	return Valid(ItemFlag(x, self.short, First(self.env), self.help))
-}
-
-// Add a short name to a flag/switch/argument
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func (self NamedArg) Short(short byte) NamedArg {
-	self.short = append(self.short, short)
-	return self
-}
-
-// Add a long name to a flag/switch/argument
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func (self NamedArg) Long(long string) NamedArg {
-	self.long = append(self.long, long)
-	return self
-}
-
-// Environment variable fallback
-//
-// If named value isn't present - try to fallback to this environment variable.
-//
-// You can specify it multiple times, `bpaf` would use items past the first one as hidden aliases.
-//
-// For [`flag`](NamedArgflag) and [`switch`](NamedArgswitch) environment variable being present
-// gives the same result as the flag being present, allowing to implement things like `NO_COLOR`
-// variables:
-//
-// ```console
-// $ NO_COLOR=1 app --do-something
-// ```
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/short_long_env.md"))]
-func (self NamedArg) Env(variable string) NamedArg {
-	self.env = append(self.env, variable)
-	return self
-}
-
-// Add a help message to a `flag`/`switch`/`argument`
-//
-// `bpaf` converts doc comments and string into help by following those rules:
-// 1. Everything up to the first blank line is included into a "short" help message
-// 2. Everything is included into a "long" help message
-// 3. `bpaf` preserves linebreaks followed by a line that starts with a space
-// 4. Linebreaks are removed otherwise
-//
-// You can pass anything that can be converted into [`Doc`], if you are not using
-// documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
-func (self NamedArg) Help(help string) NamedArg {
-	self.help = Valid(newDocFromString(help))
-	return self
-}
-
-// Simple boolean flag
-//
-// A special case of a [`flag`](NamedArgflag) that gets decoded into a `bool`, mostly serves as a convenient
-// shortcut to `.flag(true, false)`.
-//
-// In Derive API bpaf would use `switch` for `bool` fields inside named structs that don't
-// have other consumer annotations ([`flag`](NamedArgflag),
-// [`argument`](NamedArgargument), etc).
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
-func (self NamedArg) Switch() Parser[bool] {
-	p := build_flag_parser(true, Valid(false), self)
-	return Parser[bool]{p.eval, p.meta()}
-}
-
 // Flag with custom present/absent values
 //
-// More generic version of [`switch`](NamedArgswitch) that can use arbitrary type instead of
-// [`bool`].
+// More generic version of [switch](NamedArgswitch) that can use arbitrary type instead of
+// [bool].
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Flag.md"))]
 func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 	return build_flag_parser(present, Valid(absent), self)
@@ -192,7 +79,7 @@ func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 
 // Required flag with custom value
 //
-// Similar to [`flag`](NamedArgflag) takes no fun.Option arguments, but would only
+// Similar to [flag](NamedArgflag) takes no fun.Option arguments, but would only
 // succeed if user specifies its name on a command line.
 // Works best in combination with other parsers.
 //
@@ -212,7 +99,7 @@ func ReqFlag[T any](self NamedArg, present T) ParseFlag[T] {
 // can follow immediately: `-fbar`.
 //
 // When using combinatoring API you can specify the type with turbofish, for parsing types
-// that don't implement [`FromStr`] you can use consume a `String`/`string` first and parse
+// that don't implement [FromStr] you can use consume a `String`/`string` first and parse
 // it by hands.
 //
 // For `metavar` value you should pick something short and descriptive about the parameter,
@@ -221,7 +108,7 @@ func ReqFlag[T any](self NamedArg, present T) ParseFlag[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Argument.md"))]
 //
-// You can further restrict it using [`adjacent`](ParseArgumentadjacent)
+// You can further restrict it using [adjacent](ParseArgumentadjacent)
 func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) ParseArgument[T] {
 	return ParseArgument[T]{
 		named:    self,
@@ -229,18 +116,6 @@ func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) P
 		adjacent: false,
 		p:        p,
 	}
-}
-
-// `adjacent` requires for the argument to be present in the same word as the flag:
-// `-f bar` - no, `-fbar` or `-f=bar` - yes.
-func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
-	res := false
-	arg.value(
-		func(s byte, is_adj bool) { res = fun.Contains(s, self.short...) && (!adjacent || is_adj) },
-		func(l string, is_adj bool) { res = fun.Contains(l, self.long...) && (!adjacent || is_adj) },
-		nil, nil, nil,
-	)
-	return res
 }
 
 // Parse a subcommand
@@ -269,7 +144,7 @@ func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 // **`bpaf` panics during help generation unless if this restriction holds**
 //
 // You can attach a single visible short alias and multiple hiddden short and long aliases
-// using [`short`](ParseCommandshort) and [`long`](ParseCommandlong) methods.
+// using [short](ParseCommandshort) and [long](ParseCommandlong) methods.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Command.md"))]
 //
@@ -285,9 +160,9 @@ func (self OptionParser[T]) Command(name string) *ParseCommand[T] {
 	}
 }
 
-// Builder structure for the [`command`]
+// Builder structure for the [command]
 //
-// Created with [`command`], implements parser for the inner structure, gives access to [`help`](ParseCommandhelp).
+// Created with [command], implements parser for the inner structure, gives access to [help](ParseCommandhelp).
 type ParseCommand[T any] struct {
 	longs  []string
 	shorts []byte
@@ -301,7 +176,7 @@ type ParseCommand[T any] struct {
 //
 // `bpaf` uses this description along with the command name
 // in help output so it shouldn't exceed one or two lines. If `help` isn't specified
-// `bpaf` falls back to [`descr`](OptionParserdescr) from the inner parser.
+// `bpaf` falls back to [descr](OptionParserdescr) from the inner parser.
 //
 // # Combinatoric usage
 //
@@ -325,7 +200,7 @@ type ParseCommand[T any] struct {
 //
 // # Derive usage
 // `bpaf_derive` uses doc comments for inner parser, no specific fun.Options are available.
-// See [`descr`](OptionParserdescr) for more details
+// See [descr](OptionParserdescr) for more details
 // ```rust
 // # use bpaf*;
 // // This command performs a mystery operation
@@ -358,7 +233,7 @@ func (self *ParseCommand[P]) Help(help string) *ParseCommand[P] {
 
 // Add a custom short alias for a command
 //
-// Behavior is similar to [`short`](NamedArgshort), only first short name is visible.
+// Behavior is similar to [short](NamedArgshort), only first short name is visible.
 func (self *ParseCommand[P]) short(short byte) *ParseCommand[P] {
 	self.shorts = append(self.shorts, short)
 	return self
@@ -366,7 +241,7 @@ func (self *ParseCommand[P]) short(short byte) *ParseCommand[P] {
 
 // Add a custom hidden long alias for a command
 //
-// Behavior is similar to [`long`](NamedArglong), but since you had to specify the first long
+// Behavior is similar to [long](NamedArglong), but since you had to specify the first long
 // name when making the command - this one becomes a hidden alias.
 func (self *ParseCommand[P]) long(long string) *ParseCommand[P] {
 	self.longs = append(self.longs, long)
@@ -485,7 +360,7 @@ func build_flag_parser[T any](present T, absent Option[T], named NamedArg) Parse
 	}
 }
 
-// Parser for a named switch, created with [`NamedArgflag`] or [`NamedArgswitch`]
+// Parser for a named switch, created with [NamedArgflag] or [NamedArgswitch]
 type ParseFlag[T any] struct {
 	present T
 	absent  Option[T]
@@ -536,7 +411,7 @@ func (self ParseFlag[T]) meta() Meta {
 
 // Add a help message to `flag`
 //
-// See [`NamedArghelp`]
+// See [NamedArghelp]
 func (self *ParseFlag[T]) help(help Doc) *ParseFlag[T] {
 	self.named.help = Valid(help)
 	return self
@@ -544,13 +419,13 @@ func (self *ParseFlag[T]) help(help Doc) *ParseFlag[T] {
 
 // Add a help message to an `argument`
 //
-// See [`NamedArghelp`]
+// See [NamedArghelp]
 func (self *ParseArgument[T]) help(help Doc) *ParseArgument[T] {
 	self.named.help = Valid(help)
 	return self
 }
 
-// Parser for a named argument, created with [`argument`](NamedArgargument).
+// Parser for a named argument, created with [argument](NamedArgargument).
 type ParseArgument[T any] struct {
 	named    NamedArg
 	metavar  string
@@ -565,7 +440,7 @@ func (self ParseArgument[T]) Parser() Parser[T] {
 // Restrict parsed arguments to have both flag and a value in the same word:
 //
 // In other words adjacent restricted `ParseArgument` would accept `--flag=value` or
-// `-fbar` but not `--flag value`. Note, this is different from [`adjacent`](crateParseConadjacent),
+// `-fbar` but not `--flag value`. Note, this is different from [adjacent](crateParseConadjacent),
 // just plays a similar role.
 //
 // # Should allow to parse some of the more unusual things
@@ -646,10 +521,10 @@ func (self ParseArgument[T]) meta() Meta {
 	}
 }
 
-// Parse a positional item, created with [`positional`](cratepositional)
+// Parse a positional item, created with [positional](cratepositional)
 //
-// You can add extra information to positional parsers with [`help`](Selfhelp),
-// [`strict`](Selfstrict), or [`non_strict`](Selfnon_strict) on this struct.
+// You can add extra information to positional parsers with [help](Selfhelp),
+// [strict](Selfstrict), or [`non_strict`](Selfnon_strict) on this struct.
 type ParsePositional[T any] struct {
 	metavar  string
 	help     Option[Doc]
@@ -665,7 +540,7 @@ const (
 	PositionNonStrict
 )
 
-// Add a help message to a [`positional`] parser
+// Add a help message to a [positional] parser
 //
 // `bpaf` converts doc comments and string into help by following those rules:
 // 1. Everything up to the first blank line is included into a "short" help message
@@ -673,8 +548,8 @@ const (
 // 3. `bpaf` preserves linebreaks followed by a line that starts with a space
 // 4. Linebreaks are removed otherwise
 //
-// You can pass anything that can be converted into [`Doc`], if you are not using
-// documentation generation functionality ([`doc`](cratedoc)) this can be `string`.
+// You can pass anything that can be converted into [Doc], if you are not using
+// documentation generation functionality ([doc](cratedoc)) this can be `string`.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
@@ -714,7 +589,7 @@ func (self *ParsePositional[T]) strict() *ParsePositional[T] {
 // Changes positional parser to be a "not strict" positional
 //
 // Ensures the parser always rejects "strict" positions to the right of the separator, `--`.
-// Essentially the inverse operation to [`ParsePositionalstrict`], which can be used to ensure
+// Essentially the inverse operation to [ParsePositionalstrict], which can be used to ensure
 // adjacent strict and nonstrict args never conflict with eachother.
 func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 	self.position = PositionNonStrict
@@ -776,8 +651,8 @@ func parse_pos_word(
 	return word, nil
 }
 
-// Consume an arbitrary value that satisfies a condition, created with [`any`], implements
-// [`anywhere`](ParseAnyanywhere).
+// Consume an arbitrary value that satisfies a condition, created with [any], implements
+// [anywhere](ParseAnyanywhere).
 type ParseAny[T any] struct {
 	metavar  Doc
 	help     Option[Doc]
@@ -797,15 +672,15 @@ func (self ParseAny[T]) item() Item {
 	)
 }
 
-// Add a help message to [`any`] parser.
-// See examples in [`any`]
+// Add a help message to [any] parser.
+// See examples in [any]
 func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
 	self.help = Valid(newDocFromString(help))
 	return self
 }
 
 // Replace metavar with a custom value
-// See examples in [`any`]
+// See examples in [any]
 func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 	self.metavar = metavar
 	return self
@@ -814,10 +689,10 @@ func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 // Try to apply the parser to each unconsumed element instead of just the front one
 //
 // By default `any` tries to parse just the front unconsumed item behaving similar to
-// [`positional`] parser, `anywhere` changes it so it applies to every unconsumed item,
+// [positional] parser, `anywhere` changes it so it applies to every unconsumed item,
 // similar to argument parser.
 //
-// See examples in [`any`]
+// See examples in [any]
 func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 	self.anywhere = true
 	return self

@@ -2,7 +2,7 @@
 
 Once you have your primitive parsers done you might want to improve them a bit - add fallback
 values, or change them to consume multiple items, etc. Every primitive (or composite) parser
-implements [`Parser`] so most of the transformations are coming from this trait.
+implements [Parser] so most of the transformations are coming from this trait.
 
 Say you have a parser that takes a crate name as a required argument you want to use in your own
 `cargo test` replacement

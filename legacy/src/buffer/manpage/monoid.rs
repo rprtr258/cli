@@ -143,7 +143,7 @@ impl<T: PartialEq> std::ops::AddAssign<(T, char)> for FreeMonoid<T> {
     }
 }
 
-/// Iterate over annotated string slices contained in a [`FreeMonoid`].
+/// Iterate over annotated string slices contained in a [FreeMonoid].
 ///
 /// Create with [`FreeMonoid::iter`]
 pub struct AnnotatedSlicesIter<'a, T> {

@@ -183,5 +183,5 @@ div.bpaf-doc  { padding-left: 1em; }
 </div>
 
 
-You can use [`any`] to work around this restriction.
+You can use [any] to work around this restriction.
 </details>
