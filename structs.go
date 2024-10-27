@@ -4,7 +4,6 @@ import (
 	"cmp"
 	"fmt"
 	"iter"
-	"math"
 
 	"github.com/rprtr258/fun"
 )
@@ -118,7 +117,7 @@ func (self *ParseSome[T]) Catch() *ParseSome[T] {
 // impl<T, P> Parser[[]T] for ParseSome<P>
 func (self ParseSome[T]) eval(args *State) Result[[]T] {
 	res := []T{}
-	len := uint(math.MaxUint)
+	len := -1
 
 	for {
 		val, err := parse_option(self.inner, &len, args, self.catch)
@@ -167,7 +166,7 @@ func (self *ParseCollect[T]) Catch() *ParseCollect[T] {
 
 // impl<T, C, P> Parser<C> for ParseCollect<P, C, T>
 func (self ParseCollect[T]) eval(args *State) Result[[]T] {
-	len := uint(math.MaxUint)
+	len := -1
 	res := []T{}
 	for {
 		xx, err := parse_option(self.inner, &len, args, self.catch)
@@ -600,7 +599,7 @@ func (self ParseCount[T]) Parser() Parser[int] {
 func (self ParseCount[T]) eval(args *State) (int, Error) {
 	res := 0
 	current := args.len()
-	len := uint(math.MaxUint)
+	len := -1
 	for {
 		vv, err := parse_option(self.inner, &len, args, false)
 		if err != nil {
@@ -631,7 +630,7 @@ type ParseLast[T any] struct {
 func (self ParseLast[T]) eval(args *State) (T, Error) {
 	last := Invalid[T]()
 	current := args.len()
-	len := uint(math.MaxUint)
+	len := -1
 	for {
 		val, err := parse_option(self.inner, &len, args, false)
 		if err != nil || !val.Valid {
@@ -663,7 +662,7 @@ type ParseOptional[T any] struct {
 }
 
 func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
-	len := uint(math.MaxUint)
+	len := -1
 	return parse_option(self.inner, &len, args, self.catch)
 }
 
@@ -717,7 +716,7 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
-	len *uint,
+	len *int,
 	args *State,
 	catch bool,
 ) (Option[T], Error) {
@@ -752,7 +751,7 @@ func parse_option[T any](
 	// list or at least one value
 	return func() Option[T] {
 		if args.len() < int(*len) {
-			*len = uint(args.len())
+			*len = args.len()
 			return Valid(val)
 		} else {
 			return Invalid[T]()
@@ -762,7 +761,7 @@ func parse_option[T any](
 
 // impl<T, P> Parser[[]T] for ParseMany<P>
 func (self ParseMany[T]) eval(args *State) ([]T, Error) {
-	len := uint(math.MaxUint)
+	len := -1
 	res := []T{}
 	for {
 		vr, err := parse_option(self.inner, &len, args, self.catch)
