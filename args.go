@@ -678,8 +678,8 @@ INVALID:
 }
 
 // #[cfg(test)]
-func (self State) peek() Option[Arg] {
+func (self State) peek() (Arg, bool) {
 	next := self.items_iter()
 	_, a, ok := next()
-	return Option[Arg]{a, ok}
+	return a, ok
 }
