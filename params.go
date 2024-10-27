@@ -399,7 +399,7 @@ func (self ParseCommand[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-func (self ParseCommand[T]) eval(args *State) Result[T] {
+func (self ParseCommand[T]) eval(args *State) (T, Error) {
 	// used to avoid allocations for short names
 	tmp := ""
 	if fun.Any(func(long string) bool { return args.take_cmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
@@ -411,7 +411,7 @@ func (self ParseCommand[T]) eval(args *State) Result[T] {
 			// parser
 			args.clear_comps()
 			args.push_command(self.longs[0], First(self.shorts), self.help)
-			return Err[T](Error(MessageMissing()))
+			return *new(T), Error(MessageMissing())
 		}
 
 		if cur, ok := args.current.Unpack(); ok {
@@ -434,7 +434,7 @@ func (self ParseCommand[T]) eval(args *State) Result[T] {
 			}
 			if err == nil {
 				args.set_scope(orig_args.scope)
-				return Ok(ok)
+				return ok, nil
 			} else {
 				orig_scope := args.scope
 				if narrow_scope, ok := args.adjacent_scope(*orig_args).Unpack(); ok {
@@ -442,18 +442,18 @@ func (self ParseCommand[T]) eval(args *State) Result[T] {
 					if res, err := self.subparser.run_subparser(orig_args); err == nil {
 						orig_args.set_scope(orig_scope)
 						stdmemswap(orig_args, args)
-						return Ok(res)
+						return res, nil
 					}
 				}
-				return Err[T](Error(err))
+				return *new(T), Error(err)
 			}
 		} else {
 			v, e := self.subparser.
 				run_subparser(args)
 			if e != nil {
-				return Err[T](Error(MessageParseFailure(e)))
+				return *new(T), Error(MessageParseFailure(e))
 			}
-			return Ok(v)
+			return v, nil
 		}
 	} else {
 		args.push_command(self.longs[0], First(self.shorts), self.help)
@@ -463,7 +463,7 @@ func (self ParseCommand[T]) eval(args *State) Result[T] {
 			position: args.scope.start(),
 			scope:    args.scope,
 		}
-		return Err[T](Error(MessageMissing(missing)))
+		return *new(T), Error(MessageMissing(missing))
 	}
 }
 
@@ -501,7 +501,7 @@ func (self ParseFlag[T]) Parser() Parser[T] {
 }
 
 // impl<T: Clone > Parser[T] for ParseFlag[T] {
-func (self ParseFlag[T]) eval(args *State) Result[T] {
+func (self ParseFlag[T]) eval(args *State) (T, Error) {
 	if args.take_flag(self.named) || find_map(self.named.env, func(e string) Option[string] {
 		r, ok := os.LookupEnv(e)
 		return Option[string]{r, ok}
@@ -509,11 +509,11 @@ func (self ParseFlag[T]) eval(args *State) Result[T] {
 		if args.touching_last_remove() {
 			args.push_flag(self.named)
 		}
-		return Ok(self.present)
+		return self.present, nil
 	} else {
 		args.push_flag(self.named)
 		if ok, okk := self.absent.Unpack(); okk {
-			return Ok(ok)
+			return ok, nil
 		} else {
 			if item, ok := self.named.flag_item().Unpack(); ok {
 				missing := MissingItem{
@@ -521,9 +521,9 @@ func (self ParseFlag[T]) eval(args *State) Result[T] {
 					position: args.scope.start(),
 					scope:    args.scope,
 				}
-				return Err[T](Error(MessageMissing(missing)))
+				return *new(T), Error(MessageMissing(missing))
 			} else if name, ok := First(self.named.env).Unpack(); ok {
-				return Err[T](Error(MessageNoEnv(name)))
+				return *new(T), Error(MessageNoEnv(name))
 			} else {
 				panic(`todo!("no key!")`)
 			}
@@ -630,17 +630,17 @@ func (self ParseArgument[T]) take_argument(args *State) Result[string] {
 	}
 }
 
-func (self ParseArgument[T]) eval(args *State) Result[T] {
+func (self ParseArgument[T]) eval(args *State) (T, Error) {
 	os, err := self.take_argument(args).unpack()
 	if err != nil {
-		return Err[T](err)
+		return *new(T), err
 	}
 
 	t, errr := self.p(os)
 	if errr != nil {
-		return Err[T](Error(MessageParseFailed(args.current, errr.Error())))
+		return *new(T), Error(MessageParseFailed(args.current, errr.Error()))
 	}
-	return Ok(t)
+	return t, nil
 }
 
 func (self ParseArgument[T]) meta() Meta {
@@ -726,16 +726,16 @@ func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 	return self
 }
 
-func (self ParsePositional[T]) eval(args *State) Result[T] {
+func (self ParsePositional[T]) eval(args *State) (T, Error) {
 	os, err := parse_pos_word(args, Metavar(self.metavar), self.help, self.position)
 	if err != nil {
-		return Err[T](err)
+		return *new(T), err
 	}
 	t, errr := self.p(os)
 	if errr != nil {
-		return Err[T](Error(MessageParseFail(errr.Error())))
+		return *new(T), Error(MessageParseFail(errr.Error()))
 	}
-	return Ok(t)
+	return t, nil
 }
 
 func (self ParsePositional[T]) meta() Meta {
@@ -828,7 +828,7 @@ func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 	return self
 }
 
-func (self ParseAny[T]) eval(args *State) Result[T] {
+func (self ParseAny[T]) eval(args *State) (T, Error) {
 	for ix, x := range push2(args.items_iter()) {
 		var next bool
 		x.value(
@@ -843,7 +843,7 @@ func (self ParseAny[T]) eval(args *State) Result[T] {
 				args.remove(ix + 1)
 			}
 
-			return Ok(i)
+			return i, nil
 		}
 		if !self.anywhere {
 			break
@@ -854,7 +854,7 @@ func (self ParseAny[T]) eval(args *State) Result[T] {
 		position: args.scope.start(),
 		scope:    args.scope,
 	}
-	return Err[T](Error(MessageMissing(missing_item)))
+	return *new(T), Error(MessageMissing(missing_item))
 }
 
 func (self ParseAny[T]) meta() Meta {

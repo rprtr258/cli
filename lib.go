@@ -294,7 +294,7 @@ type Parser[T any] struct {
 	// Mostly internal implementation details, you can try using it to test your parsers
 	// it's possible to move this function from the trait to the structs but having it
 	// in the trait ensures the composition always works
-	eval func(args *State) Result[T]
+	eval func(args *State) (T, Error)
 
 	// Included information about the parser
 	//
@@ -1126,11 +1126,11 @@ func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
 	meta := MetaAnd(nil)
 	type R = fun.Pair[A, B]
 	inner := func(failfast bool, args *State) Result[R] {
-		verbose, err := pa.eval(args).unpack()
+		verbose, err := pa.eval(args)
 		if failfast && err != nil {
 			return Err[R](err)
 		}
-		quiet, err := pb.eval(args).unpack()
+		quiet, err := pb.eval(args)
 		if err != nil {
 			return Err[R](err)
 		}

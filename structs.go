@@ -20,7 +20,7 @@ type ParseFallbackWith[T any] struct {
 // impl<T, P, F, E> Parser[T] for ParseFallbackWith<T, P, F, E>
 func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 	clone := args
-	ok, e := self.inner.eval(clone).unpack()
+	ok, e := self.inner.eval(clone)
 	if e == nil {
 		stdmemswap(args, clone)
 		return Ok(ok)
@@ -60,13 +60,13 @@ func (self ParseGroupHelp[T]) Parser() Parser[T] {
 }
 
 // impl<T, P> Parser[T] for ParseGroupHelp<P>
-func (self ParseGroupHelp[T]) eval(args *State) Result[T] {
+func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
 	comp_items := []Comp(nil)
 	args.swap_comps_with(&comp_items)
-	res := self.inner.eval(args)
+	res := newResult(self.inner.eval(args))
 	args.swap_comps_with(&comp_items)
 	args.push_with_group(self.message.to_completion(), &comp_items)
-	return res
+	return res.unpack()
 }
 
 func (self ParseGroupHelp[T]) meta() Meta {
@@ -81,7 +81,7 @@ type ParseWithGroupHelp[T any] struct {
 }
 
 // impl<T, P, F> Parser[T] for ParseWithGroupHelp<P, F>
-func (self ParseWithGroupHelp[T]) eval(args *State) Result[T] {
+func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
 	return self.inner.eval(args)
 }
 
@@ -121,7 +121,7 @@ func (self ParseSome[T]) eval(args *State) Result[[]T] {
 	len := uint(math.MaxUint)
 
 	for {
-		val, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		val, err := parse_option(self.inner, &len, args, self.catch)
 		if err != nil {
 			break
 		}
@@ -170,7 +170,7 @@ func (self ParseCollect[T]) eval(args *State) Result[[]T] {
 	len := uint(math.MaxUint)
 	res := []T{}
 	for {
-		xx, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		xx, err := parse_option(self.inner, &len, args, self.catch)
 		if err != nil {
 			return Err[[]T](err)
 		}
@@ -196,19 +196,19 @@ type ParseHide[T any] struct {
 // impl<T, P> Parser[T] for ParseHide<P>
 //
 //	P: Parser[T],
-func (self ParseHide[T]) eval(args *State) Result[T] {
+func (self ParseHide[T]) eval(args *State) (T, Error) {
 	var comps []Comp
 
 	args.swap_comps_with(&comps)
 
-	res := self.inner.eval(args)
+	res := newResult(self.inner.eval(args))
 
 	args.swap_comps_with(&comps)
 	if res.Err != nil && MessageF(Message(res.Err), MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
-		return Err[T](Error(MessageMissing()))
+		return *new(T), Error(MessageMissing())
 	}
 
-	return res
+	return res.unpack()
 }
 
 func (self ParseHide[P]) meta() Meta {
@@ -226,7 +226,7 @@ type ParseUsage[T any] struct {
 // impl<T, P> Parser[T] for ParseUsage<P>
 //
 //	P: Parser[T],
-func (self ParseUsage[T]) eval(args *State) Result[T] {
+func (self ParseUsage[T]) eval(args *State) (T, Error) {
 	return self.inner.eval(args)
 }
 
@@ -242,7 +242,7 @@ type ParseOrElse[T any] struct {
 }
 
 // impl[T] Parser[T] for ParseOrElse[T] {
-func (self ParseOrElse[T]) eval(args *State) Result[T] {
+func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	var comp_items []Comp
 
 	args.swap_comps_with(&comp_items)
@@ -258,7 +258,7 @@ func (self ParseOrElse[T]) eval(args *State) Result[T] {
 	// so that code that does a bunch of comparing logic can be shared across
 	// all invocations of parsers rather than being inlined into each one.
 
-	ok, err := self.this.eval(args_a).unpack()
+	ok, err := self.this.eval(args_a)
 	var (
 		res_a Option[T]
 		err_a Option[Error]
@@ -269,7 +269,7 @@ func (self ParseOrElse[T]) eval(args *State) Result[T] {
 		res_a, err_a = Valid(ok), Invalid[Error]()
 	}
 
-	ok, err = self.that.eval(args_b).unpack()
+	ok, err = self.that.eval(args_b)
 	var (
 		res_b Option[T]
 		err_b Option[Error]
@@ -289,12 +289,12 @@ func (self ParseOrElse[T]) eval(args *State) Result[T] {
 		&comp_items,
 	).unpack()
 	if err != nil {
-		return Err[T](err)
+		return *new(T), err
 	}
 	if zalupa {
-		return Ok(res_a.unwrap())
+		return res_a.unwrap(), nil
 	} else {
-		return Ok(res_b.unwrap())
+		return res_b.unwrap(), nil
 	}
 }
 
@@ -453,18 +453,18 @@ func (self ParseWith[T, R]) Parser() Parser[R] {
 }
 
 // impl<T, P, F, E, R> Parser<R> for ParseWith<T, P, F, E, R>
-func (self ParseWith[T, R]) eval(args *State) Result[R] {
-	t, err := self.inner.eval(args).unpack()
+func (self ParseWith[T, R]) eval(args *State) (R, Error) {
+	t, err := self.inner.eval(args)
 	if err != nil {
-		return Err[R](err)
+		return *new(R), err
 	}
 
 	r, err := self.parse_fn(t).unpack()
 	if err != nil {
-		return Err[R](Error(MessageParseFailed(args.current, err.String())))
+		return *new(R), Error(MessageParseFailed(args.current, err.String()))
 	}
 
-	return Ok(r)
+	return r, nil
 }
 
 func (self ParseWith[T, R]) meta() Meta {
@@ -483,19 +483,19 @@ func (self ParseFallback[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-func (self ParseFallback[T]) eval(args *State) Result[T] {
+func (self ParseFallback[T]) eval(args *State) (T, Error) {
 	clone := args
-	ok, e := self.inner.eval(clone).unpack()
+	ok, e := self.inner.eval(clone)
 	if e != nil {
 		args.swap_comps(clone)
 		if Message(e).can_catch() {
-			return Ok(self.value)
+			return self.value, nil
 		} else {
-			return Err[T](Error(e))
+			return *new(T), Error(e)
 		}
 	}
 	*args = *clone
-	return Ok(ok)
+	return ok, nil
 }
 
 func (self ParseFallback[T]) meta() Meta {
@@ -572,15 +572,15 @@ func (self ParseGuard[T]) Parser() Parser[T] {
 }
 
 // impl<T, P, F> Parser[T] for ParseGuard<P, F>
-func (self ParseGuard[T]) eval(args *State) Result[T] {
-	t, err := self.inner.eval(args).unpack()
+func (self ParseGuard[T]) eval(args *State) (T, Error) {
+	t, err := self.inner.eval(args)
 	if err != nil {
-		return Err[T](err)
+		return *new(T), err
 	}
 	if self.check(t) {
-		return Ok(t)
+		return t, nil
 	} else {
-		return Err[T](Error(MessageGuardFailed(args.current, self.message)))
+		return *new(T), Error(MessageGuardFailed(args.current, self.message))
 	}
 }
 
@@ -597,14 +597,14 @@ func (self ParseCount[T]) Parser() Parser[int] {
 	return Parser[int]{self.eval, self.meta}
 }
 
-func (self ParseCount[T]) eval(args *State) Result[int] {
+func (self ParseCount[T]) eval(args *State) (int, Error) {
 	res := 0
 	current := args.len()
 	len := uint(math.MaxUint)
 	for {
-		vv, err := parse_option(self.inner, &len, args, false).unpack()
+		vv, err := parse_option(self.inner, &len, args, false)
 		if err != nil {
-			return Err[int](err)
+			return 0, err
 		}
 		if !vv.Valid {
 			break
@@ -615,7 +615,7 @@ func (self ParseCount[T]) eval(args *State) Result[int] {
 		}
 		current = args.len()
 	}
-	return Ok(res)
+	return res, nil
 }
 
 func (self ParseCount[T]) meta() Meta {
@@ -628,12 +628,12 @@ type ParseLast[T any] struct {
 }
 
 // impl<T, P> Parser[T] for ParseLast<P>
-func (self ParseLast[T]) eval(args *State) Result[T] {
+func (self ParseLast[T]) eval(args *State) (T, Error) {
 	last := Invalid[T]()
 	current := args.len()
 	len := uint(math.MaxUint)
 	for {
-		val, err := parse_option(self.inner, &len, args, false).unpack()
+		val, err := parse_option(self.inner, &len, args, false)
 		if err != nil || !val.Valid {
 			break
 		}
@@ -644,7 +644,7 @@ func (self ParseLast[T]) eval(args *State) Result[T] {
 		current = args.len()
 	}
 	if last, ok := last.Unpack(); ok {
-		return Ok(last)
+		return last, nil
 	} else {
 		return self.inner.eval(args)
 	}
@@ -662,7 +662,7 @@ type ParseOptional[T any] struct {
 	catch bool
 }
 
-func (self ParseOptional[T]) eval(args *State) Result[Option[T]] {
+func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
 	len := uint(math.MaxUint)
 	return parse_option(self.inner, &len, args, self.catch)
 }
@@ -720,9 +720,9 @@ func parse_option[T any](
 	len *uint,
 	args *State,
 	catch bool,
-) Result[Option[T]] {
+) (Option[T], Error) {
 	orig_args := args
-	val, err := parser.eval(args).unpack()
+	val, err := parser.eval(args)
 	if err != nil {
 		// this is safe to return Ok(Invalid()) in following scenarios
 		// when inner parser never consumed anything and
@@ -743,31 +743,31 @@ func parse_option[T any](
 			if orig_args.comp_mut().Valid {
 				args.swap_comps(orig_args)
 			}
-			return Ok(Invalid[T]())
+			return Invalid[T](), nil
 		} else {
-			return Err[Option[T]](err)
+			return Option[T]{}, err
 		}
 	}
 	// we keep including values for as long as we consume values from the argument
 	// list or at least one value
-	return Ok(func() Option[T] {
+	return func() Option[T] {
 		if args.len() < int(*len) {
 			*len = uint(args.len())
 			return Valid(val)
 		} else {
 			return Invalid[T]()
 		}
-	}())
+	}(), nil
 }
 
 // impl<T, P> Parser[[]T] for ParseMany<P>
-func (self ParseMany[T]) eval(args *State) Result[[]T] {
+func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	len := uint(math.MaxUint)
 	res := []T{}
 	for {
-		vr, err := parse_option(self.inner, &len, args, self.catch).unpack()
+		vr, err := parse_option(self.inner, &len, args, self.catch)
 		if err != nil {
-			return Err[[]T](err)
+			return nil, err
 		}
 
 		v, ok := vr.Unpack()
@@ -777,7 +777,7 @@ func (self ParseMany[T]) eval(args *State) Result[[]T] {
 
 		res = append(res, v)
 	}
-	return Ok(res)
+	return res, nil
 }
 
 func (self ParseMany[T]) meta() Meta {
@@ -791,9 +791,9 @@ type ParsePure[T any] struct {
 }
 
 // impl<T: Clone > Parser[T] for ParsePure[T] {
-func (self ParsePure[T]) eval(args *State) Result[T] {
+func (self ParsePure[T]) eval(args *State) (T, Error) {
 	args.current = Invalid[int]()
-	return Ok(self.inner)
+	return self.inner, nil
 }
 
 func (self ParsePure[T]) meta() Meta {
@@ -803,12 +803,12 @@ func (self ParsePure[T]) meta() Meta {
 type ParsePureWith[T any] struct{ inner func() Result[T] }
 
 // impl[T: Clone] Parser[T]
-func (self ParsePureWith[T]) eval(*State) Result[T] {
+func (self ParsePureWith[T]) eval(*State) (T, Error) {
 	ok, e := self.inner().unpack()
 	if e == nil {
-		return Ok(ok)
+		return ok, nil
 	}
-	return Err[T](Error(MessagePureFailed(e.String())))
+	return *new(T), Error(MessagePureFailed(e.String()))
 }
 
 func (self ParsePureWith[T]) meta() Meta {
@@ -821,9 +821,9 @@ type ParseFail[T any] struct {
 }
 
 // impl[T] Parser[T] for ParseFail[T] {
-func (self ParseFail[T]) eval(args *State) Result[T] {
+func (self ParseFail[T]) eval(args *State) (T, Error) {
 	args.current = Invalid[int]()
-	return Err[T](Error(MessageParseFail(self.field1)))
+	return *new(T), Error(MessageParseFail(self.field1))
 }
 
 func (self ParseFail[T]) meta() Meta {
@@ -836,12 +836,12 @@ type ParseMap[T, R any] struct {
 	map_fn func(T) R
 }
 
-func (self ParseMap[T, R]) eval(args *State) Result[R] {
-	t, e := self.inner.eval(args).unpack()
+func (self ParseMap[T, R]) eval(args *State) (R, Error) {
+	t, e := self.inner.eval(args)
 	if e != nil {
-		return Err[R](e)
+		return *new(R), e
 	}
-	return Ok(self.map_fn(t))
+	return self.map_fn(t), nil
 }
 
 func (self ParseMap[T, R]) meta() Meta {
@@ -868,10 +868,10 @@ func (self ParseCon[T]) Parser() Parser[T] {
 }
 
 // impl<T, P> Parser[T] for ParseCon<P>
-func (self ParseCon[T]) eval(args *State) Result[T] {
+func (self ParseCon[T]) eval(args *State) (T, Error) {
 	res := self.inner(self.failfast, args)
 	args.current = Invalid[int]()
-	return res
+	return res.unpack()
 }
 
 func (self ParseCon[P]) Meta() Meta {
@@ -959,13 +959,12 @@ func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	return self
 }
 
-// impl<P, T, F, M> Parser[T] for ParseComp<P, F>
-func (self ParseComp[T]) eval(args *State) Result[T] {
+func (self ParseComp[T]) eval(args *State) (T, Error) {
 	// stash old
 	comp_items := []Comp(nil)
 	args.swap_comps_with(&comp_items)
 
-	res := self.inner.eval(args)
+	res := newResult(self.inner.eval(args))
 
 	// restore old, now metavars added by inner parser, if any, are in comp_items
 	args.swap_comps_with(&comp_items)
@@ -973,7 +972,7 @@ func (self ParseComp[T]) eval(args *State) Result[T] {
 	if comp, ok := args.comp_mut().Unpack(); ok {
 		if res.Err != nil {
 			comp.extend_comps(comp_items)
-			return res
+			return res.unpack()
 		}
 	}
 
@@ -1007,7 +1006,7 @@ func (self ParseComp[T]) eval(args *State) Result[T] {
 			}
 		}
 	}
-	return res
+	return res.unpack()
 }
 
 func (self ParseComp[T]) meta() Meta {
@@ -1049,7 +1048,7 @@ func (self ParseAdjacent[T]) Parser() Parser[T] {
 }
 
 // impl<P, T> Parser[T] for ParseAdjacent<P>
-func (self ParseAdjacent[T]) eval(args *State) Result[T] {
+func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 	original_scope := args.scope
 
 	var first_item Item
@@ -1098,7 +1097,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 			continue
 		}
 
-		_ = self.inner.eval(&scratch)
+		_, _ = self.inner.eval(&scratch)
 
 		if before == scratch.len() {
 			// failed to consume anything which means we don't start parsing at this point
@@ -1115,7 +1114,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 		}
 
 		for {
-			res, err := self.inner.eval(&this_arg).unpack()
+			res, err := self.inner.eval(&this_arg)
 			if err == nil {
 				// there's a smaller adjacent scope, we must try it before returning.
 				if adj_scope, ok := this_arg.adjacent_scope(*args).Unpack(); ok {
@@ -1124,7 +1123,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 				} else {
 					stdmemswap(args, &this_arg)
 					args.set_scope(original_scope)
-					return Ok(res)
+					return res, nil
 				}
 			} else {
 				consumed := before - this_arg.len()
@@ -1139,7 +1138,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 	}
 
 	stdmemswap(args, best_args)
-	return Err[T](Error(best_error))
+	return *new(T), Error(best_error)
 }
 
 func (self ParseAdjacent[T]) meta() Meta {

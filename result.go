@@ -21,7 +21,7 @@ func Err[T any](err Error) Result[T] {
 	return Result[T]{*new(T), err}
 }
 
-func NewResult[T any](v T, err Error) Result[T] {
+func newResult[T any](v T, err Error) Result[T] {
 	return Result[T]{v, err}
 }
 

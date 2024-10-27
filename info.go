@@ -172,7 +172,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		return *new(T), ParseFailureStdout(buffer, false)
 	}
 
-	res := self.inner.eval(args)
+	res := newResult(self.inner.eval(args))
 	if res.Err != nil {
 		var parseFailure ParseFailure
 		res.Err(nil, nil, nil, nil, nil, func(failure ParseFailure) {
@@ -630,12 +630,12 @@ func (self Info) mk_version_parser() ParseFlag[struct{}] {
 
 func (self Info) eval(args *State) Result[ExtraParams] {
 	help := self.mk_help_parser()
-	if help.eval(args).is_ok() {
-		return Ok(ExtraParamsHelp(help.eval(args).is_ok()))
+	if _, err := help.eval(args); err == nil {
+		return Ok(ExtraParamsHelp(true))
 	}
 
 	if version, ok := self.version.Unpack(); ok {
-		if self.mk_version_parser().eval(args).is_ok() {
+		if _, err := self.mk_version_parser().eval(args); err == nil {
 			return Ok(ExtraParamsVersion(version))
 		}
 	}
