@@ -105,45 +105,36 @@ func current_args() Args {
 	}
 }
 
-// Shows which branch of [`ParseOrElse`] parsed the argument
-type ItemState func(
-	// Value is yet to be parsed
-	Unparsed func(),
-	// Both branches succeeded, first parser was taken in favor of the second one
-	Conflict func(int),
-	// Value was parsed
-	Parsed func(),
+type ItemStateKind uint8
+
+const (
+	ItemStateKindUnparsed ItemStateKind = iota // Value is yet to be parsed
+	ItemStateKindConflict                      // Both branches succeeded, first parser was taken in favor of the second one
+	ItemStateKindParsed                        // Value was parsed
 )
 
-var ItemStateUnparsed = ItemState(func(Unparsed func(), _ func(int), _ func()) {
-	if Unparsed != nil {
-		Unparsed()
-	}
-})
+// Shows which branch of [`ParseOrElse`] parsed the argument
+type ItemState struct {
+	kind     ItemStateKind
+	conflict int
+}
+
+var ItemStateUnparsed = ItemState{kind: ItemStateKindUnparsed}
 
 func ItemStateConflict(value int) ItemState {
-	return ItemState(func(_ func(), Conflict func(int), _ func()) {
-		if Conflict != nil {
-			Conflict(value)
-		}
-	})
+	return ItemState{
+		kind:     ItemStateKindConflict,
+		conflict: value,
+	}
 }
 
-var ItemStateParsed = ItemState(func(_ func(), _ func(int), Parsed func()) {
-	if Parsed != nil {
-		Parsed()
-	}
-})
+var ItemStateParsed = ItemState{kind: ItemStateKindParsed}
 
 func (self ItemState) parsed() bool {
-	res := false
-	self(nil, nil, func() { res = true })
-	return res
+	return self.kind == ItemStateKindParsed
 }
 func (self ItemState) present() bool {
-	res := true
-	self(nil, nil, func() { res = false })
-	return res
+	return self.kind != ItemStateKindParsed
 }
 
 func disambiguate_short(
@@ -396,9 +387,10 @@ func (self State) conflict() Option[Range] {
 		return Invalid[Range]()
 	}
 	res := Invalid[Range]()
-	self.item_state[ix](nil, func(other int) {
+	if xxx := self.item_state[ix]; xxx.kind == ItemStateKindConflict {
+		other := xxx.conflict
 		res = Valid(Range{ix, other})
-	}, nil)
+	}
 	return res
 }
 
