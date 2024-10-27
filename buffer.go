@@ -95,20 +95,14 @@ func (self Doc) EmDoc(buf Doc) {
 }
 
 func (self Doc) write_shortlong(name ShortLong) {
-	name(
-		func(s byte) {
-			self.write_char('-', StyleLiteral)
-			self.write_char(s, StyleLiteral)
-		},
-		func(l string) {
-			self.write_str("--", StyleLiteral)
-			self.write_str(l, StyleLiteral)
-		},
-		func(_ byte, l string) {
-			self.write_str("--", StyleLiteral)
-			self.write_str(l, StyleLiteral)
-		},
-	)
+	if name.is_short() {
+		self.write_char('-', StyleLiteral)
+		self.write_char(name.Short, StyleLiteral)
+	} else {
+		l := name.Long
+		self.write_str("--", StyleLiteral)
+		self.write_str(l, StyleLiteral)
+	}
 }
 
 func (self Doc) write_item(item Item) {

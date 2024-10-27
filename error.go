@@ -512,20 +512,13 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 							doc.Literal(name)
 						},
 						func(f ShortLong) {
-							f(
-								func(s byte) {
-									doc.Literal("-")
-									doc.write_char(s, StyleLiteral)
-								},
-								func(l string) {
-									doc.Literal("--")
-									doc.Literal(l)
-								},
-								func(_ byte, l string) {
-									doc.Literal("--")
-									doc.Literal(l)
-								},
-							)
+							if f.is_short() {
+								doc.Literal("-")
+								doc.write_char(f.Short, StyleLiteral)
+							} else {
+								doc.Literal("--")
+								doc.Literal(f.Long)
+							}
 						},
 					)
 

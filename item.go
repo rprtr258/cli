@@ -147,66 +147,26 @@ func (self *Item) normalize(short bool) {
 	)
 }
 
-type ShortLong func(
-	Short func(byte),
-	Long func(string),
-	Both func(byte, string),
-)
-
-func ShortLongShort(s byte) ShortLong {
-	return func(
-		f func(byte),
-		_ func(string),
-		_ func(byte, string),
-	) {
-		if f != nil {
-			f(s)
-		}
-	}
+// ShortLong at least one field must be presented
+type ShortLong struct {
+	Short byte
+	Long  string
 }
 
-func ShortLongLong(s string) ShortLong {
-	return func(
-		_ func(byte),
-		f func(string),
-		_ func(byte, string),
-	) {
-		if f != nil {
-			f(s)
-		}
-	}
-}
+func (sl ShortLong) is_short() bool { return sl.Short != 0 && sl.Long == "" }
+func (sl ShortLong) is_long() bool  { return sl.Short == 0 && sl.Long != "" }
+func (sl ShortLong) is_both() bool  { return sl.Short != 0 && sl.Long != "" }
 
-func ShortLongBoth(b byte, s string) ShortLong {
-	return func(
-		_ func(byte),
-		_ func(string),
-		f func(byte, string),
-	) {
-		if f != nil {
-			f(b, s)
-		}
-	}
-}
+func ShortLongShort(b byte) ShortLong          { return ShortLong{Short: b} }
+func ShortLongLong(s string) ShortLong         { return ShortLong{Long: s} }
+func ShortLongBoth(b byte, s string) ShortLong { return ShortLong{Short: b, Long: s} }
 
 func (self ShortLong) as_long() Option[string] {
-	var res Option[string]
-	self(
-		nil,
-		func(l string) { res = Valid(l) },
-		func(_ byte, l string) { res = Valid(l) },
-	)
-	return res
+	return Option[string]{self.Long, self.Long != ""}
 }
 
 func (self ShortLong) as_short() Option[byte] {
-	var res Option[byte]
-	self(
-		func(s byte) { res = Valid(s) },
-		nil,
-		func(s byte, _ string) { res = Valid(s) },
-	)
-	return res
+	return Option[byte]{self.Short, self.Short != 0}
 }
 
 func (self ShortLong) eq(other string) bool {
@@ -216,29 +176,27 @@ func (self ShortLong) eq(other string) bool {
 	long_eq := func(l string, s string) bool {
 		return strip_prefix(s, "--") == Valid(l)
 	}
-	var res bool
-	self(
-		func(s byte) { res = short_eq(s, other) },
-		func(l string) { res = long_eq(l, other) },
-		func(s byte, l string) { res = short_eq(s, other) || long_eq(l, other) },
-	)
-	return res
+	switch {
+	case self.is_short():
+		return short_eq(self.Short, other)
+	case self.is_long():
+		return long_eq(self.Long, other)
+	default:
+		return short_eq(self.Short, other) || long_eq(self.Long, other)
+	}
 }
 
 // Changes [`ShortLong`](ShortLongShortLong) variant into either short or long depending,
 // leaves both Short and Long untouched
 func (self *ShortLong) normalize(short bool) {
-	(*self)(
-		nil,
-		nil,
-		func(s byte, l string) {
-			if short {
-				*self = ShortLongShort(s)
-			} else {
-				*self = ShortLongLong(l)
-			}
-		},
-	)
+	if !self.is_both() {
+		return
+	}
+	if short {
+		*self = ShortLongShort(self.Short)
+	} else {
+		*self = ShortLongLong(self.Long)
+	}
 }
 
 func ShortLongtry_from(named NamedArg) Option[ShortLong] {

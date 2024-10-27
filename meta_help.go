@@ -679,23 +679,14 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 }
 
 func write_shortlong(buf *Doc, name ShortLong) {
-	name(
-		func(s byte) {
-			buf.write_char('-', StyleLiteral)
-			buf.write_char(s, StyleLiteral)
-		},
-		func(l string) {
-			buf.write_str("    --", StyleLiteral)
-			buf.write_str(l, StyleLiteral)
-		},
-		func(s byte, l string) {
-			buf.write_char('-', StyleLiteral)
-			buf.write_char(s, StyleLiteral)
-			buf.write_str(", ", StyleText)
-			buf.write_str("--", StyleLiteral)
-			buf.write_str(l, StyleLiteral)
-		},
-	)
+	if s := name.Short; s != 0 {
+		buf.write_char('-', StyleLiteral)
+		buf.write_char(s, StyleLiteral)
+	}
+	if l := name.Long; l != "" {
+		buf.write_str("--", StyleLiteral)
+		buf.write_str(l, StyleLiteral)
+	}
 }
 
 func render_help(

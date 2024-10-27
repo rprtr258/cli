@@ -541,13 +541,11 @@ func (self State) check_complete() Option[string] {
 
 // Try to expand short string names into long names if possible
 func preferred_name(name ShortLong) string {
-	var res string
-	name(
-		func(s byte) { res = fmt.Sprintf("-%v", s) },
-		func(l string) { res = fmt.Sprintf("--%v", l) },
-		func(_ byte, l string) { res = fmt.Sprintf("--%v", l) },
-	)
-	return res
+	if name.is_short() {
+		return fmt.Sprintf("-%c", name.Short)
+	} else {
+		return fmt.Sprintf("--%s", name.Long)
+	}
 }
 
 func stris_empty(s string) bool {
@@ -565,30 +563,12 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 
 	// separately check for short and long names, fancy strip prefix things is here to avoid
 	// allocations and cloning
-	name(
-		func(s byte) {
-			can_switch = can_switch || map_or(strip_prefixb(arg, '-').
-				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
-				false, stris_empty)
-		},
-		nil,
-		func(s byte, _ string) {
-			can_switch = can_switch || map_or(strip_prefixb(arg, '-').
-				and_then(func(a string) Option[string] { return strip_prefixb(a, s) }),
-				false, stris_empty)
-		},
-	)
+	can_switch = can_switch || map_or(strip_prefixb(arg, '-').
+		and_then(func(a string) Option[string] { return strip_prefixb(a, name.Short) }),
+		false, stris_empty)
 
 	// and long string too
-	name(
-		nil,
-		func(l string) {
-			can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(l, s) })
-		},
-		func(_ byte, l string) {
-			can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(l, s) })
-		},
-	)
+	can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) })
 
 	if !can_switch {
 		return Invalid[string]()
