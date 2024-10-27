@@ -147,11 +147,11 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 				}
 			},
 			func(name ShortLong, _ Option[string], _ Option[Doc]) {
-				if long, ok := name.as_long().Unpack(); ok {
+				if long, ok := name.as_long(); ok {
 					distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
 					improve(distance, VariantFlag(name))
 				}
-				if short, ok := name.as_short().Unpack(); ok {
+				if short, ok := name.as_short(); ok {
 					if act, ok := strings.CutPrefix(actual, "--"); ok {
 						if act == string(short) {
 							return_(ix, SuggestionExtraDash(short), true)
@@ -160,11 +160,11 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 				}
 			},
 			func(name ShortLong, _ Metavar, _ Option[string], _ Option[Doc]) {
-				if long, ok := name.as_long().Unpack(); ok {
+				if long, ok := name.as_long(); ok {
 					distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
 					improve(distance, VariantFlag(name))
 				}
-				if short, ok := name.as_short().Unpack(); ok {
+				if short, ok := name.as_short(); ok {
 					if act, ok := strings.CutPrefix(actual, "--"); ok {
 						if act == string(short) {
 							return_(ix, SuggestionExtraDash(short), true)
@@ -192,7 +192,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 		best_match(
 			nil,
 			func(n ShortLong) {
-				if long, ok := n.as_long().Unpack(); ok {
+				if long, ok := n.as_long(); ok {
 					if s, ok := strings.CutPrefix(actual, "-"); ok && s == long {
 						return_(ix, SuggestionMissingDash(long), true)
 					}

@@ -200,12 +200,12 @@ func ShortLongShort(b byte) ShortLong          { return ShortLong{Short: b} }
 func ShortLongLong(s string) ShortLong         { return ShortLong{Long: s} }
 func ShortLongBoth(b byte, s string) ShortLong { return ShortLong{Short: b, Long: s} }
 
-func (self ShortLong) as_long() Option[string] {
-	return Option[string]{self.Long, self.Long != ""}
+func (self ShortLong) as_long() (string, bool) {
+	return self.Long, self.Long != ""
 }
 
-func (self ShortLong) as_short() Option[byte] {
-	return Option[byte]{self.Short, self.Short != 0}
+func (self ShortLong) as_short() (byte, bool) {
+	return self.Short, self.Short != 0
 }
 
 func (self ShortLong) eq(other string) bool {
