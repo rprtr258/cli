@@ -83,7 +83,7 @@ func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 // failure, created with [fallback_with](Parserfallback_with).
 type ParseFallbackWith[T any] struct {
 	inner     Parser[T]
-	fallback  func() Result[T]
+	fallback  func() (T, Error)
 	value_str string
 }
 
@@ -96,12 +96,11 @@ func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 	} else {
 		args.swap_comps(clone)
 		if Message(e).can_catch() {
-			ok, e := self.fallback().unpack()
-			if e == nil {
-				return Ok(ok)
-			} else {
+			ok, e := self.fallback()
+			if e != nil {
 				return Err[T](Error(MessagePureFailed(e.String())))
 			}
+			return Ok(ok)
 		} else {
 			return Err[T](Error(e))
 		}
@@ -125,7 +124,7 @@ func (self ParseFallbackWith[T]) meta() Meta {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
 func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
-	if val, err := self.fallback().unpack(); err == nil {
+	if val, err := self.fallback(); err == nil {
 		self.value_str = fmt.Sprintf("[default: %v]", val)
 	}
 	return *self
@@ -138,7 +137,7 @@ func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback.md"))]
 func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
-	val, err := self.fallback().unpack()
+	val, err := self.fallback()
 	if err == nil {
 		self.value_str = fmt.Sprintf("[default: %#v]", val)
 	}
@@ -158,7 +157,7 @@ func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
 // [display_fallback](ParseFallbackWithdisplay_fallback) and
 // [debug_fallback](ParseFallbackWithdebug_fallback).
 // }}}
-func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T] {
+func (self Parser[T]) fallback_with(fallback func() (T, Error)) ParseFallbackWith[T] {
 	return ParseFallbackWith[T]{
 		inner:     self,
 		fallback:  fallback,
