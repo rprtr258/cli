@@ -37,7 +37,7 @@ func NewInfo() Info {
 
 // Ready to run [Parser] with additional information attached
 //
-// Created with [`to_options`](Parserto_options)
+// Created with [to_options](Parserto_options)
 //
 // In addition to the inner parser `OptionParser` contains documentation about a program or a
 // subcommand as a whole, version, custom usage, if specified, and handles custom parsers for
@@ -119,7 +119,7 @@ func (self OptionParser[T]) Run() T {
 // ```
 //
 // See also [Args] and it's `From` impls to produce input and
-// [`ParseFailureunwrap_stderr`] / [`ParseFailureunwrap_stdout`] for processing results.
+// [ParseFailureunwrap_stderr] / [ParseFailureunwrap_stdout] for processing results.
 //
 // # Errors
 //

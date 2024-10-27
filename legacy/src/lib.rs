@@ -57,7 +57,7 @@
 //! - [`OptionParser::command`] - subcommand parser.
 //! - [any] and its specialized version [literal] are escape hatches that can parse anything
 //!   not fitting into usual classification.
-//! - [pure] and [`pure_with`] - a way to generate a value that can be composed without parsing
+//! - [pure] and [pure_with] - a way to generate a value that can be composed without parsing
 //!   it from the command line.
 //!
 //! ## Transforming and changing parsers
@@ -71,11 +71,11 @@
 //! type of failure by default, but you can use their respective `catch` method to handle the later
 //! one.
 //!
-//! - [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with) - return a
+//! - [fallback](Parser::fallback) and [fallback_with](Parser::fallback_with) - return a
 //!   different value if parser fails to find what it is looking for. Generated help for former
 //!   can be updated to include default value using
-//!   [`display_fallback`](ParseFallback::display_fallback) and
-//!   [`debug_fallback`](ParseFallback::debug_fallback) .
+//!   [display_fallback](ParseFallback::display_fallback) and
+//!   [debug_fallback](ParseFallback::debug_fallback) .
 //! - [optional](Parser::optional) - return `None` if value is missing instead of failing, see
 //!   also [catch](ParseOptional::catch) .
 //! - [many](Parser::many), [some](Parser::some) and [collect](Parser::collect) - collect
@@ -83,7 +83,7 @@
 //!   [catch](ParseMany::catch), [catch](ParseSome::catch) and [catch](ParseCollect::catch).
 //! - [map](Parser::map), [parse](Parser::parse) and [guard](Parser::guard) - transform
 //!   and/or validate value produced by a parser
-//! - [`to_options`](Parser::to_options) - finalize the parser and prepare to run it
+//! - [to_options](Parser::to_options) - finalize the parser and prepare to run it
 //!
 //! ## Combining multiple parsers together
 //!
@@ -104,35 +104,35 @@
 //! in various `help` methods to generate `--help` documentation, you can further improve it
 //! using those methods:
 //!
-//! - [`hide_usage`](Parser::hide_usage) and [hide](Parser::hide) - hide the parser from
+//! - [hide_usage](Parser::hide_usage) and [hide](Parser::hide) - hide the parser from
 //!   generated *Usage* line or whole generated help
-//! - [`group_help`](Parser::group_help) and [`with_group_help`](Parser::with_group_help) -
+//! - [group_help](Parser::group_help) and [with_group_help](Parser::with_group_help) -
 //!   add a common description shared by several parsers
-//! - [`custom_usage`](Parser::custom_usage) - customize usage for a primitive or composite parser
-//! - [usage](OptionParser::usage) and [`with_usage`](OptionParser::with_usage) lets you to
+//! - [custom_usage](Parser::custom_usage) - customize usage for a primitive or composite parser
+//! - [usage](OptionParser::usage) and [with_usage](OptionParser::with_usage) lets you to
 //!   customize whole usage line as a whole either by completely overriding it or by building around it.
 //!
 //! By default with completion enabled `bpaf` would complete names for flags, arguments and
 //! commands. You can also generate completion for argument values, possible positionals, etc.
 //! This requires enabling **autocomplete** cargo feature.
 //!
-//! - [complete](Parser::complete) and [`complete_shell`](Parser::complete_shell)
+//! - [complete](Parser::complete) and [complete_shell](Parser::complete_shell)
 //!
 //! And finally you can generate documentation for command line in markdown, html and manpage
-//! formats using [`render_markdown`](OptionParser::render_markdown),
-//! [`render_html`](OptionParser::render_html) and [`render_manpage`](OptionParser::render_manpage),
+//! formats using [render_markdown](OptionParser::render_markdown),
+//! [render_html](OptionParser::render_html) and [render_manpage](OptionParser::render_manpage),
 //! for more detailed info see [doc] module
 //!
 //! ## Testing your parsers and running them
 //! - You can [`OptionParser::run`] the parser on the arguments passed on the command line
-//! - [`check_invariants`](OptionParser::check_invariants) checks for a few invariants in the
+//! - [check_invariants](OptionParser::check_invariants) checks for a few invariants in the
 //!   parser `bpaf` relies on
-//! - [`run_inner`](OptionParser::run_inner) runs the parser with custom [Args] you can create
+//! - [run_inner](OptionParser::run_inner) runs the parser with custom [Args] you can create
 //!   either explicitly or implicitly using one of the [From] implementations, `Args` can be
-//!   customized with [`set_comp`](Args::set_comp) and [`set_name`](Args::set_name).
+//!   customized with [set_comp](Args::set_comp) and [set_name](Args::set_name).
 //! - [ParseFailure] contains the parse outcome, you can consume it either by hands or using one
-//!   of [`exit_code`](ParseFailure::exit_code), [`unwrap_stdout`](ParseFailure::unwrap_stdout) and
-//!   [`unwrap_stderr`](ParseFailure::unwrap_stderr)
+//!   of [exit_code](ParseFailure::exit_code), [unwrap_stdout](ParseFailure::unwrap_stdout) and
+//!   [unwrap_stderr](ParseFailure::unwrap_stderr)
 //!
 //! ## Cargo features
 //!
@@ -475,7 +475,7 @@ macro_rules! construct {
 /// It's best to think of an object implementing [Parser] trait as a container with a value
 /// inside that is composable with other `Parser` containers using [`construct!`] and the only
 /// way to extract this value is by transforming it to [OptionParser] with
-/// [`to_options`](Parser::to_options) and running it with [run](OptionParser::run). At which
+/// [to_options](Parser::to_options) and running it with [run](OptionParser::run). At which
 /// point you either get your value out or `bpaf` would generate a message describing a problem
 /// (missing argument, validation failure, user requested help, etc) and the program would
 /// exit.
@@ -554,8 +554,8 @@ macro_rules! construct {
 /// Every method defined on this trait belongs to the `postprocessing` section of the field
 /// annotation. `bpaf` would try to figure out what chain to use for as long as there are no
 /// options changing the type: you can use [fallback](Parser::fallback_with),
-/// [`fallback_with`](Parser::fallback_with), [guard](Parser::guard), [hide](Parser::hide`) and
-/// [`group_help`](Parser::group_help) but not the rest of them.
+/// [fallback_with](Parser::fallback_with), [guard](Parser::guard), [hide](Parser::hide`) and
+/// [group_help](Parser::group_help) but not the rest of them.
 ///
 /// ```rust
 /// # use bpaf::*;
@@ -850,11 +850,11 @@ pub trait Parser<T> {
     #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
     ///
     /// # See also
-    /// [`fallback_with`](Parser::fallback_with) would allow to try to fallback to a value that
+    /// [fallback_with](Parser::fallback_with) would allow to try to fallback to a value that
     /// comes from a failing computation such as reading a file. By default fallback value will
     /// not be shown in the `--help` output, you can change that by using
-    /// [`display_fallback`](ParseFallback::display_fallback) and
-    /// [`debug_fallback`](ParseFallback::debug_fallback).
+    /// [display_fallback](ParseFallback::display_fallback) and
+    /// [debug_fallback](ParseFallback::debug_fallback).
     #[must_use]
     fn fallback(self, value: T) -> ParseFallback<Self, T>
     where
@@ -878,8 +878,8 @@ pub trait Parser<T> {
     /// # See also
     /// [fallback](Parser::fallback) implements similar logic expect that failures aren't expected.
     /// By default fallback value will not be shown in the `--help` output, you can change that by using
-    /// [`display_fallback`](ParseFallbackWith::display_fallback) and
-    /// [`debug_fallback`](ParseFallbackWith::debug_fallback).
+    /// [display_fallback](ParseFallbackWith::display_fallback) and
+    /// [debug_fallback](ParseFallbackWith::debug_fallback).
     #[must_use]
     fn fallback_with<F, E>(self, fallback: F) -> ParseFallbackWith<T, Self, F, E>
     where
@@ -1007,7 +1007,7 @@ pub trait Parser<T> {
     ///
     /// Parsers hidden from usage will still show up in the available arguments list. Best used on
     /// optional things that augment the main application functionality but not define it.
-    /// Alternatively, you can use [`custom_usage`](Parser::custom_usage) to replace a single
+    /// Alternatively, you can use [custom_usage](Parser::custom_usage) to replace a single
     /// option or a group of them with some other text.
     #[cfg_attr(not(doctest), doc = include_str!("docs2/hide_usage.md"))]
     #[must_use]
@@ -1230,10 +1230,10 @@ pub trait Parser<T> {
 /// This parser produces `T` without consuming anything from the command line, which can be useful
 /// with [`construct!`]. As with any parsers, `T` should be `Clone` and `Debug`.
 ///
-/// Both `pure` and [`pure_with`] are designed to put values into structures, to generate fallback
-/// you should be using [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
+/// Both `pure` and [pure_with] are designed to put values into structures, to generate fallback
+/// you should be using [fallback](Parser::fallback) and [fallback_with](Parser::fallback_with).
 ///
-/// See also [`pure_with`] for a pure computation that can fail.
+/// See also [pure_with] for a pure computation that can fail.
 ///
 #[cfg_attr(not(doctest), doc = include_str!("docs2/pure.md"))]
 #[must_use]
@@ -1249,7 +1249,7 @@ pub fn pure<T>(val: T) -> ParsePure<T> {
 /// and `Debug`.
 ///
 /// Both [pure] and `pure_with` are designed to put values into structures, to generate fallback
-/// you should be using [fallback](Parser::fallback) and [`fallback_with`](Parser::fallback_with).
+/// you should be using [fallback](Parser::fallback) and [fallback_with](Parser::fallback_with).
 ///
 /// See also [pure] for a pure computation that can't fail.
 ///
@@ -1377,7 +1377,7 @@ pub fn env(variable: &'static str) -> NamedArg {
 /// positional items or commands should be at the end of your `struct`/`enum`. The same rule applies
 /// to parsers with positional fields or commands inside: such parsers should go to the end as well.
 ///
-/// Use [`check_invariants`](OptionParser::check_invariants) in your test to ensure correctness.
+/// Use [check_invariants](OptionParser::check_invariants) in your test to ensure correctness.
 ///
 /// For example for non-positional `non_pos` and positional `pos` parsers
 /// ```rust

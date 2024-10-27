@@ -48,7 +48,7 @@ where
 
 /// Stash successfully parsed value in a RefCell.
 ///
-/// Unlike [`remember_opt`] this one parses a required value
+/// Unlike [remember_opt] this one parses a required value
 pub fn remember_req<P, T>(parser: P, cell: &Rc<RefCell<Option<T>>>) -> impl Parser<T>
 where
     P: Parser<T>,

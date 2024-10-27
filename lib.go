@@ -56,7 +56,7 @@ import (
 //!   line and `false` otherwise.
 //! - [NamedArgflag] - a variant of `switch` that lets you return one of two custom
 //!   values, for example `ColorOn` and `ColorOff`.
-//! - [`NamedArgreq_flag`] - a variant of `switch` that only only succeeds when it's name
+//! - [NamedArgreq_flag] - a variant of `switch` that only only succeeds when it's name
 //!   is present on a command line
 //! - [NamedArgargument] - named argument containing a value, you can further
 //!   customize it with [adjacent](crateparsersParseArgumentadjacent)
@@ -65,7 +65,7 @@ import (
 //! - [OptionParsercommand] - subcommand parser.
 //! - [any] and its specialized version [literal] are escape hatches that can parse anything
 //!   not fitting into usual classification.
-//! - [pure] and [`pure_with`] - a way to generate a value that can be composed without parsing
+//! - [pure] and [pure_with] - a way to generate a value that can be composed without parsing
 //!   it from the command line.
 //!
 //! ## Transforming and changing parsers
@@ -79,11 +79,11 @@ import (
 //! type of failure by default, but you can use their respective `catch` method to handle the later
 //! one.
 //!
-//! - [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with) - return a
+//! - [fallback](Parserfallback) and [fallback_with](Parserfallback_with) - return a
 //!   different value if parser fails to find what it is looking for. Generated help for former
 //!   can be updated to include default value using
-//!   [`display_fallback`](ParseFallbackdisplay_fallback) and
-//!   [`debug_fallback`](ParseFallbackdebug_fallback) .
+//!   [display_fallback](ParseFallbackdisplay_fallback) and
+//!   [debug_fallback](ParseFallbackdebug_fallback) .
 //! - [optional](Parseroptional) - return `Invalid()` if value is missing instead of failing, see
 //!   also [catch](ParseOptionalcatch) .
 //! - [many](Parsermany), [some](Parsersome) and [collect](Parsercollect) - collect
@@ -91,7 +91,7 @@ import (
 //!   [catch](ParseManycatch), [catch](ParseSomecatch) and [catch](ParseCollectcatch).
 //! - [map](Parsermap), [parse](Parserparse) and [guard](Parserguard) - transform
 //!   and/or validate value produced by a parser
-//! - [`to_options`](Parserto_options) - finalize the parser and prepare to run it
+//! - [to_options](Parserto_options) - finalize the parser and prepare to run it
 //!
 //! ## Combining multiple parsers together
 //!
@@ -112,35 +112,35 @@ import (
 //! in various `help` methods to generate `--help` documentation, you can further improve it
 //! using those methods:
 //!
-//! - [`hide_usage`](Parserhide_usage) and [hide](Parserhide) - hide the parser from
+//! - [hide_usage](Parserhide_usage) and [hide](Parserhide) - hide the parser from
 //!   generated *Usage* line or whole generated help
-//! - [`group_help`](Parsergroup_help) and [`with_group_help`](Parserwith_group_help) -
+//! - [group_help](Parsergroup_help) and [with_group_help](Parserwith_group_help) -
 //!   add a common description shared by several parsers
-//! - [`custom_usage`](Parsercustom_usage) - customize usage for a primitive or composite parser
-//! - [usage](OptionParserusage) and [`with_usage`](OptionParserwith_usage) lets you to
+//! - [custom_usage](Parsercustom_usage) - customize usage for a primitive or composite parser
+//! - [usage](OptionParserusage) and [with_usage](OptionParserwith_usage) lets you to
 //!   customize whole usage line as a whole either by completely overriding it or by building around it.
 //!
 //! By default with completion enabled `bpaf` would complete names for flags, arguments and
 //! commands. You can also generate completion for argument values, possible positionals, etc.
 //! This requires enabling **autocomplete** cargo feature.
 //!
-//! - [complete](Parsercomplete) and [`complete_shell`](Parsercomplete_shell)
+//! - [complete](Parsercomplete) and [complete_shell](Parsercomplete_shell)
 //!
 //! And finally you can generate documentation for command line in markdown, html and manpage
-//! formats using [`render_markdown`](OptionParserrender_markdown),
-//! [`render_html`](OptionParserrender_html) and [`render_manpage`](OptionParserrender_manpage),
+//! formats using [render_markdown](OptionParserrender_markdown),
+//! [render_html](OptionParserrender_html) and [render_manpage](OptionParserrender_manpage),
 //! for more detailed info see [doc] module
 //!
 //! ## Testing your parsers and running them
 //! - You can [OptionParserrun] the parser on the arguments passed on the command line
-//! - [`check_invariants`](OptionParsercheck_invariants) checks for a few invariants in the
+//! - [check_invariants](OptionParsercheck_invariants) checks for a few invariants in the
 //!   parser `bpaf` relies on
-//! - [`run_inner`](OptionParserrun_inner) runs the parser with custom [Args] you can create
+//! - [run_inner](OptionParserrun_inner) runs the parser with custom [Args] you can create
 //!   either explicitly or implicitly using one of the [From] implementations, `Args` can be
-//!   customized with [`set_comp`](Argsset_comp) and [`set_name`](Argsset_name).
+//!   customized with [set_comp](Argsset_comp) and [set_name](Argsset_name).
 //! - [ParseFailure] contains the parse outcome, you can consume it either by hands or using one
-//!   of [`exit_code`](ParseFailureexit_code), [`unwrap_stdout`](ParseFailureunwrap_stdout) and
-//!   [`unwrap_stderr`](ParseFailureunwrap_stderr)
+//!   of [exit_code](ParseFailureexit_code), [unwrap_stdout](ParseFailureunwrap_stdout) and
+//!   [unwrap_stderr](ParseFailureunwrap_stderr)
 //!
 //! ## Cargo features
 //!
@@ -163,7 +163,7 @@ import (
 //!    ```
 //!    Disabled by default.
 //!
-//!  - `docgen`: generate documentation from help declaration, see [`OptionParserrender_markdown`] and [doc](cratedoc). Disabled by default.
+//!  - `docgen`: generate documentation from help declaration, see [OptionParserrender_markdown] and [doc](cratedoc). Disabled by default.
 
 // Simple or composed argument parser
 //
@@ -172,7 +172,7 @@ import (
 // It's best to think of an object implementing [Parser] trait as a container with a value
 // inside that is composable with other `Parser` containers using [construct] and the only
 // way to extract this value is by transforming it to [OptionParser] with
-// [`to_options`](Parserto_options) and running it with [run](OptionParserrun). At which
+// [to_options](Parserto_options) and running it with [run](OptionParserrun). At which
 // point you either get your value out or `bpaf` would generate a message describing a problem
 // (missing argument, validation failure, user requested help, etc) and the program would
 // exit.
@@ -258,8 +258,8 @@ import (
 // Every method defined on this trait belongs to the `postprocessing` section of the field
 // annotation. `bpaf` would try to figure out what chain to use for as long as there are no
 // fun.Options changing the type: you can use [fallback](Parserfallback_with),
-// [`fallback_with`](Parserfallback_with), [guard](Parserguard), [hide](Parserhide`) and
-// [`group_help`](Parsergroup_help) but not the rest of them.
+// [fallback_with](Parserfallback_with), [guard](Parserguard), [hide](Parserhide`) and
+// [group_help](Parsergroup_help) but not the rest of them.
 //
 // ```rust
 // # use bpaf*;
@@ -303,38 +303,6 @@ type Parser[T any] struct {
 	// in the trait ensures the composition always works
 	meta Meta
 }
-
-// change shape
-// {{{ Many
-// Consume zero or more items from a command line and collect them into a [Vec]
-//
-// `Many` preserves any parsing failures and propagates them outwards, with an extra
-// [catch](ParseManycatch) statement you can instead stop at the first value
-// that failed to parse and ignore it and all the subsequent ones.
-//
-// `Many` will collect at most one result that does not consume anything from the argument
-// list allowing using it in combination with any parsers with a fallback. After the first
-// one, it will keep collecting the results as long as they consume something.
-//
-// For derive usage `bpaf` would insert implicit `Many` when the resulting type is a
-// vector.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Many.md"))]
-//
-// # See also
-// [some](Parsersome) also collects results to a vector but requires at least one
-// element to succeed, [collect](Parsercollect) collects results into a [FromIterator]
-// structure
-// TODO: compiler ne mogyet v return Parser[[]T] in method
-func Many[T any](self Parser[T]) Parser[[]T] {
-	p := ParseMany[T]{
-		inner: self,
-		catch: false,
-	}
-	return Parser[[]T]{p.eval, MetaMany(MetaOptional(p.inner.meta))}
-}
-
-// }}}
 
 // {{{ collect
 // Transform parser into a collection parser
@@ -514,11 +482,11 @@ func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
 //
 // # See also
-// [`fallback_with`](Parserfallback_with) would allow to try to Fallback to a value that
+// [fallback_with](Parserfallback_with) would allow to try to Fallback to a value that
 // comes from a failing computation such as reading a file. By default Fallback value will
 // not be shown in the `--help` output, you can change that by using
-// [`display_fallback`](ParseFallbackdisplay_fallback) and
-// [`debug_fallback`](ParseFallbackdebug_fallback).
+// [display_fallback](ParseFallbackdisplay_fallback) and
+// [debug_fallback](ParseFallbackdebug_fallback).
 func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 	return &ParseFallback[T]{
 		inner:     self,
@@ -539,8 +507,8 @@ func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 // # See also
 // [fallback](Parserfallback) implements similar logic expect that failures aren't expected.
 // By default fallback value will not be shown in the `--help` output, you can change that by using
-// [`display_fallback`](ParseFallbackWithdisplay_fallback) and
-// [`debug_fallback`](ParseFallbackWithdebug_fallback).
+// [display_fallback](ParseFallbackWithdisplay_fallback) and
+// [debug_fallback](ParseFallbackWithdebug_fallback).
 func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T] {
 	return ParseFallbackWith[T]{
 		inner:     self,
@@ -654,7 +622,7 @@ func (self Parser[T]) Hide() Parser[T] {
 //
 // Parsers hidden from usage will still show up in the available arguments list. Best used on
 // fun.Optional things that augment the main application functionality but not define it.
-// Alternatively, you can use [`custom_usage`](Parsercustom_usage) to replace a single
+// Alternatively, you can use [custom_usage](Parsercustom_usage) to replace a single
 // fun.Option or a group of them with some other text.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/HideUsage.md"))]
 func (self Parser[T]) HideUsage() ParseUsage[T] {
@@ -810,7 +778,7 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 
 // Finalize and run the parser
 //
-// Generally, you'd want to use [`Parserto_options`] to finalize the parser and [OptionParserrun],
+// Generally, you'd want to use [Parserto_options] to finalize the parser and [OptionParserrun],
 // but this also works for simple cases:
 //
 // ```rust

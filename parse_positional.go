@@ -11,7 +11,7 @@ const (
 // Parse a positional item, created with [positional](cratepositional)
 //
 // You can add extra information to positional parsers with [help](Selfhelp),
-// [strict](Selfstrict), or [`non_strict`](Selfnon_strict) on this struct.
+// [strict](Selfstrict), or [non_strict](Selfnon_strict) on this struct.
 type ParsePositional[T any] struct {
 	metavar  string
 	help     Option[Doc]
@@ -139,7 +139,7 @@ func (self ParsePositional[T]) meta() Meta {
 // Positional items or commands should be at the end of your `struct`/`enum`. The same rule applies
 // to parsers with Positional fields or commands inside: such parsers should go to the end as well.
 //
-// Use [`check_invariants`](OptionParsercheck_invariants) in your test to ensure correctness.
+// Use [check_invariants](OptionParsercheck_invariants) in your test to ensure correctness.
 //
 // For example for non-Positional `non_pos` and Positional `pos` parsers
 //

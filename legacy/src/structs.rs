@@ -8,7 +8,7 @@ use crate::{
 use std::marker::PhantomData;
 
 /// Parser that substitutes missing value with a function results but not parser
-/// failure, created with [`fallback_with`](Parser::fallback_with).
+/// failure, created with [fallback_with](Parser::fallback_with).
 pub struct ParseFallbackWith<T, P, F, E> {
     pub(crate) inner: P,
     pub(crate) inner_res: PhantomData<T>,
@@ -56,7 +56,7 @@ where
     }
 }
 
-/// Parser with attached message to several fields, created with [`group_help`](Parser::group_help).
+/// Parser with attached message to several fields, created with [group_help](Parser::group_help).
 pub struct ParseGroupHelp<P> {
     pub(crate) inner: P,
     pub(crate) message: Doc,
@@ -89,7 +89,7 @@ where
     }
 }
 
-/// Parser with attached message to several fields, created with [`group_help`](Parser::group_help).
+/// Parser with attached message to several fields, created with [group_help](Parser::group_help).
 pub struct ParseWithGroupHelp<P, F> {
     pub(crate) inner: P,
     pub(crate) f: F,
@@ -544,7 +544,7 @@ impl<P, T: std::fmt::Display, F, E> ParseFallbackWith<T, P, F, E>
 where
     F: Fn() -> Result<T, E>,
 {
-    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [Display](std::fmt::Display)
+    /// Show [fallback_with](Parser::fallback_with) value in `--help` using [Display](std::fmt::Display)
     /// representation
     ///
     /// If fallback function fails - no value will show up
@@ -563,7 +563,7 @@ impl<P, T: std::fmt::Debug, F, E> ParseFallbackWith<T, P, F, E>
 where
     F: Fn() -> Result<T, E>,
 {
-    /// Show [`fallback_with`](Parser::fallback_with) value in `--help` using [Debug](std::fmt::Debug)
+    /// Show [fallback_with](Parser::fallback_with) value in `--help` using [Debug](std::fmt::Debug)
     /// representation
     ///
     /// If fallback function fails - no value will show up

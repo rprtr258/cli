@@ -321,7 +321,7 @@ $ cargo run --example example_name
 
 ## Testing your own parsers
 
-You can test your own parsers to maintain compatibility or simply checking expected output with [`run_inner`][__link18]
+You can test your own parsers to maintain compatibility or simply checking expected output with [run_inner][__link18]
 
 
 ```rust

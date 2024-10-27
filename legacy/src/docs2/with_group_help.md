@@ -53,7 +53,7 @@ fn main() {
 <details><summary>Output</summary>
 
 `with_group_help` lets you write longer description for group of options that can also refer to
-those options. Similar to [`group_help`](Parser::group_help) encased optios are separated from
+those options. Similar to [group_help](Parser::group_help) encased optios are separated from
 the rest by a blank line.
 
 Invoking help with a single `--help` flag renders shot(er) version of the help message

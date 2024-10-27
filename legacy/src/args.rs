@@ -12,8 +12,8 @@ use crate::{
 /// All currently present command line parameters with some extra metainfo
 ///
 /// Use it for unit tests and manual parsing. For production use you would want to replace the
-/// program name with [`set_name`](Args::set_name), but for tests passing a slice of strings to
-/// [`run_inner`](crate::OptionParser::run_inner) is usually more convenient.
+/// program name with [set_name](Args::set_name), but for tests passing a slice of strings to
+/// [run_inner](crate::OptionParser::run_inner) is usually more convenient.
 ///
 ///
 /// The easiest way to create `Args` is by using its `From` instance.

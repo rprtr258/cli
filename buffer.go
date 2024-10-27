@@ -18,7 +18,7 @@ func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 // Parser metainformation
 //
 // This is a newtype around internal parser metainfo representation, generated
-// with [`Parserwith_group_help`](crateParserwith_group_help) and consumed by
+// with [Parserwith_group_help](crateParserwith_group_help) and consumed by
 // [Docmeta](Docmeta)
 type MetaInfo = Meta
 

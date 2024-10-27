@@ -10,8 +10,8 @@ Parsing errors are preserved and preserved to user
 
 > --jobs ten
 
-With [`display_fallback`](ParseFallback::display_fallback) and
-[`debug_fallback`](ParseFallback::debug_fallback) you can make it so default value
+With [display_fallback](ParseFallback::display_fallback) and
+[debug_fallback](ParseFallback::debug_fallback) you can make it so default value
 is visible in `--help` output
 
 > --help

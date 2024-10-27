@@ -278,7 +278,7 @@ impl<T> OptionParser<T> {
     /// positional should be at the end of your `struct`/`enum`. Same rule applies
     /// to parsers with positional fields or commands inside: such parsers should go to the end as well.
     ///
-    /// Use [`check_invariants`](OptionParser::check_invariants) in your test to ensure correctness.
+    /// Use [check_invariants](OptionParser::check_invariants) in your test to ensure correctness.
     ///
     /// For example for non positional `non_pos` and a command `command` parsers
     /// ```rust
@@ -717,7 +717,7 @@ pub(crate) fn build_positional<T>(metavar: &'static str) -> ParsePositional<T> {
 /// Parse a positional item, created with [positional](crate::positional)
 ///
 /// You can add extra information to positional parsers with [help](Self::help),
-/// [strict](Self::strict), or [`non_strict`](Self::non_strict) on this struct.
+/// [strict](Self::strict), or [non_strict](Self::non_strict) on this struct.
 #[derive(Clone)]
 pub struct ParsePositional<T> {
     metavar: &'static str,

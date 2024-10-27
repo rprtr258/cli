@@ -213,7 +213,7 @@ pub(crate) fn split_os_argument(input: &std::ffi::OsStr) -> Option<(ArgType, Str
     }
 }
 
-/// similar to [`split_os_argument`] but only works for utf8 values, used as a fallback function
+/// similar to [split_os_argument] but only works for utf8 values, used as a fallback function
 /// on non windows/unix OSes
 #[cfg(any(all(not(windows), not(unix)), test))]
 pub(crate) fn split_os_argument_fallback(

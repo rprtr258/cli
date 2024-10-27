@@ -2,8 +2,8 @@
 //!
 //! # Command line parser documentation generation
 //!
-//! [OptionParser] implements two methods: [`render_html`](OptionParser::render_html) and
-//! [`render_manpage`](OptionParser::render_manpage) that create a documentation in a mix of
+//! [OptionParser] implements two methods: [render_html](OptionParser::render_html) and
+//! [render_manpage](OptionParser::render_manpage) that create a documentation in a mix of
 //! html/markdown and ROFF formats respectively.
 //!
 //! To use it you should do something like this

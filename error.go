@@ -33,7 +33,7 @@ func (mi MissingItem) String() string {
 
 // Unsuccessful command line parsing outcome, use it for unit tests
 // /
-// When [`OptionParserrun_inner`](crateOptionParserrun_inner) produces `Err(ParseFailure)`
+// When [OptionParserrun_inner](crateOptionParserrun_inner) produces `Err(ParseFailure)`
 // it means that the parser couldn't produce the value it supposed to produce and the program
 // should terminate.
 // /
@@ -42,11 +42,11 @@ func (mi MissingItem) String() string {
 // shell completion mechanism relies on that. In both cases application should exit with error
 // code of 0. `Stderr` variant indicates a genuinly parsing error which should be printed to
 // stderr or a logging framework of your choice as an error and the app should exit with error
-// code of 1. [`ParseFailureexit_code`] is a helper method that performs printing and produces
+// code of 1. [ParseFailureexit_code] is a helper method that performs printing and produces
 // the exit code to use.
 // /
 // For purposes of for unit testing for user parsers, you can consume it with
-// [`ParseFailureunwrap_stdout`] and [`ParseFailureunwrap_stdout`] - both of which produce a
+// [ParseFailureunwrap_stdout] and [ParseFailureunwrap_stdout] - both of which produce a
 // an unformatted `String` that parser might produce if failure type is correct or panics
 // otherwise.
 type ParseFailure func(

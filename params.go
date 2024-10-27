@@ -23,7 +23,7 @@ import (
 //! ## Required flag
 //!
 //! Similar to `flag`, but instead of falling back to the second value required flag parser would
-//! fail. Mostly useful in combination with other parsers, created with [`NamedArgreq_flag`].
+//! fail. Mostly useful in combination with other parsers, created with [NamedArgreq_flag].
 //!
 // #![cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
 //!
@@ -130,7 +130,7 @@ func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) P
 // positional should be at the end of your `struct`/`enum`. Same rule applies
 // to parsers with positional fields or commands inside: such parsers should go to the end as well.
 //
-// Use [`check_invariants`](OptionParsercheck_invariants) in your test to ensure correctness.
+// Use [check_invariants](OptionParsercheck_invariants) in your test to ensure correctness.
 //
 // For example for non positional `non_pos` and a Command `Command` parsers
 // ```rust

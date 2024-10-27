@@ -50,7 +50,7 @@ impl Default for Info {
 
 /// Ready to run [Parser] with additional information attached
 ///
-/// Created with [`to_options`](Parser::to_options)
+/// Created with [to_options](Parser::to_options)
 ///
 /// In addition to the inner parser `OptionParser` contains documentation about a program or a
 /// subcommand as a whole, version, custom usage, if specified, and handles custom parsers for

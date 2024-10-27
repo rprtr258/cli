@@ -10,7 +10,7 @@ import (
 )
 
 // Parser that substitutes missing value with a function results but not parser
-// failure, created with [`fallback_with`](Parserfallback_with).
+// failure, created with [fallback_with](Parserfallback_with).
 type ParseFallbackWith[T any] struct {
 	inner     Parser[T]
 	fallback  func() Result[T]
@@ -49,7 +49,7 @@ func (self ParseFallbackWith[T]) meta() Meta {
 	}
 }
 
-// Parser with attached message to several fields, created with [`group_help`](Parsergroup_help).
+// Parser with attached message to several fields, created with [group_help](Parsergroup_help).
 type ParseGroupHelp[T any] struct {
 	inner   Parser[T]
 	message Doc
@@ -74,7 +74,7 @@ func (self ParseGroupHelp[T]) meta() Meta {
 	return MetaSubsection(meta, self.message)
 }
 
-// Parser with attached message to several fields, created with [`group_help`](Parsergroup_help).
+// Parser with attached message to several fields, created with [group_help](Parsergroup_help).
 type ParseWithGroupHelp[T any] struct {
 	inner Parser[T]
 	f     func(MetaInfo) Doc
@@ -143,59 +143,11 @@ func (self ParseSome[P]) meta() Meta {
 	return MetaMany(MetaRequired(self.inner.meta))
 }
 
-// Apply inner parser several times and collect results into `FromIterator`, created with
-// [collect](Parsercollect),
-// Implements [catch](ParseCollectcatch)
-type ParseCollect[T any] struct {
-	inner Parser[T]
-	catch bool
-}
-
-// Handle parse failures
-//
-// Can be useful to decide to skip parsing of some items on a command line
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
-func (self *ParseCollect[T]) Catch() *ParseCollect[T] {
-	self.catch = true
-	return self
-}
-
-// impl<T, C, P> Parser<C> for ParseCollect<P, C, T>
-func (self ParseCollect[T]) eval(args *State) Result[[]T] {
-	len := uint(math.MaxUint)
-	res := []T{}
-	for {
-		xx, err := parse_option(self.inner, &len, args, self.catch)
-		if err != nil {
-			return Err[[]T](err)
-		}
-		x, ok := xx.Unpack()
-		if !ok {
-			break
-		}
-		res = append(res, x)
-	}
-	return Ok(res)
-}
-
-func (self ParseCollect[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
-}
-
-// Parser that returns results as usual but not shown in `--help` output, created with
-// [Parserhide]
+// Parser that returns results as usual but not shown in `--help` output, created with [Parserhide]
 type ParseHide[T any] struct {
 	inner Parser[T]
 }
 
-// impl<T, P> Parser[T] for ParseHide<P>
-//
-//	P: Parser[T],
 func (self ParseHide[T]) eval(args *State) (T, Error) {
 	var comps []Comp
 
@@ -219,9 +171,6 @@ type ParseUsage[T any] struct {
 	usage Doc
 }
 
-// impl<T, P> Parser[T] for ParseUsage<P>
-//
-//	P: Parser[T],
 func (self ParseUsage[T]) eval(args *State) (T, Error) {
 	return self.inner.eval(args)
 }
@@ -230,8 +179,7 @@ func (self ParseUsage[P]) meta() Meta {
 	return MetaCustomUsage(self.inner.meta, self.usage)
 }
 
-// Parser that tries to either of two parsers and uses one that succeeeds, created with
-// [`Parseror_else`].
+// Parser that tries to either of two parsers and uses one that succeeeds, created with [Parseror_else].
 type ParseOrElse[T any] struct {
 	this Parser[T]
 	that Parser[T]
@@ -516,7 +464,7 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 
 // impl<P, T: stdfmtDisplay, F, E>
 // F: func()Result[T, E],
-// Show [`fallback_with`](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
+// Show [fallback_with](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
 // representation
 //
 // # If fallback function fails - no value will show up
@@ -533,7 +481,7 @@ func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 //
 //	F: func()Result[T, E],
 //
-// Show [`fallback_with`](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
+// Show [fallback_with](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
 // representation
 //
 // # If fallback function fails - no value will show up
@@ -668,27 +616,6 @@ func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
 	return Parser[Option[T]]{self.eval, MetaOptional(self.inner.meta)}
 }
 
-// Apply inner parser several times and collect results into `Vec`, created with
-// [many](Parsermany), implements [catch](ParseManycatch).
-type ParseMany[T any] struct {
-	inner Parser[T]
-	catch bool
-}
-
-// Handle parse failures
-//
-// Can be useful to decide to skip parsing of some items on a command line
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
-func (self *ParseMany[T]) Catch() *ParseMany[T] {
-	self.catch = true
-	return self
-}
-
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
@@ -733,26 +660,6 @@ func parse_option[T any](
 			return Invalid[T]()
 		}
 	}(), nil
-}
-
-// impl<T, P> Parser[[]T] for ParseMany<P>
-func (self ParseMany[T]) eval(args *State) ([]T, Error) {
-	len := uint(math.MaxUint)
-	res := []T{}
-	for {
-		vr, err := parse_option(self.inner, &len, args, self.catch)
-		if err != nil {
-			return nil, err
-		}
-
-		v, ok := vr.Unpack()
-		if !ok {
-			break
-		}
-
-		res = append(res, v)
-	}
-	return res, nil
 }
 
 // Parser that transforms parsed value with a function, created with [map](Parsermap).
