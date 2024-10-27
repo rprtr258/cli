@@ -143,7 +143,7 @@ func disambiguate_short(
 	short_flags []byte,
 	short_args []byte,
 	items *[]Arg,
-) Option[Message] {
+) (Message, bool) {
 	// block can start with 0 or more short flags
 	// followed by zero or one short argument, possibly with a body
 
@@ -160,7 +160,7 @@ func disambiguate_short(
 		// shortcircuit single character short fun.Options
 		if ix == 0 && rest == "" {
 			*items = append(*items, ArgShort(cc, false, os))
-			return Invalid[Message]()
+			return nil, false
 		}
 		a := bytes.ContainsRune(short_flags, c)
 		b := bytes.ContainsRune(short_args, c)
@@ -175,20 +175,20 @@ func disambiguate_short(
 			if adjacent_body {
 				*items = append(*items, ArgWord(rest))
 			}
-			return Invalid[Message]()
+			return nil, false
 		// neither is valid and there's more than one character. fallback to using it as a Word
 		case !a && !b:
 			*items = (*items)[:original]
 			*items = append(*items, ArgWord(os))
-			return Invalid[Message]()
+			return nil, false
 		// ambiguity, this is bad
 		case a && b:
 			msg := MessageAmbiguity(len(*items), short)
 			*items = append(*items, ArgWord(os))
-			return Valid(msg)
+			return msg, true
 		}
 	}
-	return Invalid[Message]()
+	return nil, false
 }
 
 type State struct {
@@ -279,7 +279,7 @@ LOOP:
 				short_flags,
 				short_args,
 				&items,
-			).Unpack(); ok {
+			); ok {
 				*err = Valid(msg)
 				break LOOP
 			}
