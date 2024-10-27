@@ -61,29 +61,6 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 	return res.unpack()
 }
 
-// Parser fails with a message if check returns false, created with [guard](Parserguard).
-type ParseGuard[T any] struct {
-	inner   Parser[T]
-	check   func(T) bool
-	message string
-}
-
-func (self ParseGuard[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.inner.meta}
-}
-
-func (self ParseGuard[T]) eval(args *State) (T, Error) {
-	t, err := self.inner.eval(args)
-	if err != nil {
-		return *new(T), err
-	}
-	if self.check(t) {
-		return t, nil
-	} else {
-		return *new(T), Error(MessageGuardFailed(args.current, self.message))
-	}
-}
-
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
