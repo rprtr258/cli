@@ -232,6 +232,10 @@ type Doc struct {
 	tokens  []Token
 }
 
+func (d Doc) String() string {
+	return d.render_console(true, Colordefault, MAX_WIDTH)
+}
+
 func (d Doc) to_completion() Option[string] {
 	l, ok := d.first_line()
 	if !ok {

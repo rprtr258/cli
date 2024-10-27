@@ -31,7 +31,7 @@ func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 			if e == nil {
 				return Ok(ok)
 			} else {
-				return Err[T](Error(MessagePureFailed(e.to_string())))
+				return Err[T](Error(MessagePureFailed(e.String())))
 			}
 		} else {
 			return Err[T](Error(e))
@@ -461,7 +461,7 @@ func (self ParseWith[T, R]) eval(args *State) Result[R] {
 
 	r, err := self.parse_fn(t).unpack()
 	if err != nil {
-		return Err[R](Error(MessageParseFailed(args.current, err.to_string())))
+		return Err[R](Error(MessageParseFailed(args.current, err.String())))
 	}
 
 	return Ok(r)
@@ -808,7 +808,7 @@ func (self ParsePureWith[T]) eval(*State) Result[T] {
 	if e == nil {
 		return Ok(ok)
 	}
-	return Err[T](Error(MessagePureFailed(e.to_string())))
+	return Err[T](Error(MessagePureFailed(e.String())))
 }
 
 func (self ParsePureWith[T]) meta() Meta {

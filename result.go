@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"iter"
 	"strings"
 
@@ -71,6 +72,14 @@ func strip_prefixb(s string, prefix byte) Option[string] {
 type Option[T any] struct {
 	Value T
 	Valid bool
+}
+
+func (o Option[T]) String() string {
+	if o.Valid {
+		return fmt.Sprintf("Some(%v)", o.Value)
+	} else {
+		return "None"
+	}
 }
 
 func Invalid[T any]() Option[T] {

@@ -1,6 +1,11 @@
 package cli
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+
+	"github.com/rprtr258/fun"
+)
 
 type Message func(
 	// those can be caught ---------------------------------------------------------------
@@ -369,7 +374,9 @@ func (self Message) String() string {
 		func(a string) string { return fmt.Sprintf("ParseSome(%#v)", a) },
 		func(a string) string { return fmt.Sprintf("ParseFail(%#v)", a) },
 		func(a string) string { return fmt.Sprintf("PureFailed(%#v)", a) },
-		func(a []MissingItem) string { return fmt.Sprintf("Missing(%#v)", a) },
+		func(a []MissingItem) string {
+			return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((MissingItem).String, a...), ", "))
+		},
 		func(a ParseFailure) string { return fmt.Sprintf("ParseFailure(%#v)", a) },
 		func(a uint, b Metavar) string { return fmt.Sprintf("StrictPos(%#v, %#v)", a, b) },
 		func(a uint, b Metavar) string { return fmt.Sprintf("NonStrictPos(%#v, %#v)", a, b) },

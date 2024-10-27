@@ -1,5 +1,7 @@
 package cli
 
+import "fmt"
+
 type Item struct {
 	help Option[Doc]
 	v    func(
@@ -107,6 +109,43 @@ func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[str
 			f(name, shorts, metavar, env)
 		}
 	}}
+}
+
+func (i Item) String() string {
+	var res string
+	i.v(
+		func(metavar Doc, anywhere bool) {
+			res = fmt.Sprintf(
+				"Any{help: %v, metavar: %#v, anywhere: %v}",
+				i.help, metavar, anywhere,
+			)
+		},
+		func(metavar Metavar) {
+			res = fmt.Sprintf(
+				"Positional{help: %v, metavar: %s}",
+				i.help, metavar,
+			)
+		},
+		func(name string, short Option[byte], meta Meta, info Info) {
+			res = fmt.Sprintf(
+				"Command{help: %v, name: %s, short: %#v, meta: %#v, info: %#v}",
+				i.help, name, short, meta, info,
+			)
+		},
+		func(name ShortLong, shorts []byte, env Option[string]) {
+			res = fmt.Sprintf(
+				"Flag{help: %v, name: %#v, shorts: %#v, env: %v}",
+				i.help, name, shorts, env,
+			)
+		},
+		func(name ShortLong, shorts []byte, metavar Metavar, env Option[string]) {
+			res = fmt.Sprintf(
+				"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v}",
+				i.help, name, shorts, metavar, env,
+			)
+		},
+	)
+	return res
 }
 
 func (self Item) is_pos() bool {

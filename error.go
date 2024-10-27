@@ -13,6 +13,7 @@ type Range [2]int
 func (r Range) start() int           { return r[0] }
 func (r Range) end() int             { return r[1] }
 func (r Range) contains(ix int) bool { return r[0] <= ix && ix < r[1] }
+func (r Range) String() string       { return fmt.Sprintf("[%d, %d]", r[0], r[1]) }
 
 // Missing item in a context
 type MissingItem struct {
@@ -22,6 +23,13 @@ type MissingItem struct {
 	position int
 	// Range where search was performed, important for combinators that narrow the search scope such as adjacent
 	scope Range
+}
+
+func (mi MissingItem) String() string {
+	return fmt.Sprintf(
+		"MissingItem{item: %s, position: %d, scope: %s}",
+		mi.item.String(), mi.position, mi.scope.String(),
+	)
 }
 
 // Unsuccessful command line parsing outcome, use it for unit tests
@@ -133,7 +141,7 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 // Unsuccessful command line parsing outcome, internal representation
 type Error Message
 
-func (self Error) to_string() string {
+func (self Error) String() string {
 	return Message(self).String()
 }
 

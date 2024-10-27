@@ -16,23 +16,18 @@ import (
 )
 
 func main() {
-	file := cli.Parse(cli.Optional(
+	file := cli.Parse(
 		cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 			Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
 			Parser(),
-	).Parser(), func(pathOpt cli.Option[string]) cli.Result[*os.File] {
-		path, ok := pathOpt.Unpack()
-		if !ok || path == "-" {
-			return cli.Ok(os.Stdin)
-		}
+		func(path string) cli.Result[*os.File] {
+			f, err := os.Open(string(path))
+			if err != nil {
+				return cli.Err[*os.File](cli.Error(cli.MessageParseFail(err.Error())))
+			}
 
-		f, err := os.Open(string(path))
-		if err != nil {
-			return cli.Err[*os.File](cli.Error(cli.MessageParseFail(err.Error())))
-		}
-
-		return cli.Ok(f)
-	}).
+			return cli.Ok(f)
+		}).
 		Parser().
 		ToOptions().
 		Descr("Concatenate a file to standard output").
