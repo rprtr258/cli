@@ -3,14 +3,13 @@ package cli
 import "fmt"
 
 // Preprocessed command line argument
-// /
 // [`string`] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
 	os_str string
 	value  func(
 		// short flag: `-f`
 		//
-		// bool indicates if following item is also part of this Short (created
+		// bool indicates if following item is also part of this Short
 		Short func(byte, bool),
 
 		// long flag: `--flag`
