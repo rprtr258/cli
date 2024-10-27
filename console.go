@@ -100,7 +100,6 @@ func (self Doc) monochrome(full bool) string {
 }
 
 func (self Doc) render_console(full bool, color Color, max_width uint) string {
-	res := ""
 	tabstop := 0
 	byte_pos := 0
 	{
@@ -132,19 +131,14 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	}
 	tabstop += 4
 
+	res := ""
 	stack := []Block{}
 	skip := Skip(0)
 	char_pos := 0
-
 	margins := []uint{}
-
-	// a single new line, unless one exists
-	pending_newline := false
-	// a double newline, unless one exists
-	pending_blank_line := false
-
+	pending_newline := false    // a single new line, unless one exists
+	pending_blank_line := false // a double newline, unless one exists
 	pending_margin := false
-
 	for _, token := range self.tokens {
 		switch {
 		case token.isText:

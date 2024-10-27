@@ -441,7 +441,6 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			doc.write(item.GoString(), StyleInvalid)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" is not expected in this context")
-			fmt.Println(doc)
 		},
 		func(ix int, name string) {
 			// Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
@@ -635,7 +634,6 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			doc.Text(" cannot be used multiple times in this context")
 		},
 	)
-
 	return ParseFailureStderr(doc)
 }
 
