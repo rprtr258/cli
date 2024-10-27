@@ -386,12 +386,11 @@ func (self State) conflict() Option[Range] {
 	if ix >= len(self.item_state) {
 		return Invalid[Range]()
 	}
-	res := Invalid[Range]()
 	if xxx := self.item_state[ix]; xxx.kind == ItemStateKindConflict {
 		other := xxx.conflict
-		res = Valid(Range{ix, other})
+		return Valid(Range{ix, other})
 	}
-	return res
+	return Invalid[Range]()
 }
 
 func (self *State) save_conflicts(loser State, win int) {
