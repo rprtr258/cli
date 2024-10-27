@@ -17,13 +17,13 @@ type Options struct {
 // matches literal name prefixed with - or +
 func toggleOptions(meta, name, help string) cli.Parser[bool] {
 	return cli.
-		Any(meta, func(s string) cli.Option[bool] {
+		Any(meta, func(s string) (bool, bool) {
 			if suf, ok := strings.CutPrefix(s, "+"); ok {
-				return cli.Option[bool]{true, suf == name}
+				return true, suf == name
 			} else if suf, ok := strings.CutPrefix(s, "-"); ok {
-				return cli.Option[bool]{false, suf == name}
+				return false, suf == name
 			} else {
-				return cli.Invalid[bool]()
+				return false, false
 			}
 		}).
 		Help(help).
@@ -33,14 +33,14 @@ func toggleOptions(meta, name, help string) cli.Parser[bool] {
 
 // matches literal +ext and -ext followed by extension name
 var extension cli.Parser[fun.Pair[string, bool]] = cli.
-	Map(cli.Pair(cli.Any("(+|-)ext", func(s string) cli.Option[bool] {
+	Map(cli.Pair(cli.Any("(+|-)ext", func(s string) (bool, bool) {
 		switch s {
 		case "-ext":
-			return cli.Valid(false)
+			return false, true
 		case "+ext":
-			return cli.Valid(true)
+			return true, true
 		default:
-			return cli.Invalid[bool]()
+			return false, false
 		}
 	}).
 		Anywhere().Parser(), cli.Positional("EXT", func(s string) (string, error) {

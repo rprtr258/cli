@@ -10,13 +10,9 @@ import (
 )
 
 var compression cli.Parser[uint] = cli.
-	Any("COMP", func(s string) cli.Option[uint] {
+	Any("COMP", func(s string) (uint, bool) {
 		x, err := strconv.ParseInt(s, 10, 64)
-		if err == nil && -9 <= x && x <= -1 {
-			return cli.Valid(uint(-x))
-		} else {
-			return cli.Invalid[uint]()
-		}
+		return uint(-x), err == nil && -9 <= x && x <= -1
 	}).
 	Metavar(cli.NewDocFromPairs([]fun.Pair[string, cli.Style]{
 		{"-1", cli.StyleLiteral},

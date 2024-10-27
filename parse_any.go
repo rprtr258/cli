@@ -6,7 +6,7 @@ import "github.com/rprtr258/fun"
 type ParseAny[T any] struct {
 	metavar  Doc
 	help     Option[Doc]
-	check    func(string) Option[T]
+	check    func(string) (T, bool)
 	anywhere bool
 }
 
@@ -57,7 +57,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 			nil, nil, nil,
 		)
 		os := x.str
-		if i, ok := (self.check)(os).Unpack(); ok {
+		if i, ok := self.check(os); ok {
 			args.remove(ix)
 			if next {
 				args.remove(ix + 1)
@@ -113,15 +113,13 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 //
 // # See also
 // [literal] - a specialized version of `any` that tries to parse a fixed literal
-func Any[T any](metavar string, check func(string) Option[T]) *ParseAny[T] {
+func Any[T any](metavar string, check func(string) (T, bool)) *ParseAny[T] {
 	return &ParseAny[T]{
 		metavar: NewDocFromPairs([]fun.Pair[string, Style]{
 			{metavar, StyleMetavar},
 		}),
-		help: Invalid[Doc](),
-		check: func(os string) Option[T] {
-			return check(os)
-		},
+		help:     Invalid[Doc](),
+		check:    check,
 		anywhere: false,
 	}
 }
@@ -139,8 +137,8 @@ func Any[T any](metavar string, check func(string) Option[T]) *ParseAny[T] {
 // [any] - a generic version of `Literal` that uses function to decide if value is to be parsed
 // or not.
 func Literal(val string) Parser[struct{}] {
-	p := Any("", func(s string) Option[struct{}] {
-		return Option[struct{}]{struct{}{}, s == val}
+	p := Any("", func(s string) (struct{}, bool) {
+		return struct{}{}, s == val
 	}).Metavar(NewDocFromPairs([]fun.Pair[string, Style]{
 		{val, StyleLiteral},
 	}))
