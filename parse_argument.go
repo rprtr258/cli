@@ -36,18 +36,18 @@ func (self *ParseArgument[T]) Adjacent() *ParseArgument[T] {
 	return self
 }
 
-func (self ParseArgument[T]) item() Option[Item] {
+func (self ParseArgument[T]) item() (Item, bool) {
 	name, ok := ShortLongtry_from(self.named)
 	if !ok {
-		return Invalid[Item]()
+		return Item{}, false
 	}
-	return Valid(ItemArgument(
+	return ItemArgument(
 		name,
 		self.named.short,
 		Metavar(self.metavar),
 		First(self.named.env),
 		self.named.help,
-	))
+	), true
 }
 
 func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
@@ -67,7 +67,7 @@ func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
 			return val, nil
 		}
 
-		if item, ok := self.item().Unpack(); ok {
+		if item, ok := self.item(); ok {
 			missing := MissingItem{
 				item:     item,
 				position: args.scope.start(),
@@ -96,7 +96,7 @@ func (self ParseArgument[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseArgument[T]) meta() Meta {
-	if item, ok := self.item().Unpack(); ok {
+	if item, ok := self.item(); ok {
 		return MetaItem(item)
 	} else {
 		return MetaSkip
