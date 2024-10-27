@@ -379,20 +379,20 @@ func (self State) pick_winner(other State) (bool, Option[uint]) {
 }
 
 // find first saved conflict
-func (self State) conflict() Option[Range] {
+func (self State) conflict() (Range, bool) {
 	next := self.items_iter()
 	ix, _, ok := next()
 	if !ok {
-		return Invalid[Range]()
+		return Range{}, false
 	}
 	if ix >= len(self.item_state) {
-		return Invalid[Range]()
+		return Range{}, false
 	}
 	if xxx := self.item_state[ix]; xxx.kind == ItemStateKindConflict {
 		other := xxx.conflict
-		return Valid(Range{ix, other})
+		return Range{ix, other}, true
 	}
-	return Invalid[Range]()
+	return Range{}, false
 }
 
 func (self *State) save_conflicts(loser State, win int) {

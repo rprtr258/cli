@@ -255,7 +255,7 @@ func (self ParseFailure) print_message(max_width uint) {
 }
 
 func check_conflicts(args State) Option[Message] {
-	loserwinner, ok := args.conflict().Unpack()
+	loserwinner, ok := args.conflict()
 	if !ok {
 		return Invalid[Message]()
 	}
