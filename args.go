@@ -535,8 +535,8 @@ func (self State) ranges(item Item) ArgRangesIter {
 	width := 0
 	item.v(
 		nil, nil, nil,
-		func(ShortLong, []byte, Option[string], Option[Doc]) { width = 1 },
-		func(ShortLong, []byte, Metavar, Option[string], Option[Doc]) { width = 2 },
+		func(ShortLong, []byte, Option[string]) { width = 1 },
+		func(ShortLong, []byte, Metavar, Option[string]) { width = 2 },
 	)
 	return ArgRangesIter{self, width, 0}
 }

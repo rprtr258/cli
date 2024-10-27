@@ -113,19 +113,19 @@ func (self Doc) write_shortlong(name ShortLong) {
 
 func (self Doc) write_item(item Item) {
 	item.v(
-		func(metavar Doc, _ bool, _ Option[Doc]) {
+		func(metavar Doc, _ bool) {
 			self.Doc(metavar)
 		},
-		func(metavar Metavar, _ Option[Doc]) {
+		func(metavar Metavar) {
 			self.metavar(metavar)
 		},
-		func(string, Option[byte], Option[Doc], Meta, Info) {
+		func(string, Option[byte], Meta, Info) {
 			self.write_str("COMMAND ...", StyleMetavar)
 		},
-		func(name ShortLong, _ []byte, _ Option[string], _ Option[Doc]) {
+		func(name ShortLong, _ []byte, _ Option[string]) {
 			self.write_shortlong(name)
 		},
-		func(name ShortLong, _ []byte, metavar Metavar, _ Option[string], _ Option[Doc]) {
+		func(name ShortLong, _ []byte, metavar Metavar, _ Option[string]) {
 			self.write_shortlong(name)
 			self.write_char('=', StyleText)
 			self.metavar(metavar)

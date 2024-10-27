@@ -1,21 +1,19 @@
 package cli
 
-// TODO: move out Option[Doc]
 type Item struct {
-	v func(
+	help Option[Doc]
+	v    func(
 		Any func(
 			metavar Doc,
 			// used by any, moves it from positionals into arguments
 			anywhere bool,
-			help Option[Doc],
 		),
 		// Positional item, consumed from the the front of the arguments
 		// <FILE>
-		Positional func(metavar Metavar, help Option[Doc]),
+		Positional func(metavar Metavar),
 		Command func(
 			name string,
 			short Option[byte],
-			help Option[Doc],
 			meta Meta,
 			info Info,
 		),
@@ -27,7 +25,6 @@ type Item struct {
 			// used for disambiguation
 			shorts []byte,
 			env Option[string],
-			help Option[Doc],
 		),
 		// Short or long name followed by a value, consumed anywhere
 		// -f <VAL>
@@ -38,77 +35,76 @@ type Item struct {
 			shorts []byte,
 			metavar Metavar,
 			env Option[string],
-			help Option[Doc],
 		),
 	)
 }
 
 func ItemAny(metavar Doc, anywhere bool, help Option[Doc]) Item {
-	return Item{func(
-		Any func(Doc, bool, Option[Doc]),
-		_ func(Metavar, Option[Doc]),
-		_ func(string, Option[byte], Option[Doc], Meta, Info),
-		_ func(ShortLong, []byte, Option[string], Option[Doc]),
-		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	return Item{help, func(
+		f func(Doc, bool),
+		_ func(Metavar),
+		_ func(string, Option[byte], Meta, Info),
+		_ func(ShortLong, []byte, Option[string]),
+		_ func(ShortLong, []byte, Metavar, Option[string]),
 	) {
-		if Any != nil {
-			Any(metavar, anywhere, help)
+		if f != nil {
+			f(metavar, anywhere)
 		}
 	}}
 }
 
 func ItemPositional(metavar Metavar, help Option[Doc]) Item {
-	return Item{func(
-		_ func(Doc, bool, Option[Doc]),
-		Positional func(Metavar, Option[Doc]),
-		_ func(string, Option[byte], Option[Doc], Meta, Info),
-		_ func(ShortLong, []byte, Option[string], Option[Doc]),
-		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	return Item{help, func(
+		_ func(Doc, bool),
+		f func(Metavar),
+		_ func(string, Option[byte], Meta, Info),
+		_ func(ShortLong, []byte, Option[string]),
+		_ func(ShortLong, []byte, Metavar, Option[string]),
 	) {
-		if Positional != nil {
-			Positional(metavar, help)
+		if f != nil {
+			f(metavar)
 		}
 	}}
 }
 
 func ItemCommand(name string, short Option[byte], help Option[Doc], meta Meta, info Info) Item {
-	return Item{func(
-		_ func(Doc, bool, Option[Doc]),
-		_ func(Metavar, Option[Doc]),
-		Command func(string, Option[byte], Option[Doc], Meta, Info),
-		_ func(ShortLong, []byte, Option[string], Option[Doc]),
-		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	return Item{help, func(
+		_ func(Doc, bool),
+		_ func(Metavar),
+		f func(string, Option[byte], Meta, Info),
+		_ func(ShortLong, []byte, Option[string]),
+		_ func(ShortLong, []byte, Metavar, Option[string]),
 	) {
-		if Command != nil {
-			Command(name, short, help, meta, info)
+		if f != nil {
+			f(name, short, meta, info)
 		}
 	}}
 }
 
 func ItemFlag(name ShortLong, shorts []byte, env Option[string], help Option[Doc]) Item {
-	return Item{func(
-		_ func(Doc, bool, Option[Doc]),
-		_ func(Metavar, Option[Doc]),
-		_ func(string, Option[byte], Option[Doc], Meta, Info),
-		Flag func(ShortLong, []byte, Option[string], Option[Doc]),
-		_ func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	return Item{help, func(
+		_ func(Doc, bool),
+		_ func(Metavar),
+		_ func(string, Option[byte], Meta, Info),
+		f func(ShortLong, []byte, Option[string]),
+		_ func(ShortLong, []byte, Metavar, Option[string]),
 	) {
-		if Flag != nil {
-			Flag(name, shorts, env, help)
+		if f != nil {
+			f(name, shorts, env)
 		}
 	}}
 }
 
 func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[string], help Option[Doc]) Item {
-	return Item{func(
-		_ func(Doc, bool, Option[Doc]),
-		_ func(Metavar, Option[Doc]),
-		_ func(string, Option[byte], Option[Doc], Meta, Info),
-		_ func(ShortLong, []byte, Option[string], Option[Doc]),
-		Argument func(ShortLong, []byte, Metavar, Option[string], Option[Doc]),
+	return Item{help, func(
+		_ func(Doc, bool),
+		_ func(Metavar),
+		_ func(string, Option[byte], Meta, Info),
+		_ func(ShortLong, []byte, Option[string]),
+		f func(ShortLong, []byte, Metavar, Option[string]),
 	) {
-		if Argument != nil {
-			Argument(name, shorts, metavar, env, help)
+		if f != nil {
+			f(name, shorts, metavar, env)
 		}
 	}}
 }
@@ -116,9 +112,9 @@ func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[str
 func (self Item) is_pos() bool {
 	var res bool
 	self.v(
-		func(_ Doc, anywhere bool, _ Option[Doc]) { res = !anywhere },
-		func(Metavar, Option[Doc]) { res = true },
-		func(string, Option[byte], Option[Doc], Meta, Info) { res = true },
+		func(_ Doc, anywhere bool) { res = !anywhere },
+		func(Metavar) { res = true },
+		func(string, Option[byte], Meta, Info) { res = true },
 		nil,
 		nil,
 	)
@@ -135,20 +131,18 @@ func (self *Item) normalize(short bool) {
 			name ShortLong,
 			shorts []byte,
 			env Option[string],
-			help Option[Doc],
 		) {
 			name.normalize(short)
-			*self = ItemFlag(name, shorts, env, help)
+			*self = ItemFlag(name, shorts, env, self.help)
 		},
 		func(
 			name ShortLong,
 			shorts []byte,
 			metavar Metavar,
 			env Option[string],
-			help Option[Doc],
 		) {
 			name.normalize(short)
-			*self = ItemArgument(name, shorts, metavar, env, help)
+			*self = ItemArgument(name, shorts, metavar, env, self.help)
 		},
 	)
 }

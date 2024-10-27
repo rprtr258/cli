@@ -671,7 +671,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 		i.item.v(
 			nil,
 			nil,
-			func(string, Option[byte], Option[Doc], Meta, Info) { cmd = true },
+			func(string, Option[byte], Meta, Info) { cmd = true },
 			nil,
 			nil,
 		)

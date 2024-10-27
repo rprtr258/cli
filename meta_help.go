@@ -508,13 +508,13 @@ func (self HelpItems) find_group() Option[Range] {
 func HiTyFromItem(value Item) HiTy {
 	var res HiTy
 	value.v(
-		func(_ Doc, anywhere bool, _ Option[Doc]) {
+		func(_ Doc, anywhere bool) {
 			res = fun.IF(anywhere, HiTyFlag, HiTyPositional)
 		},
-		func(Metavar, Option[Doc]) { res = HiTyPositional },
-		func(string, Option[byte], Option[Doc], Meta, Info) { res = HiTyCommand },
-		func(ShortLong, []byte, Option[string], Option[Doc]) { res = HiTyFlag },
-		func(ShortLong, []byte, Metavar, Option[string], Option[Doc]) { res = HiTyFlag },
+		func(Metavar) { res = HiTyPositional },
+		func(string, Option[byte], Meta, Info) { res = HiTyCommand },
+		func(ShortLong, []byte, Option[string]) { res = HiTyFlag },
+		func(ShortLong, []byte, Metavar, Option[string]) { res = HiTyFlag },
 	)
 	return res
 }
@@ -522,20 +522,20 @@ func HiTyFromItem(value Item) HiTy {
 func HelpItemFromItem(item Item) HelpItem {
 	var res HelpItem
 	item.v(
-		func(metavar Doc, anywhere bool, help Option[Doc]) {
-			res = HelpItemAny(metavar, anywhere, help)
+		func(metavar Doc, anywhere bool) {
+			res = HelpItemAny(metavar, anywhere, item.help)
 		},
-		func(metavar Metavar, help Option[Doc]) {
-			res = HelpItemPositional(metavar, help)
+		func(metavar Metavar) {
+			res = HelpItemPositional(metavar, item.help)
 		},
-		func(name string, short Option[byte], help Option[Doc], meta Meta, info Info) {
-			res = HelpItemCommand(name, short, help, meta, info)
+		func(name string, short Option[byte], meta Meta, info Info) {
+			res = HelpItemCommand(name, short, item.help, meta, info)
 		},
-		func(name ShortLong, shorts []byte, env Option[string], help Option[Doc]) {
-			res = HelpItemFlag(name, env, help)
+		func(name ShortLong, shorts []byte, env Option[string]) {
+			res = HelpItemFlag(name, env, item.help)
 		},
-		func(name ShortLong, shorts []byte, metavar Metavar, env Option[string], help Option[Doc]) {
-			res = HelpItemArgument(name, metavar, env, help)
+		func(name ShortLong, shorts []byte, metavar Metavar, env Option[string]) {
+			res = HelpItemArgument(name, metavar, env, item.help)
 		},
 	)
 	return res

@@ -187,7 +187,7 @@ func (self Meta) is_command() bool {
 		nil,
 		nil,
 		func(i Item) {
-			i.v(nil, nil, func(string, Option[byte], Option[Doc], Meta, Info) { res = true }, nil, nil)
+			i.v(nil, nil, func(string, Option[byte], Meta, Info) { res = true }, nil, nil)
 		},
 		nil,
 		func(m Meta, _ Doc) { res = m.is_command() },
@@ -238,7 +238,7 @@ func (self Meta) positional_invariant_check(verbose bool) {
 				case i.is_pos():
 					*is_pos = true
 				}
-				i.v(nil, nil, func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
+				i.v(nil, nil, func(_ string, _ Option[byte], meta Meta, _ Info) {
 					command_pos := false
 					if v {
 						fmt.Printf("Checking\n%#v\n", meta)
@@ -489,13 +489,13 @@ func (self Meta) collect_shorts(flags *[]byte, args *[]byte) {
 		func(m Item) {
 			m.v(
 				nil, nil,
-				func(_ string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
+				func(_ string, _ Option[byte], meta Meta, _ Info) {
 					meta.collect_shorts(flags, args)
 				},
-				func(_ ShortLong, shorts []byte, _ Option[string], _ Option[Doc]) {
+				func(_ ShortLong, shorts []byte, _ Option[string]) {
 					*flags = append(*flags, shorts...)
 				},
-				func(_ ShortLong, shorts []byte, _ Metavar, _ Option[string], _ Option[Doc]) {
+				func(_ ShortLong, shorts []byte, _ Metavar, _ Option[string]) {
 					*args = append(*args, shorts...)
 				},
 			)
