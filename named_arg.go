@@ -41,7 +41,7 @@ type NamedArg struct {
 }
 
 func (self NamedArg) flag_item() Option[Item] {
-	x, ok := ShortLongtry_from(self).Unpack()
+	x, ok := ShortLongtry_from(self)
 	if !ok {
 		return Invalid[Item]()
 	}

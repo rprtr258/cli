@@ -195,7 +195,7 @@ func Completenew(output_rev uint) Complete {
 func (self *State) push_flag(named NamedArg) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		if name, ok := ShortLongtry_from(named).Unpack(); ok {
+		if name, ok := ShortLongtry_from(named); ok {
 			comp.comps = append(comp.comps, CompFlag(
 				CompExtra{
 					depth: depth,
@@ -212,7 +212,7 @@ func (self *State) push_flag(named NamedArg) {
 func (self *State) push_argument(named NamedArg, metavar string) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut().Unpack(); ok {
-		if name, ok := ShortLongtry_from(named).Unpack(); ok {
+		if name, ok := ShortLongtry_from(named); ok {
 			comp.comps = append(comp.comps, CompArgument(
 				CompExtra{
 					depth: depth,

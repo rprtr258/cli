@@ -37,7 +37,7 @@ func (self *ParseArgument[T]) Adjacent() *ParseArgument[T] {
 }
 
 func (self ParseArgument[T]) item() Option[Item] {
-	name, ok := ShortLongtry_from(self.named).Unpack()
+	name, ok := ShortLongtry_from(self.named)
 	if !ok {
 		return Invalid[Item]()
 	}
