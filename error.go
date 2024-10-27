@@ -285,15 +285,15 @@ func textual_part(args State, ixxx Option[int]) Option[string] {
 	return res
 }
 
-func only_once(args State, cur int) Option[int] {
+func only_once(args State, cur int) (int, bool) {
 	if cur == 0 {
-		return Invalid[int]()
+		return 0, false
 	}
 
 	iter := rev(args.items[:cur])
 	v, ok := get(args.items, cur).Unpack()
 	if !ok {
-		return Invalid[int]()
+		return 0, false
 	}
 
 	var (
@@ -306,9 +306,9 @@ func only_once(args State, cur int) Option[int] {
 		nil, nil, nil,
 	)
 	if !okk {
-		return Invalid[int]()
+		return 0, false
 	}
-	return Valid(cur - offset - 1)
+	return cur - offset - 1, true
 }
 
 func (self *Message) render(args State, meta Meta) ParseFailure {
@@ -322,7 +322,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		func(ix uint) {
 			if conflict, ok := check_conflicts(args); ok {
 				*self = conflict
-			} else if prev_ix, ok := only_once(args, int(ix)).Unpack(); ok {
+			} else if prev_ix, ok := only_once(args, int(ix)); ok {
 				*self = MessageOnlyOnce(prev_ix, int(ix))
 			} else if ix, suggestion, ok := suggest(args, meta); ok {
 				*self = MessageSuggestion(ix, suggestion)
