@@ -19,7 +19,7 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 	comp_items := []Comp{}
 	args.swap_comps_with(&comp_items)
 
-	res := newResult(self.inner.eval(args))
+	res, err := self.inner.eval(args)
 
 	// at this point comp_items contains values added by the inner parser
 	args.swap_comps_with(&comp_items)
@@ -35,7 +35,7 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 		}
 	}
 
-	return res.unpack()
+	return res, err
 }
 
 // {{{

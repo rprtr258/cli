@@ -9,38 +9,6 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type Result[T any] struct {
-	Value T
-	Err   Error
-}
-
-func Ok[T any](v T) Result[T] {
-	return Result[T]{v, nil}
-}
-
-func Err[T any](err Error) Result[T] {
-	return Result[T]{*new(T), err}
-}
-
-func newResult[T any](v T, err Error) Result[T] {
-	return Result[T]{v, err}
-}
-
-func (r Result[T]) unpack() (T, Error) {
-	return r.Value, r.Err
-}
-
-func (r Result[T]) is_ok() bool {
-	return r.Err == nil
-}
-
-func (r Result[T]) unwrap() T {
-	if r.Err != nil {
-		panic(r.Err)
-	}
-	return r.Value
-}
-
 func get[T any](xs []T, ix int) Option[T] {
 	if ix < 0 || ix >= len(xs) {
 		return Invalid[T]()

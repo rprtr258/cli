@@ -13,10 +13,10 @@ func (self ParseGroupHelp[T]) Parser() Parser[T] {
 func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
 	comp_items := []Comp(nil)
 	args.swap_comps_with(&comp_items)
-	res := newResult(self.inner.eval(args))
+	res, err := self.inner.eval(args)
 	args.swap_comps_with(&comp_items)
 	args.push_with_group(self.message.to_completion(), &comp_items)
-	return res.unpack()
+	return res, err
 }
 
 func (self ParseGroupHelp[T]) meta() Meta {
@@ -51,14 +51,14 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 
 	args.swap_comps_with(&comps)
 
-	res := newResult(self.inner.eval(args))
+	res, err := self.inner.eval(args)
 
 	args.swap_comps_with(&comps)
-	if res.Err != nil && MessageF(Message(res.Err), MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
+	if err != nil && MessageF(Message(err), MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
 		return *new(T), Error(MessageMissing())
 	}
 
-	return res.unpack()
+	return res, err
 }
 
 // try to parse

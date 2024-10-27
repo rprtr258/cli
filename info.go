@@ -172,10 +172,10 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		return *new(T), ParseFailureStdout(buffer, false)
 	}
 
-	res := newResult(self.inner.eval(args))
-	if res.Err != nil {
+	res, errr := self.inner.eval(args)
+	if errr != nil {
 		var parseFailure ParseFailure
-		res.Err(nil, nil, nil, nil, nil, func(failure ParseFailure) {
+		errr(nil, nil, nil, nil, nil, func(failure ParseFailure) {
 			parseFailure = failure
 		}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 		if parseFailure != nil {
@@ -188,14 +188,14 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	var err Message
-	if res.Err != nil {
-		err = Message(res.Err)
+	if errr != nil {
+		err = Message(errr)
 	} else {
 		next := args.items_iter()
 		if ix, _, ok := next(); ok {
 			err = MessageUnconsumed(ix)
 		} else {
-			return res.Value, nil
+			return res, nil
 		}
 	}
 
