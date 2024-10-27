@@ -829,7 +829,7 @@ func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 }
 
 func (self ParseAny[T]) eval(args *State) Result[T] {
-	for ix, x := range args.items_iter() {
+	for ix, x := range push2(args.items_iter()) {
 		var next bool
 		x.value(
 			func(_ byte, c bool) { next = c },

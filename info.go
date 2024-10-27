@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"iter"
 	"os"
 
 	"github.com/rprtr258/fun"
@@ -194,8 +193,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	if res.Err != nil {
 		err = Message(res.Err)
 	} else {
-		next, stop := iter.Pull2(args.items_iter())
-		defer stop()
+		next := args.items_iter()
 		if ix, _, ok := next(); ok {
 			err = MessageUnconsumed(ix)
 		} else {

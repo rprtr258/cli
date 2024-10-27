@@ -250,19 +250,16 @@ func (self State) depth() uint {
 	return uint(len(self.path))
 }
 
-func ArgsIter(args *State, cur int) iter.Seq2[int, Arg] {
-	return func(yield func(int, Arg) bool) {
+func ArgsIter(args *State, cur int) func() (int, Arg, bool) {
+	return func() (int, Arg, bool) {
 		for {
 			ix := cur
-			if !args.scope.contains(ix) {
-				return
+			if !args.scope.contains(ix) || ix >= len(args.item_state) {
+				return 0, Arg{}, false
 			}
-			cur += 1
-			if ix >= len(args.item_state) {
-				return
-			}
-			if args.item_state[ix].present() && !yield(ix, args.items[ix]) {
-				return
+			cur++
+			if args.item_state[ix].present() {
+				return ix, args.items[ix], true
 			}
 		}
 	}
@@ -379,7 +376,7 @@ LOOP:
 }
 
 // creates iterator over remaining elements
-func (self *State) items_iter() iter.Seq2[int, Arg] {
+func (self *State) items_iter() func() (int, Arg, bool) {
 	return ArgsIter(
 		self,
 		self.scope[0],
@@ -407,8 +404,7 @@ func (self State) pick_winner(other State) (bool, Option[uint]) {
 
 // find first saved conflict
 func (self State) conflict() Option[Range] {
-	next, close := iter.Pull2(self.items_iter())
-	defer close()
+	next := self.items_iter()
 	ix, _, ok := next()
 	if !ok {
 		return Invalid[Range]()
@@ -582,7 +578,7 @@ func (self State) take_flag(named NamedArg) bool {
 		ok bool
 	)
 	iter := self.items_iter()
-	for i, arg := range iter {
+	for i, arg := range push2(iter) {
 		if named.matches_arg(arg, false) {
 			ix = i
 			ok = true
@@ -609,7 +605,7 @@ func (self State) take_arg(
 		ok     bool
 	)
 	iter := self.items_iter()
-	for i, arg := range iter {
+	for i, arg := range push2(iter) {
 		if named.matches_arg(arg, adjacent) {
 			key_ix = i
 			ok = true
@@ -649,7 +645,7 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 		w      Arg
 		ok     bool
 	)
-	for _, arg := range self.items_iter() {
+	for _, arg := range push2(self.items_iter()) {
 		arg.value(nil, nil, func() {
 			strict, ok = false, true
 		}, nil, func() {
@@ -676,8 +672,7 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 
 // take a static string argument from the first present argument
 func (self State) take_cmd(w string) bool {
-	next, cancel := iter.Pull2(self.items_iter())
-	defer cancel()
+	next := self.items_iter()
 	ix, a, ok := next()
 	if !ok || a.os_str != w {
 		goto INVALID
@@ -700,8 +695,7 @@ INVALID:
 
 // #[cfg(test)]
 func (self State) peek() Option[Arg] {
-	next, cancel := iter.Pull2(self.items_iter())
-	defer cancel()
+	next := self.items_iter()
 	_, a, ok := next()
 	return Option[Arg]{a, ok}
 }

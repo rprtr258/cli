@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"iter"
 	"math"
 	"strings"
 
@@ -73,8 +72,7 @@ func SuggestionNested(name string, variant Variant) Suggestion {
 
 // Looks for potential typos
 func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) {
-	next, stop := iter.Pull2(args.items_iter())
-	defer stop()
+	next := args.items_iter()
 	ix, arg, ok := next()
 	if !ok {
 		return_(0, nil, false)

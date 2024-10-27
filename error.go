@@ -3,7 +3,6 @@ package cli
 import (
 	"cmp"
 	"fmt"
-	"iter"
 	"os"
 	"slices"
 )
@@ -685,8 +684,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Message {
 
 	best_scope[0] = max(best_scope.start(), best_item.position)
 	args.set_scope(best_scope)
-	next, cancel := iter.Pull2(args.items_iter())
-	defer cancel()
+	next := args.items_iter()
 	if _, _, ok := next(); ok {
 		if ix, sugg, ok := suggest(args, inner); ok {
 			return MessageSuggestion(ix, sugg)

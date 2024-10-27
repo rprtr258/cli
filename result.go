@@ -217,3 +217,13 @@ func max_by_key[T any](xs iter.Seq[T], cmp func(a, b T) int) Option[T] {
 	}
 	return Option[T]{res, ok}
 }
+
+func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
+	return func(yield func(A, B) bool) {
+		for {
+			if a, b, ok := next(); !ok || !yield(a, b) {
+				return
+			}
+		}
+	}
+}
