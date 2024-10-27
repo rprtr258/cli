@@ -92,10 +92,10 @@ func (self *ArgScanner) check_next(arg string) bool {
 	return false
 }
 
-func (self ArgScanner) done() Option[Complete] {
+func (self ArgScanner) done() (Complete, bool) {
 	revision, ok := self.revision.Unpack()
 	if !ok {
-		return Invalid[Complete]()
+		return Complete{}, false
 	}
-	return Valid(Completenew(revision))
+	return Completenew(revision), true
 }

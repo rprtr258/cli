@@ -329,14 +329,14 @@ LOOP:
 		path = append(path, name)
 	}
 
-	comp := comp_scanner.done()
+	comp, ok := comp_scanner.done()
 	return State{
 		items,
 		item_state,
 		remaining,
 		Invalid[int](),
 		path,
-		comp,
+		Option[Complete]{comp, ok},
 		Range{0, len(items)},
 	}
 }
