@@ -200,7 +200,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 			res, err := self.inner.eval(&this_arg)
 			if err == nil {
 				// there's a smaller adjacent scope, we must try it before returning.
-				if adj_scope, ok := this_arg.adjacent_scope(*args).Unpack(); ok {
+				if adj_scope, ok := this_arg.adjacent_scope(*args); ok {
 					this_arg = *args
 					this_arg.set_scope(adj_scope)
 				} else {

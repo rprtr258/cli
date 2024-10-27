@@ -431,9 +431,9 @@ func (self State) is_comp() bool {
 }
 
 // Narrow down scope of &self to adjacently consumed values compared to original.
-func (self State) adjacent_scope(original State) Option[Range] {
+func (self State) adjacent_scope(original State) (Range, bool) {
 	if len(self.items) == 0 {
-		return Invalid[Range]()
+		return Range{}, false
 	}
 
 	// starting at the beginning of the scope look for the first mismatch
@@ -447,13 +447,13 @@ func (self State) adjacent_scope(original State) Option[Range] {
 		if this.present() && orig.present() {
 			proposed_scope := Range{start, offset}
 			if self.scope == proposed_scope {
-				return Invalid[Range]()
+				return Range{}, false
 			} else {
-				return Valid(proposed_scope)
+				return proposed_scope, true
 			}
 		}
 	}
-	return Invalid[Range]()
+	return Range{}, false
 }
 
 // Get a scope for an adjacently available block of item starting at start

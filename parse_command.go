@@ -154,7 +154,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 				return ok, nil
 			} else {
 				orig_scope := args.scope
-				if narrow_scope, ok := args.adjacent_scope(*orig_args).Unpack(); ok {
+				if narrow_scope, ok := args.adjacent_scope(*orig_args); ok {
 					orig_args.set_scope(narrow_scope)
 					if res, err := self.subparser.run_subparser(orig_args); err == nil {
 						orig_args.set_scope(orig_scope)
