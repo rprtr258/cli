@@ -406,7 +406,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 		func(x int, mv Metavar) {
 			// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
 			// Error: --foo requires an argument FOO
-			a, ok := args.get(x + 1).Unpack()
+			a, ok := args.get(x + 1)
 			if ok && (a.IsShort() || a.IsLong()) {
 				arg := &args.items[x]
 				os := a.str

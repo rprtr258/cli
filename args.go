@@ -415,11 +415,11 @@ func (self State) len() int {
 }
 
 // Get an argument from a scope that was not consumed yet
-func (self State) get(ix int) Option[Arg] {
+func (self State) get(ix int) (Arg, bool) {
 	if self.scope.contains(ix) && self.item_state[ix].present() {
-		return Valid(self.items[ix])
+		return self.items[ix], true
 	} else {
-		return Invalid[Arg]()
+		return Arg{}, false
 	}
 }
 
@@ -595,7 +595,7 @@ func (self *State) take_arg(
 
 	val_ix := key_ix + 1
 	var val string
-	if ww, ok := self.get(val_ix).Unpack(); ok && func() bool {
+	if ww, ok := self.get(val_ix); ok && func() bool {
 		res := false
 		ww.value(nil, nil, func() { res = true }, func() { res = true }, nil)
 		return res
