@@ -618,12 +618,19 @@ func (self State) take_positional_word(metavar Metavar) (int, bool, string, Erro
 		w      Arg
 		ok     bool
 	)
-	for _, arg := range push2(self.items_iter()) {
+	for ixix, arg := range push2(self.items_iter()) {
 		arg.value(nil, nil, nil, func() {
+			ix = ixix
 			strict, ok = false, true
+			w = arg
 		}, func() {
+			ix = ixix
 			strict, ok = true, true
+			w = arg
 		})
+		if ok {
+			break
+		}
 	}
 	if ok {
 		self.current = Valid(ix)
