@@ -250,10 +250,7 @@ func (self State) depth() uint {
 	return uint(len(self.path))
 }
 
-func ArgsIter(
-	args State,
-	cur int,
-) iter.Seq2[int, Arg] {
+func ArgsIter(args *State, cur int) iter.Seq2[int, Arg] {
 	return func(yield func(int, Arg) bool) {
 		for {
 			ix := cur
@@ -382,7 +379,7 @@ LOOP:
 }
 
 // creates iterator over remaining elements
-func (self State) items_iter() iter.Seq2[int, Arg] {
+func (self *State) items_iter() iter.Seq2[int, Arg] {
 	return ArgsIter(
 		self,
 		self.scope[0],

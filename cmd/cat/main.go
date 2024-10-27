@@ -16,6 +16,7 @@ import (
 )
 
 func main() {
+	// TODO: get back optional with stdin as default
 	file := cli.Parse(
 		cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 			Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
