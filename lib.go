@@ -310,50 +310,6 @@ func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
 	}
 }
 
-// combine
-// {{{ Fallback
-// Use this value as default if the value isn't present on a command line
-//
-// # Parser would still fail if the value is present but failure comes from some transformation
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-//
-// # See also
-// [fallback_with](Parserfallback_with) would allow to try to Fallback to a value that
-// comes from a failing computation such as reading a file. By default Fallback value will
-// not be shown in the `--help` output, you can change that by using
-// [display_fallback](ParseFallbackdisplay_fallback) and
-// [debug_fallback](ParseFallbackdebug_fallback).
-// }}}
-func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
-	return &ParseFallback[T]{
-		inner:     self,
-		value:     value,
-		value_str: "",
-	}
-}
-
-// {{{ fallback_with
-// Use value produced by this function as default if the value isn't present
-//
-// # Would still fail if the value is present but failure comes from some earlier transformation
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-//
-// # See also
-// [fallback](Parserfallback) implements similar logic expect that failures aren't expected.
-// By default fallback value will not be shown in the `--help` output, you can change that by using
-// [display_fallback](ParseFallbackWithdisplay_fallback) and
-// [debug_fallback](ParseFallbackWithdebug_fallback).
-// }}}
-func (self Parser[T]) fallback_with(fallback func() Result[T]) ParseFallbackWith[T] {
-	return ParseFallbackWith[T]{
-		inner:     self,
-		fallback:  fallback,
-		value_str: "",
-	}
-}
-
 // {{{ or_else
 // If first parser fails - try the second one
 //
