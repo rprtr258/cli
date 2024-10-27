@@ -287,19 +287,8 @@ import (
 //
 // ```
 type Parser[T any] struct {
-	// Evaluate inner function
-	//
-	// Mostly internal implementation details, you can try using it to test your parsers
-	// it's possible to move this function from the trait to the structs but having it
-	// in the trait ensures the composition always works
-	eval func(args *State) (T, Error)
-
-	// Included information about the parser
-	//
-	// Mostly internal implementation details, you can try using it to test your parsers
-	// it's possible to move this function from the trait to the structs but having it
-	// in the trait ensures the composition always works
-	meta Meta
+	eval func(args *State) (T, Error) // Evaluate inner function
+	meta Meta                         // Included information about the parser
 }
 
 // Parse
