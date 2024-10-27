@@ -17,7 +17,6 @@ type ParseFallbackWith[T any] struct {
 	value_str string
 }
 
-// impl<T, P, F, E> Parser[T] for ParseFallbackWith<T, P, F, E>
 func (self ParseFallbackWith[T]) eval(args *State) Result[T] {
 	clone := args
 	ok, e := self.inner.eval(clone)
@@ -59,7 +58,6 @@ func (self ParseGroupHelp[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-// impl<T, P> Parser[T] for ParseGroupHelp<P>
 func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
 	comp_items := []Comp(nil)
 	args.swap_comps_with(&comp_items)
@@ -80,7 +78,6 @@ type ParseWithGroupHelp[T any] struct {
 	f     func(MetaInfo) Doc
 }
 
-// impl<T, P, F> Parser[T] for ParseWithGroupHelp<P, F>
 func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
 	return self.inner.eval(args)
 }
@@ -90,57 +87,6 @@ func (self ParseWithGroupHelp[T]) meta() Meta {
 	buf := (self.f)(MetaInfo(meta))
 
 	return MetaSubsection(meta, buf)
-}
-
-// Apply inner parser several times and collect results into `Vec`, created with
-// [some](Parsersome), requires for at least one item to be available to succeed.
-// Implements [catch](ParseManycatch)
-type ParseSome[T any] struct {
-	inner   Parser[T]
-	message string
-	catch   bool
-}
-
-// Handle parse failures
-//
-// Can be useful to decide to skip parsing of some items on a command line
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
-func (self *ParseSome[T]) Catch() *ParseSome[T] {
-	self.catch = true
-	return self
-}
-
-// impl<T, P> Parser[[]T] for ParseSome<P>
-func (self ParseSome[T]) eval(args *State) Result[[]T] {
-	res := []T{}
-	len := uint(math.MaxUint)
-
-	for {
-		val, err := parse_option(self.inner, &len, args, self.catch)
-		if err != nil {
-			break
-		}
-		if val.Valid {
-			res = append(res, val.Value)
-		} else {
-			break
-		}
-	}
-
-	if is_empty(res) {
-		return Err[[]T](Error(MessageParseFail(self.message)))
-	} else {
-		return Ok(res)
-	}
-}
-
-func (self ParseSome[P]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
 }
 
 // Parser that returns results as usual but not shown in `--help` output, created with [Parserhide]
@@ -185,7 +131,6 @@ type ParseOrElse[T any] struct {
 	that Parser[T]
 }
 
-// impl[T] Parser[T] for ParseOrElse[T] {
 func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	var comp_items []Comp
 
@@ -381,8 +326,7 @@ func this_or_that_picks_first(
 	return Ok(resres.K)
 }
 
-// Parser that transforms parsed value with a failing function, created with
-// [parse](Parserparse)
+// Parser that transforms parsed value with a failing function, created with [parse](Parserparse)
 type ParseWith[T, R any] struct {
 	inner    Parser[T]
 	parse_fn func(T) Result[R]
@@ -392,7 +336,6 @@ func (self ParseWith[T, R]) Parser() Parser[R] {
 	return Parser[R]{self.eval, self.inner.meta}
 }
 
-// impl<T, P, F, E, R> Parser<R> for ParseWith<T, P, F, E, R>
 func (self ParseWith[T, R]) eval(args *State) (R, Error) {
 	t, err := self.inner.eval(args)
 	if err != nil {
@@ -443,7 +386,6 @@ func (self ParseFallback[T]) meta() Meta {
 	}
 }
 
-// impl<P, T: stdfmtDisplay> ParseFallback<P, T> {
 // Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay)
 // representation
 //
@@ -462,8 +404,6 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 	return *self
 }
 
-// impl<P, T: stdfmtDisplay, F, E>
-// F: func()Result[T, E],
 // Show [fallback_with](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
 // representation
 //
@@ -477,10 +417,6 @@ func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 	return *self
 }
 
-// impl<P, T: stdfmtDebug, F, E>
-//
-//	F: func()Result[T, E],
-//
 // Show [fallback_with](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
 // representation
 //
@@ -506,7 +442,6 @@ func (self ParseGuard[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.inner.meta}
 }
 
-// impl<T, P, F> Parser[T] for ParseGuard<P, F>
 func (self ParseGuard[T]) eval(args *State) (T, Error) {
 	t, err := self.inner.eval(args)
 	if err != nil {
@@ -554,7 +489,6 @@ type ParseLast[T any] struct {
 	inner Parser[T]
 }
 
-// impl<T, P> Parser[T] for ParseLast<P>
 func (self ParseLast[T]) eval(args *State) (T, Error) {
 	last := Invalid[T]()
 	current := args.len()
@@ -695,7 +629,6 @@ func (self ParseCon[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-// impl<T, P> Parser[T] for ParseCon<P>
 func (self ParseCon[T]) eval(args *State) (T, Error) {
 	res := self.inner(self.failfast, args)
 	args.current = Invalid[int]()
@@ -859,7 +792,6 @@ func (self ParseAdjacent[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaAdjacent(self.inner.meta)}
 }
 
-// impl<P, T> Parser[T] for ParseAdjacent<P>
 func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 	original_scope := args.scope
 

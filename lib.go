@@ -304,34 +304,6 @@ type Parser[T any] struct {
 	meta Meta
 }
 
-// {{{ some
-// Consume one or more items from a command line and collect them into a [Vec]
-//
-// # Takes a string used as an error message if there are no specified parameters
-//
-// `some` preserves any parsing failures and propagates them outwards, with an extra
-// [catch](ParseSomecatch) statement you can instead stop at the first value
-// that failed to parse and ignore it and all the subsequent ones.
-//
-// `some` will collect at most one result that does not consume anything from the argument
-// list allowing using it in combination with any parsers with a fallback. After the first
-// one, it will keep collecting the results as long as they consume something.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/some.md"))]
-//
-// # See also
-// [many](Parsermany) also collects results to a vector but succeeds with
-// no matching values. [collect](Parsercollect) collects results into a [FromIterator]
-// structure
-// }}}
-func (self Parser[T]) Some(message string) ParseSome[T] {
-	return ParseSome[T]{
-		inner:   self,
-		message: message,
-		catch:   false,
-	}
-}
-
 // {{{ fun.Optional
 // Turn a required argument into an fun.Optional one
 //
@@ -347,14 +319,13 @@ func (self Parser[T]) Some(message string) ParseSome[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Optional.md"))]
 // TODO: compiler ne mogyet v return Parser[Option[T]] in method
+// }}}
 func Optional[T any](self Parser[T]) *ParseOptional[T] {
 	return &ParseOptional[T]{
 		inner: self,
 		catch: false,
 	}
 }
-
-// }}}
 
 // Count how many times the inner parser succeeds, and return that number.
 //
