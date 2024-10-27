@@ -456,10 +456,10 @@ func PrefixLong(s string) Prefix {
 // before calling this method we run parser in "complete" mode and collect live heads inside
 // `self.comp`, this part goes over collected heads and generates possible completions from
 // that
-func (self State) check_complete() Option[string] {
+func (self State) check_complete() (string, bool) {
 	comp, ok := self.comp_ref()
 	if !ok {
-		return Invalid[string]()
+		return "", false
 	}
 
 	next, cancel := iter.Pull2(func(yield func(Arg, string) bool) {
@@ -476,7 +476,7 @@ func (self State) check_complete() Option[string] {
 	// can't do much completing with non-utf8 values since bpaf needs to print them to stdout
 	cur, lit, ok := next()
 	if !ok {
-		return Invalid[string]()
+		return "", false
 	}
 
 	// For cases like "-k=val", "-kval", "--key=val", "--key val"
@@ -521,7 +521,7 @@ func (self State) check_complete() Option[string] {
 
 	items, shell := comp.complete(lit, pos_only, is_named, prefix)
 
-	return Valid(func() string {
+	return func() string {
 		switch comp.output_rev {
 		case 0:
 			return render_test(items, shell, full_lit)
@@ -536,7 +536,7 @@ func (self State) check_complete() Option[string] {
 		default:
 			panic(fmt.Sprintf("Unsupported output revision %v, you need to genenerate your shell completion files for the app", comp.output_rev))
 		}
-	}())
+	}(), true
 }
 
 // Try to expand short string names into long names if possible

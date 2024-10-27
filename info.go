@@ -183,7 +183,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		}
 	}
 
-	if comp, ok := args.check_complete().Unpack(); ok {
+	if comp, ok := args.check_complete(); ok {
 		return *new(T), ParseFailureCompletion(comp)
 	}
 
