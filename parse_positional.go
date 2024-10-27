@@ -76,43 +76,31 @@ func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 }
 
 func (self ParsePositional[T]) eval(args *State) (T, Error) {
-	parse_pos_word := func(
-		args *State,
-		metavar Metavar,
-		help Option[Doc],
-		position Position,
-	) (string, Error) {
-		ix, is_strict, word, err := args.take_positional_word(metavar)
-		if err != nil {
-			if !args.check_no_pos_ahead() {
-				args.push_metavar(string(metavar), help, false)
-				args.set_no_pos_ahead()
-			}
-			return "", err
-		}
-
-		if position == PositionStrict && !is_strict {
-			args.push_pos_sep()
-			err = Error(MessageStrictPos(ix, metavar))
-		} else if position == PositionNonStrict && is_strict {
-			err = Error(MessageNonStrictPos(ix, metavar))
-		}
-		if err != nil {
-			return "", err
-		}
-
-		if args.touching_last_remove() && !args.check_no_pos_ahead() {
+	metavar := Metavar(self.metavar)
+	help := self.help
+	position := self.position
+	ix, is_strict, word, err := args.take_positional_word(metavar)
+	if err != nil {
+		if !args.check_no_pos_ahead() {
 			args.push_metavar(string(metavar), help, false)
 			args.set_no_pos_ahead()
 		}
-		return word, nil
-	}
-
-	os, err := parse_pos_word(args, Metavar(self.metavar), self.help, self.position)
-	if err != nil {
 		return *new(T), err
 	}
-	t, errr := self.p(os)
+
+	if position == PositionStrict && !is_strict {
+		args.push_pos_sep()
+		return *new(T), Error(MessageStrictPos(ix, metavar))
+	} else if position == PositionNonStrict && is_strict {
+		return *new(T), Error(MessageNonStrictPos(ix, metavar))
+	}
+
+	if args.touching_last_remove() && !args.check_no_pos_ahead() {
+		args.push_metavar(string(metavar), help, false)
+		args.set_no_pos_ahead()
+	}
+
+	t, errr := self.p(word)
 	if errr != nil {
 		return *new(T), Error(MessageParseFail(errr.Error()))
 	}
