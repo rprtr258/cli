@@ -826,38 +826,6 @@ func (self Parser[T]) run() T {
 	return self.ToOptions().Run()
 }
 
-// Parser that produces a fixed value
-//
-// This parser produces `T` without consuming anything from the command line, which can be useful
-// with [construct]. As with any parsers, `T` should be `Clone` and `Debug`.
-//
-// Both `pure` and [`pure_with`] are designed to put values into structures, to generate fallback
-// you should be using [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with).
-//
-// See also [`pure_with`] for a pure computation that can fail.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/pure.md"))]
-func pure[T any](val T) ParsePure[T] {
-	return ParsePure[T]{val}
-}
-
-// Wrap a calculated value into a `Parser`
-//
-// This parser represents a possibly failing equivalent to [pure].
-// It produces `T` by invoking the provided callback without consuming anything from the command
-// line, which can be useful with [construct]. As with any parsers, `T` should be `Clone`
-// and `Debug`.
-//
-// Both [pure] and `PureWith` are designed to put values into structures, to generate fallback
-// you should be using [fallback](Parserfallback) and [`fallback_with`](Parserfallback_with).
-//
-// See also [pure] for a pure computation that can't fail.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/PureWith.md"))]
-func PureWith[T any](val func() Result[T]) ParsePureWith[T] {
-	return ParsePureWith[T]{val}
-}
-
 // Deprecated: You should switch from command(name, sub) to sub.command(name)
 func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 	return ParseCommand[T]{

@@ -755,36 +755,6 @@ func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-// Parser that returns a given value without consuming anything, created with [pure](cratepure).
-type ParsePure[T any] struct {
-	inner T
-}
-
-// impl<T: Clone > Parser[T] for ParsePure[T] {
-func (self ParsePure[T]) eval(args *State) (T, Error) {
-	args.current = Invalid[int]()
-	return self.inner, nil
-}
-
-func (self ParsePure[T]) meta() Meta {
-	return MetaSkip
-}
-
-type ParsePureWith[T any] struct{ inner func() Result[T] }
-
-// impl[T: Clone] Parser[T]
-func (self ParsePureWith[T]) eval(*State) (T, Error) {
-	ok, e := self.inner().unpack()
-	if e == nil {
-		return ok, nil
-	}
-	return *new(T), Error(MessagePureFailed(e.String()))
-}
-
-func (self ParsePureWith[T]) meta() Meta {
-	return MetaSkip
-}
-
 // Parser that transforms parsed value with a function, created with [map](Parsermap).
 type ParseMap[T, R any] struct {
 	inner  Parser[T]
