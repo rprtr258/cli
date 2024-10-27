@@ -577,16 +577,16 @@ func arg_matches(arg string, name ShortLong) Option[string] {
 	return Valid(preferred_name(name))
 }
 
-func cmd_matches(arg string, name string, short Option[byte]) Option[string] {
+func cmd_matches(arg string, name string, short Option[byte]) (string, bool) {
 	// partial long name and exact short name switch anything
 	if strings.HasPrefix(name, arg) || map_or(short, false, func(s byte) bool {
 		// avoid allocations
 		return map_or(strip_prefixb(arg, s), false, stris_empty)
 	}) {
-		return Valid(name)
+		return name, true
 	}
 
-	return Invalid[string]()
+	return "", false
 }
 
 // this completion should suppress anything else that is not a value
@@ -670,7 +670,7 @@ F:
 				name string,
 				short Option[byte],
 			) {
-				if long, ok := cmd_matches(arg, name, short).Unpack(); ok {
+				if long, ok := cmd_matches(arg, name, short); ok {
 					items = append(items, ShowComp{
 						subst:  long,
 						pretty: long,
