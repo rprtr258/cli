@@ -347,10 +347,10 @@ type HelpItemsIter struct {
 	block  ItemBlock
 }
 
-func (self HelpItemsIter) next() Option[HelpItem] {
+func (self HelpItemsIter) next() (HelpItem, bool) {
 	for {
 		if self.cur >= len(self.items) {
-			return Invalid[HelpItem]()
+			return nil, false
 		}
 		item := self.items[self.cur]
 		self.cur += 1
@@ -389,7 +389,7 @@ func (self HelpItemsIter) next() Option[HelpItem] {
 			},
 		)
 		if keep {
-			return Valid(item)
+			return item, true
 		}
 	}
 }
@@ -403,7 +403,7 @@ func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
 	}
 	return func(yield func(HelpItem) bool) {
 		for {
-			x, ok := iter.next().Unpack()
+			x, ok := iter.next()
 			if !ok || !yield(x) {
 				break
 			}
