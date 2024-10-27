@@ -25,7 +25,7 @@ func (self *ParseSome[T]) Catch() *ParseSome[T] {
 	return self
 }
 
-func (self ParseSome[T]) eval(args *State) Result[[]T] {
+func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	res := []T{}
 	len := uint(math.MaxUint)
 
@@ -42,10 +42,10 @@ func (self ParseSome[T]) eval(args *State) Result[[]T] {
 	}
 
 	if is_empty(res) {
-		return Err[[]T](Error(MessageParseFail(self.message)))
-	} else {
-		return Ok(res)
+		return nil, Error(MessageParseFail(self.message))
 	}
+
+	return res, nil
 }
 
 func (self ParseSome[P]) meta() Meta {
