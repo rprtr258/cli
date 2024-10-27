@@ -291,37 +291,6 @@ type Parser[T any] struct {
 	meta Meta                         // Included information about the parser
 }
 
-// Parse
-// Apply a failing transformation to a contained value
-//
-// Transformation preserves the present/absent state of the value: to Parse an fun.Optional value you
-// can either first try to `Parse` it and then mark it as [optional](Parseroptional) or first
-// deal with the fun.Optionality and then Parse a value wrapped in [Option]. In most cases
-// the former approach is more concise.
-//
-// Similarly, it is possible to Parse multiple items with [many](Parsermany) or
-// [some](Parsersome) by either parsing a single item first and then turning it into a [Vec]
-// or collecting them into a [Vec] first and then parsing the whole vector. The former approach
-// is more concise.
-//
-// This is a most general of transforming parsers and you can express
-// [map](Parsermap) and [guard](Parserguard) in terms of it.
-//
-// Examples are a bit artificial, to Parse a value from a string you can specify
-// the type directly in the `argument`'s turbofish and then apply `map`.
-//
-// # Derive usage:
-// `Parse` takes a single parameter: function name to call. Function type should match
-// parameter `F` used by `Parse` in combinatoric API.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Parse.md"))]
-func Parse[T, R any](self Parser[T], f func(T) Result[R]) ParseWith[T, R] {
-	return ParseWith[T, R]{
-		inner:    self,
-		parse_fn: f,
-	}
-}
-
 // {{{ Guard
 // Validate or fail with a message
 //
@@ -480,30 +449,6 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 func (self Parser[T]) Hide() Parser[T] {
 	p := ParseHide[T]{inner: self}
 	return Parser[T]{p.eval, MetaSkip}
-}
-
-// Ignore this parser when generating a usage line
-//
-// Parsers hidden from usage will still show up in the available arguments list. Best used on
-// fun.Optional things that augment the main application functionality but not define it.
-// Alternatively, you can use [custom_usage](Parsercustom_usage) to replace a single
-// fun.Option or a group of them with some other text.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/HideUsage.md"))]
-func (self Parser[T]) HideUsage() ParseUsage[T] {
-	return ParseUsage[T]{
-		inner: self,
-		usage: Doc{},
-	}
-}
-
-// Customize how this parser looks like in the usage line
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/CustomUsage.md"))]
-func (self Parser[T]) CustomUsage(usage Doc) ParseUsage[T] {
-	return ParseUsage[T]{
-		inner: self,
-		usage: usage,
-	}
 }
 
 // {{{ GroupHelp

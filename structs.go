@@ -104,46 +104,6 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 	return res.unpack()
 }
 
-// Parser that hides inner parser from usage line
-//
-// No other changes to the inner parser
-type ParseUsage[T any] struct {
-	inner Parser[T]
-	usage Doc
-}
-
-func (self ParseUsage[T]) eval(args *State) (T, Error) {
-	return self.inner.eval(args)
-}
-
-func (self ParseUsage[P]) meta() Meta {
-	return MetaCustomUsage(self.inner.meta, self.usage)
-}
-
-// Parser that transforms parsed value with a failing function, created with [parse](Parserparse)
-type ParseWith[T, R any] struct {
-	inner    Parser[T]
-	parse_fn func(T) Result[R]
-}
-
-func (self ParseWith[T, R]) Parser() Parser[R] {
-	return Parser[R]{self.eval, self.inner.meta}
-}
-
-func (self ParseWith[T, R]) eval(args *State) (R, Error) {
-	t, err := self.inner.eval(args)
-	if err != nil {
-		return *new(R), err
-	}
-
-	r, err := self.parse_fn(t).unpack()
-	if err != nil {
-		return *new(R), Error(MessageParseFailed(args.current, err.String()))
-	}
-
-	return r, nil
-}
-
 // Parser that substitutes missing value but not parse failure, created with [fallback](Parserfallback).
 type ParseFallback[T any] struct {
 	inner     Parser[T]
