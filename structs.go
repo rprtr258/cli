@@ -1073,7 +1073,7 @@ func (self ParseAdjacent[T]) eval(args *State) Result[T] {
 
 	iter := args.ranges(first_item)
 	for {
-		start_width, ok := iter.next().Unpack()
+		start_width, ok := iter.next()
 		if !ok {
 			break
 		}

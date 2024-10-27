@@ -477,24 +477,24 @@ type ArgRangesIterItem struct {
 	state               State
 }
 
-func (self *ArgRangesIter) next() Option[ArgRangesIterItem] {
+func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
 	for {
 		cur := self.cur
 		if cur > self.args.scope.end() {
-			return Invalid[ArgRangesIterItem]()
+			return ArgRangesIterItem{}, false
 		}
 		self.cur += 1
 		if v := self.args.present(cur); v.Valid && !v.Value {
 			continue
 		}
 		if cur+self.width > len(self.args.items) {
-			return Invalid[ArgRangesIterItem]()
+			return ArgRangesIterItem{}, false
 		}
 		// It should be possible to optimize this code a bit
 		// by checking if first item can possibly
 		args := self.args
 		args.set_scope(Range{cur, len(self.args.items)})
-		return Valid(ArgRangesIterItem{cur, self.width, args})
+		return ArgRangesIterItem{cur, self.width, args}, true
 	}
 }
 
