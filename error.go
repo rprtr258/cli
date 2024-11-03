@@ -142,17 +142,17 @@ func can_catch(self Error) bool {
 
 func combine_with(self, other Error) Error {
 	// help output takes priority
-	if MessageF(self, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
+	if _, ok := self.(ErrorParseFailure); ok {
 		return self
 	}
-	if MessageF(other, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
+	if _, ok := other.(ErrorParseFailure); ok {
 		return other
 	}
 
 	// combine missing elements
-	var a, b []MissingItem
-	if MessageF(self, MessageFs[bool]{Missing: func(xs []MissingItem) bool { a = xs; return true }}) &&
-		MessageF(other, MessageFs[bool]{Missing: func(xs []MissingItem) bool { b = xs; return true }}) {
+	a, oka := self.(ErrorMissing)
+	b, okb := other.(ErrorMissing)
+	if oka && okb {
 		return ErrorMissing(append(a, b...))
 	}
 
