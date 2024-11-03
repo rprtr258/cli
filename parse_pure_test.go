@@ -59,16 +59,24 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 	})
 	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser()).ToOptions()
 
-	{
-		r, err := seeds.run_inner(newArgs("23", "59"))
-		requireNoParseFailure(t, err)
-		require.Equal(t, []uint32{23, 59}, r)
-	}
-
-	{
-		r, err := seeds.run_inner(newArgs())
-		requireNoParseFailure(t, err)
-		require.Equal(t, []uint32{3, 5, 7, 11}, r)
+	for name, tc := range map[string]struct {
+		args     []string
+		expected []uint32
+	}{
+		"23,59": {
+			args:     []string{"23", "59"},
+			expected: []uint32{23, 59},
+		},
+		"empty": {
+			args:     nil,
+			expected: []uint32{3, 5, 7, 11},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, err := seeds.run_inner(newArgs(tc.args...))
+			requireNoParseFailure(t, err)
+			require.Equal(t, tc.expected, r)
+		})
 	}
 }
 
