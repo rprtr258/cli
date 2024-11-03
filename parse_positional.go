@@ -108,12 +108,12 @@ func (self ParsePositional[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParsePositional[T]) meta() Meta {
-	meta := MetaItem(ItemPositional(
+	meta := Meta(MetaItem(ItemPositional(
 		Metavar(self.metavar),
 		self.help,
-	))
+	)))
 	if self.position == PositionStrict {
-		meta = MetaStrict(meta)
+		meta = MetaStrict{meta}
 	}
 	return meta
 }

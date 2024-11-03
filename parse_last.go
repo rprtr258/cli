@@ -30,7 +30,7 @@ func (self ParseLast[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseLast[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
+	return MetaMany{MetaRequired{self.inner.meta}}
 }
 
 // Apply the inner parser as many times as it succeeds, return the last value

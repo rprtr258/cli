@@ -41,7 +41,7 @@ func (self ParseCollect[T]) eval(args *State) ([]T, Error) {
 }
 
 func (self ParseCollect[T]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
+	return MetaMany{MetaRequired{self.inner.meta}}
 }
 
 // {{{ collect

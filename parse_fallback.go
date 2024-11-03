@@ -29,12 +29,12 @@ func (self ParseFallback[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseFallback[T]) meta() Meta {
-	m := MetaOptional(self.inner.meta)
+	m := MetaOptional{self.inner.meta}
 	if self.value_str == "" {
 		return m
 	} else {
 		buf := newDocFromString(self.value_str)
-		return MetaSuffix(m, buf)
+		return MetaSuffix{m, buf}
 	}
 }
 
@@ -108,12 +108,12 @@ func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseFallbackWith[T]) meta() Meta {
-	m := MetaOptional(self.inner.meta)
+	m := MetaOptional{self.inner.meta}
 	if self.value_str == "" {
 		return m
 	} else {
 		buf := newDocFromString(self.value_str)
-		return MetaSuffix(m, buf)
+		return MetaSuffix{m, buf}
 	}
 }
 

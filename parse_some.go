@@ -49,7 +49,7 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 }
 
 func (self ParseSome[P]) meta() Meta {
-	return MetaMany(MetaRequired(self.inner.meta))
+	return MetaMany{MetaRequired{self.inner.meta}}
 }
 
 // {{{ some

@@ -33,7 +33,7 @@ func (self *ParseOptional[T]) Catch() *ParseOptional[T] {
 }
 
 func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
-	return Parser[Option[T]]{self.eval, MetaOptional(self.inner.meta)}
+	return Parser[Option[T]]{self.eval, MetaOptional{self.inner.meta}}
 }
 
 // {{{ fun.Optional

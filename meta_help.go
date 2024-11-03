@@ -411,25 +411,33 @@ func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
 	}
 }
 
-func (self Meta) peek_front_ty() (HiTy, bool) {
+func peek_front_ty(self Meta) (HiTy, bool) {
 	var (
 		res HiTy
 		ok  bool
 	)
-	self(
-		func(xs []Meta) { res, ok = find_map(xs, (Meta).peek_front_ty) },
-		func(xs []Meta) { res, ok = find_map(xs, (Meta).peek_front_ty) },
-		func(x Meta) { res, ok = x.peek_front_ty() },
-		func(x Meta) { res, ok = x.peek_front_ty() },
-		func(x Meta) { res, ok = x.peek_front_ty() },
-		func(i Item) { res, ok = HiTyFromItem(i), true },
-		func(x Meta) { res, ok = x.peek_front_ty() },
-		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
-		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
-		nil,
-		func(x Meta, _ Doc) { res, ok = x.peek_front_ty() },
-		nil,
-	)
+	switch m := self.(type) {
+	case MetaAnd:
+		res, ok = find_map(m, peek_front_ty)
+	case MetaOr:
+		res, ok = find_map(m, peek_front_ty)
+	case MetaOptional:
+		res, ok = peek_front_ty(m.m)
+	case MetaRequired:
+		res, ok = peek_front_ty(m.m)
+	case MetaAdjacent:
+		res, ok = peek_front_ty(m.m)
+	case MetaItem:
+		res, ok = HiTyFromItem(Item(m)), true
+	case MetaMany:
+		res, ok = peek_front_ty(m.m)
+	case MetaSubsection:
+		res, ok = peek_front_ty(m.m)
+	case MetaSuffix:
+		res, ok = peek_front_ty(m.m)
+	case MetaCustomUsage:
+		res, ok = peek_front_ty(m.m)
+	}
 	return res, ok
 }
 
@@ -699,7 +707,7 @@ func render_help(
 	help_meta Meta,
 	include_env bool,
 ) Doc {
-	parser_meta.positional_invariant_check(false)
+	positional_invariant_check(parser_meta, false)
 	buf := Doc{}
 
 	if t, ok := info.descr.Unpack(); ok {

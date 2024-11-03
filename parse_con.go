@@ -90,7 +90,7 @@ func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
 }
 
 func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
-	meta := MetaAnd(pa.meta, pb.meta)
+	meta := MetaAnd{pa.meta, pb.meta}
 	type R = fun.Pair[A, B]
 	inner := func(failfast bool, args *State) (R, Error) {
 		verbose, err := pa.eval(args)

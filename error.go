@@ -49,39 +49,28 @@ func (mi MissingItem) String() string {
 // [ParseFailureunwrap_stdout] and [ParseFailureunwrap_stdout] - both of which produce a
 // an unformatted `String` that parser might produce if failure type is correct or panics
 // otherwise.
-type ParseFailure func(
-	// Print this to stdout and exit with success code
-	Stdout func(Doc, bool),
-	// This also goes to stdout with exit code of 0,
-	// this cannot be Doc because completion needs more control about rendering
-	Completion func(string),
-	// Print this to stderr and exit with failure code
-	Stderr func(Doc),
-)
-
-func ParseFailureStdout(doc Doc, b bool) ParseFailure {
-	return func(Stdout func(Doc, bool), _ func(string), _ func(Doc)) {
-		if Stdout != nil {
-			Stdout(doc, b)
-		}
-	}
+type ParseFailure interface {
+	isParseFailure()
 }
 
-func ParseFailureCompletion(comp string) ParseFailure {
-	return func(_ func(Doc, bool), Completion func(string), _ func(Doc)) {
-		if Completion != nil {
-			Completion(comp)
-		}
-	}
+// Print this to stdout and exit with success code
+type ParseFailureStdout struct {
+	msg  Doc
+	full bool
 }
 
-func ParseFailureStderr(doc Doc) ParseFailure {
-	return func(_ func(Doc, bool), _ func(string), Stderr func(Doc)) {
-		if Stderr != nil {
-			Stderr(doc)
-		}
-	}
-}
+func (ParseFailureStdout) isParseFailure() {}
+
+// This also goes to stdout with exit code of 0,
+// this cannot be Doc because completion needs more control about rendering
+type ParseFailureCompletion string
+
+func (ParseFailureCompletion) isParseFailure() {}
+
+// Print this to stderr and exit with failure code
+type ParseFailureStderr Doc
+
+func (ParseFailureStderr) isParseFailure() {}
 
 // TODO: OPTIMIZE: less memory could be used
 func dist(s, t string) int {
@@ -201,14 +190,16 @@ func (self Message) combine_with(other Message) Message {
 // # Panics
 //
 // Panics if failure contains `stdout`
-func (self ParseFailure) unwrap_stderr() string {
-	var res string
-	self(
-		func(Doc, bool) { panic(fmt.Sprintf("not an stderr: %#v", self)) },
-		func(string) { panic(fmt.Sprintf("not an stderr: %#v", self)) },
-		func(err Doc) { res = err.monochrome(true) },
-	)
-	return res
+func unwrap_stderr(self ParseFailure) string {
+	switch self := self.(type) {
+	case ParseFailureStdout:
+		panic(fmt.Sprintf("not an stderr: %#v", self))
+	case ParseFailureCompletion:
+		panic(fmt.Sprintf("not an stderr: %#v", self))
+	case ParseFailureStderr:
+		return Doc(self).monochrome(true)
+	}
+	panic("unreachable")
 }
 
 // Returns the contained `stdout` values - for unit tests
@@ -216,42 +207,38 @@ func (self ParseFailure) unwrap_stderr() string {
 // # Panics
 //
 // Panics if failure contains `stderr`
-func (self ParseFailure) unwrap_stdout() string {
-	var res string
-	self(
-		func(err Doc, full bool) { res = err.monochrome(full) },
-		func(s string) { res = s },
-		func(Doc) { panic(fmt.Sprintf("not an stdout: %#v", self)) },
-	)
-	return res
+func unwrap_stdout(self ParseFailure) string {
+	switch self := self.(type) {
+	case ParseFailureStdout:
+		return self.msg.monochrome(self.full)
+	case ParseFailureCompletion:
+		return string(self)
+	case ParseFailureStderr:
+		panic(fmt.Sprintf("not an stdout: %#v", self))
+	}
+	panic("unreachable")
 }
 
 // Returns the exit code for the failure
-func (self ParseFailure) exit_code() int {
-	res := 0
-	self(
-		nil,
-		nil,
-		func(Doc) { res = 1 },
-	)
-	return res
+func exit_code(self ParseFailure) int {
+	if _, ok := self.(ParseFailureStderr); ok {
+		return 1
+	}
+	return 0
 }
 
 // Prints a message to `stdout` or `stderr` appropriate to the failure.
-func (self ParseFailure) print_message(max_width uint) {
+func print_message(self ParseFailure, max_width uint) {
 	color := Colordefault
-	self(
-		func(msg Doc, full bool) {
-			fmt.Println(msg.render_console(full, color, max_width))
-		},
-		func(s string) {
-			fmt.Print(s)
-		},
-		func(msg Doc) {
-			error := color.push_str(StyleInvalid, "Error: ")
-			fmt.Fprintln(os.Stderr, error+msg.render_console(true, color, max_width))
-		},
-	)
+	switch self := self.(type) {
+	case ParseFailureStdout:
+		fmt.Println(self.msg.render_console(self.full, color, max_width))
+	case ParseFailureCompletion:
+		fmt.Print(string(self))
+	case ParseFailureStderr:
+		error := color.push_str(StyleInvalid, "Error: ")
+		fmt.Fprintln(os.Stderr, error+Doc(self).render_console(true, color, max_width))
+	}
 }
 
 func check_conflicts(args State) (Message, bool) {

@@ -256,6 +256,6 @@ func (self Item) required(required bool) Meta {
 	if required {
 		return boxed
 	} else {
-		return MetaOptional(boxed)
+		return MetaOptional{boxed}
 	}
 }

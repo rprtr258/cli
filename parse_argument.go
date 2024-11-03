@@ -99,7 +99,7 @@ func (self ParseArgument[T]) meta() Meta {
 	if item, ok := self.item(); ok {
 		return MetaItem(item)
 	} else {
-		return MetaSkip
+		return MetaSkip{}
 	}
 }
 

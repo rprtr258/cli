@@ -385,7 +385,7 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 // }}}
 func (self Parser[T]) Hide() Parser[T] {
 	p := ParseHide[T]{inner: self}
-	return Parser[T]{p.eval, MetaSkip}
+	return Parser[T]{p.eval, MetaSkip{}}
 }
 
 // {{{ GroupHelp

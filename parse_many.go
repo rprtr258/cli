@@ -70,5 +70,5 @@ func Many[T any](self Parser[T]) Parser[[]T] {
 		inner: self,
 		catch: false,
 	}
-	return Parser[[]T]{p.eval, MetaMany(MetaOptional(p.inner.meta))}
+	return Parser[[]T]{p.eval, MetaMany{MetaOptional{p.inner.meta}}}
 }

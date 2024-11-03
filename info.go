@@ -73,8 +73,8 @@ type OptionParser[T any] struct {
 func (self OptionParser[T]) Run() T {
 	t, err := self.run_inner(current_args())
 	if err != nil {
-		err.print_message(self.info.max_width)
-		os.Exit(err.exit_code())
+		print_message(err, self.info.max_width)
+		os.Exit(exit_code(err))
 	}
 	return t
 }
@@ -135,7 +135,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	// prepare available short flags and arguments for disambiguation
 	short_flags := []byte(nil)
 	short_args := []byte(nil)
-	self.inner.meta.collect_shorts(&short_flags, &short_args)
+	collect_shorts(self.inner.meta, &short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)
 	err := Invalid[Message]()
@@ -169,7 +169,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 			self.info.meta(),
 			true,
 		)
-		return *new(T), ParseFailureStdout(buffer, false)
+		return *new(T), ParseFailureStdout{buffer, false}
 	}
 
 	res, errr := self.inner.eval(args)
@@ -223,7 +223,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 				buffer = tmp
 			},
 		)
-		return *new(T), ParseFailureStdout(buffer, detailed)
+		return *new(T), ParseFailureStdout{buffer, detailed}
 	}
 	return *new(T), err.render(*args, self.inner.meta)
 }
@@ -535,7 +535,7 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 //
 // `check_invariants` indicates problems with panic
 func (self OptionParser[T]) check_invariants(bool) {
-	self.inner.meta.positional_invariant_check(true)
+	positional_invariant_check(self.inner.meta, true)
 }
 
 // Customize parser for `--help`
@@ -647,7 +647,7 @@ func (self Info) eval(args *State) (ExtraParams, Error) {
 func (self Info) meta() Meta {
 	help := self.mk_help_parser().meta()
 	if self.version.Valid {
-		return MetaAnd(help, self.mk_version_parser().meta())
+		return MetaAnd{help, self.mk_version_parser().meta()}
 	} else {
 		return help
 	}

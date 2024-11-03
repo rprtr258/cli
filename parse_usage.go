@@ -13,7 +13,7 @@ func (self ParseUsage[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseUsage[P]) meta() Meta {
-	return MetaCustomUsage(self.inner.meta, self.usage)
+	return MetaCustomUsage{self.inner.meta, self.usage}
 }
 
 // Ignore this parser when generating a usage line

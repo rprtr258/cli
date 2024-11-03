@@ -47,7 +47,7 @@ func (self ParseFlag[T]) meta() Meta {
 	if item, ok := self.named.flag_item(); ok {
 		return item.required(!self.absent.Valid)
 	} else {
-		return MetaSkip
+		return MetaSkip{}
 	}
 }
 

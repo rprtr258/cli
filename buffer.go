@@ -130,52 +130,52 @@ func (self *Doc) write_item(item Item) {
 func (self *Doc) write_meta(meta Meta, for_usage bool) {
 	var gO func(meta Meta, f *Doc)
 	gO = func(meta Meta, f *Doc) {
-		meta(
-			func(xs []Meta) {
-				for ix, x := range xs {
-					if ix != 0 {
-						f.write_str(" ", StyleText)
-					}
-					gO(x, f)
+		switch m := meta.(type) {
+		case MetaAnd:
+			for ix, x := range m {
+				if ix != 0 {
+					f.write_str(" ", StyleText)
 				}
-			},
-			func(xs []Meta) {
-				for ix, x := range xs {
-					if ix != 0 {
-						f.write_str(" | ", StyleText)
-					}
-					gO(x, f)
+				gO(x, f)
+			}
+		case MetaOr:
+			for ix, x := range m {
+				if ix != 0 {
+					f.write_str(" | ", StyleText)
 				}
-			},
-			func(m Meta) {
-				f.write_str("[", StyleText)
-				gO(m, f)
-				f.write_str("]", StyleText)
-			},
-			func(m Meta) {
-				f.write_str("(", StyleText)
-				gO(m, f)
-				f.write_str(")", StyleText)
-			},
-			func(m Meta) {
-				gO(m, f)
-				f.write_str("...", StyleText)
-			},
-			func(i Item) { f.write_item(i) },
-			func(m Meta) { gO(m, f) },
-			func(m Meta, _ Doc) { gO(m, f) },
-			func(m Meta, _ Doc) { gO(m, f) },
-			func() { /* f.write_str("no parameters expected", StyleText), */ },
-			func(_ Meta, u Doc) { f.Doc(u) },
-			func(m Meta) {
-				f.write_str("--", StyleLiteral)
-				f.write_str(" ", StyleText)
-				gO(m, f)
-			},
-		)
+				gO(x, f)
+			}
+		case MetaOptional:
+			f.write_str("[", StyleText)
+			gO(m, f)
+			f.write_str("]", StyleText)
+		case MetaRequired:
+			f.write_str("(", StyleText)
+			gO(m, f)
+			f.write_str(")", StyleText)
+		case MetaAdjacent:
+			gO(m, f)
+			f.write_str("...", StyleText)
+		case MetaItem:
+			f.write_item(Item(m))
+		case MetaMany:
+			gO(m, f)
+		case MetaSubsection:
+			gO(m, f)
+		case MetaSuffix:
+			gO(m, f)
+		case MetaSkip:
+			f.write_str("no parameters expected", StyleText)
+		case MetaCustomUsage:
+			f.Doc(m.u)
+		case MetaStrict:
+			f.write_str("--", StyleLiteral)
+			f.write_str(" ", StyleText)
+			gO(m, f)
+		}
 	}
 
-	meta = meta.normalized(for_usage)
+	meta = normalized(meta, for_usage)
 	self.token(TokenBlockStart(BlockMono))
 	gO(meta, self)
 	self.token(TokenBlockEnd(BlockMono))

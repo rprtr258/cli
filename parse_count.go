@@ -8,7 +8,7 @@ type ParseCount[T any] struct {
 }
 
 func (self ParseCount[T]) Parser() Parser[int] {
-	return Parser[int]{self.eval, MetaMany(MetaOptional(self.inner.meta))}
+	return Parser[int]{self.eval, MetaMany{MetaOptional{self.inner.meta}}}
 }
 
 func (self ParseCount[T]) eval(args *State) (int, Error) {

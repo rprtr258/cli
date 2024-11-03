@@ -165,5 +165,5 @@ func get_usage[T any](parser OptionParser[fmt.Formatter]) string {
 	if e == nil {
 		panic(x)
 	}
-	return e.unwrap_stdout()
+	return unwrap_stdout(e)
 }
