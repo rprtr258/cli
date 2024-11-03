@@ -7,13 +7,16 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TODO: move similar funcs to batteries and use
+func parseUint32(s string) (uint32, error) {
+	u, err := strconv.ParseUint(s, 10, 32)
+	return uint32(u), err
+}
+
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	// ~ this is a bit artifactial (it's better to use fallback_with instead actually),
 	// but this example demonstrates the concept
-	a := Argument(Short('t'), "N", func(s string) (uint32, error) {
-		u, err := strconv.ParseUint(s, 10, 32)
-		return uint32(u), err
-	})
+	a := Argument(Short('t'), "N", parseUint32)
 	b := PureWith(func() (uint32, Error) { return 42, nil })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
@@ -39,15 +42,14 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	}
 }
 
-// func default_value_using_pure_with_err() {
-//     let a = short('t').argument[uint32]("N");
-//     let b = pure_with::<_, _, string>(|| Err("some-err"));
+func TestDefaultValueUsingPureWithErr(t *testing.T) {
+	a := Argument(Short('t'), "N", parseUint32)
+	b := PureWith(func() (uint32, Error) { return 0, Error(MessageParseFail("some-err")) })
 
-//     let opts = construct([a, b]).to_options();
-//     let r = opts.run_inner(&[]);
-//     let e = r.unwrap_err().unwrap_stderr();
-//     require.Equal(t, "some-err", e);
-// }
+	opts := Choice(a.Parser(), b.Parser()).ToOptions()
+	_, err := opts.run_inner(newArgs())
+	require.Equal(t, "some-err", unwrap_stderr(err))
+}
 
 // func default_value_using_pure_with_ok_for_some() {
 //     let user_seeds = positional[uint32]("SEED").some("at least one required");

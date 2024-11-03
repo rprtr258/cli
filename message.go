@@ -347,35 +347,103 @@ type MessageFs[T any] struct {
 func MessageF[T any](m Message, fs MessageFs[T]) T {
 	var res T
 	m(
-		func(a string) { res = fs.NoEnv(a) },
-		func(a string) { res = fs.ParseSome(a) },
-		func(a string) { res = fs.ParseFail(a) },
-		func(a string) { res = fs.PureFailed(a) },
-		func(a []MissingItem) { res = fs.Missing(a) },
-		func(a ParseFailure) { res = fs.ParseFailure(a) },
-		func(a uint, b Metavar) { res = fs.StrictPos(a, b) },
-		func(a uint, b Metavar) { res = fs.NonStrictPos(a, b) },
-		func(a Option[uint], b string) { res = fs.ParseFailed(a, b) },
-		func(a Option[uint], b string) { res = fs.GuardFailed(a, b) },
-		func(a int, b Metavar) { res = fs.NoArgument(a, b) },
-		func(a int) { res = fs.Unconsumed(a) },
-		func(a int, b string) { res = fs.Ambiguity(a, b) },
-		func(a uint, b Suggestion) { res = fs.Suggestion(a, b) },
-		func(a uint, b uint) { res = fs.Conflict(a, b) },
-		func(a []Item, b Option[uint]) { res = fs.Expected(a, b) },
-		func(a uint, b uint) { res = fs.OnlyOnce(a, b) },
+		func(a string) {
+			if fs.NoEnv != nil {
+				res = fs.NoEnv(a)
+			}
+		},
+		func(a string) {
+			if fs.ParseSome != nil {
+				res = fs.ParseSome(a)
+			}
+		},
+		func(a string) {
+			if fs.ParseFail != nil {
+				res = fs.ParseFail(a)
+			}
+		},
+		func(a string) {
+			if fs.PureFailed != nil {
+				res = fs.PureFailed(a)
+			}
+		},
+		func(a []MissingItem) {
+			if fs.Missing != nil {
+				res = fs.Missing(a)
+			}
+		},
+		func(a ParseFailure) {
+			if fs.ParseFailure != nil {
+				res = fs.ParseFailure(a)
+			}
+		},
+		func(a uint, b Metavar) {
+			if fs.StrictPos != nil {
+				res = fs.StrictPos(a, b)
+			}
+		},
+		func(a uint, b Metavar) {
+			if fs.NonStrictPos != nil {
+				res = fs.NonStrictPos(a, b)
+			}
+		},
+		func(a Option[uint], b string) {
+			if fs.ParseFailed != nil {
+				res = fs.ParseFailed(a, b)
+			}
+		},
+		func(a Option[uint], b string) {
+			if fs.GuardFailed != nil {
+				res = fs.GuardFailed(a, b)
+			}
+		},
+		func(a int, b Metavar) {
+			if fs.NoArgument != nil {
+				res = fs.NoArgument(a, b)
+			}
+		},
+		func(a int) {
+			if fs.Unconsumed != nil {
+				res = fs.Unconsumed(a)
+			}
+		},
+		func(a int, b string) {
+			if fs.Ambiguity != nil {
+				res = fs.Ambiguity(a, b)
+			}
+		},
+		func(a uint, b Suggestion) {
+			if fs.Suggestion != nil {
+				res = fs.Suggestion(a, b)
+			}
+		},
+		func(a uint, b uint) {
+			if fs.Conflict != nil {
+				res = fs.Conflict(a, b)
+			}
+		},
+		func(a []Item, b Option[uint]) {
+			if fs.Expected != nil {
+				res = fs.Expected(a, b)
+			}
+		},
+		func(a uint, b uint) {
+			if fs.OnlyOnce != nil {
+				res = fs.OnlyOnce(a, b)
+			}
+		},
 	)
 	return res
 }
 
 func (self Message) String() string {
 	return MessageF(self, MessageFs[string]{
-		func(a string) string { return fmt.Sprintf("NoEnv(%#v)", a) },
-		func(a string) string { return fmt.Sprintf("ParseSome(%#v)", a) },
-		func(a string) string { return fmt.Sprintf("ParseFail(%#v)", a) },
-		func(a string) string { return fmt.Sprintf("PureFailed(%#v)", a) },
-		func(a []MissingItem) string {
-			return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((MissingItem).String, a...), ", "))
+		func(msg string) string { return fmt.Sprintf("NoEnv(%#v)", msg) },
+		func(msg string) string { return fmt.Sprintf("ParseSome(%#v)", msg) },
+		func(msg string) string { return fmt.Sprintf("ParseFail(%#v)", msg) },
+		func(msg string) string { return msg },
+		func(xs []MissingItem) string {
+			return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((MissingItem).String, xs...), ", "))
 		},
 		func(a ParseFailure) string { return fmt.Sprintf("ParseFailure(%#v)", a) },
 		func(a uint, b Metavar) string { return fmt.Sprintf("StrictPos(%#v, %#v)", a, b) },
@@ -387,7 +455,7 @@ func (self Message) String() string {
 		func(a int, b string) string { return fmt.Sprintf("Ambiguity(%#v, %#v)", a, b) },
 		func(a uint, b Suggestion) string { return fmt.Sprintf("Suggestion(%#v, %#v)", a, b) },
 		func(a uint, b uint) string { return fmt.Sprintf("Conflict(%#v, %#v)", a, b) },
-		func(a []Item, b Option[uint]) string { return fmt.Sprintf("Expected(%#v, %#v)", a, b) },
+		func(items []Item, b Option[uint]) string { return fmt.Sprintf("Expected(%#v, %#v)", items, b) },
 		func(a uint, b uint) string { return fmt.Sprintf("OnlyOnce(%#v, %#v)", a, b) },
 	})
 }
