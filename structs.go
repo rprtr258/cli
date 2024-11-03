@@ -83,7 +83,6 @@ func parse_option[T any](
 		// anything left unconsumed - this won't be lost.
 
 		_, missing := err.(ErrorMissing)
-
 		if catch || missing && orig_args.len() == args.len() || !missing && can_catch(Error(err)) {
 			*orig_args = *args
 

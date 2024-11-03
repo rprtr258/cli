@@ -174,12 +174,9 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 
 	res, errr := self.inner.eval(args)
 	if errr != nil {
-		var parseFailure ParseFailure
-		Message(errr, nil, nil, nil, nil, nil, func(failure ParseFailure) {
-			parseFailure = failure
-		}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
-		if parseFailure != nil {
-			return *new(T), parseFailure
+		parseFailure, ok := errr.(ErrorParseFailure)
+		if ok {
+			return *new(T), parseFailure.e
 		}
 	}
 
