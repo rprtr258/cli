@@ -17,7 +17,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 	}
 
 	var first_item Item
-	best_error := func() Message {
+	best_error := func() ErrorMessage {
 		first_item = item
 		missing_item := MissingItem{
 			item:     item,
@@ -89,7 +89,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 				if consumed > best_consumed {
 					best_consumed = consumed
 					stdmemswap(best_args, &this_arg)
-					best_error = Message(err)
+					best_error = ErrorMessage(err)
 				}
 				break
 			}

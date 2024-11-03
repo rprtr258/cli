@@ -7,7 +7,7 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type Message func(
+type ErrorMessage func(
 	// those can be caught ---------------------------------------------------------------
 	// Tried to consume an env variable with no fallback, variable was not set
 	NoEnv func(string),
@@ -70,7 +70,7 @@ type Message func(
 	OnlyOnce func( /* winner */ uint, uint),
 )
 
-func MessageNoEnv(s string) Message {
+func MessageNoEnv(s string) ErrorMessage {
 	return func(NoEnv, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if NoEnv != nil {
 			NoEnv(s)
@@ -78,7 +78,7 @@ func MessageNoEnv(s string) Message {
 	}
 }
 
-func MessageParseFailed(a Option[int], s string) Message {
+func MessageParseFailed(a Option[int], s string) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -101,7 +101,7 @@ func MessageParseFailed(a Option[int], s string) Message {
 	}
 }
 
-func MessageGuardFailed(a Option[int], s string) Message {
+func MessageGuardFailed(a Option[int], s string) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -124,7 +124,7 @@ func MessageGuardFailed(a Option[int], s string) Message {
 	}
 }
 
-func MessagePureFailed(s string) Message {
+func MessagePureFailed(s string) ErrorMessage {
 	return func(_, _, _, PureFailed func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if PureFailed != nil {
 			PureFailed(s)
@@ -132,7 +132,7 @@ func MessagePureFailed(s string) Message {
 	}
 }
 
-func MessageParseFailure(e ParseFailure) Message {
+func MessageParseFailure(e ParseFailure) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -155,7 +155,7 @@ func MessageParseFailure(e ParseFailure) Message {
 	}
 }
 
-func MessageStrictPos(a int, b Metavar) Message {
+func MessageStrictPos(a int, b Metavar) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -178,7 +178,7 @@ func MessageStrictPos(a int, b Metavar) Message {
 	}
 }
 
-func MessageNonStrictPos(a int, b Metavar) Message {
+func MessageNonStrictPos(a int, b Metavar) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -201,7 +201,7 @@ func MessageNonStrictPos(a int, b Metavar) Message {
 	}
 }
 
-func MessageMissing(xs ...MissingItem) Message {
+func MessageMissing(xs ...MissingItem) ErrorMessage {
 	return func(_, _, _, _ func(string), f func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(xs)
@@ -209,7 +209,7 @@ func MessageMissing(xs ...MissingItem) Message {
 	}
 }
 
-func MessageParseFail(s string) Message {
+func MessageParseFail(s string) ErrorMessage {
 	return func(_, _, _, f func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(s)
@@ -217,7 +217,7 @@ func MessageParseFail(s string) Message {
 	}
 }
 
-func MessageNoArgument(ix int, metavar Metavar) Message {
+func MessageNoArgument(ix int, metavar Metavar) ErrorMessage {
 	return func(_ func(string), _ func(string), _ func(string), _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), f func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(ix, metavar)
@@ -225,7 +225,7 @@ func MessageNoArgument(ix int, metavar Metavar) Message {
 	}
 }
 
-func MessageUnconsumed(a int) Message {
+func MessageUnconsumed(a int) ErrorMessage {
 	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), f func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(a)
@@ -233,7 +233,7 @@ func MessageUnconsumed(a int) Message {
 	}
 }
 
-func MessageAmbiguity(ix int, short string) Message {
+func MessageAmbiguity(ix int, short string) ErrorMessage {
 	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), f func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(ix, short)
@@ -241,7 +241,7 @@ func MessageAmbiguity(ix int, short string) Message {
 	}
 }
 
-func MessageSuggestion(a int, b Suggestion) Message {
+func MessageSuggestion(a int, b Suggestion) ErrorMessage {
 	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), f func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if f != nil {
 			f(uint(a), b)
@@ -249,7 +249,7 @@ func MessageSuggestion(a int, b Suggestion) Message {
 	}
 }
 
-func MessageConflict(a int, b int) Message {
+func MessageConflict(a int, b int) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -272,7 +272,7 @@ func MessageConflict(a int, b int) Message {
 	}
 }
 
-func MessageExpected(a []Item, b Option[int]) Message {
+func MessageExpected(a []Item, b Option[int]) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -295,7 +295,7 @@ func MessageExpected(a []Item, b Option[int]) Message {
 	}
 }
 
-func MessageOnlyOnce(a, b int) Message {
+func MessageOnlyOnce(a, b int) ErrorMessage {
 	return func(
 		_, _, _, _ func(string),
 		_ func([]MissingItem),
@@ -318,7 +318,7 @@ func MessageOnlyOnce(a, b int) Message {
 	}
 }
 
-func (m Message) IsMissing() bool {
+func (m ErrorMessage) IsMissing() bool {
 	return MessageF(m, MessageFs[bool]{
 		Missing: func([]MissingItem) bool { return true },
 	})
@@ -344,7 +344,7 @@ type MessageFs[T any] struct {
 	OnlyOnce     func(uint, uint) T
 }
 
-func MessageF[T any](m Message, fs MessageFs[T]) T {
+func MessageF[T any](m ErrorMessage, fs MessageFs[T]) T {
 	var res T
 	m(
 		func(a string) {
@@ -436,7 +436,7 @@ func MessageF[T any](m Message, fs MessageFs[T]) T {
 	return res
 }
 
-func (self Message) String() string {
+func (self ErrorMessage) String() string {
 	return MessageF(self, MessageFs[string]{
 		func(msg string) string { return fmt.Sprintf("NoEnv(%#v)", msg) },
 		func(msg string) string { return fmt.Sprintf("ParseSome(%#v)", msg) },

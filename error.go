@@ -127,17 +127,17 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 }
 
 // Unsuccessful command line parsing outcome, internal representation
-type Error Message
+type Error ErrorMessage
 
 func (self Error) String() string {
-	return Message(self).String()
+	return ErrorMessage(self).String()
 }
 
 func (self Error) combine_with(other Error) Error {
-	return Error(Message(self).combine_with(Message(other)))
+	return Error(ErrorMessage(self).combine_with(ErrorMessage(other)))
 }
 
-func (self Message) can_catch() bool {
+func (self ErrorMessage) can_catch() bool {
 	res := false
 	self(
 		func(string) { res = true },
@@ -161,7 +161,7 @@ func (self Message) can_catch() bool {
 	return res
 }
 
-func (self Message) combine_with(other Message) Message {
+func (self ErrorMessage) combine_with(other ErrorMessage) ErrorMessage {
 	// help output takes priority
 	if MessageF(self, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
 		return self
@@ -241,7 +241,7 @@ func print_message(self ParseFailure, max_width uint) {
 	}
 }
 
-func check_conflicts(args State) (Message, bool) {
+func check_conflicts(args State) (ErrorMessage, bool) {
 	loserwinner, ok := args.conflict()
 	if !ok {
 		return nil, false
@@ -298,7 +298,7 @@ func only_once(args State, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func (self *Message) render(args State, meta Meta) ParseFailure {
+func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
 	(*self)(
 		nil, nil, nil, nil,
@@ -631,7 +631,7 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 }
 
 // go over all the missing items, pick the left most scope
-func summarize_missing(items []MissingItem, inner Meta, args State) Message {
+func summarize_missing(items []MissingItem, inner Meta, args State) ErrorMessage {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(
 		slices.Values(items),

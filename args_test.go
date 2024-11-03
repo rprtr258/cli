@@ -11,7 +11,7 @@ var M Metavar = Metavar("M")
 
 func Statefrom(value []string) State {
 	args := newArgs(value...)
-	msg := Invalid[Message]()
+	msg := Invalid[ErrorMessage]()
 	res := stateconstruct(args, nil, nil, &msg)
 	if err, ok := msg.Unpack(); ok {
 		panic(fmt.Sprintf("Couldn't construct state: %#v/%#v", err, res))
@@ -46,7 +46,7 @@ func long_flag_and_positional(t *testing.T) {
 
 func multiple_short_flags(t *testing.T) {
 	args := newArgs("-vvv")
-	err := Invalid[Message]()
+	err := Invalid[ErrorMessage]()
 	a := stateconstruct(args, []byte{'v'}, []byte{}, &err)
 	require.True(t, a.take_flag(Short('v')))
 	require.True(t, a.take_flag(Short('v')))
@@ -160,7 +160,7 @@ func positionals_after_double_dash3(t *testing.T) {
 
 func ambiguity_towards_flag(t *testing.T) {
 	args := newArgs("-abc")
-	err := Invalid[Message]()
+	err := Invalid[ErrorMessage]()
 	a := stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{}, &err)
 
 	require.True(t, a.take_flag(Short('a')))
@@ -170,7 +170,7 @@ func ambiguity_towards_flag(t *testing.T) {
 
 func ambiguity_towards_argument(t *testing.T) {
 	args := newArgs("-abc")
-	err := Invalid[Message]()
+	err := Invalid[ErrorMessage]()
 	a := stateconstruct(args, []byte{}, []byte{'a'}, &err)
 
 	r := unwrapunwrap(a.take_arg(Short('a'), false, M))
@@ -179,7 +179,7 @@ func ambiguity_towards_argument(t *testing.T) {
 
 func ambiguity_towards_error(t *testing.T) {
 	args := newArgs("-abc")
-	err := Invalid[Message]()
+	err := Invalid[ErrorMessage]()
 	_ = stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{'a'}, &err)
 	require.True(t, err.Valid)
 }

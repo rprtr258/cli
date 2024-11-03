@@ -145,7 +145,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 			ok, xxx := self.
 				subparser.
 				run_subparser(args)
-			var err Message
+			var err ErrorMessage
 			if xxx != nil {
 				err = MessageParseFailure(xxx)
 			}

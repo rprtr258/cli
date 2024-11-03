@@ -138,12 +138,12 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	collect_shorts(self.inner.meta, &short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)
-	err := Invalid[Message]()
+	err := Invalid[ErrorMessage]()
 	state := stateconstruct(args, short_flags, short_args, &err)
 
 	// this only handles disambiguation failure in construct
 	if msg, ok := err.Unpack(); ok && !func() bool { _, ok := state.comp_ref(); return ok }() {
-		return *new(T), fun.Ptr(Message(msg)).render(state, self.inner.meta)
+		return *new(T), fun.Ptr(ErrorMessage(msg)).render(state, self.inner.meta)
 	}
 
 	return self.run_subparser(&state)
@@ -187,9 +187,9 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		return *new(T), ParseFailureCompletion(comp)
 	}
 
-	var err Message
+	var err ErrorMessage
 	if errr != nil {
-		err = Message(errr)
+		err = ErrorMessage(errr)
 	} else {
 		if ix, _, ok := args.items_iter()(); ok {
 			err = MessageUnconsumed(ix)
