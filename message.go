@@ -48,16 +48,16 @@ func (ErrorParseFailure) isError() {}
 
 // Tried to consume a strict positional argument, value was present but was not strictly positional
 type ErrorStrictPos struct {
-	a int
-	b Metavar
+	a       int
+	metavar Metavar
 }
 
 func (ErrorStrictPos) isError() {}
 
 // Tried to consume a non-strict positional argument, but the value was strict
 type ErrorNonStrictPos struct {
-	a int
-	b Metavar
+	a       int
+	metavar Metavar
 }
 
 func (ErrorNonStrictPos) isError() {}
@@ -65,7 +65,7 @@ func (ErrorNonStrictPos) isError() {}
 // Parser provided by user failed to parse a value
 type ErrorParseFailed struct {
 	a Option[int]
-	b string
+	s string
 }
 
 func (ErrorParseFailed) isError() {}
@@ -73,7 +73,7 @@ func (ErrorParseFailed) isError() {}
 // Parser provided by user failed to validate a value
 type ErrorGuardFailed struct {
 	a Option[int]
-	b string
+	s string
 }
 
 func (ErrorGuardFailed) isError() {}
@@ -85,8 +85,8 @@ func (ErrorGuardFailed) isError() {}
 //	--foo -- bar
 //	--foo
 type ErrorNoArgument struct {
-	a int
-	b Metavar
+	ix      int
+	metavar Metavar
 }
 
 func (ErrorNoArgument) isError() {}
@@ -99,16 +99,16 @@ func (ErrorUnconsumed) isError() {}
 
 // argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
 type ErrorAmbiguity struct {
-	a int
-	b string
+	ix   int
+	name string
 }
 
 func (ErrorAmbiguity) isError() {}
 
 // Suggested fixes for typos or missing input
 type ErrorSuggestion struct {
-	a int
-	b Suggestion
+	ix         int
+	suggestion Suggestion
 }
 
 func (ErrorSuggestion) isError() {}
@@ -121,8 +121,8 @@ func (ErrorConflict) isError() {}
 
 // Expected one or more items in the scope, got someting else if any
 type ErrorExpected struct {
-	a []Item
-	b Option[int]
+	expected []Item
+	actual   Option[int]
 }
 
 func (ErrorExpected) isError() {}
@@ -131,98 +131,6 @@ func (ErrorExpected) isError() {}
 type ErrorOnlyOnce struct{ winner, loser int }
 
 func (ErrorOnlyOnce) isError() {}
-
-func Message(
-	self Error,
-	errorNoEnv func(string),
-	errorParseSome func(string),
-	errorParseFail func(string),
-	errorPureFailed func(string),
-	errorMissing func([]MissingItem),
-	errorParseFailure func(ParseFailure),
-	errorStrictPos func(int, Metavar),
-	errorNonStrictPos func(int, Metavar),
-	errorParseFailed func(Option[int], string),
-	errorGuardFailed func(Option[int], string),
-	errorNoArgument func(int, Metavar),
-	errorUnconsumed func(int),
-	errorAmbiguity func(int, string),
-	errorSuggestion func(int, Suggestion),
-	errorConflict func(int, int),
-	errorExpected func([]Item, Option[int]),
-	errorOnlyOnce func(int, int),
-) {
-	switch self := self.(type) {
-	case ErrorNoEnv:
-		if errorNoEnv != nil {
-			errorNoEnv(string(self))
-		}
-	case ErrorParseSome:
-		if errorParseSome != nil {
-			errorParseSome(string(self))
-		}
-	case ErrorParseFail:
-		if errorParseFail != nil {
-			errorParseFail(string(self))
-		}
-	case ErrorPureFailed:
-		if errorPureFailed != nil {
-			errorPureFailed(string(self))
-		}
-	case ErrorMissing:
-		if errorMissing != nil {
-			errorMissing(self)
-		}
-	case ErrorParseFailure:
-		if errorParseFailure != nil {
-			errorParseFailure(self.e)
-		}
-	case ErrorStrictPos:
-		if errorStrictPos != nil {
-			errorStrictPos(self.a, self.b)
-		}
-	case ErrorNonStrictPos:
-		if errorNonStrictPos != nil {
-			errorNonStrictPos(self.a, self.b)
-		}
-	case ErrorParseFailed:
-		if errorParseFailed != nil {
-			errorParseFailed(self.a, self.b)
-		}
-	case ErrorGuardFailed:
-		if errorGuardFailed != nil {
-			errorGuardFailed(self.a, self.b)
-		}
-	case ErrorNoArgument:
-		if errorNoArgument != nil {
-			errorNoArgument(self.a, self.b)
-		}
-	case ErrorUnconsumed:
-		if errorUnconsumed != nil {
-			errorUnconsumed(int(self))
-		}
-	case ErrorAmbiguity:
-		if errorAmbiguity != nil {
-			errorAmbiguity(self.a, self.b)
-		}
-	case ErrorSuggestion:
-		if errorSuggestion != nil {
-			errorSuggestion(self.a, self.b)
-		}
-	case ErrorConflict:
-		if errorConflict != nil {
-			errorConflict(self.winner, self.loser)
-		}
-	case ErrorExpected:
-		if errorExpected != nil {
-			errorExpected(self.a, self.b)
-		}
-	case ErrorOnlyOnce:
-		if errorOnlyOnce != nil {
-			errorOnlyOnce(self.winner, self.loser)
-		}
-	}
-}
 
 type MessageFs[T any] struct {
 	NoEnv        func(string) T
@@ -272,23 +180,23 @@ func MessageF[T any](m Error, fs MessageFs[T]) T {
 		}
 	case ErrorStrictPos:
 		if fs.StrictPos != nil {
-			return fs.StrictPos(m.a, m.b)
+			return fs.StrictPos(m.a, m.metavar)
 		}
 	case ErrorNonStrictPos:
 		if fs.NonStrictPos != nil {
-			return fs.NonStrictPos(m.a, m.b)
+			return fs.NonStrictPos(m.a, m.metavar)
 		}
 	case ErrorParseFailed:
 		if fs.ParseFailed != nil {
-			return fs.ParseFailed(m.a, m.b)
+			return fs.ParseFailed(m.a, m.s)
 		}
 	case ErrorGuardFailed:
 		if fs.GuardFailed != nil {
-			return fs.GuardFailed(m.a, m.b)
+			return fs.GuardFailed(m.a, m.s)
 		}
 	case ErrorNoArgument:
 		if fs.NoArgument != nil {
-			return fs.NoArgument(m.a, m.b)
+			return fs.NoArgument(m.ix, m.metavar)
 		}
 	case ErrorUnconsumed:
 		if fs.Unconsumed != nil {
@@ -296,11 +204,11 @@ func MessageF[T any](m Error, fs MessageFs[T]) T {
 		}
 	case ErrorAmbiguity:
 		if fs.Ambiguity != nil {
-			return fs.Ambiguity(m.a, m.b)
+			return fs.Ambiguity(m.ix, m.name)
 		}
 	case ErrorSuggestion:
 		if fs.Suggestion != nil {
-			return fs.Suggestion(m.a, m.b)
+			return fs.Suggestion(m.ix, m.suggestion)
 		}
 	case ErrorConflict:
 		if fs.Conflict != nil {
@@ -308,7 +216,7 @@ func MessageF[T any](m Error, fs MessageFs[T]) T {
 		}
 	case ErrorExpected:
 		if fs.Expected != nil {
-			return fs.Expected(m.a, m.b)
+			return fs.Expected(m.expected, m.actual)
 		}
 	case ErrorOnlyOnce:
 		if fs.OnlyOnce != nil {
