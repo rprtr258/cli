@@ -82,9 +82,9 @@ func parse_option[T any](
 		// When parser returns Ok(Invalid()) we should return the original arguments so if there's
 		// anything left unconsumed - this won't be lost.
 
-		missing := IsMissing(err)
+		_, missing := err.(ErrorMissing)
 
-		if catch || (missing && orig_args.len() == args.len()) || (!missing && can_catch(Error(err))) {
+		if catch || missing && orig_args.len() == args.len() || !missing && can_catch(Error(err)) {
 			*orig_args = *args
 
 			if _, ok := orig_args.comp_mut(); ok {

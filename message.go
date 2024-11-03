@@ -224,12 +224,6 @@ func Message(
 	}
 }
 
-func IsMissing(m Error) bool {
-	return MessageF(m, MessageFs[bool]{
-		Missing: func([]MissingItem) bool { return true },
-	})
-}
-
 type MessageFs[T any] struct {
 	NoEnv        func(string) T
 	ParseSome    func(string) T
