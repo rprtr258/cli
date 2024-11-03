@@ -90,7 +90,7 @@ func (self ParseArgument[T]) eval(args *State) (T, Error) {
 
 	t, errr := self.p(os)
 	if errr != nil {
-		return *new(T), Error(MessageParseFailed(args.current, errr.Error()))
+		return *new(T), Error(ErrorParseFailed{args.current, errr.Error()})
 	}
 	return t, nil
 }

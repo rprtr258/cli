@@ -224,10 +224,6 @@ func Message(
 	}
 }
 
-func MessageParseFailed(a Option[int], s string) Error {
-	return ErrorParseFailed{a, s}
-}
-
 func MessageGuardFailed(a Option[int], s string) Error {
 	return ErrorGuardFailed{a, s}
 }
