@@ -41,13 +41,12 @@ func (self ParseArgument[T]) item() (Item, bool) {
 	if !ok {
 		return Item{}, false
 	}
-	return ItemArgument(
+	return Item{self.named.help, ItemArgument{
 		name,
 		self.named.short,
 		Metavar(self.metavar),
 		First(self.named.env),
-		self.named.help,
-	), true
+	}}, true
 }
 
 func (self ParseArgument[T]) take_argument(args *State) (string, Error) {

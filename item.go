@@ -2,188 +2,114 @@ package cli
 
 import "fmt"
 
+type item interface{ isItem() }
+
+type ItemAny struct {
+	metavar Doc
+	// used by any, moves it from positionals into arguments
+	anywhere bool
+}
+
+func (ItemAny) isItem() {}
+
+// Positional item, consumed from the the front of the arguments
+// <FILE>
+type ItemPositional struct{ metavar Metavar }
+
+func (ItemPositional) isItem() {}
+
+type ItemCommand struct {
+	name  string
+	short Option[byte]
+	meta  Meta
+	info  Info
+}
+
+func (ItemCommand) isItem() {}
+
+// short or long name, consumed anywhere
+// -f
+// --file
+type ItemFlag struct {
+	name ShortLong
+	// used for disambiguation
+	shorts []byte
+	env    Option[string]
+}
+
+func (ItemFlag) isItem() {}
+
+// Short or long name followed by a value, consumed anywhere
+// -f <VAL>
+// --file <VAL>
+type ItemArgument struct {
+	name ShortLong
+	// used for disambiguation
+	shorts  []byte
+	metavar Metavar
+	env     Option[string]
+}
+
+func (ItemArgument) isItem() {}
+
 type Item struct {
 	help Option[Doc]
-	v    func(
-		Any func(
-			metavar Doc,
-			// used by any, moves it from positionals into arguments
-			anywhere bool,
-		),
-		// Positional item, consumed from the the front of the arguments
-		// <FILE>
-		Positional func(metavar Metavar),
-		Command func(
-			name string,
-			short Option[byte],
-			meta Meta,
-			info Info,
-		),
-		// short or long name, consumed anywhere
-		// -f
-		// --file
-		Flag func(
-			name ShortLong,
-			// used for disambiguation
-			shorts []byte,
-			env Option[string],
-		),
-		// Short or long name followed by a value, consumed anywhere
-		// -f <VAL>
-		// --file <VAL>
-		Argument func(
-			name ShortLong,
-			// used for disambiguation
-			shorts []byte,
-			metavar Metavar,
-			env Option[string],
-		),
-	)
-}
-
-func ItemAny(metavar Doc, anywhere bool, help Option[Doc]) Item {
-	return Item{help, func(
-		f func(Doc, bool),
-		_ func(Metavar),
-		_ func(string, Option[byte], Meta, Info),
-		_ func(ShortLong, []byte, Option[string]),
-		_ func(ShortLong, []byte, Metavar, Option[string]),
-	) {
-		if f != nil {
-			f(metavar, anywhere)
-		}
-	}}
-}
-
-func ItemPositional(metavar Metavar, help Option[Doc]) Item {
-	return Item{help, func(
-		_ func(Doc, bool),
-		f func(Metavar),
-		_ func(string, Option[byte], Meta, Info),
-		_ func(ShortLong, []byte, Option[string]),
-		_ func(ShortLong, []byte, Metavar, Option[string]),
-	) {
-		if f != nil {
-			f(metavar)
-		}
-	}}
-}
-
-func ItemCommand(name string, short Option[byte], help Option[Doc], meta Meta, info Info) Item {
-	return Item{help, func(
-		_ func(Doc, bool),
-		_ func(Metavar),
-		f func(string, Option[byte], Meta, Info),
-		_ func(ShortLong, []byte, Option[string]),
-		_ func(ShortLong, []byte, Metavar, Option[string]),
-	) {
-		if f != nil {
-			f(name, short, meta, info)
-		}
-	}}
-}
-
-func ItemFlag(name ShortLong, shorts []byte, env Option[string], help Option[Doc]) Item {
-	return Item{help, func(
-		_ func(Doc, bool),
-		_ func(Metavar),
-		_ func(string, Option[byte], Meta, Info),
-		f func(ShortLong, []byte, Option[string]),
-		_ func(ShortLong, []byte, Metavar, Option[string]),
-	) {
-		if f != nil {
-			f(name, shorts, env)
-		}
-	}}
-}
-
-func ItemArgument(name ShortLong, shorts []byte, metavar Metavar, env Option[string], help Option[Doc]) Item {
-	return Item{help, func(
-		_ func(Doc, bool),
-		_ func(Metavar),
-		_ func(string, Option[byte], Meta, Info),
-		_ func(ShortLong, []byte, Option[string]),
-		f func(ShortLong, []byte, Metavar, Option[string]),
-	) {
-		if f != nil {
-			f(name, shorts, metavar, env)
-		}
-	}}
+	v    item
 }
 
 func (i Item) String() string {
-	var res string
-	i.v(
-		func(metavar Doc, anywhere bool) {
-			res = fmt.Sprintf(
-				"Any{help: %v, metavar: %#v, anywhere: %v}",
-				i.help, metavar, anywhere,
-			)
-		},
-		func(metavar Metavar) {
-			res = fmt.Sprintf(
-				"Positional{help: %v, metavar: %s}",
-				i.help, metavar,
-			)
-		},
-		func(name string, short Option[byte], meta Meta, info Info) {
-			res = fmt.Sprintf(
-				"Command{help: %v, name: %s, short: %#v, meta: %#v, info: %#v}",
-				i.help, name, short, meta, info,
-			)
-		},
-		func(name ShortLong, shorts []byte, env Option[string]) {
-			res = fmt.Sprintf(
-				"Flag{help: %v, name: %#v, shorts: %#v, env: %v}",
-				i.help, name, shorts, env,
-			)
-		},
-		func(name ShortLong, shorts []byte, metavar Metavar, env Option[string]) {
-			res = fmt.Sprintf(
-				"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v}",
-				i.help, name, shorts, metavar, env,
-			)
-		},
-	)
-	return res
+	switch v := i.v.(type) {
+	case ItemAny:
+		return fmt.Sprintf(
+			"Any{help: %v, metavar: %#v, anywhere: %v}",
+			i.help, v.metavar, v.anywhere,
+		)
+	case ItemPositional:
+		return fmt.Sprintf(
+			"Positional{help: %v, metavar: %s}",
+			i.help, v.metavar,
+		)
+	case ItemCommand:
+		return fmt.Sprintf(
+			"Command{help: %v, name: %s, short: %#v, meta: %#v, info: %#v}",
+			i.help, v.name, v.short, v.meta, v.info,
+		)
+	case ItemFlag:
+		return fmt.Sprintf(
+			"Flag{help: %v, name: %#v, shorts: %#v, env: %v}",
+			i.help, v.name, v.shorts, v.env,
+		)
+	case ItemArgument:
+		return fmt.Sprintf(
+			"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v}",
+			i.help, v.name, v.shorts, v.metavar, v.env,
+		)
+	}
+	panic("unreachable")
 }
 
 func (self Item) is_pos() bool {
-	var res bool
-	self.v(
-		func(_ Doc, anywhere bool) { res = !anywhere },
-		func(Metavar) { res = true },
-		func(string, Option[byte], Meta, Info) { res = true },
-		nil,
-		nil,
-	)
-	return res
+	switch v := self.v.(type) {
+	case ItemAny:
+		return !v.anywhere
+	case ItemPositional:
+		return true
+	case ItemCommand:
+		return true
+	}
+	return false
 }
 
 // Normalize name inside [ShortLong] into either short or long
 func (self *Item) normalize(short bool) {
-	self.v(
-		nil,
-		nil,
-		nil,
-		func(
-			name ShortLong,
-			shorts []byte,
-			env Option[string],
-		) {
-			name.normalize(short)
-			*self = ItemFlag(name, shorts, env, self.help)
-		},
-		func(
-			name ShortLong,
-			shorts []byte,
-			metavar Metavar,
-			env Option[string],
-		) {
-			name.normalize(short)
-			*self = ItemArgument(name, shorts, metavar, env, self.help)
-		},
-	)
+	switch v := self.v.(type) {
+	case ItemFlag:
+		v.name.normalize(short)
+		*self = Item{self.help, ItemFlag{v.name, v.shorts, v.env}}
+	case ItemArgument:
+		v.name.normalize(short)
+		*self = Item{self.help, ItemArgument{v.name, v.shorts, v.metavar, v.env}}
+	}
 }
 
 // ShortLong at least one field must be presented

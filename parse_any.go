@@ -15,11 +15,7 @@ func (self ParseAny[T]) Parser() Parser[T] {
 }
 
 func (self ParseAny[T]) item() Item {
-	return ItemAny(
-		self.metavar,
-		self.anywhere,
-		self.help,
-	)
+	return Item{self.help, ItemAny{self.metavar, self.anywhere}}
 }
 
 // Add a help message to [any] parser.

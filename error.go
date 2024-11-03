@@ -792,15 +792,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 
 	saw_command := false
 	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) (Item, bool) {
-		var cmd bool
-		i.item.v(
-			nil,
-			nil,
-			func(string, Option[byte], Meta, Info) { cmd = true },
-			nil,
-			nil,
-		)
-		if i.scope == best_scope && !(saw_command && cmd) {
+		if _, cmd := i.item.v.(ItemCommand); i.scope == best_scope && !(saw_command && cmd) {
 			saw_command = saw_command || cmd
 			return i.item, true
 		} else {

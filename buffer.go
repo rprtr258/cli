@@ -106,25 +106,20 @@ func (self *Doc) write_shortlong(name ShortLong) {
 }
 
 func (self *Doc) write_item(item Item) {
-	item.v(
-		func(metavar Doc, _ bool) {
-			self.Doc(metavar)
-		},
-		func(metavar Metavar) {
-			self.metavar(metavar)
-		},
-		func(string, Option[byte], Meta, Info) {
-			self.write_str("COMMAND ...", StyleMetavar)
-		},
-		func(name ShortLong, _ []byte, _ Option[string]) {
-			self.write_shortlong(name)
-		},
-		func(name ShortLong, _ []byte, metavar Metavar, _ Option[string]) {
-			self.write_shortlong(name)
-			self.write_char('=', StyleText)
-			self.metavar(metavar)
-		},
-	)
+	switch v := item.v.(type) {
+	case ItemAny:
+		self.Doc(v.metavar)
+	case ItemPositional:
+		self.metavar(v.metavar)
+	case ItemCommand:
+		self.write_str("COMMAND ...", StyleMetavar)
+	case ItemFlag:
+		self.write_shortlong(v.name)
+	case ItemArgument:
+		self.write_shortlong(v.name)
+		self.write_char('=', StyleText)
+		self.metavar(v.metavar)
+	}
 }
 
 func (self *Doc) write_meta(meta Meta, for_usage bool) {

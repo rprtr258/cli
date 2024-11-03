@@ -501,11 +501,12 @@ func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
 
 func (self State) ranges(item Item) ArgRangesIter {
 	width := 0
-	item.v(
-		nil, nil, nil,
-		func(ShortLong, []byte, Option[string]) { width = 1 },
-		func(ShortLong, []byte, Metavar, Option[string]) { width = 2 },
-	)
+	switch item.v.(type) {
+	case ItemFlag:
+		width = 1
+	case ItemArgument:
+		width = 2
+	}
 	return ArgRangesIter{self, width, 0}
 }
 
@@ -642,10 +643,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 	} else {
 		scope := self.scope
 		missing := MissingItem{
-			item: ItemPositional(
-				metavar,
-				Invalid[Doc](),
-			),
+			item:     Item{Invalid[Doc](), ItemPositional{metavar}},
 			position: scope.start(),
 			scope:    scope,
 		}

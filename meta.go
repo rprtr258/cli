@@ -129,9 +129,8 @@ func (self *StrictNorm) push() {
 func is_command(self Meta) bool {
 	switch self := self.(type) {
 	case MetaItem:
-		res := false
-		self.v(nil, nil, func(string, Option[byte], Meta, Info) { res = true }, nil, nil)
-		return res
+		_, ok := self.v.(ItemCommand)
+		return ok
 	case MetaSubsection:
 		return is_command(self.m)
 	}
@@ -177,13 +176,14 @@ func positional_invariant_check(self Meta, verbose bool) {
 			case i.is_pos():
 				*is_pos = true
 			}
-			i.v(nil, nil, func(_ string, _ Option[byte], meta Meta, _ Info) {
+			m, ok := i.v.(ItemCommand)
+			if ok {
 				command_pos := false
 				if v {
-					fmt.Printf("Checking\n%#v\n", meta)
+					fmt.Printf("Checking\n%#v\n", m.meta)
 				}
 				GO(meta, &command_pos, v)
-			}, nil, nil)
+			}
 		case MetaMany:
 			GO(meta.m, is_pos, v)
 		case MetaSubsection:
@@ -417,18 +417,14 @@ func collect_shorts(self Meta, flags *[]byte, args *[]byte) {
 			collect_shorts(x, flags, args)
 		}
 	case MetaItem:
-		self.v(
-			nil, nil,
-			func(_ string, _ Option[byte], meta Meta, _ Info) {
-				collect_shorts(meta, flags, args)
-			},
-			func(_ ShortLong, shorts []byte, _ Option[string]) {
-				*flags = append(*flags, shorts...)
-			},
-			func(_ ShortLong, shorts []byte, _ Metavar, _ Option[string]) {
-				*args = append(*args, shorts...)
-			},
-		)
+		switch v := self.v.(type) {
+		case ItemCommand:
+			collect_shorts(v.meta, flags, args)
+		case ItemFlag:
+			*flags = append(*flags, v.shorts...)
+		case ItemArgument:
+			*args = append(*args, v.shorts...)
+		}
 	case MetaOptional:
 		collect_shorts(self.m, flags, args)
 	case MetaRequired:

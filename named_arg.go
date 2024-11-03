@@ -45,7 +45,7 @@ func (self NamedArg) flag_item() (Item, bool) {
 	if !ok {
 		return Item{}, false
 	}
-	return ItemFlag(x, self.short, First(self.env), self.help), true
+	return Item{self.help, ItemFlag{x, self.short, First(self.env)}}, true
 }
 
 // Add a short name to a flag/switch/argument

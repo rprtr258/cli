@@ -517,39 +517,35 @@ func (self HelpItems) find_group() (Range, bool) {
 }
 
 func HiTyFromItem(value Item) HiTy {
-	var res HiTy
-	value.v(
-		func(_ Doc, anywhere bool) {
-			res = fun.IF(anywhere, HiTyFlag, HiTyPositional)
-		},
-		func(Metavar) { res = HiTyPositional },
-		func(string, Option[byte], Meta, Info) { res = HiTyCommand },
-		func(ShortLong, []byte, Option[string]) { res = HiTyFlag },
-		func(ShortLong, []byte, Metavar, Option[string]) { res = HiTyFlag },
-	)
-	return res
+	switch v := value.v.(type) {
+	case ItemAny:
+		return fun.IF(v.anywhere, HiTyFlag, HiTyPositional)
+	case ItemPositional:
+		return HiTyPositional
+	case ItemCommand:
+		return HiTyCommand
+	case ItemFlag:
+		return HiTyFlag
+	case ItemArgument:
+		return HiTyFlag
+	}
+	panic("unreachable")
 }
 
 func HelpItemFromItem(item Item) HelpItem {
-	var res HelpItem
-	item.v(
-		func(metavar Doc, anywhere bool) {
-			res = HelpItemAny(metavar, anywhere, item.help)
-		},
-		func(metavar Metavar) {
-			res = HelpItemPositional(metavar, item.help)
-		},
-		func(name string, short Option[byte], meta Meta, info Info) {
-			res = HelpItemCommand(name, short, item.help, meta, info)
-		},
-		func(name ShortLong, shorts []byte, env Option[string]) {
-			res = HelpItemFlag(name, env, item.help)
-		},
-		func(name ShortLong, shorts []byte, metavar Metavar, env Option[string]) {
-			res = HelpItemArgument(name, metavar, env, item.help)
-		},
-	)
-	return res
+	switch v := item.v.(type) {
+	case ItemAny:
+		return HelpItemAny(v.metavar, v.anywhere, item.help)
+	case ItemPositional:
+		return HelpItemPositional(v.metavar, item.help)
+	case ItemCommand:
+		return HelpItemCommand(v.name, v.short, item.help, v.meta, v.info)
+	case ItemFlag:
+		return HelpItemFlag(v.name, v.env, item.help)
+	case ItemArgument:
+		return HelpItemArgument(v.name, v.metavar, v.env, item.help)
+	}
+	panic("unreachable")
 }
 
 func (self *Doc) metavar(metavar Metavar) {

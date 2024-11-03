@@ -183,13 +183,12 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 }
 
 func (self ParseCommand[T]) item() Item {
-	return ItemCommand(
+	return Item{self.help, ItemCommand{
 		self.longs[0],
 		First(self.shorts),
-		self.help,
 		self.subparser.inner.meta,
 		self.subparser.info,
-	)
+	}}
 }
 
 // Parse a subcommand
