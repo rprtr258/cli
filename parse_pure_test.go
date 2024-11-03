@@ -51,20 +51,26 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	require.Equal(t, "some-err", unwrap_stderr(err))
 }
 
-// func default_value_using_pure_with_ok_for_some() {
-//     let user_seeds = positional[uint32]("SEED").some("at least one required");
-//     let last_seeds = pure_with::<_, _, string>(|| {
-//         // ~ trying to lookup the last used seeds
-//         Ok(vec[3, 5, 7, 11])
-//     });
-//     let seeds = construct([user_seeds, last_seeds]).to_options();
+func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
+	user_seeds := Positional[uint32]("SEED", parseUint32).Parser().Some("at least one required")
+	last_seeds := PureWith(func() ([]uint32, Error) {
+		// ~ trying to lookup the last used seeds
+		return []uint32{3, 5, 7, 11}, nil
+	})
+	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser()).ToOptions()
 
-//     let r = seeds.run_inner(&["23", "59"]);
-//     require.Equal(t, vec[23, 59], r.unwrap());
+	{
+		r, err := seeds.run_inner(newArgs("23", "59"))
+		requireNoParseFailure(t, err)
+		require.Equal(t, []uint32{23, 59}, r)
+	}
 
-//     let r = seeds.run_inner(&[]);
-//     require.Equal(t, vec[3, 5, 7, 11], r.unwrap());
-// }
+	{
+		r, err := seeds.run_inner(newArgs())
+		requireNoParseFailure(t, err)
+		require.Equal(t, []uint32{3, 5, 7, 11}, r)
+	}
+}
 
 // func default_value_using_pure_with_err_for_some() {
 //     let user_seeds = positional::<u32>("SEED").some("at least one required");
@@ -73,7 +79,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 //         Err("oh, no")
 //     });
 //     let default_seeds = pure(vec[1, 2]);
-//     let seeds = construct([user_seeds, last_seeds, default_seeds]).to_options();
+//     let seeds = Choice(user_seeds, last_seeds, default_seeds).ToOptions();
 
 //     let r = seeds.run_inner(&["23", "59"]);
 //     require.Equal(t, vec[23, 59], r.unwrap());

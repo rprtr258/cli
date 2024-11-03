@@ -11,6 +11,10 @@ type ParseSome[T any] struct {
 	catch   bool
 }
 
+func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
+	return Parser[[]T]{self.eval, MetaMany{MetaRequired{self.inner.meta}}}
+}
+
 // Handle parse failures
 //
 // Can be useful to decide to skip parsing of some items on a command line
@@ -46,10 +50,6 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	}
 
 	return res, nil
-}
-
-func (self ParseSome[P]) meta() Meta {
-	return MetaMany{MetaRequired{self.inner.meta}}
 }
 
 // {{{ some
