@@ -25,7 +25,7 @@ func parseBaz(s string) (Baz, error) {
 	case "foobar":
 		return BazFooBar, nil
 	default:
-		return *new(Baz), errors.New("Expected foo|bar|foobar")
+		return 0, errors.New("Expected foo|bar|foobar")
 	}
 }
 

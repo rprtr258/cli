@@ -95,11 +95,11 @@ func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
 	inner := func(failfast bool, args *State) (R, Error) {
 		verbose, err := pa.eval(args)
 		if failfast && err != nil {
-			return *new(R), err
+			return R{}, err
 		}
 		quiet, err := pb.eval(args)
 		if err != nil {
-			return *new(R), err
+			return R{}, err
 		}
 		args.current = Invalid[int]()
 		return R{verbose, quiet}, nil

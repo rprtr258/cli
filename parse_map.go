@@ -4,8 +4,8 @@ import "github.com/rprtr258/fun"
 
 // Parser that transforms parsed value with a function, created with [map](Parsermap).
 type ParseMap[T, R any] struct {
-	inner  Parser[T]
-	map_fn func(T) R
+	inner Parser[T]
+	fn    func(T) R
 }
 
 func (self ParseMap[T, R]) eval(args *State) (R, Error) {
@@ -13,7 +13,7 @@ func (self ParseMap[T, R]) eval(args *State) (R, Error) {
 	if e != nil {
 		return *new(R), e
 	}
-	return self.map_fn(t), nil
+	return self.fn(t), nil
 }
 
 // Map - Apply a pure transformation to a contained value
@@ -25,10 +25,10 @@ func (self ParseMap[T, R]) eval(args *State) (R, Error) {
 // the value produced by the parser into a new value of the same or different type.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/map.md"))]
-func Map[T, R any](self Parser[T], Map func(T) R) Parser[R] {
+func Map[T, R any](self Parser[T], fn func(T) R) Parser[R] {
 	p := ParseMap[T, R]{
-		inner:  self,
-		map_fn: Map,
+		inner: self,
+		fn:    fn,
 	}
 	return Parser[R]{p.eval, self.meta}
 }
