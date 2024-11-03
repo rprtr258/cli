@@ -9,74 +9,74 @@ import (
 
 // Unsuccessful command line parsing outcome, internal representation
 type Error interface {
-	isErrorMessage()
+	isError()
 }
 
 // those can be caught ---------------------------------------------------------------
 // Tried to consume an env variable with no fallback, variable was not set
-type ErrorMessageNoEnv string
+type ErrorNoEnv string
 
-func (ErrorMessageNoEnv) isErrorMessage() {}
+func (ErrorNoEnv) isError() {}
 
 // User specified an error message on some
-type ErrorMessageParseSome string
+type ErrorParseSome string
 
-func (ErrorMessageParseSome) isErrorMessage() {}
+func (ErrorParseSome) isError() {}
 
 // User asked for parser to fail explicitly
-type ErrorMessageParseFail string
+type ErrorParseFail string
 
-func (ErrorMessageParseFail) isErrorMessage() {}
+func (ErrorParseFail) isError() {}
 
 // pure_with failed to parse a value
-type ErrorMessagePureFailed string
+type ErrorPureFailed string
 
-func (ErrorMessagePureFailed) isErrorMessage() {}
+func (ErrorPureFailed) isError() {}
 
 // Expected one of those values
 //
 // Used internally to generate better error messages
-type ErrorMessageMissing []MissingItem
+type ErrorMissing []MissingItem
 
-func (ErrorMessageMissing) isErrorMessage() {}
+func (ErrorMissing) isError() {}
 
 // those cannot be caught-------------------------------------------------------------
 // Parsing failed and this is the final output
-type ErrorMessageParseFailure struct{ e ParseFailure }
+type ErrorParseFailure struct{ e ParseFailure }
 
-func (ErrorMessageParseFailure) isErrorMessage() {}
+func (ErrorParseFailure) isError() {}
 
 // Tried to consume a strict positional argument, value was present but was not strictly positional
-type ErrorMessageStrictPos struct {
+type ErrorStrictPos struct {
 	a int
 	b Metavar
 }
 
-func (ErrorMessageStrictPos) isErrorMessage() {}
+func (ErrorStrictPos) isError() {}
 
 // Tried to consume a non-strict positional argument, but the value was strict
-type ErrorMessageNonStrictPos struct {
+type ErrorNonStrictPos struct {
 	a int
 	b Metavar
 }
 
-func (ErrorMessageNonStrictPos) isErrorMessage() {}
+func (ErrorNonStrictPos) isError() {}
 
 // Parser provided by user failed to parse a value
-type ErrorMessageParseFailed struct {
+type ErrorParseFailed struct {
 	a Option[int]
 	b string
 }
 
-func (ErrorMessageParseFailed) isErrorMessage() {}
+func (ErrorParseFailed) isError() {}
 
 // Parser provided by user failed to validate a value
-type ErrorMessageGuardFailed struct {
+type ErrorGuardFailed struct {
 	a Option[int]
 	b string
 }
 
-func (ErrorMessageGuardFailed) isErrorMessage() {}
+func (ErrorGuardFailed) isError() {}
 
 // Argument requres a value but something else was passed,
 // required: --foo <BAR>
@@ -84,208 +84,208 @@ func (ErrorMessageGuardFailed) isErrorMessage() {}
 //
 //	--foo -- bar
 //	--foo
-type ErrorMessageNoArgument struct {
+type ErrorNoArgument struct {
 	a int
 	b Metavar
 }
 
-func (ErrorMessageNoArgument) isErrorMessage() {}
+func (ErrorNoArgument) isError() {}
 
 // Parser is expected to consume all the things from the command line
 // this item will contain an index of the unconsumed value
-type ErrorMessageUnconsumed /* TODO: unused? */ int
+type ErrorUnconsumed /* TODO: unused? */ int
 
-func (ErrorMessageUnconsumed) isErrorMessage() {}
+func (ErrorUnconsumed) isError() {}
 
 // argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
-type ErrorMessageAmbiguity struct {
+type ErrorAmbiguity struct {
 	a int
 	b string
 }
 
-func (ErrorMessageAmbiguity) isErrorMessage() {}
+func (ErrorAmbiguity) isError() {}
 
 // Suggested fixes for typos or missing input
-type ErrorMessageSuggestion struct {
+type ErrorSuggestion struct {
 	a int
 	b Suggestion
 }
 
-func (ErrorMessageSuggestion) isErrorMessage() {}
+func (ErrorSuggestion) isError() {}
 
 // Two arguments are mutually exclusive
 // --release --dev
-type ErrorMessageConflict struct{ winner, loser int }
+type ErrorConflict struct{ winner, loser int }
 
-func (ErrorMessageConflict) isErrorMessage() {}
+func (ErrorConflict) isError() {}
 
 // Expected one or more items in the scope, got someting else if any
-type ErrorMessageExpected struct {
+type ErrorExpected struct {
 	a []Item
 	b Option[int]
 }
 
-func (ErrorMessageExpected) isErrorMessage() {}
+func (ErrorExpected) isError() {}
 
 // Parameter is accepted but only once
-type ErrorMessageOnlyOnce struct{ winner, loser int }
+type ErrorOnlyOnce struct{ winner, loser int }
 
-func (ErrorMessageOnlyOnce) isErrorMessage() {}
+func (ErrorOnlyOnce) isError() {}
 
 func Message(
 	self Error,
-	errorMessageNoEnv func(string),
-	errorMessageParseSome func(string),
-	errorMessageParseFail func(string),
-	errorMessagePureFailed func(string),
-	errorMessageMissing func([]MissingItem),
-	errorMessageParseFailure func(ParseFailure),
-	errorMessageStrictPos func(int, Metavar),
-	errorMessageNonStrictPos func(int, Metavar),
-	errorMessageParseFailed func(Option[int], string),
-	errorMessageGuardFailed func(Option[int], string),
-	errorMessageNoArgument func(int, Metavar),
-	errorMessageUnconsumed func(int),
-	errorMessageAmbiguity func(int, string),
-	errorMessageSuggestion func(int, Suggestion),
-	errorMessageConflict func(int, int),
-	errorMessageExpected func([]Item, Option[int]),
-	errorMessageOnlyOnce func(int, int),
+	errorNoEnv func(string),
+	errorParseSome func(string),
+	errorParseFail func(string),
+	errorPureFailed func(string),
+	errorMissing func([]MissingItem),
+	errorParseFailure func(ParseFailure),
+	errorStrictPos func(int, Metavar),
+	errorNonStrictPos func(int, Metavar),
+	errorParseFailed func(Option[int], string),
+	errorGuardFailed func(Option[int], string),
+	errorNoArgument func(int, Metavar),
+	errorUnconsumed func(int),
+	errorAmbiguity func(int, string),
+	errorSuggestion func(int, Suggestion),
+	errorConflict func(int, int),
+	errorExpected func([]Item, Option[int]),
+	errorOnlyOnce func(int, int),
 ) {
 	switch self := self.(type) {
-	case ErrorMessageNoEnv:
-		if errorMessageNoEnv != nil {
-			errorMessageNoEnv(string(self))
+	case ErrorNoEnv:
+		if errorNoEnv != nil {
+			errorNoEnv(string(self))
 		}
-	case ErrorMessageParseSome:
-		if errorMessageParseSome != nil {
-			errorMessageParseSome(string(self))
+	case ErrorParseSome:
+		if errorParseSome != nil {
+			errorParseSome(string(self))
 		}
-	case ErrorMessageParseFail:
-		if errorMessageParseFail != nil {
-			errorMessageParseFail(string(self))
+	case ErrorParseFail:
+		if errorParseFail != nil {
+			errorParseFail(string(self))
 		}
-	case ErrorMessagePureFailed:
-		if errorMessagePureFailed != nil {
-			errorMessagePureFailed(string(self))
+	case ErrorPureFailed:
+		if errorPureFailed != nil {
+			errorPureFailed(string(self))
 		}
-	case ErrorMessageMissing:
-		if errorMessageMissing != nil {
-			errorMessageMissing(self)
+	case ErrorMissing:
+		if errorMissing != nil {
+			errorMissing(self)
 		}
-	case ErrorMessageParseFailure:
-		if errorMessageParseFailure != nil {
-			errorMessageParseFailure(self.e)
+	case ErrorParseFailure:
+		if errorParseFailure != nil {
+			errorParseFailure(self.e)
 		}
-	case ErrorMessageStrictPos:
-		if errorMessageStrictPos != nil {
-			errorMessageStrictPos(self.a, self.b)
+	case ErrorStrictPos:
+		if errorStrictPos != nil {
+			errorStrictPos(self.a, self.b)
 		}
-	case ErrorMessageNonStrictPos:
-		if errorMessageNonStrictPos != nil {
-			errorMessageNonStrictPos(self.a, self.b)
+	case ErrorNonStrictPos:
+		if errorNonStrictPos != nil {
+			errorNonStrictPos(self.a, self.b)
 		}
-	case ErrorMessageParseFailed:
-		if errorMessageParseFailed != nil {
-			errorMessageParseFailed(self.a, self.b)
+	case ErrorParseFailed:
+		if errorParseFailed != nil {
+			errorParseFailed(self.a, self.b)
 		}
-	case ErrorMessageGuardFailed:
-		if errorMessageGuardFailed != nil {
-			errorMessageGuardFailed(self.a, self.b)
+	case ErrorGuardFailed:
+		if errorGuardFailed != nil {
+			errorGuardFailed(self.a, self.b)
 		}
-	case ErrorMessageNoArgument:
-		if errorMessageNoArgument != nil {
-			errorMessageNoArgument(self.a, self.b)
+	case ErrorNoArgument:
+		if errorNoArgument != nil {
+			errorNoArgument(self.a, self.b)
 		}
-	case ErrorMessageUnconsumed:
-		if errorMessageUnconsumed != nil {
-			errorMessageUnconsumed(int(self))
+	case ErrorUnconsumed:
+		if errorUnconsumed != nil {
+			errorUnconsumed(int(self))
 		}
-	case ErrorMessageAmbiguity:
-		if errorMessageAmbiguity != nil {
-			errorMessageAmbiguity(self.a, self.b)
+	case ErrorAmbiguity:
+		if errorAmbiguity != nil {
+			errorAmbiguity(self.a, self.b)
 		}
-	case ErrorMessageSuggestion:
-		if errorMessageSuggestion != nil {
-			errorMessageSuggestion(self.a, self.b)
+	case ErrorSuggestion:
+		if errorSuggestion != nil {
+			errorSuggestion(self.a, self.b)
 		}
-	case ErrorMessageConflict:
-		if errorMessageConflict != nil {
-			errorMessageConflict(self.winner, self.loser)
+	case ErrorConflict:
+		if errorConflict != nil {
+			errorConflict(self.winner, self.loser)
 		}
-	case ErrorMessageExpected:
-		if errorMessageExpected != nil {
-			errorMessageExpected(self.a, self.b)
+	case ErrorExpected:
+		if errorExpected != nil {
+			errorExpected(self.a, self.b)
 		}
-	case ErrorMessageOnlyOnce:
-		if errorMessageOnlyOnce != nil {
-			errorMessageOnlyOnce(self.winner, self.loser)
+	case ErrorOnlyOnce:
+		if errorOnlyOnce != nil {
+			errorOnlyOnce(self.winner, self.loser)
 		}
 	}
 }
 
 func MessageNoEnv(s string) Error {
-	return ErrorMessageNoEnv(s)
+	return ErrorNoEnv(s)
 }
 
 func MessageParseFailed(a Option[int], s string) Error {
-	return ErrorMessageParseFailed{a, s}
+	return ErrorParseFailed{a, s}
 }
 
 func MessageGuardFailed(a Option[int], s string) Error {
-	return ErrorMessageGuardFailed{a, s}
+	return ErrorGuardFailed{a, s}
 }
 
 func MessagePureFailed(s string) Error {
-	return ErrorMessagePureFailed(s)
+	return ErrorPureFailed(s)
 }
 
 func MessageParseFailure(e ParseFailure) Error {
-	return ErrorMessageParseFailure{e}
+	return ErrorParseFailure{e}
 }
 
 func MessageStrictPos(a int, b Metavar) Error {
-	return ErrorMessageStrictPos{a, b}
+	return ErrorStrictPos{a, b}
 }
 
 func MessageNonStrictPos(a int, b Metavar) Error {
-	return ErrorMessageNonStrictPos{a, b}
+	return ErrorNonStrictPos{a, b}
 }
 
 func MessageMissing(xs ...MissingItem) Error {
-	return ErrorMessageMissing(xs)
+	return ErrorMissing(xs)
 }
 
 func MessageParseFail(s string) Error {
-	return ErrorMessageParseFail(s)
+	return ErrorParseFail(s)
 }
 
 func MessageNoArgument(ix int, metavar Metavar) Error {
-	return ErrorMessageNoArgument{ix, metavar}
+	return ErrorNoArgument{ix, metavar}
 }
 
 func MessageUnconsumed(a int) Error {
-	return ErrorMessageUnconsumed(a)
+	return ErrorUnconsumed(a)
 }
 
 func MessageAmbiguity(ix int, short string) Error {
-	return ErrorMessageAmbiguity{ix, short}
+	return ErrorAmbiguity{ix, short}
 }
 
 func MessageSuggestion(a int, b Suggestion) Error {
-	return ErrorMessageSuggestion{a, b}
+	return ErrorSuggestion{a, b}
 }
 
 func MessageConflict(a, b int) Error {
-	return ErrorMessageConflict{a, b}
+	return ErrorConflict{a, b}
 }
 
 func MessageExpected(a []Item, b Option[int]) Error {
-	return ErrorMessageExpected{a, b}
+	return ErrorExpected{a, b}
 }
 
 func MessageOnlyOnce(a, b int) Error {
-	return ErrorMessageOnlyOnce{a, b}
+	return ErrorOnlyOnce{a, b}
 }
 
 func IsMissing(m Error) bool {
