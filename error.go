@@ -278,23 +278,19 @@ func only_once(args State, cur int) (int, bool) {
 
 func render(self *Error, args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
-	Message(*self,
-		nil, nil, nil, nil,
-		func(xs []MissingItem) {
-			*self = summarize_missing(xs, meta, args)
-		},
-		nil, nil, nil, nil, nil, nil,
-		func(ix int) {
-			if conflict, ok := check_conflicts(args); ok {
-				*self = conflict
-			} else if prev_ix, ok := only_once(args, ix); ok {
-				*self = ErrorOnlyOnce{prev_ix, ix}
-			} else if ix, suggestion, ok := suggest(args, meta); ok {
-				*self = ErrorSuggestion{ix, suggestion}
-			}
-		},
-		nil, nil, nil, nil, nil,
-	)
+	switch e := (*self).(type) {
+	case ErrorMissing:
+		*self = summarize_missing(e, meta, args)
+	case ErrorUnconsumed:
+		ix := int(e)
+		if conflict, ok := check_conflicts(args); ok {
+			*self = conflict
+		} else if prev_ix, ok := only_once(args, ix); ok {
+			*self = ErrorOnlyOnce{prev_ix, ix}
+		} else if ix, suggestion, ok := suggest(args, meta); ok {
+			*self = ErrorSuggestion{ix, suggestion}
+		}
+	}
 
 	doc := Doc{}
 	Message(*self,
