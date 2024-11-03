@@ -165,7 +165,7 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	args_a := args
 	args_b := args
 
-	// run both parsers, expand Result[T, Error> into Option[T] + fun.Option<Error]
+	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
 	// so that code that does a bunch of comparing logic can be shared across
 	// all invocations of parsers rather than being inlined into each one.
 

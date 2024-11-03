@@ -220,15 +220,16 @@ func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 				os := ArgArgWord(string(body))
 				return ty, string(name), Valid(os), true
 			}
-			break
+
+			word := ArgArgWord(string(items))
+			return ty, string(name), Valid(word), true
 		default:
 			name = append(name, c)
 		}
 	}
+
 	if len(name) == 0 {
 		return false, "", Invalid[Arg](), false
 	}
-
-	word := ArgArgWord(string(items))
-	return ty, string(name), Valid(word), true
+	return ty, string(name), Invalid[Arg](), true
 }

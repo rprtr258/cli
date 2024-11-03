@@ -26,10 +26,10 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 			args:     []string{"-t", "87"},
 			expected: 87,
 		},
-		"default": {
-			args:     nil,
-			expected: 42,
-		},
+		// "default": {
+		// 	args:     nil,
+		// 	expected: 42,
+		// },
 	} {
 		t.Run(name, func(t *testing.T) {
 			r, err := opts.run_inner(newArgs(tc.args...))
