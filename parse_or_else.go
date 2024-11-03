@@ -67,7 +67,7 @@ func this_or_that_picks_first(
 			res = resT{a, b}
 		}
 	case a_ok && b_ok:
-		resErr = Errorcombine_with(e1, e2)
+		resErr = combine_with(e1, e2)
 	// otherwise either a or b are success, true means a is success
 	default:
 		res = resT{!a_ok, Invalid[uint]()}

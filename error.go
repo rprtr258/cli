@@ -129,14 +129,6 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 // Unsuccessful command line parsing outcome, internal representation
 type Error ErrorMessage
 
-func ErrorString(self Error) string {
-	return String(ErrorMessage(self))
-}
-
-func Errorcombine_with(self, other Error) Error {
-	return Error(combine_with(self, other))
-}
-
 func can_catch(self ErrorMessage) bool {
 	res := false
 	Message(self,
