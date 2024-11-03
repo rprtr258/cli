@@ -32,11 +32,11 @@ func (mi MissingItem) String() string {
 }
 
 // Unsuccessful command line parsing outcome, use it for unit tests
-// /
+//
 // When [OptionParserrun_inner](crateOptionParserrun_inner) produces `Err(ParseFailure)`
 // it means that the parser couldn't produce the value it supposed to produce and the program
 // should terminate.
-// /
+//
 // If you are handling variants manually - `Stdout` contains formatted output and you can use any
 // logging framework to produce the output, `Completion` should be printed to stdout unchanged -
 // shell completion mechanism relies on that. In both cases application should exit with error
@@ -44,7 +44,7 @@ func (mi MissingItem) String() string {
 // stderr or a logging framework of your choice as an error and the app should exit with error
 // code of 1. [ParseFailureexit_code] is a helper method that performs printing and produces
 // the exit code to use.
-// /
+//
 // For purposes of for unit testing for user parsers, you can consume it with
 // [ParseFailureunwrap_stdout] and [ParseFailureunwrap_stdout] - both of which produce a
 // an unformatted `String` that parser might produce if failure type is correct or panics
@@ -228,8 +228,7 @@ func print_message(self ParseFailure, max_width uint) {
 	case ParseFailureCompletion:
 		fmt.Print(string(self))
 	case ParseFailureStderr:
-		error := color.push_str(StyleInvalid, "Error: ")
-		fmt.Fprintln(os.Stderr, error+Doc(self).render_console(true, color, max_width))
+		fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "Error: ")+Doc(self).render_console(true, color, max_width))
 	}
 }
 

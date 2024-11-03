@@ -9,12 +9,11 @@ import (
 )
 
 // All currently present command line parameters with fun.Valid extra metainfo
-// /
+//
 // Use it for unit tests and manual parsing. For production use you would want to replace the
 // program name with [set_name](Argsset_name), but for tests passing a slice of strings to
 // [run_inner](crateOptionParserrun_inner) is usually more convenient.
-// /
-// /
+//
 // The easiest way to create `Args` is by using its `From` instance.
 // ```rust
 // # use bpaf*;
@@ -29,7 +28,7 @@ import (
 //	.unwrap();
 //
 // require.True(t,value);
-// /
+//
 // // this also works
 // value := parser.run_inner(&["-f"])
 //
@@ -52,9 +51,9 @@ func newArgs(value ...string) Args {
 }
 
 // Enable completions with custom output revision style
-// /
-// Use revision 0 if you want to test completion mechanism
-// /
+//
+// # Use revision 0 if you want to test completion mechanism
+//
 // ```rust
 // # use bpaf*;
 // parser := short('f').switch().to_options();
@@ -68,7 +67,7 @@ func newArgs(value ...string) Args {
 //
 // require.Equal(t,r, "-f");
 // ```
-// /
+//
 // Note to self: shell passes "" as a parameter in situations like foo `--bar TAB`, bpaf
 // completion stubs adopt this conventions add pass it along. This is needed so completer can
 // tell the difference between `--bar` being completed or an argument to it in the example
@@ -424,7 +423,7 @@ func (self State) get(ix int) (Arg, bool) {
 }
 
 // Check if parser performs autocompletion
-// /
+//
 // used by construct macro
 func (self State) is_comp() bool {
 	return self.comp.Valid

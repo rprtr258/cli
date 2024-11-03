@@ -7,7 +7,7 @@ import (
 )
 
 // Information about the parser
-// /
+//
 // No longer public, users are only interacting with it via [OptionParser]
 type Info struct {
 	version         Option[Doc] // version field, see [version][Infoversion]
