@@ -601,7 +601,7 @@ func (self *State) take_arg(
 	}() {
 		val = ww.str
 	} else {
-		return Option[string]{}, Error(ErrorNoArgument{key_ix, metavar})
+		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
 	}
 	self.current = Valid(val_ix)
 	self.remove(key_ix)
