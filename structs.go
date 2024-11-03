@@ -54,7 +54,7 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 	res, err := self.inner.eval(args)
 
 	args.swap_comps_with(&comps)
-	if err != nil && MessageF(err, MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
+	if _, ok := err.(ErrorMissing); err != nil && ok {
 		return *new(T), ErrorMissing(nil)
 	}
 
