@@ -325,7 +325,7 @@ func MessageF[T any](m Error, fs MessageFs[T]) T {
 	return res
 }
 
-func String(self Error) string {
+func errorToString(self Error) string {
 	return MessageF(self, MessageFs[string]{
 		func(msg string) string { return fmt.Sprintf("NoEnv(%#v)", msg) },
 		func(msg string) string { return fmt.Sprintf("ParseSome(%#v)", msg) },

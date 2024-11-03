@@ -40,7 +40,7 @@ func (self parsePureWith[T]) eval(*State) (T, Error) {
 	if e == nil {
 		return ok, nil
 	}
-	return *new(T), ErrorPureFailed(String(e))
+	return *new(T), ErrorPureFailed(errorToString(e))
 }
 
 // Wrap a calculated value into a `Parser`
