@@ -191,8 +191,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	if errr != nil {
 		err = Message(errr)
 	} else {
-		next := args.items_iter()
-		if ix, _, ok := next(); ok {
+		if ix, _, ok := args.items_iter()(); ok {
 			err = MessageUnconsumed(ix)
 		} else {
 			return res, nil
