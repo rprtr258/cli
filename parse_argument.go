@@ -75,7 +75,7 @@ func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
 			}
 			return "", Error(MessageMissing(missing))
 		} else if name, ok := First(self.named.env).Unpack(); ok {
-			return "", Error(MessageNoEnv(name))
+			return "", Error(ErrorNoEnv(name))
 		} else {
 			panic("unreachable!()")
 		}

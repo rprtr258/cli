@@ -224,10 +224,6 @@ func Message(
 	}
 }
 
-func MessageNoEnv(s string) Error {
-	return ErrorNoEnv(s)
-}
-
 func MessageParseFailed(a Option[int], s string) Error {
 	return ErrorParseFailed{a, s}
 }

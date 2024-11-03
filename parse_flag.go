@@ -35,7 +35,7 @@ func (self ParseFlag[T]) eval(args *State) (T, Error) {
 				}
 				return *new(T), Error(MessageMissing(missing))
 			} else if name, ok := First(self.named.env).Unpack(); ok {
-				return *new(T), Error(MessageNoEnv(name))
+				return *new(T), Error(ErrorNoEnv(name))
 			} else {
 				panic(`todo!("no key!")`)
 			}
