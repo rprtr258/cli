@@ -299,10 +299,8 @@ func (self *Doc) set_style(lenn int, style Style) {
 	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
 	if n := len(self.tokens); n == 0 || !self.tokens[n-1].isText {
 		self.tokens = append(self.tokens, TokenText(lenn, style))
-	} else {
-		if self.tokens[n-1].style == style {
-			self.tokens[n-1].bytes += lenn
-		}
+	} else if self.tokens[n-1].style == style {
+		self.tokens[n-1].bytes += lenn
 	}
 }
 

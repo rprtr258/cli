@@ -15,7 +15,7 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func main() {
+func run() error {
 	file := cli.Parse(
 		cli.Optional(
 			cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
@@ -45,7 +45,11 @@ func main() {
 		line := scanner.Text()
 		fmt.Println(line)
 	}
-	if err := scanner.Err(); err != nil {
+	return scanner.Err()
+}
+
+func main() {
+	if err := run(); err != nil {
 		log.Fatal(err)
 	}
 }

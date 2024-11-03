@@ -37,7 +37,12 @@ func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
 }
 
 func (self *ParsePositional[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta()}
+	meta := Meta(MetaItem(Item{self.help, ItemPositional{Metavar(self.metavar)}}))
+	if self.position == PositionStrict {
+		meta = MetaStrict{meta}
+	}
+
+	return Parser[T]{self.eval, meta}
 }
 
 // Changes positional parser to be a "strict" positional
@@ -105,14 +110,6 @@ func (self ParsePositional[T]) eval(args *State) (T, Error) {
 		return *new(T), ErrorParseFail(errr.Error())
 	}
 	return t, nil
-}
-
-func (self ParsePositional[T]) meta() Meta {
-	meta := Meta(MetaItem(Item{self.help, ItemPositional{Metavar(self.metavar)}}))
-	if self.position == PositionStrict {
-		meta = MetaStrict{meta}
-	}
-	return meta
 }
 
 // Parse a Positional argument
