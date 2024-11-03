@@ -27,6 +27,10 @@ func Pure[T any](val T) parsePure[T] {
 
 type parsePureWith[T any] struct{ inner func() (T, Error) }
 
+func (self parsePureWith[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, MetaSkip{}}
+}
+
 func (self parsePureWith[T]) eval(*State) (T, Error) {
 	ok, e := self.inner()
 	if e == nil {

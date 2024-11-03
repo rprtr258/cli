@@ -306,11 +306,11 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			*self = summarize_missing(xs, meta, args)
 		},
 		nil, nil, nil, nil, nil, nil,
-		func(ix uint) {
+		func(ix int) {
 			if conflict, ok := check_conflicts(args); ok {
 				*self = conflict
-			} else if prev_ix, ok := only_once(args, int(ix)); ok {
-				*self = MessageOnlyOnce(prev_ix, int(ix))
+			} else if prev_ix, ok := only_once(args, ix); ok {
+				*self = MessageOnlyOnce(prev_ix, ix)
 			} else if ix, suggestion, ok := suggest(args, meta); ok {
 				*self = MessageSuggestion(ix, suggestion)
 			}
@@ -398,7 +398,6 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 			a, ok := args.get(x + 1)
 			if ok && (a.IsShort() || a.IsLong()) {
 				arg := &args.items[x]
-				os := a.str
 
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write(arg.GoString(), StyleLiteral)
@@ -409,20 +408,19 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 				doc.token(TokenBlockEnd(BlockTermRef))
 				doc.Text(", got a flag ")
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(os, StyleInvalid)
+				doc.write(a.str, StyleInvalid)
 				doc.token(TokenBlockEnd(BlockTermRef))
 				doc.Text(", try ")
 				doc.token(TokenBlockStart(BlockTermRef))
 				doc.write(arg.GoString(), StyleLiteral)
 				doc.Literal("=")
-				doc.write(os, StyleLiteral)
+				doc.write(a.str, StyleLiteral)
 				doc.token(TokenBlockEnd(BlockTermRef))
 				doc.Text(" to use it as an argument")
 			} else {
 				// "Some" part of this branch is actually unreachable
-				arg := &args.items[x]
 				doc.token(TokenBlockStart(BlockTermRef))
-				doc.write(arg.GoString(), StyleLiteral)
+				doc.write(args.items[x].GoString(), StyleLiteral)
 				doc.token(TokenBlockEnd(BlockTermRef))
 				doc.Text(" requires an argument ")
 				doc.token(TokenBlockStart(BlockTermRef))
@@ -430,11 +428,10 @@ func (self *Message) render(args State, meta Meta) ParseFailure {
 				doc.token(TokenBlockEnd(BlockTermRef))
 			}
 		},
-		func(ix uint) {
+		func(ix int) {
 			// Error: --foo is not expected in this context
-			item := &args.items[ix]
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(item.GoString(), StyleInvalid)
+			doc.write(args.items[ix].GoString(), StyleInvalid)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" is not expected in this context")
 		},

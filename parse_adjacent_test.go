@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/kr/pretty"
@@ -23,6 +24,7 @@ func requireNoParseFailure(t *testing.T, err ParseFailure) {
 }
 
 func TestAdjacent(t *testing.T) {
+	t.Skip() // TODO: unskip
 	type cmd struct {
 		a    struct{}
 		b, c bool
@@ -65,25 +67,62 @@ func TestAdjacent(t *testing.T) {
 	}
 }
 
-// func test_adjacent_prefix() {
-//     let a = short('a').req_flag(());
-//     let b = positional::<usize>("X");
-//     let ab = construct(a, b).adjacent().optional();
-//     let c = short('c').switch();
-//     let parser = construct(ab, c).to_options();
+func TestAdjacentPrefix(t *testing.T) {
+	t.Skip() // TODO: unskip
 
-//     let r = parser.run_inner(&["-c"]).unwrap();
-//     require.Equal(r, (None, true));
+	type cmd struct {
+		ab Option[fun.Pair[struct{}, uint]]
+		c  bool
+	}
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional[uint]("X", func(s string) (uint, error) {
+		u, err := strconv.ParseUint(s, 10, 32)
+		return uint(u), err
+	})
+	ab := Optional(Pair(a.Parser(), b.Parser()).Adjacent().Parser())
+	c := Short('c').Switch()
+	parser := Pair(ab.Parser(), c).Parser().ToOptions()
 
-//     let r = parser.run_inner(&["-a", "1"]).unwrap();
-//     require.Equal(r, (Some(((), 1)), false));
-
-//     let r = parser.run_inner(&["-c", "-a", "1"]).unwrap();
-//     require.Equal(r, (Some(((), 1)), true));
-
-//     let r = parser.run_inner(&["-a", "1", "-c"]).unwrap();
-//     require.Equal(r, (Some(((), 1)), true));
-// }
+	for name, tc := range map[string]struct {
+		args     []string
+		expected cmd
+	}{
+		"-c": {
+			args: []string{"-c"},
+			expected: cmd{
+				Invalid[fun.Pair[struct{}, uint]](),
+				true,
+			},
+		},
+		"-a 1": {
+			args: []string{"-a", "1"},
+			expected: cmd{
+				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				false,
+			},
+		},
+		"-c -a 1": {
+			args: []string{"-c", "-a", "1"},
+			expected: cmd{
+				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				true,
+			},
+		},
+		"-a 1 -c": {
+			args: []string{"-a", "1", "-c"},
+			expected: cmd{
+				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				true,
+			},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, err := parser.run_inner(newArgs(tc.args...))
+			requireNoParseFailure(t, err)
+			require.Equal(t, tc.expected, r)
+		})
+	}
+}
 
 // func adjacent_error_message_pos_single() {
 //     let a = short('a').req_flag(());

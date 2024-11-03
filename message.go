@@ -51,7 +51,7 @@ type Message func(
 
 	// Parser is expected to consume all the things from the command line
 	// this item will contain an index of the unconsumed value
-	Unconsumed func( /* TODO: unused? */ uint),
+	Unconsumed func( /* TODO: unused? */ int),
 
 	// argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
 	Ambiguity func(int, string),
@@ -71,7 +71,7 @@ type Message func(
 )
 
 func MessageNoEnv(s string) Message {
-	return func(NoEnv, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+	return func(NoEnv, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if NoEnv != nil {
 			NoEnv(s)
 		}
@@ -88,7 +88,7 @@ func MessageParseFailed(a Option[int], s string) Message {
 		f func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -111,7 +111,7 @@ func MessageGuardFailed(a Option[int], s string) Message {
 		_ func(Option[uint], string),
 		f func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -125,7 +125,7 @@ func MessageGuardFailed(a Option[int], s string) Message {
 }
 
 func MessagePureFailed(s string) Message {
-	return func(_, _, _, PureFailed func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+	return func(_, _, _, PureFailed func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
 		if PureFailed != nil {
 			PureFailed(s)
 		}
@@ -142,7 +142,7 @@ func MessageParseFailure(e ParseFailure) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -165,7 +165,7 @@ func MessageStrictPos(a int, b Metavar) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -188,7 +188,7 @@ func MessageNonStrictPos(a int, b Metavar) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -202,49 +202,49 @@ func MessageNonStrictPos(a int, b Metavar) Message {
 }
 
 func MessageMissing(xs ...MissingItem) Message {
-	return func(_, _, _, _ func(string), Missing func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Missing != nil {
-			Missing(xs)
+	return func(_, _, _, _ func(string), f func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(xs)
 		}
 	}
 }
 
 func MessageParseFail(s string) Message {
-	return func(_, _, _, ParseFail func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if ParseFail != nil {
-			ParseFail(s)
+	return func(_, _, _, f func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(s)
 		}
 	}
 }
 
 func MessageNoArgument(ix int, metavar Metavar) Message {
-	return func(_ func(string), _ func(string), _ func(string), _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), NoArgument func(int, Metavar), _ func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if NoArgument != nil {
-			NoArgument(ix, metavar)
+	return func(_ func(string), _ func(string), _ func(string), _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), f func(int, Metavar), _ func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(ix, metavar)
 		}
 	}
 }
 
 func MessageUnconsumed(a int) Message {
-	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), Unconsumed func(uint), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Unconsumed != nil {
-			Unconsumed(uint(a))
+	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), f func(int), _ func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(a)
 		}
 	}
 }
 
 func MessageAmbiguity(ix int, short string) Message {
-	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), Ambiguity func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Ambiguity != nil {
-			Ambiguity(ix, short)
+	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), f func(int, string), _ func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(ix, short)
 		}
 	}
 }
 
 func MessageSuggestion(a int, b Suggestion) Message {
-	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(uint), _ func(int, string), Suggestion func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
-		if Suggestion != nil {
-			Suggestion(uint(a), b)
+	return func(_, _, _, _ func(string), _ func([]MissingItem), _ func(ParseFailure), _ func(uint, Metavar), _ func(uint, Metavar), _ func(Option[uint], string), _ func(Option[uint], string), _ func(int, Metavar), _ func(int), _ func(int, string), f func(uint, Suggestion), _ func(uint, uint), _ func([]Item, Option[uint]), _ func(uint, uint)) {
+		if f != nil {
+			f(uint(a), b)
 		}
 	}
 }
@@ -259,7 +259,7 @@ func MessageConflict(a int, b int) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		Conflict func(uint, uint),
@@ -282,7 +282,7 @@ func MessageExpected(a []Item, b Option[int]) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -305,7 +305,7 @@ func MessageOnlyOnce(a, b int) Message {
 		_ func(Option[uint], string),
 		_ func(Option[uint], string),
 		_ func(int, Metavar),
-		_ func(uint),
+		_ func(int),
 		_ func(int, string),
 		_ func(uint, Suggestion),
 		_ func(uint, uint),
@@ -336,7 +336,7 @@ type MessageFs[T any] struct {
 	ParseFailed  func(Option[uint], string) T
 	GuardFailed  func(Option[uint], string) T
 	NoArgument   func(int, Metavar) T
-	Unconsumed   func(uint) T
+	Unconsumed   func(int) T
 	Ambiguity    func(int, string) T
 	Suggestion   func(uint, Suggestion) T
 	Conflict     func(uint, uint) T
@@ -358,7 +358,7 @@ func MessageF[T any](m Message, fs MessageFs[T]) T {
 		func(a Option[uint], b string) { res = fs.ParseFailed(a, b) },
 		func(a Option[uint], b string) { res = fs.GuardFailed(a, b) },
 		func(a int, b Metavar) { res = fs.NoArgument(a, b) },
-		func(a uint) { res = fs.Unconsumed(a) },
+		func(a int) { res = fs.Unconsumed(a) },
 		func(a int, b string) { res = fs.Ambiguity(a, b) },
 		func(a uint, b Suggestion) { res = fs.Suggestion(a, b) },
 		func(a uint, b uint) { res = fs.Conflict(a, b) },
@@ -383,7 +383,7 @@ func (self Message) String() string {
 		func(a Option[uint], b string) string { return fmt.Sprintf("ParseFailed(%#v, %#v)", a, b) },
 		func(a Option[uint], b string) string { return fmt.Sprintf("GuardFailed(%#v, %#v)", a, b) },
 		func(a int, b Metavar) string { return fmt.Sprintf("NoArgument(%#v, %#v)", a, b) },
-		func(a uint) string { return fmt.Sprintf("Unconsumed(%#v)", a) },
+		func(a int) string { return fmt.Sprintf("Unconsumed(%#v)", a) },
 		func(a int, b string) string { return fmt.Sprintf("Ambiguity(%#v, %#v)", a, b) },
 		func(a uint, b Suggestion) string { return fmt.Sprintf("Suggestion(%#v, %#v)", a, b) },
 		func(a uint, b uint) string { return fmt.Sprintf("Conflict(%#v, %#v)", a, b) },
