@@ -5,6 +5,10 @@ type parsePure[T any] struct {
 	inner T
 }
 
+func (self parsePure[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, MetaSkip{}}
+}
+
 func (self parsePure[T]) eval(args *State) (T, Error) {
 	args.current = Invalid[int]()
 	return self.inner, nil

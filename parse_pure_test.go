@@ -52,7 +52,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
-	user_seeds := Positional[uint32]("SEED", parseUint32).Parser().Some("at least one required")
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required")
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds
 		return []uint32{3, 5, 7, 11}, nil
@@ -80,18 +80,32 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 	}
 }
 
-// func default_value_using_pure_with_err_for_some() {
-//     let user_seeds = positional::<u32>("SEED").some("at least one required");
-//     let last_seeds = pure_with(|| {
-//         // ~ trying to lookup the last used seeds but failing - parser fails, fallback works
-//         Err("oh, no")
-//     });
-//     let default_seeds = pure(vec[1, 2]);
-//     let seeds = Choice(user_seeds, last_seeds, default_seeds).ToOptions();
+func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required")
+	last_seeds := PureWith(func() ([]uint32, Error) {
+		// ~ trying to lookup the last used seeds but failing - parser fails, fallback works
+		return nil, Error(MessageParseFail("oh, no"))
+	})
+	default_seeds := Pure([]uint32{1, 2})
+	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser(), default_seeds.Parser()).ToOptions()
 
-//     let r = seeds.run_inner(&["23", "59"]);
-//     require.Equal(t, vec[23, 59], r.unwrap());
-
-//     let r = seeds.run_inner(&[]);
-//     require.Equal(t, r.unwrap(), vec[1, 2]);
-// }
+	for name, tc := range map[string]struct {
+		args     []string
+		expected []uint32
+	}{
+		"23,59": {
+			args:     []string{"23", "59"},
+			expected: []uint32{23, 59},
+		},
+		"empty": {
+			args:     nil,
+			expected: []uint32{1, 2},
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			r, err := seeds.run_inner(newArgs(tc.args...))
+			requireNoParseFailure(t, err)
+			require.Equal(t, tc.expected, r)
+		})
+	}
+}
