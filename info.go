@@ -143,7 +143,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 
 	// this only handles disambiguation failure in construct
 	if msg, ok := err.Unpack(); ok && !func() bool { _, ok := state.comp_ref(); return ok }() {
-		return *new(T), fun.Ptr(ErrorMessage(msg)).render(state, self.inner.meta)
+		return *new(T), render(fun.Ptr(ErrorMessage(msg)), state, self.inner.meta)
 	}
 
 	return self.run_subparser(&state)
@@ -175,7 +175,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	res, errr := self.inner.eval(args)
 	if errr != nil {
 		var parseFailure ParseFailure
-		errr(nil, nil, nil, nil, nil, func(failure ParseFailure) {
+		Message(errr, nil, nil, nil, nil, nil, func(failure ParseFailure) {
 			parseFailure = failure
 		}, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil)
 		if parseFailure != nil {
@@ -224,7 +224,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		)
 		return *new(T), ParseFailureStdout{buffer, detailed}
 	}
-	return *new(T), err.render(*args, self.inner.meta)
+	return *new(T), render(&err, *args, self.inner.meta)
 }
 
 // Get first line of description if Available

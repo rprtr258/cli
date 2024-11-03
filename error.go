@@ -129,17 +129,17 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 // Unsuccessful command line parsing outcome, internal representation
 type Error ErrorMessage
 
-func (self Error) String() string {
-	return ErrorMessage(self).String()
+func ErrorString(self Error) string {
+	return String(ErrorMessage(self))
 }
 
-func (self Error) combine_with(other Error) Error {
-	return Error(ErrorMessage(self).combine_with(ErrorMessage(other)))
+func Errorcombine_with(self, other Error) Error {
+	return Error(combine_with(self, other))
 }
 
-func (self ErrorMessage) can_catch() bool {
+func can_catch(self ErrorMessage) bool {
 	res := false
-	self(
+	Message(self,
 		func(string) { res = true },
 		func(string) { res = true },
 		func(string) { res = true },
@@ -147,7 +147,7 @@ func (self ErrorMessage) can_catch() bool {
 		func([]MissingItem) { res = true },
 		nil,
 		nil,
-		func(uint, Metavar) { res = true },
+		func(int, Metavar) { res = true },
 		nil,
 		nil,
 		nil,
@@ -161,7 +161,7 @@ func (self ErrorMessage) can_catch() bool {
 	return res
 }
 
-func (self ErrorMessage) combine_with(other ErrorMessage) ErrorMessage {
+func combine_with(self, other ErrorMessage) ErrorMessage {
 	// help output takes priority
 	if MessageF(self, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
 		return self
@@ -178,7 +178,7 @@ func (self ErrorMessage) combine_with(other ErrorMessage) ErrorMessage {
 	}
 
 	// otherwise earliest wins
-	if self.can_catch() {
+	if can_catch(self) {
 		return other
 	} else {
 		return self
@@ -298,9 +298,9 @@ func only_once(args State, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
+func render(self *ErrorMessage, args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
-	(*self)(
+	Message(*self,
 		nil, nil, nil, nil,
 		func(xs []MissingItem) {
 			*self = summarize_missing(xs, meta, args)
@@ -319,7 +319,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 	)
 
 	doc := Doc{}
-	(*self)(
+	Message(*self,
 		func(name string) {
 			// Error: environment variable FOO is not set
 			doc.Text("environment variable ")
@@ -346,7 +346,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 		},
 		// already rendered
 		func(f ParseFailure) { /* doc = f */ }, // TODO: insta return
-		func(_ uint, metavar Metavar) {
+		func(_ int, metavar Metavar) {
 			// Error: FOO expected to be  in the right side of --
 			doc.Text("expected ")
 			doc.token(TokenBlockStart(BlockTermRef))
@@ -357,7 +357,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.Literal("--")
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
-		func(_ uint, metavar Metavar) {
+		func(_ int, metavar Metavar) {
 			// Error: FOO expected to be on the left side of --
 			doc.Text("expected ")
 			doc.token(TokenBlockStart(BlockTermRef))
@@ -368,7 +368,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.Literal("--")
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
-		func(mix Option[uint], s string) {
+		func(mix Option[int], s string) {
 			// Error: couldn't parse FIELD: <FromStr message>
 			doc.Text("couldn't parse")
 			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
@@ -380,7 +380,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.Text(": ")
 			doc.Text(s)
 		},
-		func(mix Option[uint], s string) {
+		func(mix Option[int], s string) {
 			// Error: ( FIELD:  | check failed: ) <message from guard>
 			if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
 				doc.token(TokenBlockStart(BlockTermRef))
@@ -473,7 +473,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" syntax to disambiguate")
 		},
-		func(ix uint, suggestion Suggestion) {
+		func(ix int, suggestion Suggestion) {
 			// Error: No such (flag|argument|command), did you mean  ...
 			actual := args.items[ix].GoString()
 			suggestion(
@@ -565,7 +565,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 				},
 			)
 		},
-		func(winner, loser uint) {
+		func(winner, loser int) {
 			// Error: --intel cannot be used at the same time as --att
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.write(args.items[loser].GoString(), StyleLiteral)
@@ -575,7 +575,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.write(args.items[winner].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
 		},
-		func(exp []Item, actual Option[uint]) {
+		func(exp []Item, actual Option[int]) {
 			// Error: Expected (no arguments|--foo), got ..., pass --help
 			doc.Text("expected ")
 			switch len(exp) {
@@ -618,7 +618,7 @@ func (self *ErrorMessage) render(args State, meta Meta) ParseFailure {
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" for usage information")
 		},
-		func(_ uint, loser uint) {
+		func(_, loser int) {
 			// Error: argument FOO cannot be used multiple times in this context
 			doc.Text("argument ")
 			doc.token(TokenBlockStart(BlockTermRef))

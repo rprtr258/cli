@@ -54,7 +54,7 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 	res, err := self.inner.eval(args)
 
 	args.swap_comps_with(&comps)
-	if err != nil && MessageF(ErrorMessage(err), MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
+	if err != nil && MessageF(err, MessageFs[bool]{Missing: func([]MissingItem) bool { return true }}) {
 		return *new(T), Error(MessageMissing())
 	}
 
@@ -82,9 +82,9 @@ func parse_option[T any](
 		// When parser returns Ok(Invalid()) we should return the original arguments so if there's
 		// anything left unconsumed - this won't be lost.
 
-		missing := ErrorMessage(err).IsMissing()
+		missing := IsMissing(err)
 
-		if catch || (missing && orig_args.len() == args.len()) || (!missing && ErrorMessage(err).can_catch()) {
+		if catch || (missing && orig_args.len() == args.len()) || (!missing && can_catch(ErrorMessage(err))) {
 			*orig_args = *args
 
 			if _, ok := orig_args.comp_mut(); ok {
