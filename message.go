@@ -224,10 +224,6 @@ func Message(
 	}
 }
 
-func MessageGuardFailed(a Option[int], s string) Error {
-	return ErrorGuardFailed{a, s}
-}
-
 func MessagePureFailed(s string) Error {
 	return ErrorPureFailed(s)
 }

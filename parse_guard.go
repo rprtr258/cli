@@ -19,7 +19,7 @@ func (self ParseGuard[T]) eval(args *State) (T, Error) {
 	if self.check(t) {
 		return t, nil
 	} else {
-		return *new(T), Error(MessageGuardFailed(args.current, self.message))
+		return *new(T), Error(ErrorGuardFailed{args.current, self.message})
 	}
 }
 
