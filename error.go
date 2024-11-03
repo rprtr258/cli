@@ -127,27 +127,17 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 }
 
 func can_catch(self Error) bool {
-	res := false
-	Message(self,
-		func(string) { res = true },
-		func(string) { res = true },
-		func(string) { res = true },
-		func(string) { res = true },
-		func([]MissingItem) { res = true },
-		nil,
-		nil,
-		func(int, Metavar) { res = true },
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-		nil,
-	)
-	return res
+	switch self.(type) {
+	case
+		ErrorNoEnv,
+		ErrorParseSome,
+		ErrorParseFail,
+		ErrorPureFailed,
+		ErrorMissing,
+		ErrorNonStrictPos:
+		return true
+	}
+	return false
 }
 
 func combine_with(self, other Error) Error {

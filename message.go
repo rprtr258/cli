@@ -315,94 +315,77 @@ type MessageFs[T any] struct {
 }
 
 func MessageF[T any](m Error, fs MessageFs[T]) T {
+	switch m := m.(type) {
+	case ErrorNoEnv:
+		if fs.NoEnv != nil {
+			return fs.NoEnv(string(m))
+		}
+	case ErrorParseSome:
+		if fs.ParseSome != nil {
+			return fs.ParseSome(string(m))
+		}
+	case ErrorParseFail:
+		if fs.ParseFail != nil {
+			return fs.ParseFail(string(m))
+		}
+	case ErrorPureFailed:
+		if fs.PureFailed != nil {
+			return fs.PureFailed(string(m))
+		}
+	case ErrorMissing:
+		if fs.Missing != nil {
+			return fs.Missing(m)
+		}
+	case ErrorParseFailure:
+		if fs.ParseFailure != nil {
+			return fs.ParseFailure(m.e)
+		}
+	case ErrorStrictPos:
+		if fs.StrictPos != nil {
+			return fs.StrictPos(m.a, m.b)
+		}
+	case ErrorNonStrictPos:
+		if fs.NonStrictPos != nil {
+			return fs.NonStrictPos(m.a, m.b)
+		}
+	case ErrorParseFailed:
+		if fs.ParseFailed != nil {
+			return fs.ParseFailed(m.a, m.b)
+		}
+	case ErrorGuardFailed:
+		if fs.GuardFailed != nil {
+			return fs.GuardFailed(m.a, m.b)
+		}
+	case ErrorNoArgument:
+		if fs.NoArgument != nil {
+			return fs.NoArgument(m.a, m.b)
+		}
+	case ErrorUnconsumed:
+		if fs.Unconsumed != nil {
+			return fs.Unconsumed(int(m))
+		}
+	case ErrorAmbiguity:
+		if fs.Ambiguity != nil {
+			return fs.Ambiguity(m.a, m.b)
+		}
+	case ErrorSuggestion:
+		if fs.Suggestion != nil {
+			return fs.Suggestion(m.a, m.b)
+		}
+	case ErrorConflict:
+		if fs.Conflict != nil {
+			return fs.Conflict(m.winner, m.loser)
+		}
+	case ErrorExpected:
+		if fs.Expected != nil {
+			return fs.Expected(m.a, m.b)
+		}
+	case ErrorOnlyOnce:
+		if fs.OnlyOnce != nil {
+			return fs.OnlyOnce(m.winner, m.loser)
+		}
+	}
 	var res T
-	Message(m,
-		func(a string) {
-			if fs.NoEnv != nil {
-				res = fs.NoEnv(a)
-			}
-		},
-		func(a string) {
-			if fs.ParseSome != nil {
-				res = fs.ParseSome(a)
-			}
-		},
-		func(a string) {
-			if fs.ParseFail != nil {
-				res = fs.ParseFail(a)
-			}
-		},
-		func(a string) {
-			if fs.PureFailed != nil {
-				res = fs.PureFailed(a)
-			}
-		},
-		func(a []MissingItem) {
-			if fs.Missing != nil {
-				res = fs.Missing(a)
-			}
-		},
-		func(a ParseFailure) {
-			if fs.ParseFailure != nil {
-				res = fs.ParseFailure(a)
-			}
-		},
-		func(a int, b Metavar) {
-			if fs.StrictPos != nil {
-				res = fs.StrictPos(a, b)
-			}
-		},
-		func(a int, b Metavar) {
-			if fs.NonStrictPos != nil {
-				res = fs.NonStrictPos(a, b)
-			}
-		},
-		func(a Option[int], b string) {
-			if fs.ParseFailed != nil {
-				res = fs.ParseFailed(a, b)
-			}
-		},
-		func(a Option[int], b string) {
-			if fs.GuardFailed != nil {
-				res = fs.GuardFailed(a, b)
-			}
-		},
-		func(a int, b Metavar) {
-			if fs.NoArgument != nil {
-				res = fs.NoArgument(a, b)
-			}
-		},
-		func(a int) {
-			if fs.Unconsumed != nil {
-				res = fs.Unconsumed(a)
-			}
-		},
-		func(a int, b string) {
-			if fs.Ambiguity != nil {
-				res = fs.Ambiguity(a, b)
-			}
-		},
-		func(a int, b Suggestion) {
-			if fs.Suggestion != nil {
-				res = fs.Suggestion(a, b)
-			}
-		},
-		func(a int, b int) {
-			if fs.Conflict != nil {
-				res = fs.Conflict(a, b)
-			}
-		},
-		func(a []Item, b Option[int]) {
-			if fs.Expected != nil {
-				res = fs.Expected(a, b)
-			}
-		},
-		func(a int, b int) {
-			if fs.OnlyOnce != nil {
-				res = fs.OnlyOnce(a, b)
-			}
-		},
-	)
 	return res
 }
 
