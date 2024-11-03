@@ -74,7 +74,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 		position: args.scope.start(),
 		scope:    args.scope,
 	}
-	return *new(T), Error(MessageMissing(missing_item))
+	return *new(T), ErrorMissing([]MissingItem{missing_item})
 }
 
 // Parse a single arbitrary item from a command line

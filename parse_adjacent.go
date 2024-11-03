@@ -24,7 +24,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 			position: original_scope.start(),
 			scope:    original_scope,
 		}
-		return MessageMissing(missing_item)
+		return ErrorMissing([]MissingItem{missing_item})
 	}()
 	best_args := args
 	best_consumed := 0

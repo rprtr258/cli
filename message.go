@@ -224,58 +224,6 @@ func Message(
 	}
 }
 
-func MessagePureFailed(s string) Error {
-	return ErrorPureFailed(s)
-}
-
-func MessageParseFailure(e ParseFailure) Error {
-	return ErrorParseFailure{e}
-}
-
-func MessageStrictPos(a int, b Metavar) Error {
-	return ErrorStrictPos{a, b}
-}
-
-func MessageNonStrictPos(a int, b Metavar) Error {
-	return ErrorNonStrictPos{a, b}
-}
-
-func MessageMissing(xs ...MissingItem) Error {
-	return ErrorMissing(xs)
-}
-
-func MessageParseFail(s string) Error {
-	return ErrorParseFail(s)
-}
-
-func MessageNoArgument(ix int, metavar Metavar) Error {
-	return ErrorNoArgument{ix, metavar}
-}
-
-func MessageUnconsumed(a int) Error {
-	return ErrorUnconsumed(a)
-}
-
-func MessageAmbiguity(ix int, short string) Error {
-	return ErrorAmbiguity{ix, short}
-}
-
-func MessageSuggestion(a int, b Suggestion) Error {
-	return ErrorSuggestion{a, b}
-}
-
-func MessageConflict(a, b int) Error {
-	return ErrorConflict{a, b}
-}
-
-func MessageExpected(a []Item, b Option[int]) Error {
-	return ErrorExpected{a, b}
-}
-
-func MessageOnlyOnce(a, b int) Error {
-	return ErrorOnlyOnce{a, b}
-}
-
 func IsMissing(m Error) bool {
 	return MessageF(m, MessageFs[bool]{
 		Missing: func([]MissingItem) bool { return true },

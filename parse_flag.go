@@ -33,7 +33,7 @@ func (self ParseFlag[T]) eval(args *State) (T, Error) {
 					position: args.scope.start(),
 					scope:    args.scope,
 				}
-				return *new(T), Error(MessageMissing(missing))
+				return *new(T), ErrorMissing([]MissingItem{missing})
 			} else if name, ok := First(self.named.env).Unpack(); ok {
 				return *new(T), Error(ErrorNoEnv(name))
 			} else {

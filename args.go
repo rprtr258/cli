@@ -182,7 +182,7 @@ func disambiguate_short(
 			return nil, false
 		// ambiguity, this is bad
 		case a && b:
-			msg := MessageAmbiguity(len(*items), short)
+			msg := ErrorAmbiguity{len(*items), short}
 			*items = append(*items, ArgWord(os))
 			return msg, true
 		}
@@ -601,7 +601,7 @@ func (self *State) take_arg(
 	}() {
 		val = ww.str
 	} else {
-		return Option[string]{}, Error(MessageNoArgument(key_ix, metavar))
+		return Option[string]{}, Error(ErrorNoArgument{key_ix, metavar})
 	}
 	self.current = Valid(val_ix)
 	self.remove(key_ix)
@@ -649,7 +649,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 			position: scope.start(),
 			scope:    scope,
 		}
-		return 0, false, "", Error(MessageMissing(missing))
+		return 0, false, "", ErrorMissing([]MissingItem{missing})
 	}
 }
 

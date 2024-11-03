@@ -153,7 +153,7 @@ func combine_with(self, other Error) Error {
 	var a, b []MissingItem
 	if MessageF(self, MessageFs[bool]{Missing: func(xs []MissingItem) bool { a = xs; return true }}) &&
 		MessageF(other, MessageFs[bool]{Missing: func(xs []MissingItem) bool { b = xs; return true }}) {
-		return MessageMissing(append(a, b...)...)
+		return ErrorMissing(append(a, b...))
 	}
 
 	// otherwise earliest wins
@@ -225,7 +225,7 @@ func check_conflicts(args State) (Error, bool) {
 		return nil, false
 	}
 	loser, winner := loserwinner.start(), loserwinner.end()
-	return MessageConflict(winner, loser), true
+	return ErrorConflict{winner, loser}, true
 }
 
 func textual_part(args State, ixxx Option[int]) (string, bool) {
@@ -288,9 +288,9 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 			if conflict, ok := check_conflicts(args); ok {
 				*self = conflict
 			} else if prev_ix, ok := only_once(args, ix); ok {
-				*self = MessageOnlyOnce(prev_ix, ix)
+				*self = ErrorOnlyOnce{prev_ix, ix}
 			} else if ix, suggestion, ok := suggest(args, meta); ok {
-				*self = MessageSuggestion(ix, suggestion)
+				*self = ErrorSuggestion{ix, suggestion}
 			}
 		},
 		nil, nil, nil, nil, nil,
@@ -623,7 +623,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 		},
 	)
 	if !ok {
-		return MessageParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+		return ErrorParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}
 
 	best_scope := best_item.scope
@@ -651,11 +651,11 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 	next := args.items_iter()
 	if _, _, ok := next(); ok {
 		if ix, sugg, ok := suggest(args, inner); ok {
-			return MessageSuggestion(ix, sugg)
+			return ErrorSuggestion{ix, sugg}
 		} else {
-			return MessageExpected(expected, Valid(ix))
+			return ErrorExpected{expected, Valid(ix)}
 		}
 	} else {
-		return MessageExpected(expected, Invalid[int]())
+		return ErrorExpected{expected, Invalid[int]()}
 	}
 }

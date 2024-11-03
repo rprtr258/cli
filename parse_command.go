@@ -124,11 +124,10 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 		return args.take_cmd(tmp)
 	}, self.shorts...) {
 		if args.touching_last_remove() {
-			// in completion mode prefer to autocomplete the command name vs going inside the
-			// parser
+			// in completion mode prefer to autocomplete the command name vs going inside the parser
 			args.clear_comps()
 			args.push_command(self.longs[0], First(self.shorts), self.help)
-			return *new(T), Error(MessageMissing())
+			return *new(T), ErrorMissing(nil)
 		}
 
 		if cur, ok := args.current.Unpack(); ok {
@@ -147,7 +146,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 				run_subparser(args)
 			var err Error
 			if xxx != nil {
-				err = MessageParseFailure(xxx)
+				err = ErrorParseFailure{xxx}
 			}
 			if err == nil {
 				args.set_scope(orig_args.scope)
@@ -165,10 +164,9 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 				return *new(T), Error(err)
 			}
 		} else {
-			v, e := self.subparser.
-				run_subparser(args)
+			v, e := self.subparser.run_subparser(args)
 			if e != nil {
-				return *new(T), Error(MessageParseFailure(e))
+				return *new(T), ErrorParseFailure{e}
 			}
 			return v, nil
 		}
@@ -180,7 +178,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 			position: args.scope.start(),
 			scope:    args.scope,
 		}
-		return *new(T), Error(MessageMissing(missing))
+		return *new(T), ErrorMissing([]MissingItem{missing})
 	}
 }
 

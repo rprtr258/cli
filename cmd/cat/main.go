@@ -28,7 +28,7 @@ func main() {
 			}
 			f, err := os.Open(string(path))
 			if err != nil {
-				return nil, cli.Error(cli.MessageParseFail(err.Error()))
+				return nil, cli.Error(cli.ErrorParseFail(err.Error()))
 			}
 
 			return f, nil

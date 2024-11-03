@@ -7,7 +7,7 @@ type ParseFail[T any] struct {
 
 func (self ParseFail[T]) eval(args *State) (T, Error) {
 	args.current = Invalid[int]()
-	return *new(T), Error(MessageParseFail(self.field1))
+	return *new(T), ErrorParseFail(self.field1)
 }
 
 // Fail with a fixed error message

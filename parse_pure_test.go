@@ -44,7 +44,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 
 func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	a := Argument(Short('t'), "N", parseUint32)
-	b := PureWith(func() (uint32, Error) { return 0, Error(MessageParseFail("some-err")) })
+	b := PureWith(func() (uint32, Error) { return 0, ErrorParseFail("some-err") })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
 	_, err := opts.run_inner(newArgs())
@@ -84,7 +84,7 @@ func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
 	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required")
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds but failing - parser fails, fallback works
-		return nil, Error(MessageParseFail("oh, no"))
+		return nil, ErrorParseFail("oh, no")
 	})
 	default_seeds := Pure([]uint32{1, 2})
 	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser(), default_seeds.Parser()).ToOptions()

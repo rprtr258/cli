@@ -98,7 +98,7 @@ func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
 		if can_catch(Error(e)) {
 			ok, e := self.fallback()
 			if e != nil {
-				return *new(T), Error(MessagePureFailed(String(e)))
+				return *new(T), ErrorPureFailed(String(e))
 			}
 			return ok, nil
 		} else {

@@ -192,7 +192,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		err = Error(errr)
 	} else {
 		if ix, _, ok := args.items_iter()(); ok {
-			err = MessageUnconsumed(ix)
+			err = ErrorUnconsumed(ix)
 		} else {
 			return res, nil
 		}
@@ -640,7 +640,7 @@ func (self Info) eval(args *State) (ExtraParams, Error) {
 	}
 
 	// error message is not actually used anywhere
-	return *new(ExtraParams), Error(MessageParseFail("not a version or help"))
+	return *new(ExtraParams), Error(ErrorParseFail("not a version or help"))
 }
 
 func (self Info) meta() Meta {

@@ -46,7 +46,7 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	}
 
 	if is_empty(res) {
-		return nil, Error(MessageParseFail(self.message))
+		return nil, ErrorParseFail(self.message)
 	}
 
 	return res, nil
