@@ -142,7 +142,7 @@ func disambiguate_short(
 	short_flags []byte,
 	short_args []byte,
 	items *[]Arg,
-) (ErrorMessage, bool) {
+) (Error, bool) {
 	// block can start with 0 or more short flags
 	// followed by zero or one short argument, possibly with a body
 
@@ -246,7 +246,7 @@ func stateconstruct(
 	args Args,
 	short_flags []byte,
 	short_args []byte,
-	err *Option[ErrorMessage],
+	err *Option[Error],
 ) State {
 	items := []Arg{}
 	pos_only := false

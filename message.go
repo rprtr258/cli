@@ -7,7 +7,8 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type ErrorMessage interface {
+// Unsuccessful command line parsing outcome, internal representation
+type Error interface {
 	isErrorMessage()
 }
 
@@ -132,7 +133,7 @@ type ErrorMessageOnlyOnce struct{ winner, loser int }
 func (ErrorMessageOnlyOnce) isErrorMessage() {}
 
 func Message(
-	self ErrorMessage,
+	self Error,
 	errorMessageNoEnv func(string),
 	errorMessageParseSome func(string),
 	errorMessageParseFail func(string),
@@ -223,71 +224,71 @@ func Message(
 	}
 }
 
-func MessageNoEnv(s string) ErrorMessage {
+func MessageNoEnv(s string) Error {
 	return ErrorMessageNoEnv(s)
 }
 
-func MessageParseFailed(a Option[int], s string) ErrorMessage {
+func MessageParseFailed(a Option[int], s string) Error {
 	return ErrorMessageParseFailed{a, s}
 }
 
-func MessageGuardFailed(a Option[int], s string) ErrorMessage {
+func MessageGuardFailed(a Option[int], s string) Error {
 	return ErrorMessageGuardFailed{a, s}
 }
 
-func MessagePureFailed(s string) ErrorMessage {
+func MessagePureFailed(s string) Error {
 	return ErrorMessagePureFailed(s)
 }
 
-func MessageParseFailure(e ParseFailure) ErrorMessage {
+func MessageParseFailure(e ParseFailure) Error {
 	return ErrorMessageParseFailure{e}
 }
 
-func MessageStrictPos(a int, b Metavar) ErrorMessage {
+func MessageStrictPos(a int, b Metavar) Error {
 	return ErrorMessageStrictPos{a, b}
 }
 
-func MessageNonStrictPos(a int, b Metavar) ErrorMessage {
+func MessageNonStrictPos(a int, b Metavar) Error {
 	return ErrorMessageNonStrictPos{a, b}
 }
 
-func MessageMissing(xs ...MissingItem) ErrorMessage {
+func MessageMissing(xs ...MissingItem) Error {
 	return ErrorMessageMissing(xs)
 }
 
-func MessageParseFail(s string) ErrorMessage {
+func MessageParseFail(s string) Error {
 	return ErrorMessageParseFail(s)
 }
 
-func MessageNoArgument(ix int, metavar Metavar) ErrorMessage {
+func MessageNoArgument(ix int, metavar Metavar) Error {
 	return ErrorMessageNoArgument{ix, metavar}
 }
 
-func MessageUnconsumed(a int) ErrorMessage {
+func MessageUnconsumed(a int) Error {
 	return ErrorMessageUnconsumed(a)
 }
 
-func MessageAmbiguity(ix int, short string) ErrorMessage {
+func MessageAmbiguity(ix int, short string) Error {
 	return ErrorMessageAmbiguity{ix, short}
 }
 
-func MessageSuggestion(a int, b Suggestion) ErrorMessage {
+func MessageSuggestion(a int, b Suggestion) Error {
 	return ErrorMessageSuggestion{a, b}
 }
 
-func MessageConflict(a, b int) ErrorMessage {
+func MessageConflict(a, b int) Error {
 	return ErrorMessageConflict{a, b}
 }
 
-func MessageExpected(a []Item, b Option[int]) ErrorMessage {
+func MessageExpected(a []Item, b Option[int]) Error {
 	return ErrorMessageExpected{a, b}
 }
 
-func MessageOnlyOnce(a, b int) ErrorMessage {
+func MessageOnlyOnce(a, b int) Error {
 	return ErrorMessageOnlyOnce{a, b}
 }
 
-func IsMissing(m ErrorMessage) bool {
+func IsMissing(m Error) bool {
 	return MessageF(m, MessageFs[bool]{
 		Missing: func([]MissingItem) bool { return true },
 	})
@@ -313,7 +314,7 @@ type MessageFs[T any] struct {
 	OnlyOnce     func(int, int) T
 }
 
-func MessageF[T any](m ErrorMessage, fs MessageFs[T]) T {
+func MessageF[T any](m Error, fs MessageFs[T]) T {
 	var res T
 	Message(m,
 		func(a string) {
@@ -405,7 +406,7 @@ func MessageF[T any](m ErrorMessage, fs MessageFs[T]) T {
 	return res
 }
 
-func String(self ErrorMessage) string {
+func String(self Error) string {
 	return MessageF(self, MessageFs[string]{
 		func(msg string) string { return fmt.Sprintf("NoEnv(%#v)", msg) },
 		func(msg string) string { return fmt.Sprintf("ParseSome(%#v)", msg) },

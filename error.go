@@ -126,10 +126,7 @@ func getClosest(s string, ss []string) (closest_ string, distMin_ int) {
 	return closest, distMin
 }
 
-// Unsuccessful command line parsing outcome, internal representation
-type Error ErrorMessage
-
-func can_catch(self ErrorMessage) bool {
+func can_catch(self Error) bool {
 	res := false
 	Message(self,
 		func(string) { res = true },
@@ -153,7 +150,7 @@ func can_catch(self ErrorMessage) bool {
 	return res
 }
 
-func combine_with(self, other ErrorMessage) ErrorMessage {
+func combine_with(self, other Error) Error {
 	// help output takes priority
 	if MessageF(self, MessageFs[bool]{ParseFailure: func(ParseFailure) bool { return true }}) {
 		return self
@@ -232,7 +229,7 @@ func print_message(self ParseFailure, max_width uint) {
 	}
 }
 
-func check_conflicts(args State) (ErrorMessage, bool) {
+func check_conflicts(args State) (Error, bool) {
 	loserwinner, ok := args.conflict()
 	if !ok {
 		return nil, false
@@ -289,7 +286,7 @@ func only_once(args State, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func render(self *ErrorMessage, args State, meta Meta) ParseFailure {
+func render(self *Error, args State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
 	Message(*self,
 		nil, nil, nil, nil,
@@ -622,7 +619,7 @@ func render(self *ErrorMessage, args State, meta Meta) ParseFailure {
 }
 
 // go over all the missing items, pick the left most scope
-func summarize_missing(items []MissingItem, inner Meta, args State) ErrorMessage {
+func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(
 		slices.Values(items),
