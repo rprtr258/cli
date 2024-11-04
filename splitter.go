@@ -17,29 +17,18 @@ func (c Code) IsNo() bool    { return c == CodeNo }
 func (c Code) IsFirst() bool { return c == CodeFirst }
 func (c Code) IsRest() bool  { return c == CodeRest }
 
-type Chunk func(
-	Raw func(string, uint),
-	Paragraph func(),
-	LineBreak func(),
-)
+// Raw(string, uint) | Paragraph | LineBreak
+type Chunk struct {
+	s string
+	i int // -1 for paragraph, -2 for LineBreak
+}
 
 func ChunkRaw(code string, code_type uint) Chunk {
-	return func(f func(string, uint), _, _ func()) {
-		if f != nil {
-			f(code, code_type)
-		}
-	}
+	return Chunk{code, int(code_type)}
 }
-func ChunkParagraph(_ func(string, uint), f, _ func()) {
-	if f != nil {
-		f()
-	}
-}
-func ChunkLineBreak(_ func(string, uint), _, f func()) {
-	if f != nil {
-		f()
-	}
-}
+
+var ChunkParagraph = Chunk{"", -1}
+var ChunkLineBreak = Chunk{"", -2}
 
 const ChunkCODE = 1_000_000
 const ChunkTICKED_CODE = 1_000_001
@@ -70,7 +59,7 @@ func split(input string) iter.Seq[Chunk] {
 	// 5. take next word
 	next := func() (Chunk, bool) {
 		if self.input == "" {
-			return nil, false
+			return Chunk{}, false
 		}
 
 		if !self.code.IsNo() {

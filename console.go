@@ -150,60 +150,57 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 			}
 
 			for chunk := range split(input) {
-				chunk(
-					func(s string, w uint) {
-						margin := last(margins).OrDefault(0)
-						if res != "" {
-							if (pending_newline || pending_blank_line) && !strings.HasSuffix(res, "\n") {
-								char_pos = 0
-								res += "\n"
+				switch {
+				case chunk.i >= 0:
+					s, w := chunk.s, uint(chunk.i)
+					margin := last(margins).OrDefault(0)
+					if res != "" {
+						if (pending_newline || pending_blank_line) && !strings.HasSuffix(res, "\n") {
+							char_pos = 0
+							res += "\n"
+						}
+						if pending_blank_line && !strings.HasSuffix(res, "\n\n") {
+							res += "\n"
+						}
+						if char_pos+len(s) > int(max_width) {
+							char_pos = 0
+							res = strings.TrimRight(res, " \n")
+							res += "\n"
+							if s == " " {
+								break
 							}
-							if pending_blank_line && !strings.HasSuffix(res, "\n\n") {
-								res += "\n"
-							}
-							if char_pos+len(s) > int(max_width) {
-								char_pos = 0
-								res = strings.TrimRight(res, " \n")
-								res += "\n"
-								if s == " " {
-									return
-								}
-							}
 						}
+					}
 
-						pushed := 0
-						if int(margin) >= char_pos {
-							missing := int(margin) - char_pos
-							res += PADDING[:missing]
-							char_pos = int(margin)
-							pushed = missing
-						}
-						if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
-							missing := 2 - pushed
-							res += PADDING[:missing]
-							char_pos += missing
-						}
+					pushed := 0
+					if int(margin) >= char_pos {
+						missing := int(margin) - char_pos
+						res += PADDING[:missing]
+						char_pos = int(margin)
+						pushed = missing
+					}
+					if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
+						missing := 2 - pushed
+						res += PADDING[:missing]
+						char_pos += missing
+					}
 
-						pending_newline = false
-						pending_blank_line = false
-						pending_margin = false
+					pending_newline = false
+					pending_blank_line = false
+					pending_margin = false
 
-						res += color.push_str(style, s)
-						char_pos += int(w)
-					},
-					func() {
-						res += "\n"
-						char_pos = 0
-						if !full {
-							skip.enable()
-							return
-						}
-					},
-					func() {
-						res += "\n"
-						char_pos = 0
-					},
-				)
+					res += color.push_str(style, s)
+					char_pos += int(w)
+				case chunk.i == -1:
+					res += "\n"
+					char_pos = 0
+					if !full {
+						skip.enable()
+					}
+				case chunk.i == -2:
+					res += "\n"
+					char_pos = 0
+				}
 			}
 		case token.isStart:
 			block := token.block
