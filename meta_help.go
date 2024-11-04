@@ -145,46 +145,20 @@ const (
 	HiTyPositional
 )
 
-type ItemBlock func(
-	No func(),
-	Decor func(HiTy),
-	Anywhere func(HiTy),
-)
-
-func ItemBlockNo() ItemBlock {
-	return func(
-		f func(),
-		_ func(HiTy),
-		_ func(HiTy),
-	) {
-		if f != nil {
-			f()
-		}
-	}
+type ItemBlock struct {
+	present bool
+	isDecor bool // anywhere otherwise
+	ty      HiTy
 }
 
+var ItemBlockNo = ItemBlock{}
+
 func ItemBlockDecor(ty HiTy) ItemBlock {
-	return func(
-		_ func(),
-		f func(HiTy),
-		_ func(HiTy),
-	) {
-		if f != nil {
-			f(ty)
-		}
-	}
+	return ItemBlock{true, true, ty}
 }
 
 func ItemBlockAnywhere(ty HiTy) ItemBlock {
-	return func(
-		_ func(),
-		_ func(HiTy),
-		f func(HiTy),
-	) {
-		if f != nil {
-			f(ty)
-		}
-	}
+	return ItemBlock{true, false, ty}
 }
 
 type HelpItemsIter struct {
@@ -206,22 +180,25 @@ func (self *HelpItemsIter) next() (HelpItem, bool) {
 		switch it := item.(type) {
 		case HelpItemDecorSuffix, HelpItemAny, HelpItemPositional, HelpItemCommand, HelpItemFlag, HelpItemArgument:
 			ty := ty(item)
-			self.block(
-				func() { keep = ty == self.target },
-				func(t HiTy) { keep = t == self.target },
-				func(t HiTy) { keep = t == self.target && has_help(item) },
-			)
+			switch {
+			case !self.block.present:
+				keep = ty == self.target
+			case self.block.isDecor:
+				keep = self.block.ty == self.target
+			default:
+				keep = self.block.ty == self.target && has_help(item)
+			}
 		case HelpItemGroupStart:
 			self.block = ItemBlockDecor(it.ty)
 			keep = it.ty == self.target
 		case HelpItemGroupEnd:
-			self.block = ItemBlockNo()
+			self.block = ItemBlockNo
 			keep = it.ty == self.target
 		case HelpItemAnywhereStart:
 			self.block = ItemBlockAnywhere(it.ty)
 			keep = it.ty == self.target
 		case HelpItemAnywhereStop:
-			self.block = ItemBlockNo()
+			self.block = ItemBlockNo
 			keep = it.ty == self.target
 		}
 		if keep {
@@ -235,7 +212,7 @@ func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
 		items:  self,
 		target: target,
 		cur:    0,
-		block:  ItemBlockNo(),
+		block:  ItemBlockNo,
 	}
 	return func(yield func(HelpItem) bool) {
 		for {
