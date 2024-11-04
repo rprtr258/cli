@@ -10,15 +10,14 @@ import (
 //
 // No longer public, users are only interacting with it via [OptionParser]
 type Info struct {
-	version         Option[Doc] // version field, see [version][Infoversion]
-	descr           Option[Doc] // Custom description field, see [descr][Infodescr]
-	header          Option[Doc] // Custom header field, see [header][Infoheader]
-	footer          Option[Doc] // Custom footer field, see [footer][Infofooter]
-	usage           Option[Doc] // Custom usage field, see [usage][Infousage]
-	help_arg        NamedArg
-	version_arg     NamedArg
-	help_if_no_args bool
-	max_width       uint
+	version               Option[Doc] // version field, see [version][Infoversion]
+	descr                 Option[Doc] // Custom description field, see [descr][Infodescr]
+	header                Option[Doc] // Custom header field, see [header][Infoheader]
+	footer                Option[Doc] // Custom footer field, see [footer][Infofooter]
+	usage                 Option[Doc] // Custom usage field, see [usage][Infousage]
+	help_arg, version_arg NamedArg
+	help_if_no_args       bool
+	max_width             uint
 }
 
 func NewInfo() Info {

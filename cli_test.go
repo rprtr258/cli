@@ -606,17 +606,17 @@ func TestConstructWithFn(t *testing.T) {
 	c := Short('c').Switch()
 	parser := Map3(a, b, c, func(a bool, b bool, c bool) Opts { return Opts{a, b, c} }).ToOptions()
 
-	// 	_, err := parser.run_inner(newArgs("--help"))
-	// 	help := unwrap_stdout(err)
-	// 	expected_help := `Usage: [-a] [-b] [-c]
+	_, err := parser.run_inner(newArgs("--help"))
+	help := unwrap_stdout(err)
+	expected_help := `Usage: [-a] [-b] [-c]
 
-	// Available options:
-	//     -a
-	//     -b
-	//     -c
-	//     -h, --help  Prints help information
-	// `
-	// 	require.Equal(t, expected_help, help)
+Available options:
+    -a
+    -b
+    -c
+    -h, --help  Prints help information
+`
+	require.Equal(t, expected_help, help)
 
 	x, err := parser.run_inner(newArgs("-b", "-c"))
 	requireNoParseFailure(t, err)

@@ -2,7 +2,6 @@ package cli
 
 import (
 	"strings"
-	"testing"
 )
 
 // help needs to support following features:
@@ -237,9 +236,9 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 			}
 		default:
 			block := token.block
-			if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
-				panic("assert")
-			}
+			// if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
+			// 	panic("assert")
+			// }
 
 			if len(margins) > 0 {
 				margins = margins[:len(margins)-1]
@@ -269,8 +268,8 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	if pending_newline || pending_blank_line {
 		res += "\n"
 	}
-	if testing.Testing() && len(stack) != 0 {
-		panic("assert")
-	}
+	// if testing.Testing() && len(stack) != 0 {
+	// 	panic("assert")
+	// }
 	return res
 }

@@ -93,16 +93,16 @@ func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
 	meta := MetaAnd{pa.meta, pb.meta}
 	type R = fun.Pair[A, B]
 	inner := func(failfast bool, args *State) (R, Error) {
-		verbose, err := pa.eval(args)
+		a, err := pa.eval(args)
 		if failfast && err != nil {
 			return R{}, err
 		}
-		quiet, err := pb.eval(args)
+		b, err := pb.eval(args)
 		if err != nil {
 			return R{}, err
 		}
 		args.current = Invalid[int]()
-		return R{verbose, quiet}, nil
+		return R{a, b}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}
 }

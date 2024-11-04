@@ -107,73 +107,65 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 	}
 
 	nest := Invalid[fun.Pair[string, Variant]]()
-	for _, item := range hi.items {
-		item(
-			nil,
-			nil,
-			nil,
-			nil,
-			nil,
-			func(name string, _ Option[byte], _ Option[Doc], meta Meta, _ Info) {
-				// command can result in 2 types of suggestions:
-				// - typo in a short or a long name
-				// - there is a nested command that matches perfectly - try using that
-				distance := damerau_levenshtein(actual, name)
-				improve(distance, VariantCommandLong(name))
+	for _, item := range hi {
+		switch item := item.(type) {
+		case HelpItemCommand:
+			name, meta := item.name, item.meta
+			// command can result in 2 types of suggestions:
+			// - typo in a short or a long name
+			// - there is a nested command that matches perfectly - try using that
+			distance := damerau_levenshtein(actual, name)
+			improve(distance, VariantCommandLong(name))
 
-				// scan nested items and look for exact matches only
-				nested.items = nil
-				nested.append_meta(meta)
-				for _, item := range nested.items {
-					item(
-						nil, nil, nil, nil, nil,
-						func(nname string, _ Option[byte], _ Option[Doc], _ Meta, _ Info) {
-							if nname == actual {
-								nest = Valid(fun.Pair[string, Variant]{name, VariantCommandLong(nname)})
-							}
-						},
-						func(nname ShortLong, _ Option[string], _ Option[Doc]) {
-							if nname.eq(actual) {
-								nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
-							}
-						},
-						func(nname ShortLong, _ Metavar, _ Option[string], _ Option[Doc]) {
-							if nname.eq(actual) {
-								nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
-							}
-						},
-						nil, nil,
-					)
-				}
-			},
-			func(name ShortLong, _ Option[string], _ Option[Doc]) {
-				if long, ok := name.as_long(); ok {
-					distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
-					improve(distance, VariantFlag(name))
-				}
-				if short, ok := name.as_short(); ok {
-					if act, ok := strings.CutPrefix(actual, "--"); ok {
-						if act == string(short) {
-							return_(ix, SuggestionExtraDash(short), true)
-						}
+			// scan nested items and look for exact matches only
+			nested = nil
+			nested.append_meta(meta)
+			for _, item := range nested {
+				switch item := item.(type) {
+				case HelpItemCommand:
+					nname := item.name
+					if nname == actual {
+						nest = Valid(fun.Pair[string, Variant]{name, VariantCommandLong(nname)})
+					}
+				case HelpItemFlag:
+					nname := item.name
+					if nname.eq(actual) {
+						nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
+					}
+				case HelpItemArgument:
+					nname := item.name
+					if nname.eq(actual) {
+						nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
 					}
 				}
-			},
-			func(name ShortLong, _ Metavar, _ Option[string], _ Option[Doc]) {
-				if long, ok := name.as_long(); ok {
-					distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
-					improve(distance, VariantFlag(name))
-				}
-				if short, ok := name.as_short(); ok {
-					if act, ok := strings.CutPrefix(actual, "--"); ok {
-						if act == string(short) {
-							return_(ix, SuggestionExtraDash(short), true)
-						}
+			}
+		case HelpItemFlag:
+			name := item.name
+			if long, ok := name.as_long(); ok {
+				distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
+				improve(distance, VariantFlag(name))
+			}
+			if short, ok := name.as_short(); ok {
+				if act, ok := strings.CutPrefix(actual, "--"); ok {
+					if act == string(short) {
+						return_(ix, SuggestionExtraDash(short), true)
 					}
 				}
-			},
-			nil, nil,
-		)
+			}
+		case HelpItemArgument:
+			name := item.name
+			if long, ok := name.as_long(); ok {
+				distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
+				improve(distance, VariantFlag(name))
+			}
+			if short, ok := name.as_short(); ok {
+				if act, ok := strings.CutPrefix(actual, "--"); ok {
+					if act == string(short) {
+						return_(ix, SuggestionExtraDash(short), true)
+					}
+				}
+			}
+		}
 	}
 
 	if namevariant, ok := nest.Unpack(); ok {

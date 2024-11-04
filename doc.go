@@ -123,56 +123,56 @@ func (self *Doc) write_item(item Item) {
 }
 
 func (self *Doc) write_meta(meta Meta, for_usage bool) {
-	var gO func(meta Meta, f *Doc)
-	gO = func(meta Meta, f *Doc) {
+	var gO func(meta Meta)
+	gO = func(meta Meta) {
 		switch m := meta.(type) {
 		case MetaAnd:
 			for ix, x := range m {
 				if ix != 0 {
-					f.write_str(" ", StyleText)
+					self.write_str(" ", StyleText)
 				}
-				gO(x, f)
+				gO(x)
 			}
 		case MetaOr:
 			for ix, x := range m {
 				if ix != 0 {
-					f.write_str(" | ", StyleText)
+					self.write_str(" | ", StyleText)
 				}
-				gO(x, f)
+				gO(x)
 			}
 		case MetaOptional:
-			f.write_str("[", StyleText)
-			gO(m, f)
-			f.write_str("]", StyleText)
+			self.write_str("[", StyleText)
+			gO(m.m)
+			self.write_str("]", StyleText)
 		case MetaRequired:
-			f.write_str("(", StyleText)
-			gO(m, f)
-			f.write_str(")", StyleText)
+			self.write_str("(", StyleText)
+			gO(m.m)
+			self.write_str(")", StyleText)
 		case MetaAdjacent:
-			gO(m, f)
-			f.write_str("...", StyleText)
+			gO(m.m)
+			self.write_str("...", StyleText)
 		case MetaItem:
-			f.write_item(Item(m))
+			self.write_item(Item(m))
 		case MetaMany:
-			gO(m, f)
+			gO(m.m)
 		case MetaSubsection:
-			gO(m, f)
+			gO(m.m)
 		case MetaSuffix:
-			gO(m, f)
+			gO(m.m)
 		case MetaSkip:
-			f.write_str("no parameters expected", StyleText)
+			// self.write_str("no parameters expected", StyleText)
 		case MetaCustomUsage:
-			f.Doc(m.u)
+			self.Doc(m.u)
 		case MetaStrict:
-			f.write_str("--", StyleLiteral)
-			f.write_str(" ", StyleText)
-			gO(m, f)
+			self.write_str("--", StyleLiteral)
+			self.write_str(" ", StyleText)
+			gO(m.m)
 		}
 	}
 
 	meta = normalized(meta, for_usage)
 	self.token(TokenBlockStart(BlockMono))
-	gO(meta, self)
+	gO(meta)
 	self.token(TokenBlockEnd(BlockMono))
 }
 
@@ -241,8 +241,12 @@ func (d Doc) to_completion() Option[string] {
 	return Valid(strings.TrimRight(s, " "))
 }
 
-func newDocFromString(s string) Doc { return Doc{payload: s} }
-func (d Doc) is_empty() bool        { return len(d.tokens) == 0 }
+func newDocFromString(s string) Doc {
+	var res Doc
+	res.write_str(s, StyleText)
+	return res
+}
+func (d Doc) is_empty() bool { return len(d.tokens) == 0 }
 func (d Doc) first_line() (Doc, bool) {
 	if d.is_empty() {
 		return Doc{}, false
@@ -297,10 +301,10 @@ func (self *Doc) write(input string, style Style) {
 func (self *Doc) set_style(lenn int, style Style) {
 	// buffer chunks are unified with previous chunks of the same type
 	// [metavar]"foo" + [metavar]"bar" => [metavar]"foobar"
-	if n := len(self.tokens); n == 0 || !self.tokens[n-1].isText {
-		self.tokens = append(self.tokens, TokenText(lenn, style))
-	} else if self.tokens[n-1].style == style {
+	if n := len(self.tokens); n != 0 && self.tokens[n-1].isText && self.tokens[n-1].style == style {
 		self.tokens[n-1].bytes += lenn
+	} else {
+		self.tokens = append(self.tokens, TokenText(lenn, style))
 	}
 }
 
@@ -329,11 +333,12 @@ func extract_sections(
 	*sections = append(*sections, DocSection{*path, info, meta})
 	hi := HelpItems{}
 	hi.append_meta(meta)
-	for _, item := range hi.items {
-		item(nil, nil, nil, nil, nil, func(name string, _ Option[byte], _ Option[Doc], meta Meta, info Info) {
-			*path = append(*path, name)
-			extract_sections(meta, info, path, sections)
+	for _, item := range hi {
+		switch item := item.(type) {
+		case HelpItemCommand:
+			*path = append(*path, item.name)
+			extract_sections(item.meta, item.info, path, sections)
 			*path = (*path)[0 : len(*path)-1]
-		}, nil, nil, nil, nil)
+		}
 	}
 }
