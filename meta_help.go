@@ -145,6 +145,7 @@ const (
 	HiTyPositional
 )
 
+// No | Decor(HiTy) | Anywhere(HiTy)
 type ItemBlock struct {
 	present bool
 	isDecor bool // anywhere otherwise
