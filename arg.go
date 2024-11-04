@@ -2,127 +2,114 @@ package cli
 
 import "fmt"
 
+type arg interface{ isArg() }
+
+// short flag: `-f`
+//
+// bool indicates if following item is also part of this Short
+type argShort struct {
+	c      byte
+	is_adj bool
+}
+
+func (argShort) isArg() {}
+
+// long flag: `--flag`
+// bool tells if it looks like --key=val or not
+type argLong struct {
+	s      string
+	is_adj bool
+}
+
+func (argLong) isArg() {}
+
+// "val" part of --key=val -k=val -kval
+type argArgWord struct{}
+
+func (argArgWord) isArg() {}
+
+// separate word that can be command, positional or a separate argument to a flag
+//
+// Can start with `-` or `--`, doesn't have to be valid utf8
+//
+// `hello`
+type argWord struct{}
+
+func (argWord) isArg() {}
+
+// separate word that goes after `--`, strictly positional
+//
+// Can start with `-` or `--`, doesn't have to be valid utf8
+type argPosWord struct{}
+
+func (argPosWord) isArg() {}
+
 // Preprocessed command line argument
 // [string] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
 	str   string
-	value func(
-		// short flag: `-f`
-		//
-		// bool indicates if following item is also part of this Short
-		Short func(byte, bool),
-
-		// long flag: `--flag`
-		// bool tells if it looks like --key=val or not
-		Long func(string, bool),
-
-		// "val" part of --key=val -k=val -kval
-		ArgWord func(),
-
-		// separate word that can be command, positional or a separate argument to a flag
-		//
-		// Can start with `-` or `--`, doesn't have to be valid utf8
-		//
-		// `hello`
-		Word func(),
-
-		// separate word that goes after `--`, strictly positional
-		//
-		// Can start with `-` or `--`, doesn't have to be valid utf8
-		PosWord func(),
-	)
+	value arg
 }
 
-func ArgShort(c byte, b bool, s string) Arg {
-	return Arg{str: s, value: func(Short func(byte, bool), _ func(string, bool), _, _, _ func()) {
-		if Short != nil {
-			Short(c, b)
-		}
-	}}
+func ArgWord(str string) Arg {
+	return Arg{str: str, value: argWord{}}
 }
 
-func ArgLong(s string, b bool, os string) Arg {
-	return Arg{str: os, value: func(_ func(byte, bool), Long func(string, bool), _, _, _ func()) {
-		if Long != nil {
-			Long(s, b)
-		}
-	}}
+func ArgArgWord(str string) Arg {
+	return Arg{str: str, value: argArgWord{}}
 }
 
-func ArgArgWord(s string) Arg {
-	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), ArgWord, _, _ func()) {
-		if ArgWord != nil {
-			ArgWord()
-		}
-	}}
+func ArgPosWord(str string) Arg {
+	return Arg{str: str, value: argPosWord{}}
 }
 
-func ArgWord(s string) Arg {
-	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), _, Word, _ func()) {
-		if Word != nil {
-			Word()
-		}
-	}}
+func ArgShort(str string, c byte, b bool) Arg {
+	return Arg{str: str, value: argShort{c, b}}
 }
 
-func ArgPosWord(s string) Arg {
-	return Arg{str: s, value: func(_ func(byte, bool), _ func(string, bool), _, _, PosWord func()) {
-		if PosWord != nil {
-			PosWord()
-		}
-	}}
+func ArgLong(str string, s string, b bool) Arg {
+	return Arg{str: str, value: argLong{s, b}}
 }
 
 func (self Arg) IsShort() bool {
-	var res bool
-	self.value(
-		func(byte, bool) { res = true },
-		nil, nil, nil, nil,
-	)
-	return res
+	_, ok := self.value.(argShort)
+	return ok
 }
 
 func (self Arg) IsLong() bool {
-	var res bool
-	self.value(
-		nil,
-		func(string, bool) { res = true },
-		nil, nil, nil,
-	)
-	return res
+	_, ok := self.value.(argLong)
+	return ok
 }
 
 func (self Arg) IsPosWord() bool {
-	var res bool
-	self.value(
-		nil, nil, nil, nil,
-		func() { res = true },
-	)
-	return res
+	_, ok := self.value.(argPosWord)
+	return ok
 }
 
 func (self Arg) match_short(val byte) bool {
-	res := false
-	self.value(func(c byte, b bool) { res = c == val }, nil, nil, nil, nil)
-	return res
+	sh, ok := self.value.(argShort)
+	return ok && sh.c == val
 }
 
 func (self Arg) match_long(val string) bool {
-	res := false
-	self.value(nil, func(c string, b bool) { res = c == val }, nil, nil, nil)
-	return res
+	sh, ok := self.value.(argLong)
+	return ok && sh.s == val
 }
 
 func (self Arg) String() string {
-	var res string
-	self.value(
-		func(c byte, b bool) { res = fmt.Sprintf("Short(%s, %c, %v)", self.str, c, b) },
-		func(l string, b bool) { res = fmt.Sprintf("Long(%s, %s, %v)", self.str, l, b) },
-		func() { res = fmt.Sprintf("ArgWord(%s)", self.str) },
-		func() { res = fmt.Sprintf("Word(%s)", self.str) },
-		func() { res = fmt.Sprintf("PosWord(%s)", self.str) },
-	)
-	return res
+	switch x := self.value.(type) {
+	case argShort:
+		return fmt.Sprintf("Short(%s, %c, %v)", self.str, x.c, x.is_adj)
+	case argLong:
+		return fmt.Sprintf("Long(%s, %s, %v)", self.str, x.s, x.is_adj)
+	case argArgWord:
+		return fmt.Sprintf("ArgWord(%s)", self.str)
+	case argWord:
+		return fmt.Sprintf("Word(%s)", self.str)
+	case argPosWord:
+		return fmt.Sprintf("PosWord(%s)", self.str)
+	}
+	panic("unreachable")
 }
 
 // short flag disambiguations:
@@ -142,15 +129,14 @@ func (self Arg) String() string {
 // 2. collect short flag/arg when entering the subparsre
 // 3. when reaching ambi
 func (self Arg) GoString() string {
-	var res string
-	self.value(
-		func(c byte, _ bool) { res = fmt.Sprintf("-%c", c) },
-		func(l string, _ bool) { res = fmt.Sprintf("--%s", l) },
-		func() { res = self.str },
-		func() { res = self.str },
-		func() { res = self.str },
-	)
-	return res
+	switch x := self.value.(type) {
+	case argShort:
+		return fmt.Sprintf("-%c", x.c)
+	case argLong:
+		return fmt.Sprintf("--%s", x.s)
+	default:
+		return self.str
+	}
 }
 
 type ArgType bool
@@ -216,11 +202,11 @@ func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 				body = append(body, EQUALS)
 				body = append(body, items...)
 				name = name[1:]
-				os := ArgArgWord(string(body))
+				os := ArgWord(string(body))
 				return ty, string(name), Valid(os), true
 			}
 
-			word := ArgArgWord(string(items))
+			word := ArgWord(string(items))
 			return ty, string(name), Valid(word), true
 		default:
 			name = append(name, c)

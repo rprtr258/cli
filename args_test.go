@@ -187,9 +187,8 @@ func ambiguity_towards_error(t *testing.T) {
 func ambiguity_towards_default(t *testing.T) {
 	// AKA unresolved
 	a := Statefrom([]string{"-abc"})
-	var is_ambig bool
 	aa, ok := a.peek()
 	require.True(t, ok)
-	aa.value(nil, nil, nil, func() { is_ambig = true }, nil)
+	_, is_ambig := aa.value.(argWord)
 	require.True(t, is_ambig)
 }

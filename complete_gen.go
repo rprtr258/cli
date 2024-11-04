@@ -411,19 +411,15 @@ func (self ShowComp) to_string() string {
 }
 
 func (self Arg) and_os_string() Option[string] {
-	res := Invalid[string]()
-	self.value(
-		func(byte, bool) {
-			if self.str != "" {
-				res = Valid(self.str)
-			}
-		},
-		func(string, bool) { res = Valid(self.str) },
-		func() { res = Valid(self.str) },
-		func() { res = Valid(self.str) },
-		func() { res = Valid(self.str) },
-	)
-	return res
+	switch self.value.(type) {
+	case argShort:
+		if self.str != "" {
+			return Valid(self.str)
+		}
+	default:
+		return Valid(self.str)
+	}
+	return Invalid[string]()
 }
 
 // What is the preceeding item, if any
@@ -496,28 +492,22 @@ func (self State) check_complete() (string, bool) {
 	}
 
 	is_named := false
-	cur.value(
-		func(byte, bool) { is_named = true },
-		func(string, bool) { is_named = true },
-		nil,
-		nil,
-		nil,
-	)
+	switch cur.value.(type) {
+	case argShort, argLong:
+		is_named = true
+	}
 
 	prefix := PrefixNA
-	preceeding.value(
-		func(s byte, bb bool) {
-			if bb {
-				prefix = PrefixShort(s)
-			}
-		},
-		func(l string, bb bool) {
-			if bb {
-				prefix = PrefixLong(l)
-			}
-		},
-		nil, nil, nil,
-	)
+	switch x := preceeding.value.(type) {
+	case argShort:
+		if x.is_adj {
+			prefix = PrefixShort(x.c)
+		}
+	case argLong:
+		if x.is_adj {
+			prefix = PrefixLong(x.s)
+		}
+	}
 
 	items, shell := comp.complete(lit, pos_only, is_named, prefix)
 

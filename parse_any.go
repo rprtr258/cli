@@ -47,13 +47,13 @@ func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 func (self ParseAny[T]) eval(args *State) (T, Error) {
 	for ix, x := range push2(args.items_iter()) {
 		var next bool
-		x.value(
-			func(_ byte, c bool) { next = c },
-			func(_ string, c bool) { next = c },
-			nil, nil, nil,
-		)
-		os := x.str
-		if i, ok := self.check(os); ok {
+		switch x := x.value.(type) {
+		case argShort:
+			next = x.is_adj
+		case argLong:
+			next = x.is_adj
+		}
+		if i, ok := self.check(x.str); ok {
 			args.remove(ix)
 			if next {
 				args.remove(ix + 1)

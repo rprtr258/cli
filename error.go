@@ -407,15 +407,11 @@ func textual_part(args State, ixxx Option[int]) (string, bool) {
 		return "", false
 	}
 
-	res, ok := "", false
-	ix.value(
-		nil,
-		nil,
-		func() { res, ok = ix.str, true },
-		func() { res, ok = ix.str, true },
-		func() { res, ok = ix.str, true },
-	)
-	return res, ok
+	switch ix.value.(type) {
+	case argArgWord, argWord, argPosWord:
+		return ix.str, true
+	}
+	return "", false
 }
 
 func only_once(args State, cur int) (int, bool) {
@@ -433,11 +429,12 @@ func only_once(args State, cur int) (int, bool) {
 		offset int
 		okk    bool
 	)
-	v.value(
-		func(s byte, _ bool) { offset, okk = position(iter, func(a Arg) bool { return a.match_short(s) }) },
-		func(l string, _ bool) { offset, okk = position(iter, func(a Arg) bool { return a.match_long(l) }) },
-		nil, nil, nil,
-	)
+	switch x := v.value.(type) {
+	case argShort:
+		offset, okk = position(iter, func(a Arg) bool { return a.match_short(x.c) })
+	case argLong:
+		offset, okk = position(iter, func(a Arg) bool { return a.match_long(x.s) })
+	}
 	if !okk {
 		return 0, false
 	}
@@ -623,13 +620,18 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 				if starts_withb(actual, '-') {
 					ty = "flag"
 				} else {
-					args.items[ix].value(
-						func(byte, bool) { ty = "flag" },
-						func(string, bool) { ty = "flag" },
-						func() { ty = "argument value" },
-						func() { ty = "command or positional" },
-						func() { ty = "command or positional" },
-					)
+					switch args.items[ix].value.(type) {
+					case argShort:
+						ty = "flag"
+					case argLong:
+						ty = "flag"
+					case argArgWord:
+						ty = "argument value"
+					case argWord:
+						ty = "command or positional"
+					case argPosWord:
+						ty = "command or positional"
+					}
 				}
 
 				doc.Text("no such ")

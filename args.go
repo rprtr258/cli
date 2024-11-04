@@ -158,7 +158,7 @@ func disambiguate_short(
 
 		// shortcircuit single character short fun.Options
 		if ix == 0 && rest == "" {
-			*items = append(*items, ArgShort(cc, false, os))
+			*items = append(*items, ArgShort(os, cc, false))
 			return nil, false
 		}
 		a := bytes.ContainsRune(short_flags, c)
@@ -166,11 +166,11 @@ func disambiguate_short(
 		switch {
 		// short name that can be flag
 		case a && !b:
-			*items = append(*items, ArgShort(cc, false, os))
+			*items = append(*items, ArgShort(os, cc, false))
 			// short name that can be argument
 		case !a && b:
 			adjacent_body := rest != ""
-			*items = append(*items, ArgShort(cc, adjacent_body, os))
+			*items = append(*items, ArgShort(os, cc, adjacent_body))
 			if adjacent_body {
 				*items = append(*items, ArgWord(rest))
 			}
@@ -283,11 +283,11 @@ LOOP:
 				break LOOP
 			}
 		case ok && argType == ArgTypeShort && arg.Valid:
-			items = append(items, ArgShort(s[0], true, os))
+			items = append(items, ArgShort(os, s[0], true))
 			items = append(items, arg.Value)
 			// --key and --key=val
 		case ok && argType == ArgTypeLong:
-			items = append(items, ArgLong(s, arg.Valid, os))
+			items = append(items, ArgLong(os, s, arg.Valid))
 			if arg, ok := arg.Unpack(); ok {
 				items = append(items, arg)
 			}
@@ -596,9 +596,12 @@ func (self *State) take_arg(
 	val_ix := key_ix + 1
 	var val string
 	if ww, ok := self.get(val_ix); ok && func() bool {
-		res := false
-		ww.value(nil, nil, func() { res = true }, func() { res = true }, nil)
-		return res
+		switch ww.value.(type) {
+		case argArgWord, argWord:
+			return true
+		default:
+			return false
+		}
 	}() {
 		val = ww.str
 	} else {
@@ -623,15 +626,16 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 	)
 	iter := push2(self.items_iter())
 	for ixix, arg := range iter {
-		arg.value(nil, nil, nil, func() {
+		switch arg.value.(type) {
+		case argWord:
 			ix = ixix
 			strict, ok = false, true
 			w = arg
-		}, func() {
+		case argPosWord:
 			ix = ixix
 			strict, ok = true, true
 			w = arg
-		})
+		}
 		if ok {
 			break
 		}
@@ -660,9 +664,14 @@ func (self *State) take_cmd(w string) bool {
 	}
 
 	if func() bool {
-		res := false
-		a.value(func(byte, bool) { res = true }, func(_ string, b bool) { res = !b }, func() { res = true }, nil, nil)
-		return res
+		switch x := a.value.(type) {
+		case argShort, argArgWord:
+			return true
+		case argLong:
+			return !x.is_adj
+		default:
+			return false
+		}
 	}() {
 		self.remove(ix)
 		self.current = Valid(ix)

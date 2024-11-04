@@ -119,11 +119,12 @@ func (self NamedArg) Switch() Parser[bool] {
 // `-f bar` - no, `-fbar` or `-f=bar` - yes.
 func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 	res := false
-	arg.value(
-		func(s byte, is_adj bool) { res = fun.Contains(s, self.short...) && (!adjacent || is_adj) },
-		func(l string, is_adj bool) { res = fun.Contains(l, self.long...) && (!adjacent || is_adj) },
-		nil, nil, nil,
-	)
+	switch x := arg.value.(type) {
+	case argShort:
+		res = fun.Contains(x.c, self.short...) && (!adjacent || x.is_adj)
+	case argLong:
+		res = fun.Contains(x.s, self.long...) && (!adjacent || x.is_adj)
+	}
 	return res
 }
 
