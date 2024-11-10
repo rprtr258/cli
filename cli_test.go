@@ -1693,11 +1693,11 @@ func TestDid_you_mean_switch(t *testing.T) {
 	}
 }
 
-// func did_you_mean_req_flag() {
-//     let parser = long("flag").req_flag(()).ToOptions();
-//     let res = parser.run_inner(newArgs("--fla")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--fla`, did you mean `--flag`?");
-// }
+func TestDid_you_mean_req_flag(t *testing.T) {
+	parser := ReqFlag(Long("flag"), struct{}{}).Parser().ToOptions()
+	_, res := parser.run_inner(newArgs("--fla"))
+	require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+}
 
 // func did_you_mean_argument() {
 //     let parser = long("flag").argument::<String>("VAL").ToOptions();
