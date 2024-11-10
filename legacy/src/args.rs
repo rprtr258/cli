@@ -28,7 +28,7 @@ use crate::{
 /// assert!(value);
 ///
 /// // this also works
-/// let value = parser.run_inner(&["-f"])
+/// let value = parser.run_inner(newArgs("-f"])
 ///     .unwrap();
 /// assert!(value);
 /// ```

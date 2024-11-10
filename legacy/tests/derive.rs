@@ -22,7 +22,7 @@ fn help_with_default_parse() {
     let parser = action();
 
     let help = parser
-        .run_inner(&["add", "--help"])
+        .run_inner(newArgs("add", "--help"])
         .unwrap_err()
         .unwrap_stdout();
 
@@ -39,7 +39,7 @@ Available options:
 ";
     assert_eq!(expected_help, help);
 
-    let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
     let expected_help = "\
 Usage: [COMMAND ...]
@@ -72,7 +72,7 @@ fn command_and_fallback() {
     let parser = action().fallback(Action::NoAction).to_options();
 
     let help = parser
-        .run_inner(&["add", "--help"])
+        .run_inner(newArgs("add", "--help"])
         .unwrap_err()
         .unwrap_stdout();
 
@@ -86,7 +86,7 @@ Available options:
 ";
     assert_eq!(expected_help, help);
 
-    let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
     let expected_help = "\
 Usage: [COMMAND ...]
@@ -108,7 +108,7 @@ fn single_unit_command() {
     struct One;
 
     let parser = one().to_options();
-    let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
     let expected = "\
 Usage: COMMAND ...
 
@@ -120,6 +120,6 @@ Available commands:
 ";
     assert_eq!(help, expected);
 
-    let r = parser.run_inner(&["one"]).unwrap();
+    let r = parser.run_inner(newArgs("one"]).unwrap();
     assert_eq!(r, One);
 }

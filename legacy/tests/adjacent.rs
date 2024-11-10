@@ -8,19 +8,19 @@ fn test_adjacent() {
     let parser = construct!(a, b, c).adjacent().many().to_options();
 
     let r = parser
-        .run_inner(&["-a", "-c", "-a", "-b", "-a", "-b", "-c"])
+        .run_inner(newArgs("-a", "-c", "-a", "-b", "-a", "-b", "-c"])
         .unwrap();
     // adjacent groups here argument
     // -a [-b] -c  | -a -b [-c] | -a -b -c
     assert_eq!(r, &[((), false, true), ((), true, false), ((), true, true)]);
 
-    let r = parser.run_inner(&["-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a"]).unwrap();
     assert_eq!(r, &[((), false, false)]);
 
-    let r = parser.run_inner(&["-a", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "-c"]).unwrap();
     assert_eq!(r, &[((), false, true)]);
 
-    let r = parser.run_inner(&[]).unwrap();
+    let r = parser.run_inner(newArgs(]).unwrap();
     assert_eq!(r, &[]);
 }
 
@@ -32,16 +32,16 @@ fn test_adjacent_prefix() {
     let c = short('c').switch();
     let parser = construct!(ab, c).to_options();
 
-    let r = parser.run_inner(&["-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-c"]).unwrap();
     assert_eq!(r, (None, true));
 
-    let r = parser.run_inner(&["-a", "1"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
     assert_eq!(r, (Some(((), 1)), false));
 
-    let r = parser.run_inner(&["-c", "-a", "1"]).unwrap();
+    let r = parser.run_inner(newArgs("-c", "-a", "1"]).unwrap();
     assert_eq!(r, (Some(((), 1)), true));
 
-    let r = parser.run_inner(&["-a", "1", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "1", "-c"]).unwrap();
     assert_eq!(r, (Some(((), 1)), true));
 }
 
@@ -54,7 +54,7 @@ fn adjacent_error_message_pos_single() {
     let adj = construct!(a, b, c).adjacent();
     let parser = construct!(adj, d).to_options();
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `C`, pass `--help` for usage information");
 }
 
@@ -67,7 +67,7 @@ fn adjacent_error_message_arg_single() {
     let adj = construct!(a, b, c).adjacent();
     let parser = construct!(adj, d).to_options();
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
     assert_eq!(
         r,
         "expected `-b=B`, got `10`. Pass `--help` for usage information"
@@ -83,7 +83,7 @@ fn adjacent_error_message_pos_many() {
     let adj = construct!(a, b, c).adjacent().many();
     let parser = construct!(adj, d).to_options();
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `C`, pass `--help` for usage information");
 }
 
@@ -96,7 +96,7 @@ fn adjacent_error_message_arg_many() {
     let adj = construct!(a, b, c).adjacent().many();
     let parser = construct!(adj, d).to_options();
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
     // this should ask for -b or -c and complain on 10...
     assert_eq!(
         r,
@@ -111,12 +111,12 @@ fn adjacent_is_adjacent() {
     let parser = construct!(a, b).adjacent().map(|t| t.1).many().to_options();
 
     let r = parser
-        .run_inner(&["-a", "-a", "10", "20"])
+        .run_inner(newArgs("-a", "-a", "10", "20"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "expected `B`, pass `--help` for usage information");
 
-    let r = parser.run_inner(&["-a", "10", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-a", "20"]).unwrap();
     assert_eq!(r, [10, 20]);
 }
 
@@ -128,13 +128,13 @@ fn adjacent_with_switch() {
     let c = short('c').switch();
     let parser = construct!(ab, c).to_options();
 
-    let r = parser.run_inner(&["-a", "10", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-c"]).unwrap();
     assert_eq!(r, (vec![10], true));
 
-    let r = parser.run_inner(&["-a", "10", "-c", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-c", "-a", "20"]).unwrap();
     assert_eq!(r, (vec![10, 20], true));
 
-    let r = parser.run_inner(&["-c", "-a", "10", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-c", "-a", "10", "-a", "20"]).unwrap();
     assert_eq!(r, (vec![10, 20], true));
 }
 
@@ -144,7 +144,7 @@ fn adjacent_limits_commands() {
     let s = short('s').switch();
     let parser = construct!(s, x).to_options();
 
-    let r = parser.run_inner(&["a", "-s"]).unwrap();
+    let r = parser.run_inner(newArgs("a", "-s"]).unwrap();
     assert_eq!(r, (true, ()));
 }
 
@@ -168,10 +168,10 @@ fn commands_and_adjacent() {
 
     let parser = construct!(switch, cmds).to_options();
 
-    let r = parser.run_inner(&["sleep", "--time", "12", "-s"]).unwrap();
+    let r = parser.run_inner(newArgs("sleep", "--time", "12", "-s"]).unwrap();
     assert_eq!(r, (true, "12".to_owned()));
 
-    let r = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
     // TODO - this is ugly
     let expected = "\
@@ -197,18 +197,18 @@ fn two_adjacent_args() {
     let point = construct!(x, y).adjacent();
     let parser = construct!(point, c).to_options();
 
-    let r = parser.run_inner(&["-x", "3", "-y", "4", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"]).unwrap();
     assert_eq!(r, ((3, 4), true));
 
     // they are adjacent to each other, but the way it is coded currently - they must be adjacent
     // to the first element.
     // Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
-    // let r = parser.run_inner(&["-y", "3", "-x", "4", "-c"]).unwrap();
+    // let r = parser.run_inner(newArgs("-y", "3", "-x", "4", "-c"]).unwrap();
     // assert_eq!(r, ((4, 3), true));
 
     let r = parser
-        .run_inner(&["-y", "3", "-c", "-x", "4"])
+        .run_inner(newArgs("-y", "3", "-c", "-x", "4"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "expected `-y=Y`, pass `--help` for usage information");

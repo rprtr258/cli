@@ -2,7 +2,7 @@ use bpaf::*;
 
 #[track_caller]
 fn assert_usage<T: std::fmt::Debug>(parser: OptionParser<T>, expected: &str) {
-    let output = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let output = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
     let usage = output
         .lines()
         .next()
@@ -203,7 +203,7 @@ fn required_or_many() {
 fn no_actual_arguments_also_works() {
     let parser = pure(true).to_options();
 
-    let r = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
     assert_eq!(
         r,
         "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n"

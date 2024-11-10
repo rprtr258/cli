@@ -106,3 +106,31 @@ func Pair[A, B any](pa Parser[A], pb Parser[B]) *ParseCon[fun.Pair[A, B]] {
 	}
 	return &ParseCon[R]{inner, meta, false}
 }
+
+type triple[A, B, C any] struct {
+	A A
+	B B
+	C C
+}
+
+func Triple[A, B, C any](pa Parser[A], pb Parser[B], pc Parser[C]) *ParseCon[triple[A, B, C]] {
+	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
+	type R = triple[A, B, C]
+	inner := func(failfast bool, args *State) (R, Error) {
+		a, err := pa.eval(args)
+		if failfast && err != nil {
+			return R{}, err
+		}
+		b, err := pb.eval(args)
+		if failfast && err != nil {
+			return R{}, err
+		}
+		c, err := pc.eval(args)
+		if err != nil {
+			return R{}, err
+		}
+		args.current = Invalid[int]()
+		return R{a, b, c}, nil
+	}
+	return &ParseCon[R]{inner, meta, false}
+}

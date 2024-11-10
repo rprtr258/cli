@@ -30,7 +30,7 @@ import (
 // require.True(t,value);
 //
 // // this also works
-// value := parser.run_inner(&["-f"])
+// value := parser.run_inner(newArgs("-f"])
 //
 //	.unwrap();
 //

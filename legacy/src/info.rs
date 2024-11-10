@@ -163,7 +163,7 @@ impl<T> OptionParser<T> {
     ///             .to_options();
     ///
     ///     let help = parser
-    ///         .run_inner(&["--help"])
+    ///         .run_inner(newArgs("--help"])
     ///         .unwrap_err()
     ///         .unwrap_stdout();
     ///     let expected_help = "\

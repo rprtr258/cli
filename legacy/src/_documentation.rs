@@ -2133,7 +2133,7 @@
             //! #[test]
             //! fn test_my_options() {
             //!     let help = options()
-            //!         .run_inner(&["--help"])
+            //!         .run_inner(newArgs("--help"])
             //!         .unwrap_err()
             //!         .unwrap_stdout();
             //!     let expected_help = "\
@@ -2147,7 +2147,7 @@
             //! #[test]
             //! fn test_value() {
             //!     let value = options()
-            //!          .run_inner(&["--user", "Bob"])
+            //!          .run_inner(newArgs("--user", "Bob"])
             //!          .unwrap();
             //!     assert_eq!(value.user, "Bob");
             //! }

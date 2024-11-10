@@ -93,7 +93,7 @@ func (self OptionParser[T]) Run() T {
 //	        .to_options();
 //
 //	help := parser
-//	    .run_inner(&["--help"])
+//	    .run_inner(newArgs("--help"])
 //	    .unwrap_err()
 //	    .unwrap_stdout();
 //	expected_help := "\

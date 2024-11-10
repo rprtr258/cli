@@ -170,7 +170,7 @@ fn codeblock_space_help() {
         verbose: bool,
     }
 
-    let r = options().run_inner(&["-hh"]).unwrap_err().unwrap_stdout();
+    let r = options().run_inner(newArgs("-hh")).unwrap_err().unwrap_stdout();
     let expected = "\
 Usage: [--verbose]
 
@@ -220,7 +220,7 @@ fn codeblock_ticks_help() {
         verbose: bool,
     }
 
-    let r = options().run_inner(&["-hh"]).unwrap_err().unwrap_stdout();
+    let r = options().run_inner(newArgs("-hh")).unwrap_err().unwrap_stdout();
     let expected = "\
 Usage: [--verbose]
 

@@ -9,7 +9,7 @@ fn parse_anywhere_positional() {
     let b = short('b').help("batch mode").switch();
     let parser: OptionParser<(String, bool)> = construct!(a, b).to_options();
 
-    let r = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
+    let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
     let expected = "\
 Usage: X [-b]
@@ -35,32 +35,32 @@ fn parse_anywhere_no_catch() {
 
     // Usage: -a <x> [-c],
 
-    let r = parser.run_inner(&["3", "-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `X`, pass `--help` for usage information");
 
-    let r = parser.run_inner(&["-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `X`, pass `--help` for usage information");
 
     let r = parser
-        .run_inner(&["-a", "221b"])
+        .run_inner(newArgs("-a", "221b"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "couldn't parse `221b`: invalid digit found in string");
 
-    let r = parser.run_inner(&["-c", "-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `X`, pass `--help` for usage information");
 
     let r = parser
-        .run_inner(&["-c", "-a", "221b"])
+        .run_inner(newArgs("-c", "-a", "221b"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "couldn't parse `221b`: invalid digit found in string");
 
-    let r = parser.run_inner(&["-a", "-c"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `X`, pass `--help` for usage information");
 
     let r = parser
-        .run_inner(&["-a", "221b", "-c"])
+        .run_inner(newArgs("-a", "221b", "-c"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "couldn't parse `221b`: invalid digit found in string");
@@ -74,13 +74,13 @@ fn anywhere_catch_optional() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
     assert_eq!(r, (Some(((), 10)), false));
 
-    let r = parser.run_inner(&["-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a"]).unwrap();
     assert_eq!(r, (None, true));
 
-    let r = parser.run_inner(&[]).unwrap();
+    let r = parser.run_inner(newArgs(]).unwrap();
     assert_eq!(r, (None, false));
 }
 
@@ -92,14 +92,14 @@ fn anywhere_catch_many() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(&["-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a"]).unwrap();
 
     assert_eq!(r, (vec![], true));
 
-    let r = parser.run_inner(&["-a", "10"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
     assert_eq!(r, (vec![((), 10)], false));
 
-    let r = parser.run_inner(&[]).unwrap();
+    let r = parser.run_inner(newArgs(]).unwrap();
     assert_eq!(r, (Vec::new(), false));
 }
 
@@ -111,13 +111,13 @@ fn anywhere_catch_fallback() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(&["-a", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "12"]).unwrap();
     assert_eq!(r, (((), 12), false));
 
-    let r = parser.run_inner(&["-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a"]).unwrap();
     assert_eq!(r, (((), 10), true));
 
-    let r = parser.run_inner(&[]).unwrap();
+    let r = parser.run_inner(newArgs(]).unwrap();
     assert_eq!(r, (((), 10), false));
 }
 
@@ -133,31 +133,31 @@ fn parse_anywhere_catch_optional() {
     let parser = construct!(ab, c).to_options();
 
     let r = parser
-        .run_inner(&["-a", "221b"])
+        .run_inner(newArgs("-a", "221b"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
 
-    let r = parser.run_inner(&["3", "-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "`3` is not expected in this context");
 
-    let r = parser.run_inner(&["-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
 
-    let r = parser.run_inner(&["-c", "-a"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
 
     let r = parser
-        .run_inner(&["-c", "-a", "221b"])
+        .run_inner(newArgs("-c", "-a", "221b"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
 
-    let r = parser.run_inner(&["-a", "-c"]).unwrap_err().unwrap_stderr();
+    let r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
 
     let r = parser
-        .run_inner(&["-a", "221b", "-c"])
+        .run_inner(newArgs("-a", "221b", "-c"])
         .unwrap_err()
         .unwrap_stderr();
     assert_eq!(r, "`-a` is not expected in this context");
@@ -174,12 +174,12 @@ fn anywhere_literal() {
     let b = short('b').switch();
     let parser: OptionParser<(Vec<((), usize)>, bool)> = construct!(a, b).to_options();
 
-    let r = parser.run_inner(&["-b", "-mode", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-b", "-mode", "12"]).unwrap();
     assert_eq!(r, (vec![((), 12)], true));
 
-    let r = parser.run_inner(&["-mode", "12", "-b"]).unwrap();
+    let r = parser.run_inner(newArgs("-mode", "12", "-b"]).unwrap();
     assert_eq!(r, (vec![((), 12)], true));
 
-    let r = parser.run_inner(&["-mode", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-mode", "12"]).unwrap();
     assert_eq!(r, (vec![((), 12)], false));
 }

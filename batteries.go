@@ -75,15 +75,15 @@ func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
 //	}
 //
 // # parser := verbose().to_options();
-// # res := parser.run_inner(&[]).unwrap();
+// # res := parser.run_inner(newArgs(]).unwrap();
 // # require.Equal(t,LevelInfo, res);
-// # res := parser.run_inner(&["-q"]).unwrap();
+// # res := parser.run_inner(newArgs("-q"]).unwrap();
 // # require.Equal(t,LevelWarning, res);
-// # res := parser.run_inner(&["-qqq"]).unwrap();
+// # res := parser.run_inner(newArgs("-qqq"]).unwrap();
 // # require.Equal(t,LevelError, res);
-// # res := parser.run_inner(&["-qqqq"]).unwrap();
+// # res := parser.run_inner(newArgs("-qqqq"]).unwrap();
 // # require.Equal(t,LevelError, res);
-// # res := parser.run_inner(&["-vvvvq"]).unwrap();
+// # res := parser.run_inner(newArgs("-vvvvq"]).unwrap();
 // # require.Equal(t,LevelTrace, res);
 // ```
 func verbose_by_slice[T any](
