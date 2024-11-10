@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
@@ -10,7 +11,10 @@ import (
 // TODO: move similar funcs to batteries and use
 func parseUint32(s string) (uint32, error) {
 	u, err := strconv.ParseUint(s, 10, 32)
-	return uint32(u), err
+	if err != nil {
+		return 0, errors.New("invalid digit found in string")
+	}
+	return uint32(u), nil
 }
 
 func TestDefaultValueUsingPureWithOk(t *testing.T) {

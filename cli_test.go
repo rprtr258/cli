@@ -808,21 +808,28 @@ func TestFallbackWithOk(t *testing.T) {
 	}
 }
 
-// func fallback_with_err() {
-//     let parser = short('a')
-//         .argument::<u32>("ARG")
-//         .fallback_with::<_, &str>(|| Err("nope"))
-//         .ToOptions();
+func TestFallbackWithErr(t *testing.T) {
+	parser := Argument(Short('a'),
+		"ARG", parseUint32).Parser().
+		fallback_with(func() (uint32, Error) { return 0, ErrorParseFail("nope") }).Parser().
+		ToOptions()
 
-//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
-//     require.Equal(t, r, 1);
+	{
+		r, err := parser.run_inner(newArgs("-a", "1"))
+		require.Nil(t, err)
+		require.Equal(t, uint32(1), r)
+	}
 
-//     let r = parser.run_inner(newArgs("-a", "x")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "couldn't parse `x`: invalid digit found in string");
+	{
+		_, r := parser.run_inner(newArgs("-a", "x"))
+		require.Equal(t, "couldn't parse `x`: invalid digit found in string", unwrap_stderr(r))
+	}
 
-//     let r = parser.run_inner(newArgs()).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "nope");
-// }
+	{
+		_, r := parser.run_inner(newArgs())
+		require.Equal(t, "nope", unwrap_stderr(r))
+	}
+}
 
 // func default_arguments() {
 //     let a = short('a').argument::<i32>("ARG").fallback(42);
