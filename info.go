@@ -195,7 +195,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	// handle --help and --version messages
-	if extra, ok := self.info.eval(args); ok == nil {
+	if extra, er := self.info.eval(args); er == nil {
 		detailed := false
 		var buffer Doc
 		extra(

@@ -182,7 +182,7 @@ func positional_invariant_check(self Meta, verbose bool) {
 				if v {
 					fmt.Printf("Checking\n%#v\n", m.meta)
 				}
-				GO(meta, &command_pos, v)
+				GO(m.meta, &command_pos, v)
 			}
 		case MetaMany:
 			GO(meta.m, is_pos, v)

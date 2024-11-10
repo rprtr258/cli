@@ -961,105 +961,100 @@ Available options:
 	require.Equal(t, expected_help, unwrap_stdout(help))
 }
 
-// func group_help_commands() {
-//     let a = short('a')
-//         .switch()
-//         .ToOptions()
-//         .command("cmd_a")
-//         .help("command that does A");
-//     let b = short('a')
-//         .switch()
-//         .ToOptions()
-//         .command("cmd_b")
-//         .help("command that does B")
-//         .boxed();
-//     let c = short('a')
-//         .switch()
-//         .ToOptions()
-//         .command("cmd_c")
-//         .help("command that does C");
-//     let parser = construct([a, b]).group_help("Explanation applicable for both A and B:");
+func TestGroupHelpCommands(t *testing.T) {
+	t.Skip() // TODO: fix
+	a := Short('a').
+		Switch().
+		ToOptions().
+		Command("cmd_a").
+		Help("command that does A").Parser()
+	b := Short('a').
+		Switch().
+		ToOptions().
+		Command("cmd_b").
+		Help("command that does B").Parser()
+	c := Short('a').
+		Switch().
+		ToOptions().
+		Command("cmd_c").
+		Help("command that does C").Parser()
+	parser := Choice(Choice(a, b).GroupHelp("Explanation applicable for both A and B:").Parser(), c).Parser().ToOptions()
 
-//     let parser = construct([parser, c]).ToOptions();
+	_, help := parser.run_inner(newArgs("--help"))
+	const expected_help = `Usage: COMMAND ...
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: COMMAND ...
+Explanation applicable for both A and B:
+    cmd_a       command that does A
+    cmd_b       command that does B
 
-// Explanation applicable for both A and B:
-//     cmd_a       command that does A
-//     cmd_b       command that does B
+Available options:
+    -h, --help  Prints help information
 
-// Available options:
-//     -h, --help  Prints help information
+Available commands:
+    cmd_c       command that does C
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
+}
 
-// Available commands:
-//     cmd_c       command that does C
-// ";
-//     require.Equal(t, expected_help, help);
-// }
+func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
+	t.Skip() // TODO: fix
 
-// func from_several_alternatives_pick_more_meaningful() {
-//     let a = short('a').req_flag(());
-//     let b = short('b').req_flag(());
-//     let c = short('c').req_flag(());
-//     let parser = construct([a, b, c]).ToOptions();
+	a := ReqFlag(Short('a'), struct{}{}).Parser()
+	b := ReqFlag(Short('b'), struct{}{}).Parser()
+	c := ReqFlag(Short('c'), struct{}{}).Parser()
+	parser := Choice(a, b, c).ToOptions()
 
-//     let err1 = parser.run_inner(newArgs("-a", "-b")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err1, "`-b` cannot be used at the same time as `-a`");
+	_, err1 := parser.run_inner(newArgs("-a", "-b"))
+	require.Equal(t, unwrap_stderr(err1), "`-b` cannot be used at the same time as `-a`")
 
-//     let err2 = parser.run_inner(newArgs("-b", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err2, "`-a` cannot be used at the same time as `-b`");
+	_, err2 := parser.run_inner(newArgs("-b", "-a"))
+	require.Equal(t, unwrap_stderr(err2), "`-a` cannot be used at the same time as `-b`")
 
-//     let err3 = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err3, "`-a` cannot be used at the same time as `-c`");
+	_, err3 := parser.run_inner(newArgs("-c", "-a"))
+	require.Equal(t, unwrap_stderr(err3), "`-a` cannot be used at the same time as `-c`")
 
-//     let err4 = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err4, "`-c` cannot be used at the same time as `-a`");
+	_, err4 := parser.run_inner(newArgs("-a", "-c"))
+	require.Equal(t, unwrap_stderr(err4), "`-c` cannot be used at the same time as `-a`")
 
-//     let err5 = parser
-//         .run_inner(newArgs("-c", "-b", "-a"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, err5, "`-b` cannot be used at the same time as `-c`");
-// }
+	_, err5 := parser.run_inner(newArgs("-c", "-b", "-a"))
+	require.Equal(t, unwrap_stderr(err5), "`-b` cannot be used at the same time as `-c`")
+}
 
-// func subcommands() {
-//     let bar = short('b').switch();
+func TestSubcommands(t *testing.T) {
+	bar := Short('b').Switch()
 
-//     let bar_cmd = bar.ToOptions().descr("This is local info").command("bar");
+	bar_cmd := bar.ToOptions().Descr("This is local info").Command("bar")
 
-//     let parser = bar_cmd.ToOptions().descr("This is global info");
+	parser := bar_cmd.Parser().ToOptions().Descr("This is global info")
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// This is global info
+	{
+		_, help := parser.run_inner(newArgs("--help"))
+		const expected_help = `This is global info
 
-// Usage: COMMAND ...
+Usage: COMMAND ...
 
-// Available options:
-//     -h, --help  Prints help information
+Available options:
+    -h, --help  Prints help information
 
-// Available commands:
-//     bar         This is local info
-// ";
-//     require.Equal(t, expected_help, help);
+Available commands:
+    bar         This is local info
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     let help = parser
-//         .run_inner(newArgs("bar", "--help"])
-//         .unwrap_err()
-//         .unwrap_stdout();
-//     let expected_help = "\
-// This is local info
+	{
+		_, help := parser.run_inner(newArgs("bar", "--help"))
+		const expected_help = `This is local info
 
-// Usage: bar [-b]
+Usage: bar [-b]
 
-// Available options:
-//     -b
-//     -h, --help  Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
-// }
+Available options:
+    -b
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
+}
 
 // func multiple_aliases() {
 //     let a = short('a').short('b').short('c').req_flag(());

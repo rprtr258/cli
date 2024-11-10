@@ -346,7 +346,7 @@ func unwrap_stderr(self ParseFailure) string {
 	case ParseFailureStderr:
 		return Doc(self).monochrome(true)
 	}
-	panic("unreachable")
+	panic(fmt.Sprintf("unreachable %T", self))
 }
 
 // Returns the contained `stdout` values - for unit tests
@@ -363,7 +363,7 @@ func unwrap_stdout(self ParseFailure) string {
 	case ParseFailureStderr:
 		panic(fmt.Sprintf("not an stdout: %#v", self))
 	}
-	panic("unreachable")
+	panic(fmt.Sprintf("unreachable %T", self))
 }
 
 // Returns the exit code for the failure
