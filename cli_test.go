@@ -1643,44 +1643,55 @@ func TestFailure_is_not_stupid_2(t *testing.T) {
 	require.Equal(t, unwrap_stderr(res), "couldn't parse: nope")
 }
 
-// func no_fallback_out_of_command_parser() {
-//     let alt1 = positional::<String>("NAME").ToOptions().command("cmd");
-//     let alt2 = pure(String::new());
-//     let parser = construct!([alt1, alt2]).ToOptions();
+func TestNo_fallback_out_of_command_parser(t *testing.T) {
+	t.Skip() // TODO: fix
+	alt1 := Positional("NAME", parseString).Parser().ToOptions().Command("cmd")
+	alt2 := Pure("")
+	parser := Choice(alt1.Parser(), alt2.Parser()).ToOptions()
 
-//     let res = parser.run_inner(newArgs("cmd")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "expected `NAME`, pass `--help` for usage information");
+	{
+		_, res := parser.run_inner(newArgs("cmd"))
+		require.Equal(t, unwrap_stderr(res), "expected `NAME`, pass `--help` for usage information")
+	}
 
-//     let res = parser.run_inner(newArgs("cmd", "a")).unwrap();
-//     require.Equal(t, res, "a");
+	{
+		res, err := parser.run_inner(newArgs("cmd", "a"))
+		require.Nil(t, err)
+		require.Equal(t, res, "a")
+	}
 
-//     let res = parser.run_inner(newArgs()).unwrap();
-//     require.Equal(t, res, "");
-// }
+	{
+		res, err := parser.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, res, "")
+	}
+}
 
-// func did_you_mean_switch() {
-//     let a = short('f').long("flag").switch();
-//     let b = short('p').long("plag").switch();
-//     let parser = construct!([a, b]).ToOptions();
+func TestDid_you_mean_switch(t *testing.T) {
+	a := Short('f').Long("flag").Switch()
+	b := Short('p').Long("plag").Switch()
+	parser := Choice(a.Parser(), b.Parser()).ToOptions()
 
-//     let res = parser.run_inner(newArgs("--fla")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--fla`, did you mean `--flag`?");
+	{
+		_, res := parser.run_inner(newArgs("--fla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+	}
 
-//     let res = parser.run_inner(newArgs("flag")).unwrap_err().unwrap_stderr();
-//     require.Equal(t,
-//         res,
-//         "no such command or positional: `flag`, did you mean `--flag`?"
-//     );
+	{
+		_, res := parser.run_inner(newArgs("flag"))
+		require.Equal(t, unwrap_stderr(res), "no such command or positional: `flag`, did you mean `--flag`?")
+	}
 
-//     let res = parser.run_inner(newArgs("--pla")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--pla`, did you mean `--plag`?");
+	{
+		_, res := parser.run_inner(newArgs("--pla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--pla`, did you mean `--plag`?")
+	}
 
-//     let res = parser.run_inner(newArgs("--p")).unwrap_err().unwrap_stderr();
-//     require.Equal(t,
-//         res,
-//         "no such flag: `--p` (with two dashes), did you mean `-p`?"
-//     );
-// }
+	{
+		_, res := parser.run_inner(newArgs("--p"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--p` (with two dashes), did you mean `-p`?")
+	}
+}
 
 // func did_you_mean_req_flag() {
 //     let parser = long("flag").req_flag(()).ToOptions();
