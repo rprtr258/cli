@@ -1509,33 +1509,32 @@ Available options:
 	require.Equal(t, expected_help, unwrap_stdout(help))
 }
 
-// func help_for_commands() {
-//     let d = pure(())
-//         .ToOptions()
-//         .command("thing_d")
-//         .help("help for d\ntwo lines");
-//     let e = pure(())
-//         .ToOptions()
-//         .command("thing_e")
-//         .short('e')
-//         .help("help for e\ntwo lines");
-//     let h = pure(()).ToOptions().command("thing_h");
-//     let parser = construct!([d, e, h]).ToOptions();
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+func TestHelpForCommands(t *testing.T) {
+	d := Pure(struct{}{}).Parser().
+		ToOptions().
+		Command("thing_d").
+		Help("help for d\ntwo lines").Parser()
+	e := Pure(struct{}{}).Parser().
+		ToOptions().
+		Command("thing_e").
+		short('e').
+		Help("help for e\ntwo lines").Parser()
+	h := Pure(struct{}{}).Parser().ToOptions().Command("thing_h").Parser()
+	parser := Choice(d, e, h).ToOptions()
+	_, help := parser.run_inner(newArgs("--help"))
 
-//     let expected_help = "\
-// Usage: COMMAND ...
+	const expected_help = `Usage: COMMAND ...
 
-// Available options:
-//     -h, --help  Prints help information
+Available options:
+    -h, --help  Prints help information
 
-// Available commands:
-//     thing_d     help for d two lines
-//     thing_e, e  help for e two lines
-//     thing_h
-// ";
-//     require.Equal(t, expected_help, help);
-// }
+Available commands:
+    thing_d     help for d two lines
+    thing_e, e  help for e two lines
+    thing_h
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
+}
 
 // func many_doesnt_panic() {
 //     let parser = short('a').switch().many().map(|m| m.len()).ToOptions();
