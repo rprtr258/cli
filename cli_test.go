@@ -1836,45 +1836,47 @@ func TestCargo_show_asm_issue_from_str(t *testing.T) {
 	}
 }
 
-// func cargo_show_asm_issue_parse() {
-//     let target_dir = short('t')
-//         .argument::<String>("T")
-//         .parse::<_, (), String>(|_| Err("nope".to_string()));
+func TestCargo_show_asm_issue_parse(t *testing.T) {
+	t.Skip() // TODO: fix
+	target_dir := Parse(Argument(Short('t'), "T", parseString).Parser(),
+		func(string) (struct{}, Error) { return struct{}{}, ErrorParseFail("nope") })
 
-//     let verbosity = short('v').switch();
-//     let inner = construct!(target_dir, verbosity);
-//     let parser = cargo_helper("asm", inner).ToOptions();
+	verbosity := Short('v').Switch()
+	inner := Pair(target_dir, verbosity)
+	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-//     let res = parser
-//         .run_inner(newArgs("asm", "-t", "x"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `x`: nope");
+	{
+		_, res := parser.run_inner(newArgs("asm", "-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `x`: nope")
+	}
 
-//     let res = parser.run_inner(newArgs("-t", "x")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `x`: nope");
-// }
+	{
+		_, res := parser.run_inner(newArgs("-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `x`: nope")
+	}
+}
 
-// // problematic case looks something like this:
-// // "asm" is consumed
-// // "--fla" is not consumed, but the output is not tainted
-// // parser fails and arguments are restored.
+// problematic case looks something like this:
+// "asm" is consumed
+// "--fla" is not consumed, but the output is not tainted
+// parser fails and arguments are restored.
 
-// func cargo_show_asm_issue_unknown_switch() {
-//     let target = long("flag").switch();
+func TestCargo_show_asm_issue_unknown_switch(t *testing.T) {
+	target := Long("flag").Switch()
 
-//     let verbosity = short('v').switch();
-//     let parser = cargo_helper("asm", construct!(target, verbosity)).ToOptions();
+	verbosity := Short('v').Switch()
+	parser := cargo_helper("asm", Pair(target, verbosity).Parser()).ToOptions()
 
-//     let res = parser
-//         .run_inner(newArgs("asm", "--fla"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--fla`, did you mean `--flag`?");
+	{
+		_, res := parser.run_inner(newArgs("asm", "--fla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+	}
 
-//     let res = parser.run_inner(newArgs("--fla")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--fla`, did you mean `--flag`?");
-// }
+	{
+		_, res := parser.run_inner(newArgs("--fla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+	}
+}
 
 // func did_you_mean_inside_command() {
 //     let a = long("flag").switch();
