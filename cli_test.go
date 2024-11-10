@@ -1056,23 +1056,22 @@ Available options:
 	}
 }
 
-// func multiple_aliases() {
-//     let a = short('a').short('b').short('c').req_flag(());
-//     let parser = a.ToOptions();
+func multiple_aliases() {
+	a := Short('a').Short('b').short('c').req_flag(struct{}{})
+	parser := a.ToOptions()
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: -a
+	_, help := parser.run_inner(newArgs("--help"))
+	const expected_help = `Usage: -a
 
-// Available options:
-//     -a
-//     -h, --help  Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
-//     parser.run_inner(newArgs("-a")).unwrap();
-//     parser.run_inner(newArgs("-b")).unwrap();
-//     parser.run_inner(newArgs("-c")).unwrap();
-// }
+Available options:
+    -a
+    -h, --help  Prints help information
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
+	parser.run_inner(newArgs("-a")).unwrap()
+	parser.run_inner(newArgs("-b")).unwrap()
+	parser.run_inner(newArgs("-c")).unwrap()
+}
 
 // mod git {
 //     use std::path::PathBuf;
