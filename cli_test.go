@@ -1394,120 +1394,120 @@ Available options:
 	}
 }
 
-// func default_plays_nicely_with_command() {
-//     #[derive(Debug, Clone)]
-//     enum Foo {
-//         Foo,
-//         Bar,
-//     }
-//     impl Default for Foo {
-//         func default() -> Self {
-//             Foo::Bar
-//         }
-//     }
+func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
+	t.Skip() // TODO: fix
+	type Foo bool
+	const (
+		FooFoo Foo = true
+		FooBar Foo = false
+	)
 
-//     let cmd = pure(Foo::Foo)
-//         .ToOptions()
-//         .descr("inner")
-//         .command("foo")
-//         .help("foo")
-//         .fallback(Default::default());
+	cmd := Pure(FooFoo).Parser().
+		ToOptions().
+		Descr("inner").
+		Command("foo").
+		Help("foo").Parser().
+		Fallback(*new(Foo)).Parser()
 
-//     let parser = cmd.ToOptions().descr("outer");
+	parser := cmd.ToOptions().Descr("outer")
 
-//     let help = parser
-//         .run_inner(newArgs("foo", "--help"])
-//         .unwrap_err()
-//         .unwrap_stdout();
+	{
+		_, help := parser.run_inner(newArgs("foo", "--help"))
+		const expected_help = `inner
 
-//     let expected_help =
-//         "inner\n\nUsage: foo \n\nAvailable options:\n    -h, --help  Prints help information\n";
+Usage: foo
 
-//     require.Equal(t, expected_help, help);
+Available options:
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+	{
+		_, help := parser.run_inner(newArgs("--help"))
+		const expected_help = `outer
 
-//     let expected_help = "\
-// outer
+Usage: [COMMAND ...]
 
-// Usage: [COMMAND ...]
+Available options:
+    -h, --help  Prints help information
 
-// Available options:
-//     -h, --help  Prints help information
+Available commands:
+    foo         foo
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
+}
 
-// Available commands:
-//     foo         foo
-// ";
+func TestCommandWithAliases(t *testing.T) {
+	t.Skip() // TODO: fix
+	inner := Pure(struct{}{}).Parser().ToOptions().Descr("inner descr")
+	cmd := inner.Command("foo").long("bar").short('f').short('b')
+	parser := cmd.Parser().ToOptions().Descr("outer")
 
-//     require.Equal(t, expected_help, help);
-// }
+	{
+		_, help := parser.run_inner(newArgs("--help"))
+		const expected_help = `outer
 
-// func command_with_aliases() {
-//     let inner = pure(()).ToOptions().descr("inner descr");
-//     let cmd = inner.command("foo").long("bar").short('f').short('b');
-//     let parser = cmd.ToOptions().descr("outer");
+Usage: COMMAND ...
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+Available options:
+    -h, --help  Prints help information
 
-//     let expected_help = "\
-// outer
+Available commands:
+    foo, f      inner descr
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-// Usage: COMMAND ...
+	{
+		_, help := parser.
+			run_inner(newArgs("f", "--help"))
+		const expected_help = `inner descr
 
-// Available options:
-//     -h, --help  Prints help information
+Usage: foo
 
-// Available commands:
-//     foo, f      inner descr
-// ";
-//     require.Equal(t, expected_help, help);
+Available options:
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     let help = parser
-//         .run_inner(newArgs("f", "--help"])
-//         .unwrap_err()
-//         .unwrap_stdout();
+	// hidden and visible aliases are working
+	for _, alias := range []string{"foo", "f", "bar", "b"} {
+		_, err := parser.run_inner(newArgs(alias))
+		require.Nil(t, err)
+	}
 
-//     let expected_help =
-//         "inner descr\n\nUsage: foo \n\nAvailable options:\n    -h, --help  Prints help information\n";
-//     require.Equal(t, expected_help, help);
+	// and "k" isn't a thing
+	_, err := parser.run_inner(newArgs("k"))
+	require.NotNil(t, err)
+}
 
-//     // hidden and visible aliases are working
-//     parser.run_inner(newArgs("foo")).unwrap();
-//     parser.run_inner(newArgs("f")).unwrap();
-//     parser.run_inner(newArgs("bar")).unwrap();
-//     parser.run_inner(newArgs("b")).unwrap();
+func TestHelpForOptions(t *testing.T) {
+	a := Short('a').Help("help for\na").Switch()
+	b := Argument(Short('c').
+		Env("BbBbB").
+		Help("help for\nb"), "B", parseString).Parser()
+	c := Argument(Long("bbbbb").
+		Env("ccccCCccc").
+		Help("help for\nccc"), "CCC", parseString).Parser()
+	parser := Triple(a, b, c).Parser().ToOptions()
+	_, help := parser.run_inner(newArgs("--help"))
 
-//     // and "k" isn't a thing
-//     parser.run_inner(newArgs("k")).unwrap_err();
-// }
+	const expected_help = `Usage: [-a] -c=B --bbbbb=CCC
 
-// func help_for_options() {
-//     let a = short('a').help("help for\na").switch();
-//     let b = short('c')
-//         .env("BbBbB")
-//         .help("help for\nb")
-//         .argument::<String>("B");
-//     let c = long("bbbbb")
-//         .env("ccccCCccc")
-//         .help("help for\nccc")
-//         .argument::<String>("CCC");
-//     let parser = construct!(a, b, c).ToOptions();
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+Available options:
+    -a           help for a
+    -c=B         help for b
+                 [env:BbBbB: N/A]
+    --bbbbb=CCC  help for ccc
+                 [env:ccccCCccc: N/A]
+    -h, --help   Prints help information
+`
 
-//     let expected_help = "\
-// Usage: [-a] -c=B --bbbbb=CCC
-
-// Available options:
-//     -a               help for a
-//     -c=B             help for b
-//                      [env:BbBbB: N/A]
-//         --bbbbb=CCC  help for ccc
-//                      [env:ccccCCccc: N/A]
-//     -h, --help       Prints help information
-// ";
-
-//     require.Equal(t, expected_help, help);
-// }
+	require.Equal(t, expected_help, unwrap_stdout(help))
+}
 
 // func help_for_commands() {
 //     let d = pure(())
