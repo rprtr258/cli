@@ -31,6 +31,15 @@ func parseString(s string) (string, error) {
 	return s, nil
 }
 
+// TODO: move similar funcs to batteries and use
+func parseUint(s string) (uint, error) {
+	u, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return 0, errors.New("invalid digit found in string")
+	}
+	return uint(u), nil
+}
+
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	// ~ this is a bit artifactial (it's better to use fallback_with instead actually),
 	// but this example demonstrates the concept

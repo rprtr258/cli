@@ -1791,46 +1791,50 @@ func TestDid_you_mean_two_or_arguments(t *testing.T) {
 	}
 }
 
-// // problematic steps look something like this:
-// // - "asm" is parsed as expected
-// // - "-t x" is consumed as expected
-// // - parsing of "x" fails
-// // - ParseWith rollbacks the arguments state - "asm" is back
-// // - suggestion looks for something it can complain at and finds "asm"
-// //
-// // parse/guard failures should "taint" the arguments and disable the suggestion logic
+// problematic steps look something like this:
+// - "asm" is parsed as expected
+// - "-t x" is consumed as expected
+// - parsing of "x" fails
+// - ParseWith rollbacks the arguments state - "asm" is back
+// - suggestion looks for something it can complain at and finds "asm"
+//
+// parse/guard failures should "taint" the arguments and disable the suggestion logic
 
-// func cargo_show_asm_issue_guard() {
-//     let target_dir = short('t').argument::<String>("T").guard(|_| false, "nope");
-//     let verbosity = short('v').switch();
-//     let inner = construct!(target_dir, verbosity);
-//     let parser = cargo_helper("asm", inner).ToOptions();
+func TestCargo_show_asm_issue_guard(t *testing.T) {
+	t.Skip() // TODO: fix
+	target_dir := Argument(Short('t'), "T", parseString).Parser().Guard(func(string) bool { return false }, "nope")
+	verbosity := Short('v').Switch()
+	inner := Pair(target_dir, verbosity)
+	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-//     let res = parser
-//         .run_inner(newArgs("asm", "-t", "x"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "`x`: nope");
+	{
+		_, res := parser.run_inner(newArgs("asm", "-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "`x`: nope")
+	}
 
-//     let res = parser.run_inner(newArgs("-t", "x")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "`x`: nope");
-// }
+	{
+		_, res := parser.run_inner(newArgs("-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "`x`: nope")
+	}
+}
 
-// func cargo_show_asm_issue_from_str() {
-//     let target_dir = short('t').argument::<usize>("T");
-//     let verbosity = short('v').switch();
-//     let inner = construct!(target_dir, verbosity);
-//     let parser = cargo_helper("asm", inner).ToOptions();
+func TestCargo_show_asm_issue_from_str(t *testing.T) {
+	t.Skip() // TODO: fix
+	target_dir := Argument(Short('t'), "T", parseUint)
+	verbosity := Short('v').Switch()
+	inner := Pair(target_dir, verbosity)
+	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-//     let res = parser
-//         .run_inner(newArgs("asm", "-t", "x"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `x`: invalid digit found in string");
+	{
+		_, res := parser.run_inner(newArgs("asm", "-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `x`: invalid digit found in string")
+	}
 
-//     let res = parser.run_inner(newArgs("-t", "x")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `x`: invalid digit found in string");
-// }
+	{
+		_, res := parser.run_inner(newArgs("-t", "x"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `x`: invalid digit found in string")
+	}
+}
 
 // func cargo_show_asm_issue_parse() {
 //     let target_dir = short('t')
