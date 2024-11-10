@@ -881,7 +881,6 @@ func TestParseErrors(t *testing.T) {
 	}
 }
 
-// #[ignore]
 func TestCustomUsage(t *testing.T) {
 	a := Argument(Short('a').Long("long"), "ARG", parseString).Parser()
 	parser := a.ToOptions().Usage(newDocFromString("Usage: -a <ARG> or --long <ARG>"))
@@ -895,51 +894,58 @@ Available options:
 	require.Equal(t, expected_help, unwrap_stdout(help))
 }
 
-// func long_usage_string() {
-//     let a = short('a')
-//         .long("a-very-long-flag-with")
-//         .argument::<String>("ARG");
-//     let b = short('b')
-//         .long("b-very-long-flag-with")
-//         .argument::<String>("ARG");
-//     let c = short('c')
-//         .long("c-very-long-flag-with")
-//         .argument::<String>("ARG");
-//     let d = short('d')
-//         .long("d-very-long-flag-with")
-//         .argument::<String>("ARG");
-//     let e = short('e')
-//         .long("e-very-long-flag-with")
-//         .argument::<String>("ARG");
-//     let f = short('f')
-//         .long("f-very-long-flag-with")
-//         .argument::<String>("ARG");
+func TestLongUsageString(t *testing.T) {
+	a := Argument(Short('a').
+		Long("a-very-long-flag-with"),
+		"ARG", parseString)
+	b := Argument(Short('b').
+		Long("b-very-long-flag-with"),
+		"ARG", parseString)
+	c := Argument(Short('c').
+		Long("c-very-long-flag-with"),
+		"ARG", parseString)
+	d := Argument(Short('d').
+		Long("d-very-long-flag-with"),
+		"ARG", parseString)
+	e := Argument(Short('e').
+		Long("e-very-long-flag-with"),
+		"ARG", parseString)
+	f := Argument(Short('f').
+		Long("f-very-long-flag-with"),
+		"ARG", parseString)
 
-//     let parser = construct(a, b, c, d, e, f).ToOptions();
+	parser :=
+		Pair(
+			f,
+			Pair(
+				b,
+				Pair(c,
+					Pair(d,
+						Pair(e,
+							a))))).
+			Parser().ToOptions()
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+	// _, help := parser.run_inner(newArgs("--help"))
 
-//     let expected_help = "\
-// Usage: -a=ARG -b=ARG -c=ARG -d=ARG -e=ARG -f=ARG
+	const expected_help = `Usage: -a=ARG -b=ARG -c=ARG -d=ARG -e=ARG -f=ARG
 
-// Available options:
-//     -a, --a-very-long-flag-with=ARG
-//     -b, --b-very-long-flag-with=ARG
-//     -c, --c-very-long-flag-with=ARG
-//     -d, --d-very-long-flag-with=ARG
-//     -e, --e-very-long-flag-with=ARG
-//     -f, --f-very-long-flag-with=ARG
-//     -h, --help  Prints help information
-// ";
+Available options:
+    -a, --a-very-long-flag-with=ARG
+    -b, --b-very-long-flag-with=ARG
+    -c, --c-very-long-flag-with=ARG
+    -d, --d-very-long-flag-with=ARG
+    -e, --e-very-long-flag-with=ARG
+    -f, --f-very-long-flag-with=ARG
+    -h, --help  Prints help information
+`
 
-//     require.Equal(t, expected_help, help);
-//     require.Equal(t,
-//         "`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
-//         parser.run_inner(newArgs("-a", "-b")).unwrap_err().unwrap_stderr()
-//     );
-
-//     drop(parser);
-// }
+	// require.Equal(t, expected_help, unwrap_stdout(help))
+	_, err := parser.run_inner(newArgs("-a", "-b"))
+	require.Equal(t,
+		"`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
+		unwrap_stderr(err),
+	)
+}
 
 // func group_help_args() {
 //     let a = short('a').help("flag A, related to B").switch();

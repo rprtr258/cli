@@ -291,6 +291,10 @@ type Parser[T any] struct {
 	meta Meta                         // Included information about the parser
 }
 
+func (self Parser[T]) Parser() Parser[T] {
+	return self
+}
+
 // {{{ or_else
 // If first parser fails - try the second one
 //
