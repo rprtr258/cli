@@ -229,21 +229,21 @@ func Metafirst_item(meta Meta) Option[Item] {
 	case MetaItem:
 		return Valid(Item(meta))
 	case MetaOptional:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaRequired:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaAdjacent:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaMany:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaSubsection:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaSuffix:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaCustomUsage:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	case MetaStrict:
-		return Metafirst_item(meta)
+		return Metafirst_item(meta.m)
 	}
 	return Invalid[Item]()
 }

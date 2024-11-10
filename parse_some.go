@@ -24,7 +24,7 @@ func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
 // There's several structures that implement this attribute: [ParseOptional], [ParseMany]
 // and [ParseSome], behavior should be identical for all of them.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
-func (self *ParseSome[T]) Catch() *ParseSome[T] {
+func (self ParseSome[T]) Catch() ParseSome[T] {
 	self.catch = true
 	return self
 }
