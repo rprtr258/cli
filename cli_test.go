@@ -1348,43 +1348,51 @@ Available options:
 	require.Equal(t, "environment variable `BPAF_SECRET_API_KEY2` is not set", unwrap_stderr(r))
 }
 
-// func env_variable() {
-//     let name = "BPAF_SECRET_API_KEY";
-//     let parser = long("key")
-//         .env(name)
-//         .help("use this secret key\ntwo lines")
-//         .argument::<String>("KEY")
-//         .ToOptions();
+func TestEnvVariable(t *testing.T) {
+	const name = "BPAF_SECRET_API_KEY"
+	parser := Argument(Long("key").
+		Env(name).
+		Help("use this secret key\ntwo lines"), "KEY", parseString).
+		Parser().
+		ToOptions()
 
-//     let help = parser.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: --key=KEY
+	{
+		_, help := parser.run_inner(newArgs("-h"))
+		const expected_help = `Usage: --key=KEY
 
-// Available options:
-//         --key=KEY  use this secret key two lines
-//                    [env:BPAF_SECRET_API_KEY: N/A]
-//     -h, --help     Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
-//     std::env::set_var(name, "top s3cr3t");
+Available options:
+    --key=KEY   use this secret key two lines
+                [env:BPAF_SECRET_API_KEY: N/A]
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
+	t.Setenv(name, "top s3cr3t")
 
-//     let help = parser.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: --key=KEY
+	{
+		_, help := parser.run_inner(newArgs("-h"))
+		const expected_help = `Usage: --key=KEY
 
-// Available options:
-//         --key=KEY  use this secret key two lines
-//                    [env:BPAF_SECRET_API_KEY = \"top s3cr3t\"]
-//     -h, --help     Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
+Available options:
+    --key=KEY   use this secret key two lines
+                [env:BPAF_SECRET_API_KEY = "top s3cr3t"]
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     let res = parser.run_inner(newArgs("--key", "secret")).unwrap();
-//     require.Equal(t, res, "secret");
+	{
+		res, err := parser.run_inner(newArgs("--key", "secret"))
+		require.Nil(t, err)
+		require.Equal(t, res, "secret")
+	}
 
-//     let res = parser.run_inner(newArgs()).unwrap();
-//     require.Equal(t, res, "top s3cr3t");
-// }
+	{
+		res, err := parser.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, res, "top s3cr3t")
+	}
+}
 
 // func default_plays_nicely_with_command() {
 //     #[derive(Debug, Clone)]
