@@ -112,7 +112,7 @@ fn inside_out_command_parser() {
         },
     }
 
-    let ok = cmd().run_inner(newArgs("log", "--oneline"]).unwrap();
+    let ok = cmd().run_inner(newArgs("log", "--oneline")).unwrap();
     assert_eq!(ok, Cmd::Log { oneline: true });
 
     // Can't parse "--oneline log" because oneline could be an argument instead of a flag
@@ -302,8 +302,8 @@ fn pure_conflict() {
     let a = short('a').switch();
     let b = pure(false);
     let parser = construct!([a, b]).to_options();
-    let r = parser.run_inner(newArgs(]).unwrap();
+    let r = parser.run_inner(newArgs()).unwrap();
     assert!(!r);
-    let r = parser.run_inner(newArgs("-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a")).unwrap();
     assert!(r);
 }

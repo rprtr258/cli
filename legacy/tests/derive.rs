@@ -120,6 +120,6 @@ Available commands:
 ";
     assert_eq!(help, expected);
 
-    let r = parser.run_inner(newArgs("one"]).unwrap();
+    let r = parser.run_inner(newArgs("one")).unwrap();
     assert_eq!(r, One);
 }

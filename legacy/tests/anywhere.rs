@@ -74,13 +74,13 @@ fn anywhere_catch_optional() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap();
     assert_eq!(r, (Some(((), 10)), false));
 
-    let r = parser.run_inner(newArgs("-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a")).unwrap();
     assert_eq!(r, (None, true));
 
-    let r = parser.run_inner(newArgs(]).unwrap();
+    let r = parser.run_inner(newArgs()).unwrap();
     assert_eq!(r, (None, false));
 }
 
@@ -92,14 +92,14 @@ fn anywhere_catch_many() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(newArgs("-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a")).unwrap();
 
     assert_eq!(r, (vec![], true));
 
-    let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10")).unwrap();
     assert_eq!(r, (vec![((), 10)], false));
 
-    let r = parser.run_inner(newArgs(]).unwrap();
+    let r = parser.run_inner(newArgs()).unwrap();
     assert_eq!(r, (Vec::new(), false));
 }
 
@@ -111,13 +111,13 @@ fn anywhere_catch_fallback() {
     let bc = short('a').switch();
     let parser = construct!(ab, bc).to_options();
 
-    let r = parser.run_inner(newArgs("-a", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "12")).unwrap();
     assert_eq!(r, (((), 12), false));
 
-    let r = parser.run_inner(newArgs("-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a")).unwrap();
     assert_eq!(r, (((), 10), true));
 
-    let r = parser.run_inner(newArgs(]).unwrap();
+    let r = parser.run_inner(newArgs()).unwrap();
     assert_eq!(r, (((), 10), false));
 }
 
@@ -174,12 +174,12 @@ fn anywhere_literal() {
     let b = short('b').switch();
     let parser: OptionParser<(Vec<((), usize)>, bool)> = construct!(a, b).to_options();
 
-    let r = parser.run_inner(newArgs("-b", "-mode", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-b", "-mode", "12")).unwrap();
     assert_eq!(r, (vec![((), 12)], true));
 
-    let r = parser.run_inner(newArgs("-mode", "12", "-b"]).unwrap();
+    let r = parser.run_inner(newArgs("-mode", "12", "-b")).unwrap();
     assert_eq!(r, (vec![((), 12)], true));
 
-    let r = parser.run_inner(newArgs("-mode", "12"]).unwrap();
+    let r = parser.run_inner(newArgs("-mode", "12")).unwrap();
     assert_eq!(r, (vec![((), 12)], false));
 }

@@ -44,7 +44,7 @@ Available options:
 fn dash_is_positional() {
     let a = positional::<String>("FILE");
     let parser = a.to_options();
-    assert_eq!("-", parser.run_inner(newArgs("-"]).unwrap());
+    assert_eq!("-", parser.run_inner(newArgs("-")).unwrap());
 }
 
 #[test]
@@ -135,7 +135,7 @@ fn strictly_positional() {
     let r = parser.run_inner(newArgs("a")).unwrap_err().unwrap_stderr();
     assert_eq!(r, "expected `A` to be on the right side of `--`");
 
-    let r = parser.run_inner(newArgs("--", "a"]).unwrap();
+    let r = parser.run_inner(newArgs("--", "a")).unwrap();
     assert_eq!(r, "a");
 
     let r = parser.run_inner(newArgs("a", "--")).unwrap_err().unwrap_stderr();
@@ -149,7 +149,7 @@ fn strictly_positional() {
 fn non_strictly_positional() {
     let parser = positional::<String>("A").non_strict().to_options();
 
-    let r = parser.run_inner(newArgs("a"]).unwrap();
+    let r = parser.run_inner(newArgs("a")).unwrap();
     assert_eq!(r, "a");
 
     let r = parser.run_inner(newArgs("--", "a")).unwrap_err().unwrap_stderr();

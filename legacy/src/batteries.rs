@@ -67,15 +67,15 @@ pub fn verbose_and_quiet_by_number(offset: isize, min: isize, max: isize) -> imp
 ///     verbose_by_slice(2, [Error, Warning, Info, Debug, Trace])
 /// }
 /// # let parser = verbose().to_options();
-/// # let res = parser.run_inner(newArgs(]).unwrap();
+/// # let res = parser.run_inner(newArgs()).unwrap();
 /// # assert_eq!(Level::Info, res);
-/// # let res = parser.run_inner(newArgs("-q"]).unwrap();
+/// # let res = parser.run_inner(newArgs("-q")).unwrap();
 /// # assert_eq!(Level::Warning, res);
-/// # let res = parser.run_inner(newArgs("-qqq"]).unwrap();
+/// # let res = parser.run_inner(newArgs("-qqq")).unwrap();
 /// # assert_eq!(Level::Error, res);
-/// # let res = parser.run_inner(newArgs("-qqqq"]).unwrap();
+/// # let res = parser.run_inner(newArgs("-qqqq")).unwrap();
 /// # assert_eq!(Level::Error, res);
-/// # let res = parser.run_inner(newArgs("-vvvvq"]).unwrap();
+/// # let res = parser.run_inner(newArgs("-vvvvq")).unwrap();
 /// # assert_eq!(Level::Trace, res);
 /// ```
 #[must_use]

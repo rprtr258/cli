@@ -526,7 +526,7 @@ Available options:
 
     assert_eq!(r, expected);
 
-    let r = parser.run_inner(newArgs("-a", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "-c")).unwrap();
     assert_eq!(r, ((true, false), true));
 }
 

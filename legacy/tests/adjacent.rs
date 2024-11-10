@@ -14,13 +14,13 @@ fn test_adjacent() {
     // -a [-b] -c  | -a -b [-c] | -a -b -c
     assert_eq!(r, &[((), false, true), ((), true, false), ((), true, true)]);
 
-    let r = parser.run_inner(newArgs("-a"]).unwrap();
+    let r = parser.run_inner(newArgs("-a")).unwrap();
     assert_eq!(r, &[((), false, false)]);
 
-    let r = parser.run_inner(newArgs("-a", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "-c")).unwrap();
     assert_eq!(r, &[((), false, true)]);
 
-    let r = parser.run_inner(newArgs(]).unwrap();
+    let r = parser.run_inner(newArgs()).unwrap();
     assert_eq!(r, &[]);
 }
 
@@ -32,16 +32,16 @@ fn test_adjacent_prefix() {
     let c = short('c').switch();
     let parser = construct!(ab, c).to_options();
 
-    let r = parser.run_inner(newArgs("-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-c")).unwrap();
     assert_eq!(r, (None, true));
 
-    let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "1")).unwrap();
     assert_eq!(r, (Some(((), 1)), false));
 
-    let r = parser.run_inner(newArgs("-c", "-a", "1"]).unwrap();
+    let r = parser.run_inner(newArgs("-c", "-a", "1")).unwrap();
     assert_eq!(r, (Some(((), 1)), true));
 
-    let r = parser.run_inner(newArgs("-a", "1", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "1", "-c")).unwrap();
     assert_eq!(r, (Some(((), 1)), true));
 }
 
@@ -116,7 +116,7 @@ fn adjacent_is_adjacent() {
         .unwrap_stderr();
     assert_eq!(r, "expected `B`, pass `--help` for usage information");
 
-    let r = parser.run_inner(newArgs("-a", "10", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-a", "20")).unwrap();
     assert_eq!(r, [10, 20]);
 }
 
@@ -128,13 +128,13 @@ fn adjacent_with_switch() {
     let c = short('c').switch();
     let parser = construct!(ab, c).to_options();
 
-    let r = parser.run_inner(newArgs("-a", "10", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-c")).unwrap();
     assert_eq!(r, (vec![10], true));
 
-    let r = parser.run_inner(newArgs("-a", "10", "-c", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "10", "-c", "-a", "20")).unwrap();
     assert_eq!(r, (vec![10, 20], true));
 
-    let r = parser.run_inner(newArgs("-c", "-a", "10", "-a", "20"]).unwrap();
+    let r = parser.run_inner(newArgs("-c", "-a", "10", "-a", "20")).unwrap();
     assert_eq!(r, (vec![10, 20], true));
 }
 
@@ -144,7 +144,7 @@ fn adjacent_limits_commands() {
     let s = short('s').switch();
     let parser = construct!(s, x).to_options();
 
-    let r = parser.run_inner(newArgs("a", "-s"]).unwrap();
+    let r = parser.run_inner(newArgs("a", "-s")).unwrap();
     assert_eq!(r, (true, ()));
 }
 
@@ -168,7 +168,7 @@ fn commands_and_adjacent() {
 
     let parser = construct!(switch, cmds).to_options();
 
-    let r = parser.run_inner(newArgs("sleep", "--time", "12", "-s"]).unwrap();
+    let r = parser.run_inner(newArgs("sleep", "--time", "12", "-s")).unwrap();
     assert_eq!(r, (true, "12".to_owned()));
 
     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
@@ -197,14 +197,14 @@ fn two_adjacent_args() {
     let point = construct!(x, y).adjacent();
     let parser = construct!(point, c).to_options();
 
-    let r = parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"]).unwrap();
+    let r = parser.run_inner(newArgs("-x", "3", "-y", "4", "-c")).unwrap();
     assert_eq!(r, ((3, 4), true));
 
     // they are adjacent to each other, but the way it is coded currently - they must be adjacent
     // to the first element.
     // Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
-    // let r = parser.run_inner(newArgs("-y", "3", "-x", "4", "-c"]).unwrap();
+    // let r = parser.run_inner(newArgs("-y", "3", "-x", "4", "-c")).unwrap();
     // assert_eq!(r, ((4, 3), true));
 
     let r = parser

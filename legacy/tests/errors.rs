@@ -23,7 +23,7 @@ fn no_argument() {
     let b = short('2').switch();
     let parser = construct!(a, b).to_options();
 
-    let r = parser.run_inner(newArgs("-a", "-42"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "-42")).unwrap();
     assert_eq!(r, (-42, false));
 
     //    let r = parser.run_inner(newArgs("-a", "-4"])).unwrap();
@@ -186,7 +186,7 @@ fn should_not_split_adjacent_ambig_options() {
 
     // this one is okay, try to parse -a as argument - it fails because "hello" is not a number, then
     // try to parse -a as a flag - this works
-    let r = parser.run_inner(newArgs("-a", "hello"]).unwrap();
+    let r = parser.run_inner(newArgs("-a", "hello")).unwrap();
     assert_eq!(r, (0, ()));
 }
 

@@ -760,34 +760,34 @@ Available options:
 	)
 }
 
-// func either_of_two_required_flags_and_one_optional() {
-//     let a = short('a').req_flag(true);
-//     let b = short('b').req_flag(false);
-//     let c = short('c').switch();
-//     let p = a.or_else(b).or_else(c);
-//     let decorated = p.ToOptions().version("1.0");
+func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
+	a := ReqFlag(Short('a'), true).Parser()
+	b := ReqFlag(Short('b'), false).Parser()
+	c := Short('c').Switch()
+	p := a.or_else(b).Parser().or_else(c).Parser()
+	decorated := p.ToOptions().version(newDocFromString("1.0"))
 
-//     let ver = decorated.run_inner(newArgs("-V")).unwrap_err().unwrap_stdout();
-//     require.Equal(t, "Version: 1.0\n", ver);
+	_, ver := decorated.run_inner(newArgs("-V"))
+	require.Equal(t, "Version: 1.0\n", unwrap_stdout(ver))
 
-//     // help is always generated
-//     let help = decorated.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: (-a | -b | [-c])
+	// help is always generated
+	_, help := decorated.run_inner(newArgs("-h"))
+	const expected_help = `Usage: (-a | -b | [-c])
 
-// Available options:
-//     -a
-//     -b
-//     -c
-//     -h, --help     Prints help information
-//     -V, --version  Prints version information
-// ";
-//     require.Equal(t, expected_help, help);
+Available options:
+    -a
+    -b
+    -c
+    -h, --help     Prints help information
+    -V, --version  Prints version information
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
 
-//     // fallback to default
-//     let res = decorated.run_inner(newArgs(]).unwrap();
-//     assert(!res);
-// }
+	// fallback to default
+	res, err := decorated.run_inner(newArgs())
+	require.Nil(t, err)
+	require.True(t, !res)
+}
 
 // func fallback_with_ok() {
 //     let parser = short('a')
@@ -795,10 +795,10 @@ Available options:
 //         .fallback_with::<_, &str>(|| Ok(10u32))
 //         .ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
 //     require.Equal(t, r, 1);
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, 10);
 // }
 
@@ -808,7 +808,7 @@ Available options:
 //         .fallback_with::<_, &str>(|| Err("nope"))
 //         .ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
 //     require.Equal(t, r, 1);
 
 //     let r = parser.run_inner(newArgs("-a", "x")).unwrap_err().unwrap_stderr();
@@ -1066,9 +1066,9 @@ Available options:
 //     -h, --help  Prints help information
 // ";
 //     require.Equal(t, expected_help, help);
-//     parser.run_inner(newArgs("-a"]).unwrap();
-//     parser.run_inner(newArgs("-b"]).unwrap();
-//     parser.run_inner(newArgs("-c"]).unwrap();
+//     parser.run_inner(newArgs("-a")).unwrap();
+//     parser.run_inner(newArgs("-b")).unwrap();
+//     parser.run_inner(newArgs("-c")).unwrap();
 // }
 
 // mod git {
@@ -1250,7 +1250,7 @@ Available options:
 //             width: 10,
 //             input: Vec::new()
 //         },
-//         parser.run_inner(newArgs("--number", "42"]).unwrap()
+//         parser.run_inner(newArgs("--number", "42")).unwrap()
 //     );
 
 //     drop(parser);
@@ -1265,11 +1265,11 @@ Available options:
 //         .descr("this is a test");
 
 //     // cargo run variant
-//     let ok = decorated.run_inner(newArgs("-a"]).unwrap();
+//     let ok = decorated.run_inner(newArgs("-a")).unwrap();
 //     require.Equal(t, (true, false), ok);
 
 //     // cargo simple variant
-//     let ok = decorated.run_inner(newArgs("simple", "-b"]).unwrap();
+//     let ok = decorated.run_inner(newArgs("simple", "-b")).unwrap();
 //     require.Equal(t, (false, true), ok);
 
 //     let err = decorated
@@ -1360,10 +1360,10 @@ Available options:
 // ";
 //     require.Equal(t, expected_help, help);
 
-//     let res = parser.run_inner(newArgs("--key", "secret"]).unwrap();
+//     let res = parser.run_inner(newArgs("--key", "secret")).unwrap();
 //     require.Equal(t, res, "secret");
 
-//     let res = parser.run_inner(newArgs(]).unwrap();
+//     let res = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, res, "top s3cr3t");
 // }
 
@@ -1445,10 +1445,10 @@ Available options:
 //     require.Equal(t, expected_help, help);
 
 //     // hidden and visible aliases are working
-//     parser.run_inner(newArgs("foo"]).unwrap();
-//     parser.run_inner(newArgs("f"]).unwrap();
-//     parser.run_inner(newArgs("bar"]).unwrap();
-//     parser.run_inner(newArgs("b"]).unwrap();
+//     parser.run_inner(newArgs("foo")).unwrap();
+//     parser.run_inner(newArgs("f")).unwrap();
+//     parser.run_inner(newArgs("bar")).unwrap();
+//     parser.run_inner(newArgs("b")).unwrap();
 
 //     // and "k" isn't a thing
 //     parser.run_inner(newArgs("k")).unwrap_err();
@@ -1512,13 +1512,13 @@ Available options:
 
 // func many_doesnt_panic() {
 //     let parser = short('a').switch().many().map(|m| m.len()).ToOptions();
-//     let r = parser.run_inner(newArgs("-aaa"]).unwrap();
+//     let r = parser.run_inner(newArgs("-aaa")).unwrap();
 //     require.Equal(t, r, 3);
 // }
 
 // func some_doesnt_panic() {
 //     let parser = short('a').switch().some("").map(|m| m.len()).ToOptions();
-//     let r = parser.run_inner(newArgs("-aaa"]).unwrap();
+//     let r = parser.run_inner(newArgs("-aaa")).unwrap();
 //     require.Equal(t, r, 3);
 // }
 
@@ -1539,7 +1539,7 @@ Available options:
 //         .command("cmd")
 //         .ToOptions();
 
-//     let xx = cmd.run_inner(newArgs("cmd", "-b"]).unwrap();
+//     let xx = cmd.run_inner(newArgs("cmd", "-b")).unwrap();
 //     require.Equal(t, xx, Foo::Bar2 { b: () });
 // }
 
@@ -1559,10 +1559,10 @@ Available options:
 // func optional_error_handling() {
 //     let p = short('p').argument::<u32>("P").optional().ToOptions();
 
-//     let res = p.run_inner(newArgs(]).unwrap();
+//     let res = p.run_inner(newArgs()).unwrap();
 //     require.Equal(t, res, None);
 
-//     let res = p.run_inner(newArgs("-p", "3"]).unwrap();
+//     let res = p.run_inner(newArgs("-p", "3")).unwrap();
 //     require.Equal(t, res, Some(3));
 
 //     let res = p.run_inner(newArgs("-p", "pi")).unwrap_err().unwrap_stderr();
@@ -1572,10 +1572,10 @@ Available options:
 // func many_error_handling() {
 //     let p = short('p').argument::<u32>("P").many().ToOptions();
 
-//     let res = p.run_inner(newArgs(]).unwrap();
+//     let res = p.run_inner(newArgs()).unwrap();
 //     require.Equal(t, res, Vec::new());
 
-//     let res = p.run_inner(newArgs("-p", "3"]).unwrap();
+//     let res = p.run_inner(newArgs("-p", "3")).unwrap();
 //     require.Equal(t, res, vec![3]);
 
 //     let res = p.run_inner(newArgs("-p", "pi")).unwrap_err().unwrap_stderr();
@@ -1613,10 +1613,10 @@ Available options:
 //     let res = parser.run_inner(newArgs("cmd")).unwrap_err().unwrap_stderr();
 //     require.Equal(t, res, "expected `NAME`, pass `--help` for usage information");
 
-//     let res = parser.run_inner(newArgs("cmd", "a"]).unwrap();
+//     let res = parser.run_inner(newArgs("cmd", "a")).unwrap();
 //     require.Equal(t, res, "a");
 
-//     let res = parser.run_inner(newArgs(]).unwrap();
+//     let res = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, res, "");
 // }
 
@@ -1880,14 +1880,14 @@ Available options:
 //     let b = short('A').req_flag(false);
 //     let parser = construct!([a, b]).many().ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "-A", "-A", "-A", "-a"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "-A", "-A", "-A", "-a")).unwrap();
 //     require.Equal(t, r, vec![true, false, false, false, true]);
 // }
 
 // func parse_many_errors_positional() {
 //     let p = positional::<u32>("N").many().ToOptions();
 
-//     let r = p.run_inner(newArgs("1", "2", "3"]).unwrap();
+//     let r = p.run_inner(newArgs("1", "2", "3")).unwrap();
 //     require.Equal(t, r, vec![1, 2, 3]);
 
 //     let r = p.run_inner(newArgs("1", "2", "x")).unwrap_err().unwrap_stderr();
@@ -1900,7 +1900,7 @@ Available options:
 //         .collect::<Vec<_>>()
 //         .ToOptions();
 
-//     let r = p.run_inner(newArgs("-p", "1", "-p", "2"]).unwrap();
+//     let r = p.run_inner(newArgs("-p", "1", "-p", "2")).unwrap();
 //     require.Equal(t, r, vec![1, 2]);
 
 //     let r = p
@@ -1913,7 +1913,7 @@ Available options:
 // func parse_many_errors_flag() {
 //     let p = short('p').argument::<u32>("N").many().ToOptions();
 
-//     let r = p.run_inner(newArgs("-p", "1", "-p", "2"]).unwrap();
+//     let r = p.run_inner(newArgs("-p", "1", "-p", "2")).unwrap();
 //     require.Equal(t, r, vec![1, 2]);
 
 //     let r = p
@@ -1968,10 +1968,10 @@ Available options:
 // func double_dash_is_pos_only_just_once() {
 //     let parser = positional::<String>("POS").many().ToOptions();
 
-//     let r = parser.run_inner(newArgs("--"]).unwrap();
+//     let r = parser.run_inner(newArgs("--")).unwrap();
 //     require.Equal(t, r, Vec::<String>::new());
 
-//     let r = parser.run_inner(newArgs("--", "--"]).unwrap();
+//     let r = parser.run_inner(newArgs("--", "--")).unwrap();
 //     require.Equal(t, r, vec!["--".to_string()]);
 // }
 
@@ -1984,7 +1984,7 @@ Available options:
 //         .unwrap_stderr();
 //     require.Equal(t, r, "`baz` is not expected in this context");
 
-//     let r = parser.run_inner(newArgs("-fbar"]).unwrap();
+//     let r = parser.run_inner(newArgs("-fbar")).unwrap();
 //     require.Equal(t, r, "bar");
 // }
 
@@ -2029,10 +2029,10 @@ Available options:
 //         .optional();
 //     let parser = construct!([a_n, a_s]).ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
 //     require.Equal(t, r, Some(A::Num(1)));
 
-//     let r = parser.run_inner(newArgs("-a", "x1"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "x1")).unwrap();
 //     require.Equal(t, r, Some(A::Str("x1".to_owned())));
 // }
 
@@ -2059,7 +2059,7 @@ Available options:
 //     };
 //     let parser = construct!([maybe_cmd, b]).ToOptions();
 
-//     let r = parser.run_inner(newArgs("hello"]).unwrap();
+//     let r = parser.run_inner(newArgs("hello")).unwrap();
 //     require.Equal(t, r, Cmd::A(false));
 // }
 
@@ -2075,7 +2075,7 @@ Available options:
 //         })
 //         .ToOptions();
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, vec![String::from(".")]);
 // }
 
@@ -2089,13 +2089,13 @@ Available options:
 //     let a2 = short('a').argument("S").map(A::S).optional().catch();
 //     let parser = construct!([a1, a2]).ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "10")).unwrap();
 //     require.Equal(t, r, Some(A::U32(10)));
 
-//     let r = parser.run_inner(newArgs("-a", "x"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "x")).unwrap();
 //     require.Equal(t, r, Some(A::S("x".to_string())));
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, None);
 // }
 
@@ -2114,10 +2114,10 @@ Available options:
 //     let a2 = short('a').argument("S").map(A::S).some("A").catch().hide();
 //     let parser = construct!([a1, a2]).ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "10"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "10")).unwrap();
 //     require.Equal(t, r, vec![A::U32(10)]);
 
-//     let r = parser.run_inner(newArgs("-a", "x"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "x")).unwrap();
 //     require.Equal(t, r, vec![A::S("x".to_string())]);
 
 //     let r = parser.run_inner(newArgs()).unwrap_err().unwrap_stderr();
@@ -2129,7 +2129,7 @@ Available options:
 //     struct Foo {}
 //     let parser = construct!(Foo {}).ToOptions();
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, Foo {});
 
 //     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
@@ -2144,7 +2144,7 @@ Available options:
 //     struct Foo();
 //     let parser = construct!(Foo()).ToOptions();
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, Foo());
 
 //     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
@@ -2156,17 +2156,17 @@ Available options:
 
 // func strange_short_option() {
 //     let parser = short('O').argument::<String>("ARG").ToOptions();
-//     let r = parser.run_inner(newArgs("-Obits=2048"]).unwrap();
+//     let r = parser.run_inner(newArgs("-Obits=2048")).unwrap();
 //     require.Equal(t, r, "bits=2048");
 // }
 
 // func optional_bool_states() {
 //     let parser = short('a').switch().optional().ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a")).unwrap();
 //     require.Equal(t, r, Some(true));
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, Some(false));
 // }
 
@@ -2180,10 +2180,10 @@ Available options:
 
 //     let parser = construct!(ab, c).ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "-10"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "-10")).unwrap();
 //     require.Equal(t, r, (-10, 42));
 
-//     let r = parser.run_inner(newArgs("-a=-20", "-c", "110"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a=-20", "-c", "110")).unwrap();
 //     require.Equal(t, r, (-20, 110));
 
 //     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
@@ -2208,28 +2208,28 @@ Available options:
 //         .argument::<String>("USER")
 //         .many()
 //         .ToOptions();
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, vec!["top s3cr3t".to_owned()]);
 // }
 
 // func env_hidden_arg() {
 //     std::env::set_var("USER1", "top s3cr3t");
 //     let parser = env("USER1").argument::<String>("USER").ToOptions();
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, "top s3cr3t");
 // }
 
 // func env_hidden_switch() {
 //     std::env::set_var("USER1", "top s3cr3t");
 //     let parser = env("USER1").switch().ToOptions();
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     assert!(r);
 // }
 
 // func env_hidden_flag() {
 //     std::env::set_var("USER1", "top s3cr3t");
 //     let parser = env("USER1").flag(true, false).ToOptions();
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     assert!(r);
 // }
 
@@ -2240,7 +2240,7 @@ Available options:
 //         .argument::<String>("USER")
 //         .some("a")
 //         .ToOptions();
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, vec!["top s3cr3t".to_owned()]);
 // }
 
@@ -2268,7 +2268,7 @@ Available options:
 //         .fallback_with(|| Ok::<_, Infallible>(vec![1, 2, 3]))
 //         .ToOptions();
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 
 //     require.Equal(t, r, vec![1, 2, 3]);
 // }
@@ -2278,10 +2278,10 @@ Available options:
 //     let b = short('b').switch();
 //     let parser = construct!(a, b).adjacent().ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a")).unwrap();
 //     require.Equal(t, r, (true, false));
 
-//     let r = parser.run_inner(newArgs("-b"]).unwrap();
+//     let r = parser.run_inner(newArgs("-b")).unwrap();
 //     require.Equal(t, r, (false, true));
 // }
 
@@ -2292,10 +2292,10 @@ Available options:
 //         .fallback(vec![1, 2, 3]);
 //     let parser = a.ToOptions();
 
-//     let r = parser.run_inner(newArgs("-a", "1"]).unwrap();
+//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
 //     require.Equal(t, r, vec![1]);
 
-//     let r = parser.run_inner(newArgs(]).unwrap();
+//     let r = parser.run_inner(newArgs()).unwrap();
 //     require.Equal(t, r, vec![1, 2, 3]);
 // }
 
@@ -2304,10 +2304,10 @@ Available options:
 //     let b = short('b').req_flag(2).ToOptions().command("remove");
 //     let parser = construct!([a, b]).ToOptions();
 
-//     let r = parser.run_inner(newArgs("--add", "-a"]).unwrap();
+//     let r = parser.run_inner(newArgs("--add", "-a")).unwrap();
 //     require.Equal(t, r, 1);
 
-//     let r = parser.run_inner(newArgs("remove", "-b"]).unwrap();
+//     let r = parser.run_inner(newArgs("remove", "-b")).unwrap();
 //     require.Equal(t, r, 2);
 
 //     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
