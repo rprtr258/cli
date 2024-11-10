@@ -831,31 +831,33 @@ func TestFallbackWithErr(t *testing.T) {
 	}
 }
 
-// func default_arguments() {
-//     let a = short('a').argument::<i32>("ARG").fallback(42);
-//     let decorated = a.ToOptions();
+func TestDefaultArguments(t *testing.T) {
+	a := Argument(Short('a'), "ARG", parseInt32).Parser().Fallback(42).Parser()
+	decorated := a.ToOptions()
 
-//     let help = decorated.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: [-a=ARG]
+	{
+		_, help := decorated.run_inner(newArgs("-h"))
+		const expected_help = `Usage: [-a=ARG]
 
-// Available options:
-//     -a=ARG
-//     -h, --help  Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
+Available options:
+    -a=ARG
+    -h, --help  Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     let err = decorated
-//         .run_inner(newArgs("-a", "x12"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     let expected_err = "couldn't parse `x12`: invalid digit found in string";
-//     require.Equal(t, expected_err, err);
+	{
+		_, err := decorated.run_inner(newArgs("-a", "x12"))
+		const expected_err = "couldn't parse `x12`: invalid digit found in string"
+		require.Equal(t, expected_err, unwrap_stderr(err))
+	}
 
-//     let err = decorated.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
-//     let expected_err = "`-a` requires an argument `ARG`";
-//     require.Equal(t, expected_err, err);
-// }
+	{
+		_, err := decorated.run_inner(newArgs("-a"))
+		const expected_err = "`-a` requires an argument `ARG`"
+		require.Equal(t, expected_err, unwrap_stderr(err))
+	}
+}
 
 // func parse_errors() {
 //     let decorated = short('a').argument::<i32>("ARG").ToOptions();
