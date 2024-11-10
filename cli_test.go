@@ -1536,11 +1536,12 @@ Available commands:
 	require.Equal(t, expected_help, unwrap_stdout(help))
 }
 
-// func many_doesnt_panic() {
-//     let parser = short('a').switch().many().map(|m| m.len()).ToOptions();
-//     let r = parser.run_inner(newArgs("-aaa")).unwrap();
-//     require.Equal(t, r, 3);
-// }
+func TestManyDoesntPanic(t *testing.T) {
+	parser := Map(Many(Short('a').Switch()), func(m []bool) int { return len(m) }).ToOptions()
+	r, err := parser.run_inner(newArgs("-aaa"))
+	require.Nil(t, err)
+	require.Equal(t, r, 3)
+}
 
 // func some_doesnt_panic() {
 //     let parser = short('a').switch().some("").map(|m| m.len()).ToOptions();
