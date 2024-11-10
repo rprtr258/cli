@@ -1318,38 +1318,35 @@ Available options:
 	}
 }
 
-// func long_path_in_construct() {
-//     let a = short('a').switch();
-//     let _ = construct(std::option::Option::Some(a));
+// func TestLongPathInConstruct(t*testing.T) {
+//     a := Short('a').Switch();
+//     _ = construct(std::option::Option::Some(a));
 
-//     let b = short('b').switch();
-//     let _ = construct!(::std::option::Option::Some(b));
+//     b := Short('b').Switch();
+//     _ = construct!(::std::option::Option::Some(b));
 // }
 
-// func hidden_env() {
-//     let name = "BPAF_SECRET_API_KEY2";
-//     let visible = long("key")
-//         .help("use this secret key\n two lines")
-//         .argument::<String>("KEY");
-//     let hidden = env(name).argument("KEY");
-//     let parser = construct!([visible, hidden]).ToOptions();
+func TestHiddenEnv(t *testing.T) {
+	name := "BPAF_SECRET_API_KEY2"
+	visible := Argument(Long("key").
+		Help("use this secret key\n two lines"),
+		"KEY", parseString).Parser()
+	hidden := Argument(Env(name), "KEY", parseString).Parser()
+	parser := Choice(visible, hidden).ToOptions()
 
-//     let help = parser.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
+	_, help := parser.run_inner(newArgs("-h"))
+	const expected = `Usage: --key=KEY
 
-//     let expected = "\
-// Usage: --key=KEY
+Available options:
+    --key=KEY   use this secret key
+                two lines
+    -h, --help  Prints help information
+`
+	require.Equal(t, expected, unwrap_stdout(help))
 
-// Available options:
-//         --key=KEY  use this secret key
-//                    two lines
-//     -h, --help     Prints help information
-// ";
-
-//     require.Equal(t, help, expected);
-
-//     let r = parser.run_inner(newArgs()).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "environment variable `BPAF_SECRET_API_KEY2` is not set");
-// }
+	_, r := parser.run_inner(newArgs())
+	require.Equal(t, "environment variable `BPAF_SECRET_API_KEY2` is not set", unwrap_stderr(r))
+}
 
 // func env_variable() {
 //     let name = "BPAF_SECRET_API_KEY";
