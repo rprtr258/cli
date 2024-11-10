@@ -1604,18 +1604,26 @@ func TestOptional_error_handling(t *testing.T) {
 	}
 }
 
-// func many_error_handling() {
-//     let p = short('p').argument::<u32>("P").many().ToOptions();
+func TestMany_error_handling(t *testing.T) {
+	p := Many(Argument(Short('p'), "P", parseUint32).Parser()).ToOptions()
 
-//     let res = p.run_inner(newArgs()).unwrap();
-//     require.Equal(t, res, Vec::new());
+	{
+		res, err := p.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, res, []uint32{})
+	}
 
-//     let res = p.run_inner(newArgs("-p", "3")).unwrap();
-//     require.Equal(t, res, vec![3]);
+	{
+		res, err := p.run_inner(newArgs("-p", "3"))
+		require.Nil(t, err)
+		require.Equal(t, res, []uint32{3})
+	}
 
-//     let res = p.run_inner(newArgs("-p", "pi")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `pi`: invalid digit found in string");
-// }
+	{
+		_, res := p.run_inner(newArgs("-p", "pi"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `pi`: invalid digit found in string")
+	}
+}
 
 // func failure_is_not_stupid_1() {
 //     let a = short('a').argument::<u32>("A");
