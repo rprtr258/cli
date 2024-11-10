@@ -859,30 +859,27 @@ Available options:
 	}
 }
 
-// func parse_errors() {
-//     let decorated = short('a').argument::<i32>("ARG").ToOptions();
+func TestParseErrors(t *testing.T) {
+	decorated := Argument(Short('a'), "ARG", parseInt32).Parser().ToOptions()
 
-//     let err = decorated
-//         .run_inner(newArgs("-a", "123x"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     let expected_err = "couldn't parse `123x`: invalid digit found in string";
-//     require.Equal(t, expected_err, err);
+	{
+		_, err := decorated.run_inner(newArgs("-a", "123x"))
+		const expected_err = "couldn't parse `123x`: invalid digit found in string"
+		require.Equal(t, expected_err, unwrap_stderr(err))
+	}
 
-//     let err = decorated
-//         .run_inner(newArgs("-b", "123x"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     let expected_err = "expected `-a=ARG`, got `-b`. Pass `--help` for usage information";
-//     require.Equal(t, expected_err, err);
+	{
+		_, err := decorated.run_inner(newArgs("-b", "123x"))
+		const expected_err = "expected `-a=ARG`, got `-b`. Pass `--help` for usage information"
+		require.Equal(t, expected_err, unwrap_stderr(err))
+	}
 
-//     let err = decorated
-//         .run_inner(newArgs("-a", "123", "-b"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     let expected_err = "`-b` is not expected in this context";
-//     require.Equal(t, expected_err, err);
-// }
+	{
+		_, err := decorated.run_inner(newArgs("-a", "123", "-b"))
+		const expected_err = "`-b` is not expected in this context"
+		require.Equal(t, expected_err, unwrap_stderr(err))
+	}
+}
 
 // #[ignore]
 // func custom_usage() {
