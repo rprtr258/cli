@@ -26,6 +26,11 @@ func parseInt32(s string) (int32, error) {
 	return int32(u), nil
 }
 
+// TODO: move similar funcs to batteries and use
+func parseString(s string) (string, error) {
+	return s, nil
+}
+
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	// ~ this is a bit artifactial (it's better to use fallback_with instead actually),
 	// but this example demonstrates the concept

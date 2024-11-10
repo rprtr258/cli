@@ -882,19 +882,18 @@ func TestParseErrors(t *testing.T) {
 }
 
 // #[ignore]
-// func custom_usage() {
-//     let a = short('a').long("long").argument::<String>("ARG");
-//     let parser = a.ToOptions().usage("Usage: -a <ARG> or --long <ARG>");
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: -a=ARG or --long=ARG
+func TestCustomUsage(t *testing.T) {
+	a := Argument(Short('a').Long("long"), "ARG", parseString).Parser()
+	parser := a.ToOptions().Usage(newDocFromString("Usage: -a <ARG> or --long <ARG>"))
+	_, help := parser.run_inner(newArgs("--help"))
+	const expected_help = `Usage: -a <ARG> or --long <ARG>
 
-// Available options:
-//     -a, --long=ARG
-//     -h, --help      Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
-// }
+Available options:
+    -a, --long=ARG
+    -h, --help      Prints help information
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
+}
 
 // func long_usage_string() {
 //     let a = short('a')
