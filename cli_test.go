@@ -1699,35 +1699,38 @@ func TestDid_you_mean_req_flag(t *testing.T) {
 	require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
 }
 
-// func did_you_mean_argument() {
-//     let parser = long("flag").argument::<String>("VAL").ToOptions();
+func TestDid_you_mean_argument(t *testing.T) {
+	t.Skip() // TODO: fix
+	parser := Argument(Long("flag"), "VAL", parseString).Parser().ToOptions()
 
-//     let res = parser.run_inner(newArgs("--fla")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--fla`, did you mean `--flag`?");
+	{
+		_, res := parser.run_inner(newArgs("--fla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+	}
 
-//     let res = parser
-//         .run_inner(newArgs("--flg=hellop"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--flg`, did you mean `--flag`?");
-// }
+	{
+		_, res := parser.run_inner(newArgs("--flg=hellop"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--flg`, did you mean `--flag`?")
+	}
+}
 
-// func did_you_mean_command() {
-//     let parser = pure(())
-//         .ToOptions()
-//         .command("command")
-//         .short('c')
-//         .ToOptions();
+func TestDid_you_mean_command(t *testing.T) {
+	parser := Pure(struct{}{}).Parser().
+		ToOptions().
+		Command("command").
+		short('c').Parser().
+		ToOptions()
 
-//     let res = parser.run_inner(newArgs("comman")).unwrap_err().unwrap_stderr();
-//     require.Equal(t,
-//         res,
-//         "no such command or positional: `comman`, did you mean `command`?"
-//     );
+	{
+		_, res := parser.run_inner(newArgs("comman"))
+		require.Equal(t, unwrap_stderr(res), "no such command or positional: `comman`, did you mean `command`?")
+	}
 
-//     let res = parser.run_inner(newArgs("--comman")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "no such flag: `--comman`, did you mean `command`?");
-// }
+	{
+		_, res := parser.run_inner(newArgs("--comman"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--comman`, did you mean `command`?")
+	}
+}
 
 // func did_you_mean_two_and_arguments() {
 //     let a = long("flag").switch();
