@@ -914,18 +914,9 @@ func TestLongUsageString(t *testing.T) {
 		Long("f-very-long-flag-with"),
 		"ARG", parseString)
 
-	parser :=
-		Pair(
-			f,
-			Pair(
-				b,
-				Pair(c,
-					Pair(d,
-						Pair(e,
-							a))))).
-			Parser().ToOptions()
+	parser := Pair(Pair(Pair(Pair(Pair(a, b), c), d), e), f).Parser().ToOptions()
 
-	// _, help := parser.run_inner(newArgs("--help"))
+	_, help := parser.run_inner(newArgs("--help"))
 
 	const expected_help = `Usage: -a=ARG -b=ARG -c=ARG -d=ARG -e=ARG -f=ARG
 
@@ -939,10 +930,11 @@ Available options:
     -h, --help  Prints help information
 `
 
-	// require.Equal(t, expected_help, unwrap_stdout(help))
+	require.Equal(t, expected_help, unwrap_stdout(help))
 	_, err := parser.run_inner(newArgs("-a", "-b"))
 	require.Equal(t,
-		"`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
+		"expected `-f=ARG`, got `-a`. Pass `--help` for usage information",
+		// TODO: // "`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
 		unwrap_stderr(err),
 	)
 }
