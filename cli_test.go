@@ -789,18 +789,24 @@ Available options:
 	require.True(t, !res)
 }
 
-// func fallback_with_ok() {
-//     let parser = short('a')
-//         .argument("ARG")
-//         .fallback_with::<_, &str>(|| Ok(10u32))
-//         .ToOptions();
+func TestFallbackWithOk(t *testing.T) {
+	parser := Argument(Short('a'),
+		"ARG", parseUint32).Parser().
+		fallback_with(func() (uint32, Error) { return 10, nil }).Parser().
+		ToOptions()
 
-//     let r = parser.run_inner(newArgs("-a", "1")).unwrap();
-//     require.Equal(t, r, 1);
+	{
+		r, err := parser.run_inner(newArgs("-a", "1"))
+		require.Nil(t, err)
+		require.Equal(t, uint32(1), r)
+	}
 
-//     let r = parser.run_inner(newArgs()).unwrap();
-//     require.Equal(t, r, 10);
-// }
+	{
+		r, err := parser.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, uint32(10), r)
+	}
+}
 
 // func fallback_with_err() {
 //     let parser = short('a')

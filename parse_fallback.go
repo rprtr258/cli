@@ -87,6 +87,10 @@ type ParseFallbackWith[T any] struct {
 	value_str string
 }
 
+func (self ParseFallbackWith[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta()}
+}
+
 func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
 	clone := args
 	ok, e := self.inner.eval(clone)
