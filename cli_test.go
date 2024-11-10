@@ -691,38 +691,43 @@ Available options:
 	}
 }
 
-// func either_of_three_required_flags() {
-//     let a = short('a').req_flag(());
-//     let b = short('b').req_flag(());
-//     let c = short('c').req_flag(());
-//     let p = a.or_else(b).or_else(c);
-//     let decorated = p.ToOptions().version("1.0");
+func TestEitherOfThreeRequiredFlags(t *testing.T) {
+	a := ReqFlag(Short('a'), struct{}{})
+	b := ReqFlag(Short('b'), struct{}{})
+	c := ReqFlag(Short('c'), struct{}{})
+	p := a.Parser().or_else(b.Parser()).Parser().or_else(c.Parser()).Parser()
+	decorated := p.ToOptions().version(newDocFromString("1.0"))
 
-//     // version help requires version meta
-//     let ver = decorated.run_inner(&["-V"]).unwrap_err().unwrap_stdout();
-//     require.Equal(t, "Version: 1.0\n", ver);
+	// version help requires version meta
+	{
+		_, ver := decorated.run_inner(newArgs("-V"))
+		require.Equal(t, "Version: 1.0\n", unwrap_stdout(ver))
+	}
 
-//     // help is always generated
-//     let help = decorated.run_inner(&["-h"]).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: (-a | -b | -c)
+	// help is always generated
+	{
+		_, help := decorated.run_inner(newArgs("-h"))
+		const expected_help = `Usage: (-a | -b | -c)
 
-// Available options:
-//     -a
-//     -b
-//     -c
-//     -h, --help     Prints help information
-//     -V, --version  Prints version information
-// ";
-//     require.Equal(t, expected_help, help);
+Available options:
+    -a
+    -b
+    -c
+    -h, --help     Prints help information
+    -V, --version  Prints version information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
-//     // must specify one of the required flags
-//     let err = decorated.run_inner(&[]).unwrap_err().unwrap_stderr();
-//     require.Equal(t,
-//         "expected `-a`, `-b`, or more, pass `--help` for usage information",
-//         err
-//     );
-// }
+	// must specify one of the required flags
+	{
+		_, err := decorated.run_inner(newArgs())
+		require.Equal(t,
+			"expected `-a`, `-b`, or more, pass `--help` for usage information",
+			unwrap_stderr(err),
+		)
+	}
+}
 
 // func either_of_three_required_flags2() {
 //     let a = short('a').req_flag(());

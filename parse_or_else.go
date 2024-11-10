@@ -12,6 +12,10 @@ type ParseOrElse[T any] struct {
 	that Parser[T]
 }
 
+func (self ParseOrElse[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, or(self.this.meta, self.that.meta)}
+}
+
 // Given two possible errors along with to sets of arguments produce a new error or an instruction
 // to pick between two answers. Updates arguments state to switch the results
 func this_or_that_picks_first(
