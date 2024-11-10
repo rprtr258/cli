@@ -1272,45 +1272,51 @@ func TestMultipleAliases(t *testing.T) {
 //     drop(parser);
 // }
 
-// func simple_cargo_helper() {
-//     let a = short('a').long("AAAAA").help("two lines\nof help").switch();
-//     let b = short('b').switch();
-//     let parser = construct(a, b);
-//     let decorated = cargo_helper("simple", parser)
-//         .ToOptions()
-//         .descr("this is a test");
+func TestSimpleCargoHelper(t *testing.T) {
+	a := Short('a').Long("AAAAA").Help("two lines\nof help").Switch()
+	b := Short('b').Switch()
+	parser := Pair(a, b).Parser()
+	decorated := cargo_helper("simple", parser).
+		ToOptions().
+		Descr("this is a test")
 
-//     // cargo run variant
-//     let ok = decorated.run_inner(newArgs("-a")).unwrap();
-//     require.Equal(t, (true, false), ok);
+	// cargo run variant
+	{
+		ok, err := decorated.run_inner(newArgs("-a"))
+		require.Nil(t, err)
+		require.Equal(t, fun.Pair[bool, bool]{true, false}, ok)
+	}
 
-//     // cargo simple variant
-//     let ok = decorated.run_inner(newArgs("simple", "-b")).unwrap();
-//     require.Equal(t, (false, true), ok);
+	// cargo simple variant
+	{
+		ok, err := decorated.run_inner(newArgs("simple", "-b"))
+		require.Nil(t, err)
+		require.Equal(t, fun.Pair[bool, bool]{false, true}, ok)
+	}
 
-//     let err = decorated
-//         .run_inner(newArgs("-a", "-a"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t,
-//         "argument `-a` cannot be used multiple times in this context",
-//         err
-//     );
+	{
+		_, err := decorated.
+			run_inner(newArgs("-a", "-a"))
+		require.Equal(t,
+			"argument `-a` cannot be used multiple times in this context",
+			unwrap_stderr(err),
+		)
+	}
 
-//     let help = decorated.run_inner(newArgs("-h")).unwrap_err().unwrap_stdout();
+	{
+		_, help := decorated.run_inner(newArgs("-h"))
+		const expected_help = `this is a test
 
-//     let expected_help = "\
-// this is a test
+Usage: [-a] [-b]
 
-// Usage: [-a] [-b]
-
-// Available options:
-//     -a, --AAAAA  two lines of help
-//     -b
-//     -h, --help   Prints help information
-// ";
-//     require.Equal(t, expected_help, help);
-// }
+Available options:
+    -a, --AAAAA  two lines of help
+    -b
+    -h, --help   Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
+}
 
 // func long_path_in_construct() {
 //     let a = short('a').switch();
