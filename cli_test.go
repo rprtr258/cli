@@ -1543,11 +1543,12 @@ func TestManyDoesntPanic(t *testing.T) {
 	require.Equal(t, r, 3)
 }
 
-// func some_doesnt_panic() {
-//     let parser = short('a').switch().some("").map(|m| m.len()).ToOptions();
-//     let r = parser.run_inner(newArgs("-aaa")).unwrap();
-//     require.Equal(t, r, 3);
-// }
+func TestSomeDoesntPanic(t *testing.T) {
+	parser := Map(ParseSomeParser(Short('a').Switch().Some("")), func(m []bool) int { return len(m) }).ToOptions()
+	r, err := parser.run_inner(newArgs("-aaa"))
+	require.Nil(t, err)
+	require.Equal(t, r, 3)
+}
 
 // func command_resets_left_head_state() {
 //     #[derive(Debug, Eq, PartialEq)]
