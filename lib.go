@@ -392,14 +392,12 @@ func (self Parser[T]) Hide() Parser[T] {
 	return Parser[T]{p.eval, MetaSkip{}}
 }
 
-// {{{ GroupHelp
-// Attach a help message to a complex parser
+// GroupHelp Attach a help message to a complex parser
 //
 // `bpaf` inserts the group help message before the block with all the fields
 // from the inner parser and an empty line after the block.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/GroupHelp.md"))]
-// }}}
 func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 	return ParseGroupHelp[T]{
 		inner:   self,

@@ -939,28 +939,27 @@ Available options:
 	)
 }
 
-// func group_help_args() {
-//     let a = short('a').help("flag A, related to B").switch();
-//     let b = short('b').help("flag B, related to A").switch();
-//     let c = short('c').help("flag C, unrelated").switch();
-//     let ab = construct(a, b).group_help("Explanation applicable for both A and B:");
-//     let parser = construct(ab, c).ToOptions();
+func TestGroupHelpArgs(t *testing.T) {
+	t.Skip() // TODO: fix
+	a := Short('a').Help("flag A, related to B").Switch()
+	b := Short('b').Help("flag B, related to A").Switch()
+	c := Short('c').Help("flag C, unrelated").Switch()
+	ab := Pair(a, b).Parser().GroupHelp("Explanation applicable for both A and B:")
+	parser := Pair(ab, c).Parser().ToOptions()
 
-//     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-//     let expected_help = "\
-// Usage: [-a] [-b] [-c]
+	_, help := parser.run_inner(newArgs("--help"))
+	const expected_help = `Usage: [-a] [-b] [-c]
 
-// Explanation applicable for both A and B:
-//     -a          flag A, related to B
-//     -b          flag B, related to A
+Explanation applicable for both A and B:
+    -a          flag A, related to B
+    -b          flag B, related to A
 
-// Available options:
-//     -c          flag C, unrelated
-//     -h, --help  Prints help information
-// ";
-
-//     require.Equal(t, expected_help, help);
-// }
+Available options:
+    -c          flag C, unrelated
+    -h, --help  Prints help information
+`
+	require.Equal(t, expected_help, unwrap_stdout(help))
+}
 
 // func group_help_commands() {
 //     let a = short('a')
