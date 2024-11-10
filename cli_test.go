@@ -1550,52 +1550,59 @@ func TestSomeDoesntPanic(t *testing.T) {
 	require.Equal(t, r, 3)
 }
 
-// func command_resets_left_head_state() {
-//     #[derive(Debug, Eq, PartialEq)]
-//     enum Foo {
-//         Bar1 { a: u32 },
-//         Bar2 { b: () },
-//     }
+func TestCommandResetsLeftHeadState(t *testing.T) {
+	t.Skip() // TODO: fix
+	type Foo fun.Option[uint32]
 
-//     let a = short('a').argument::<u32>("A").fallback(0);
-//     let b = short('b').req_flag(());
+	a := Argument(Short('a'), "A", parseUint32).Parser().Fallback(0).Parser()
+	b := ReqFlag(Short('b'), struct{}{}).Parser()
 
-//     let p1 = construct!(Foo::Bar1 { a });
-//     let p2 = construct!(Foo::Bar2 { b });
-//     let cmd = construct!([p1, p2])
-//         .ToOptions()
-//         .command("cmd")
-//         .ToOptions();
+	p1 := Map(a, func(a uint32) Foo { return Foo{a, true} })
+	p2 := Map(b, func(struct{}) Foo { return Foo{0, false} })
+	cmd := Choice(p1, p2).
+		ToOptions().
+		Command("cmd").Parser().
+		ToOptions()
 
-//     let xx = cmd.run_inner(newArgs("cmd", "-b")).unwrap();
-//     require.Equal(t, xx, Foo::Bar2 { b: () });
-// }
+	xx, err := cmd.run_inner(newArgs("cmd", "-b"))
+	require.Nil(t, err)
+	require.Equal(t, xx, Foo{})
+}
 
-// func command_preserves_custom_failure_message() {
-//     let msg = "need more cheese";
-//     let inner = fail::<()>(msg).ToOptions();
+func TestCommand_preserves_custom_failure_message(t *testing.T) {
+	t.Skip() // TODO: fix
+	const msg = "need more cheese"
+	inner := Fail[struct{}](msg).Parser().ToOptions()
 
-//     let err = inner.run_inner(newArgs()).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err, "need more cheese");
+	_, err := inner.run_inner(newArgs())
+	require.Equal(t, unwrap_stderr(err), "need more cheese")
 
-//     let outer = inner.command("feed").ToOptions();
+	outer := inner.Command("feed").Parser().ToOptions()
 
-//     let err = outer.run_inner(newArgs("feed")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, err, "need more cheese");
-// }
+	_, err = outer.run_inner(newArgs("feed"))
+	require.Equal(t, unwrap_stderr(err), "need more cheese")
+}
 
-// func optional_error_handling() {
-//     let p = short('p').argument::<u32>("P").optional().ToOptions();
+func TestOptional_error_handling(t *testing.T) {
+	p := Optional(Argument(Short('p'), "P", parseUint32).Parser()).Parser().ToOptions()
 
-//     let res = p.run_inner(newArgs()).unwrap();
-//     require.Equal(t, res, None);
+	{
+		res, err := p.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, res, Invalid[uint32]())
+	}
 
-//     let res = p.run_inner(newArgs("-p", "3")).unwrap();
-//     require.Equal(t, res, Some(3));
+	{
+		res, err := p.run_inner(newArgs("-p", "3"))
+		require.Nil(t, err)
+		require.Equal(t, res, Valid[uint32](3))
+	}
 
-//     let res = p.run_inner(newArgs("-p", "pi")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse `pi`: invalid digit found in string");
-// }
+	{
+		_, res := p.run_inner(newArgs("-p", "pi"))
+		require.Equal(t, unwrap_stderr(res), "couldn't parse `pi`: invalid digit found in string")
+	}
+}
 
 // func many_error_handling() {
 //     let p = short('p').argument::<u32>("P").many().ToOptions();

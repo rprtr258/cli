@@ -5,6 +5,10 @@ type ParseFail[T any] struct {
 	field1 string
 }
 
+func (self ParseFail[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, MetaSkip{}}
+}
+
 func (self ParseFail[T]) eval(args *State) (T, Error) {
 	args.current = Invalid[int]()
 	return *new(T), ErrorParseFail(self.field1)
