@@ -1634,19 +1634,14 @@ func TestFailure_is_not_stupid_1(t *testing.T) {
 	require.Equal(t, unwrap_stderr(res), "couldn't parse: nope")
 }
 
-// func failure_is_not_stupid_2() {
-//     let a = short('a').argument::<u32>("A");
-//     let b = short('b').argument::<u32>("B");
-//     let parser = construct!(a, b)
-//         .parse::<_, (), String>(|_| Err("nope".to_string()))
-//         .ToOptions();
+func TestFailure_is_not_stupid_2(t *testing.T) {
+	a := Argument(Short('a'), "A", parseUint32)
+	b := Argument(Short('b'), "B", parseUint32)
+	parser := Parse(Pair(a, b).Parser(), func(fun.Pair[uint32, uint32]) (string, Error) { return "", ErrorParseFail("nope") }).Parser().ToOptions()
 
-//     let res = parser
-//         .run_inner(newArgs("-a", "42", "-b", "42"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse: nope");
-// }
+	_, res := parser.run_inner(newArgs("-a", "42", "-b", "42"))
+	require.Equal(t, unwrap_stderr(res), "couldn't parse: nope")
+}
 
 // func no_fallback_out_of_command_parser() {
 //     let alt1 = positional::<String>("NAME").ToOptions().command("cmd");
