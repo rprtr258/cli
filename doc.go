@@ -95,10 +95,11 @@ func (self *Doc) EmDoc(buf Doc) {
 }
 
 func (self *Doc) write_shortlong(name ShortLong) {
-	if name.is_short() {
+	switch {
+	case name.is_short() || name.is_both():
 		self.write_char('-', StyleLiteral)
 		self.write_char(name.Short, StyleLiteral)
-	} else {
+	case name.is_long():
 		l := name.Long
 		self.write_str("--", StyleLiteral)
 		self.write_str(l, StyleLiteral)

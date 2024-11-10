@@ -623,48 +623,44 @@ Available options:
 	require.Equal(t, Opts{false, true, true}, x)
 }
 
-// func simple_two_optional_flags() {
-//     let a = short('a').long("AAAAA").switch();
-//     let b = short('b').switch();
-//     let x = construct!(a, b);
-//     let decorated = x.to_options().descr("this is a test");
+func TestSimpleTwoOptionalFlags(t *testing.T) {
+	a := Short('a').Long("AAAAA").Switch()
+	b := Short('b').Switch()
+	x := Pair(a, b)
+	decorated := x.Parser().ToOptions().Descr("this is a test")
 
-//     // no version information given - no version field generated
-//     let err = decorated
-//         .run_inner(&["-a", "-V"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t,("`-V` is not expected in this context", err);
+	t.Run("no version information given - no version field generated", func(t *testing.T) {
+		_, err := decorated.run_inner(newArgs("-a", "-V"))
+		require.Equal(t, "`-V` is not expected in this context", unwrap_stderr(err))
+	})
 
-//     // accept only one copy of -a
-//     let err = decorated
-//         .run_inner(&["-a", "-a"])
-//         .unwrap_err()
-//         .unwrap_stderr();
-//     require.Equal(t,(
-//         "argument `-a` cannot be used multiple times in this context",
-//         err
-//     );
+	t.Run("accept only one copy of -a", func(t *testing.T) {
+		_, err := decorated.run_inner(newArgs("-a", "-a"))
+		require.Equal(t,
+			"argument `-a` cannot be used multiple times in this context",
+			unwrap_stderr(err),
+		)
+	})
 
-//     let help = decorated.run_inner(&["-h"]).unwrap_err().unwrap_stdout();
+	t.Run("help", func(t *testing.T) {
+		_, err := decorated.run_inner(newArgs("-h"))
+		const expected_help = `this is a test
 
-//     let expected_help = "\
-// this is a test
+Usage: [-a] [-b]
 
-// Usage: [-a] [-b]
-
-// Available options:
-//     -a, --AAAAA
-//     -b
-//     -h, --help   Prints help information
-// ";
-//     require.Equal(t,(expected_help, help);
-// }
+Available options:
+    -a, --AAAAA
+    -b
+    -h, --help   Prints help information
+`
+		require.Equal(t, expected_help, unwrap_stdout(err))
+	})
+}
 
 // func simple_two_optional_flags_with_one_hidden() {
 //     let a = short('a').long("AAAAA").switch();
 //     let b = short('b').switch().hide();
-//     let decorated = construct!(a, b).to_options().descr("this is a test");
+//     let decorated = construct(a, b).to_options().descr("this is a test");
 
 //     // no version information given - no version field generated
 //     let err = decorated
@@ -734,7 +730,7 @@ Available options:
 //     let a = short('a').req_flag(());
 //     let b = short('b').req_flag(());
 //     let c = short('c').req_flag(());
-//     let p = construct!([a, b, c]);
+//     let p = construct([a, b, c]);
 //     let decorated = p.to_options().version("1.0");
 
 //     let ver = decorated.run_inner(&["-V"]).unwrap_err().unwrap_stdout();
@@ -788,7 +784,7 @@ Available options:
 
 //     // fallback to default
 //     let res = decorated.run_inner(&[]).unwrap();
-//     assert!(!res);
+//     assert(!res);
 // }
 
 // func fallback_with_ok() {
@@ -906,7 +902,7 @@ Available options:
 //         .long("f-very-long-flag-with")
 //         .argument::<String>("ARG");
 
-//     let parser = construct!(a, b, c, d, e, f).to_options();
+//     let parser = construct(a, b, c, d, e, f).to_options();
 
 //     let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
 
@@ -936,8 +932,8 @@ Available options:
 //     let a = short('a').help("flag A, related to B").switch();
 //     let b = short('b').help("flag B, related to A").switch();
 //     let c = short('c').help("flag C, unrelated").switch();
-//     let ab = construct!(a, b).group_help("Explanation applicable for both A and B:");
-//     let parser = construct!(ab, c).to_options();
+//     let ab = construct(a, b).group_help("Explanation applicable for both A and B:");
+//     let parser = construct(ab, c).to_options();
 
 //     let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
 //     let expected_help = "\
@@ -972,9 +968,9 @@ Available options:
 //         .to_options()
 //         .command("cmd_c")
 //         .help("command that does C");
-//     let parser = construct!([a, b]).group_help("Explanation applicable for both A and B:");
+//     let parser = construct([a, b]).group_help("Explanation applicable for both A and B:");
 
-//     let parser = construct!([parser, c]).to_options();
+//     let parser = construct([parser, c]).to_options();
 
 //     let help = parser.run_inner(&["--help"]).unwrap_err().unwrap_stdout();
 //     let expected_help = "\
@@ -997,7 +993,7 @@ Available options:
 //     let a = short('a').req_flag(());
 //     let b = short('b').req_flag(());
 //     let c = short('c').req_flag(());
-//     let parser = construct!([a, b, c]).to_options();
+//     let parser = construct([a, b, c]).to_options();
 
 //     let err1 = parser.run_inner(&["-a", "-b"]).unwrap_err().unwrap_stderr();
 //     require.Equal(t,(err1, "`-b` cannot be used at the same time as `-a`");
@@ -1097,7 +1093,7 @@ Available options:
 //         let dry_run = long("dry_run").switch();
 //         let all = long("all").switch();
 //         let repository = positional::<String>("SRC").fallback("origin".to_string());
-//         let fetch = construct!(Opt::Fetch {
+//         let fetch = construct(Opt::Fetch {
 //             dry_run,
 //             all,
 //             repository
@@ -1110,7 +1106,7 @@ Available options:
 //         let interactive = short('i').switch();
 //         let all = long("all").switch();
 //         let files = positional::<PathBuf>("FILE").many();
-//         let add = construct!(Opt::Add {
+//         let add = construct(Opt::Add {
 //             interactive,
 //             all,
 //             files
@@ -1118,7 +1114,7 @@ Available options:
 //         let add_inner = add.to_options().descr("add files to the staging area");
 //         let add_cmd = add_inner.command("add");
 
-//         construct!([fetch_cmd, add_cmd])
+//         construct([fetch_cmd, add_cmd])
 //             .to_options()
 //             .descr("The stupid content tracker")
 //     }
@@ -1225,7 +1221,7 @@ Available options:
 
 //     let input = positional::<PathBuf>("INPUT").many();
 
-//     let parser = construct!(AppArgs {
+//     let parser = construct(AppArgs {
 //         number,
 //         opt_number,
 //         width,
@@ -1238,7 +1234,7 @@ Available options:
 //             number: 42,
 //             opt_number: None,
 //             width: 10,
-//             input: vec![PathBuf::from("foo"), PathBuf::from("foo2")],
+//             input: vec[PathBuf::from("foo"), PathBuf::from("foo2")],
 //         },
 //         parser
 //             .run_inner(&["--number", "42", "foo", "foo2"])
@@ -1261,7 +1257,7 @@ Available options:
 // func simple_cargo_helper() {
 //     let a = short('a').long("AAAAA").help("two lines\nof help").switch();
 //     let b = short('b').switch();
-//     let parser = construct!(a, b);
+//     let parser = construct(a, b);
 //     let decorated = cargo_helper("simple", parser)
 //         .to_options()
 //         .descr("this is a test");
@@ -1300,7 +1296,7 @@ Available options:
 
 // func long_path_in_construct() {
 //     let a = short('a').switch();
-//     let _ = construct!(std::option::Option::Some(a));
+//     let _ = construct(std::option::Option::Some(a));
 
 //     let b = short('b').switch();
 //     let _ = construct!(::std::option::Option::Some(b));
