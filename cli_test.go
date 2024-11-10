@@ -696,7 +696,7 @@ func TestEitherOfThreeRequiredFlags(t *testing.T) {
 	b := ReqFlag(Short('b'), struct{}{})
 	c := ReqFlag(Short('c'), struct{}{})
 	p := a.Parser().or_else(b.Parser()).Parser().or_else(c.Parser()).Parser()
-	decorated := p.ToOptions().version(newDocFromString("1.0"))
+	decorated := p.ToOptions().version("1.0")
 
 	// version help requires version meta
 	{
@@ -734,7 +734,7 @@ func TestEitherOfThreeRequiredFlags2(t *testing.T) {
 	b := ReqFlag(Short('b'), struct{}{}).Parser()
 	c := ReqFlag(Short('c'), struct{}{}).Parser()
 	p := Choice(a, b, c)
-	decorated := p.ToOptions().version(newDocFromString("1.0"))
+	decorated := p.ToOptions().version("1.0")
 
 	_, ver := decorated.run_inner(newArgs("-V"))
 	require.Equal(t, "Version: 1.0\n", unwrap_stdout(ver))
@@ -765,7 +765,7 @@ func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
 	b := ReqFlag(Short('b'), false).Parser()
 	c := Short('c').Switch()
 	p := a.or_else(b).Parser().or_else(c).Parser()
-	decorated := p.ToOptions().version(newDocFromString("1.0"))
+	decorated := p.ToOptions().version("1.0")
 
 	_, ver := decorated.run_inner(newArgs("-V"))
 	require.Equal(t, "Version: 1.0\n", unwrap_stdout(ver))

@@ -273,8 +273,8 @@ func (self OptionParser[T]) short_descr() Option[Doc] {
 // $ app --version
 // Version: 0.5.0
 // ```
-func (self *OptionParser[T]) version(version Doc) *OptionParser[T] {
-	self.info.version = Valid(version)
+func (self *OptionParser[T]) version(version string) *OptionParser[T] {
+	self.info.version = Valid(newDocFromString(version))
 	return self
 }
 
