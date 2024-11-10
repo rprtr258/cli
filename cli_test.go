@@ -1625,14 +1625,14 @@ func TestMany_error_handling(t *testing.T) {
 	}
 }
 
-// func failure_is_not_stupid_1() {
-//     let a = short('a').argument::<u32>("A");
-//     let b = pure(()).parse::<_, _, String>(|_| Err("nope".to_string()));
-//     let parser = construct!(a, b).ToOptions();
+func TestFailure_is_not_stupid_1(t *testing.T) {
+	a := Argument(Short('a'), "A", parseUint32)
+	b := Parse(Pure(struct{}{}).Parser(), func(struct{}) (string, Error) { return "", ErrorParseFail("nope") })
+	parser := Pair(a, b).Parser().ToOptions()
 
-//     let res = parser.run_inner(newArgs("-a", "42")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, res, "couldn't parse: nope");
-// }
+	_, res := parser.run_inner(newArgs("-a", "42"))
+	require.Equal(t, unwrap_stderr(res), "couldn't parse: nope")
+}
 
 // func failure_is_not_stupid_2() {
 //     let a = short('a').argument::<u32>("A");
