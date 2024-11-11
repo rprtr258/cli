@@ -8,13 +8,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func assertSuccess[T any](t *testing.T, expected T) func(T, ParseFailure) {
+func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], args ...string) {
 	t.Helper()
-	return func(actual T, err ParseFailure) {
-		t.Helper()
-		require.Nil(t, err)
-		require.Equal(t, expected, actual)
-	}
+	actual, err := parser.run_inner(newArgs(args...))
+	require.Nil(t, err)
+	require.Equal(t, expected, actual)
 }
 
 func wtf_shenanigans_1(t *testing.T) {
@@ -83,8 +81,8 @@ func wtf_shenanigans_2(t *testing.T) {
 
 func de_yoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
-	assertSuccess(t, fun.Pair[bool, bool]{false, false})(parser.run_inner(newArgs()))
-	assertSuccess(t, fun.Pair[bool, bool]{true, true})(parser.run_inner(newArgs("-a", "-b")))
+	assertSuccess(t, fun.Pair[bool, bool]{false, false}, parser)
+	assertSuccess(t, fun.Pair[bool, bool]{true, true}, parser, "-a", "-b")
 }
 
 func TestConstructWithFn(t *testing.T) {
@@ -772,10 +770,10 @@ func TestSimpleCargoHelper(t *testing.T) {
 		Descr("this is a test")
 
 	// cargo run variant
-	assertSuccess(t, fun.Pair[bool, bool]{true, false})(decorated.run_inner(newArgs("-a")))
+	assertSuccess(t, fun.Pair[bool, bool]{true, false}, decorated, "-a")
 
 	// cargo simple variant
-	assertSuccess(t, fun.Pair[bool, bool]{false, true})(decorated.run_inner(newArgs("simple", "-b")))
+	assertSuccess(t, fun.Pair[bool, bool]{false, true}, decorated, "simple", "-b")
 
 	{
 		_, err := decorated.
@@ -864,8 +862,8 @@ Available options:
 		require.Equal(t, expected_help, unwrap_stdout(help))
 	}
 
-	assertSuccess(t, "secret")(parser.run_inner(newArgs("--key", "secret")))
-	assertSuccess(t, "top s3cr3t")(parser.run_inner(newArgs()))
+	assertSuccess(t, "secret", parser, "--key", "secret")
+	assertSuccess(t, "top s3cr3t", parser)
 }
 
 func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
@@ -1012,12 +1010,12 @@ Available commands:
 
 func TestManyDoesntPanic(t *testing.T) {
 	parser := Map(Many(Short('a').Switch()), func(m []bool) int { return len(m) }).ToOptions()
-	assertSuccess(t, 3)(parser.run_inner(newArgs("-aaa")))
+	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
 	parser := Map(ParseSomeParser(Short('a').Switch().Some("")), func(m []bool) int { return len(m) }).ToOptions()
-	assertSuccess(t, 3)(parser.run_inner(newArgs("-aaa")))
+	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestCommandResetsLeftHeadState(t *testing.T) {
@@ -1033,7 +1031,7 @@ func TestCommandResetsLeftHeadState(t *testing.T) {
 		ToOptions().
 		Command("cmd").Parser().
 		ToOptions()
-	assertSuccess(t, Foo{})(cmd.run_inner(newArgs("cmd", "-b")))
+	assertSuccess(t, Foo{}, cmd, "cmd", "-b")
 }
 
 func TestCommand_preserves_custom_failure_message(t *testing.T) {
@@ -1053,8 +1051,8 @@ func TestCommand_preserves_custom_failure_message(t *testing.T) {
 func TestOptional_error_handling(t *testing.T) {
 	p := Optional(Argument(Short('p'), "P", parseUint32).Parser()).Parser().ToOptions()
 
-	assertSuccess(t, Invalid[uint32]())(p.run_inner(newArgs()))
-	assertSuccess(t, Valid[uint32](3))(p.run_inner(newArgs("-p", "3")))
+	assertSuccess(t, Invalid[uint32](), p)
+	assertSuccess(t, Valid[uint32](3), p, "-p", "3")
 	{
 		_, res := p.run_inner(newArgs("-p", "pi"))
 		require.Equal(t, unwrap_stderr(res), "couldn't parse `pi`: invalid digit found in string")
@@ -1064,8 +1062,8 @@ func TestOptional_error_handling(t *testing.T) {
 func TestMany_error_handling(t *testing.T) {
 	p := Many(Argument(Short('p'), "P", parseUint32).Parser()).ToOptions()
 
-	assertSuccess(t, []uint32{})(p.run_inner(newArgs()))
-	assertSuccess(t, []uint32{3})(p.run_inner(newArgs("-p", "3")))
+	assertSuccess(t, []uint32{}, p)
+	assertSuccess(t, []uint32{3}, p, "-p", "3")
 	{
 		_, res := p.run_inner(newArgs("-p", "pi"))
 		require.Equal(t, unwrap_stderr(res), "couldn't parse `pi`: invalid digit found in string")
@@ -1101,8 +1099,8 @@ func TestNo_fallback_out_of_command_parser(t *testing.T) {
 		require.Equal(t, unwrap_stderr(res), "expected `NAME`, pass `--help` for usage information")
 	}
 
-	assertSuccess(t, "a")(parser.run_inner(newArgs("cmd", "a")))
-	assertSuccess(t, "")(parser.run_inner(newArgs()))
+	assertSuccess(t, "a", parser, "cmd", "a")
+	assertSuccess(t, "", parser)
 }
 
 func TestDid_you_mean_switch(t *testing.T) {
@@ -1359,14 +1357,14 @@ func TestCombine_flags_by_order(t *testing.T) {
 	b := ReqFlag(Short('A'), false)
 	parser := Many(Choice(a.Parser(), b.Parser())).ToOptions()
 
-	assertSuccess(t, []bool{true, false, false, false, true})(parser.run_inner(newArgs("-a", "-A", "-A", "-A", "-a")))
+	assertSuccess(t, []bool{true, false, false, false, true}, parser, "-a", "-A", "-A", "-A", "-a")
 }
 
 func TestParse_many_errors_positional(t *testing.T) {
 	t.Skip() // TODO: fix
 	p := Many(Positional("N", parseUint32).Parser()).ToOptions()
 
-	assertSuccess(t, []uint32{1, 2, 3})(p.run_inner(newArgs("1", "2", "3")))
+	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 	{
 		_, r := p.run_inner(newArgs("1", "2", "x"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string")
@@ -1376,7 +1374,7 @@ func TestParse_many_errors_positional(t *testing.T) {
 func TestParse_collect_flag(t *testing.T) {
 	p := ParseCollectParser(Argument(Short('p'), "N", parseUint32).Parser().collect()).ToOptions()
 
-	assertSuccess(t, []uint32{1, 2})(p.run_inner(newArgs("-p", "1", "-p", "2")))
+	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	{
 		_, r := p.run_inner(newArgs("-p", "1", "-p", "x"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string")
@@ -1386,7 +1384,7 @@ func TestParse_collect_flag(t *testing.T) {
 func TestParse_many_errors_flag(t *testing.T) {
 	p := Many(Argument(Short('p'), "N", parseUint32).Parser()).ToOptions()
 
-	assertSuccess(t, []uint32{1, 2})(p.run_inner(newArgs("-p", "1", "-p", "2")))
+	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	{
 		_, r := p.run_inner(newArgs("-p", "1", "-p", "x"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string")
@@ -1427,8 +1425,8 @@ func TestSuggestion_for_equals_1(t *testing.T) {
 func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
 	parser := Many(Positional("POS", parseString).Parser()).ToOptions()
 
-	assertSuccess(t, []string{})(parser.run_inner(newArgs("--")))
-	assertSuccess(t, []string{"--"})(parser.run_inner(newArgs("--", "--")))
+	assertSuccess(t, []string{}, parser, "--")
+	assertSuccess(t, []string{"--"}, parser, "--", "--")
 }
 
 func TestReject_fbar(t *testing.T) {
@@ -1438,7 +1436,7 @@ func TestReject_fbar(t *testing.T) {
 		_, r := parser.run_inner(newArgs("-fbar", "baz"))
 		require.Equal(t, unwrap_stderr(r), "`baz` is not expected in this context")
 	}
-	assertSuccess(t, "bar")(parser.run_inner(newArgs("-fbar")))
+	assertSuccess(t, "bar", parser, "-fbar")
 }
 
 func TestCustom_usage_override_fixed(t *testing.T) {
@@ -1477,8 +1475,8 @@ func TestCatch_works(t *testing.T) {
 	parser := Choice(a_n.Parser(), a_s.Parser()).ToOptions()
 
 	t.Skip() // TODO: fix
-	assertSuccess(t, Valid(ANum(1)))(parser.run_inner(newArgs("-a", "1")))
-	assertSuccess(t, Valid(AStr("x1")))(parser.run_inner(newArgs("-a", "x1")))
+	assertSuccess(t, Valid(ANum(1)), parser, "-a", "1")
+	assertSuccess(t, Valid(AStr("x1")), parser, "-a", "x1")
 }
 
 func TestSneaky_command(t *testing.T) {
@@ -1504,7 +1502,7 @@ func TestSneaky_command(t *testing.T) {
 	}
 	parser := Choice(maybe_cmd, b).ToOptions()
 
-	assertSuccess(t, CmdA(false))(parser.run_inner(newArgs("hello")))
+	assertSuccess(t, CmdA(false), parser, "hello")
 }
 
 func TestDefault_for_many(t *testing.T) {
@@ -1517,7 +1515,7 @@ func TestDefault_for_many(t *testing.T) {
 		}).
 		ToOptions()
 
-	assertSuccess(t, []string{"."})(parser.run_inner(newArgs()))
+	assertSuccess(t, []string{"."}, parser)
 }
 
 func TestParse_option_catch(t *testing.T) {
@@ -1533,9 +1531,9 @@ func TestParse_option_catch(t *testing.T) {
 	parser := Choice(a1.Parser(), a2.Parser()).ToOptions()
 
 	t.Skip() // TODO: fix
-	assertSuccess(t, Valid(AU32(10)))(parser.run_inner(newArgs("-a", "10")))
-	assertSuccess(t, Valid(AS("x")))(parser.run_inner(newArgs("-a", "x")))
-	assertSuccess(t, Invalid[A]())(parser.run_inner(newArgs()))
+	assertSuccess(t, Valid(AU32(10)), parser, "-a", "10")
+	assertSuccess(t, Valid(AS("x")), parser, "-a", "x")
+	assertSuccess(t, Invalid[A](), parser)
 }
 
 func TestParse_some_catch(t *testing.T) {
@@ -1556,8 +1554,8 @@ func TestParse_some_catch(t *testing.T) {
 	parser := Choice(a1, a2).ToOptions()
 
 	t.Skip() // TODO: fix
-	assertSuccess(t, []A{AU32(10)})(parser.run_inner(newArgs("-a", "10")))
-	assertSuccess(t, []A{AS("x")})(parser.run_inner(newArgs("-a", "x")))
+	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
+	assertSuccess(t, []A{AS("x")}, parser, "-a", "x")
 	{
 		_, r := parser.run_inner(newArgs())
 		require.Equal(t, unwrap_stderr(r), "A")
@@ -1568,7 +1566,7 @@ func TestEmpty_struct(t *testing.T) {
 	type Foo struct{}
 	parser := Pure(Foo{}).Parser().ToOptions()
 
-	assertSuccess(t, Foo{})(parser.run_inner(newArgs()))
+	assertSuccess(t, Foo{}, parser)
 	{
 		_, r := parser.run_inner(newArgs("--help"))
 		require.Equal(t, unwrap_stdout(r), "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n")
@@ -1578,13 +1576,13 @@ func TestEmpty_struct(t *testing.T) {
 func TestStrange_short_option(t *testing.T) {
 	t.Skip() // TODO: fix
 	parser := Argument(Short('O'), "ARG", parseString).Parser().ToOptions()
-	assertSuccess(t, "bits=2048")(parser.run_inner(newArgs("-Obits=2048")))
+	assertSuccess(t, "bits=2048", parser, "-Obits=2048")
 }
 
 func TestOptional_bool_states(t *testing.T) {
 	parser := Optional(Short('a').Switch()).Parser().ToOptions()
-	assertSuccess(t, Valid(true))(parser.run_inner(newArgs("-a")))
-	assertSuccess(t, Valid(false))(parser.run_inner(newArgs()))
+	assertSuccess(t, Valid(true), parser, "-a")
+	assertSuccess(t, Valid(false), parser)
 }
 
 func TestFancy_negative(t *testing.T) {
@@ -1597,8 +1595,8 @@ func TestFancy_negative(t *testing.T) {
 
 	parser := Pair(ab, c).Parser().ToOptions()
 
-	assertSuccess(t, fun.Pair[int32, uint]{-10, 42})(parser.run_inner(newArgs("-a", "-10")))
-	assertSuccess(t, fun.Pair[int32, uint]{-20, 110})(parser.run_inner(newArgs("-a=-20", "-c", "110")))
+	assertSuccess(t, fun.Pair[int32, uint]{-10, 42}, parser, "-a", "-10")
+	assertSuccess(t, fun.Pair[int32, uint]{-20, 110}, parser, "-a=-20", "-c", "110")
 	{
 		_, r := parser.run_inner(newArgs("--help"))
 		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
@@ -1620,25 +1618,25 @@ func TestMany_env(t *testing.T) {
 		Env("USER1"),
 		"USER", parseString).Parser()).
 		ToOptions()
-	assertSuccess(t, []string{"top s3cr3t"})(parser.run_inner(newArgs()))
+	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
 
 func TestEnv_hidden_arg(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Argument(Env("USER1"), "USER", parseString).Parser().ToOptions()
-	assertSuccess(t, "top s3cr3t")(parser.run_inner(newArgs()))
+	assertSuccess(t, "top s3cr3t", parser)
 }
 
 func TestEnv_hidden_switch(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Env("USER1").Switch().ToOptions()
-	assertSuccess(t, true)(parser.run_inner(newArgs()))
+	assertSuccess(t, true, parser)
 }
 
 func TestEnv_hidden_flag(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Flag(Env("USER1"), true, false).Parser().ToOptions()
-	assertSuccess(t, true)(parser.run_inner(newArgs()))
+	assertSuccess(t, true, parser)
 }
 
 func TestSome_env(t *testing.T) {
@@ -1648,7 +1646,7 @@ func TestSome_env(t *testing.T) {
 		"USER", parseString).Parser().
 		Some("a")).
 		ToOptions()
-	assertSuccess(t, []string{"top s3cr3t"})(parser.run_inner(newArgs()))
+	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
 
 func TestOption_requires_other_option1(t *testing.T) {
@@ -1677,7 +1675,7 @@ func TestDefault_for_some(t *testing.T) {
 		fallback_with(func() ([]uint32, Error) { return []uint32{1, 2, 3}, nil }).Parser().
 		ToOptions()
 
-	assertSuccess(t, []uint32{1, 2, 3})(parser.run_inner(newArgs()))
+	assertSuccess(t, []uint32{1, 2, 3}, parser)
 }
 
 func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
@@ -1686,8 +1684,8 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 	b := Short('b').Switch()
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
 
-	assertSuccess(t, fun.Pair[bool, bool]{true, false})(parser.run_inner(newArgs("-a")))
-	assertSuccess(t, fun.Pair[bool, bool]{false, true})(parser.run_inner(newArgs("-b")))
+	assertSuccess(t, fun.Pair[bool, bool]{true, false}, parser, "-a")
+	assertSuccess(t, fun.Pair[bool, bool]{false, true}, parser, "-b")
 }
 
 func TestFallback_for_some(t *testing.T) {
@@ -1696,8 +1694,8 @@ func TestFallback_for_some(t *testing.T) {
 		Some("potatoes")).
 		Fallback([]uint32{1, 2, 3}).Parser().ToOptions()
 
-	assertSuccess(t, []uint32{1})(parser.run_inner(newArgs("-a", "1")))
-	assertSuccess(t, []uint32{1, 2, 3})(parser.run_inner(newArgs()))
+	assertSuccess(t, []uint32{1}, parser, "-a", "1")
+	assertSuccess(t, []uint32{1, 2, 3}, parser)
 }
 
 func TestFlag_like_commands(t *testing.T) {
@@ -1706,8 +1704,8 @@ func TestFlag_like_commands(t *testing.T) {
 	parser := Choice(a.Parser(), b.Parser()).ToOptions()
 
 	t.Skip() // TODO: fix
-	assertSuccess(t, 1)(parser.run_inner(newArgs("--add", "-a")))
-	assertSuccess(t, 2)(parser.run_inner(newArgs("remove", "-b")))
+	assertSuccess(t, 1, parser, "--add", "-a")
+	assertSuccess(t, 2, parser, "remove", "-b")
 
 	{
 		_, r := parser.run_inner(newArgs("--help"))
