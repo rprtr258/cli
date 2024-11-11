@@ -484,8 +484,6 @@ Available commands:
 }
 
 func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
-	t.Skip() // TODO: fix
-
 	a := ReqFlag(Short('a'), struct{}{}).Parser()
 	b := ReqFlag(Short('b'), struct{}{}).Parser()
 	c := ReqFlag(Short('c'), struct{}{}).Parser()

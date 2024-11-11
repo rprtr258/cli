@@ -166,14 +166,14 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	// if they both fail - fallback to the original arguments
 	// if they both succed - pick the one that consumes left, remember the second one
 	// if one succeeds - pick that, forget the remaining one unless we are doing completion
-	args_a := args
-	args_b := args
+	args_a := args.clone()
+	args_b := args.clone()
 
 	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
 	// so that code that does a bunch of comparing logic can be shared across
 	// all invocations of parsers rather than being inlined into each one.
 
-	ok, err := self.this.eval(args_a)
+	ok, err := self.this.eval(&args_a)
 	var (
 		res_a Option[T]
 		err_a Option[Error]
@@ -184,7 +184,7 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 		res_a, err_a = Valid(ok), Invalid[Error]()
 	}
 
-	ok, err = self.that.eval(args_b)
+	ok, err = self.that.eval(&args_b)
 	var (
 		res_b Option[T]
 		err_b Option[Error]
@@ -199,8 +199,8 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 		err_a,
 		err_b,
 		args,
-		args_a,
-		args_b,
+		&args_a,
+		&args_b,
 		&comp_items,
 	)
 	if err != nil {

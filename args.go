@@ -219,6 +219,14 @@ type State struct {
 	scope Range
 }
 
+func (self State) clone() State {
+	s := self
+	s.items = append([]Arg(nil), self.items...) // TODO: clone arg
+	s.item_state = append([]ItemState(nil), self.item_state...)
+	s.comp.Value.comps = append([]Comp(nil), self.comp.Value.comps...)
+	return s
+}
+
 // Check if item at ixth position is still present (was not parsed)
 func (self State) present(ix int) (bool, bool) {
 	if ix >= len(self.item_state) {
