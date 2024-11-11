@@ -450,7 +450,6 @@ Available options:
 }
 
 func TestGroupHelpCommands(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').
 		Switch().
 		ToOptions().
