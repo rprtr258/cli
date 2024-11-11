@@ -506,7 +506,7 @@ func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
 }
 
 func TestSubcommands(t *testing.T) {
-	t.Skip()
+	t.Skip() // TODO: fix
 	parser := Short('b').
 		Switch().
 		ToOptions().
@@ -515,20 +515,20 @@ func TestSubcommands(t *testing.T) {
 		ToOptions().
 		Descr("This is global info")
 
-		// 	{
-		// 		_, help := parser.run_inner(newArgs("--help"))
-		// 		const expected_help = `This is global info
+	{
+		_, help := parser.run_inner(newArgs("--help"))
+		const expected_help = `This is global info
 
-		// Usage: COMMAND ...
+		Usage: COMMAND ...
 
-		// Available options:
-		//     -h, --help  Prints help information
+		Available options:
+		    -h, --help  Prints help information
 
-		// Available commands:
-		//     bar         This is local info
-		// `
-		// 		require.Equal(t, expected_help, unwrap_stdout(help))
-		// 	}
+		Available commands:
+		    bar         This is local info
+		`
+		require.Equal(t, expected_help, unwrap_stdout(help))
+	}
 
 	{
 		_, help := parser.run_inner(newArgs("bar", "--help"))
