@@ -171,22 +171,17 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		return *new(T), ParseFailureStdout{buffer, false}
 	}
 
-	res, errr := self.inner.eval(args)
-	if errr != nil {
-		parseFailure, ok := errr.(ErrorParseFailure)
-		if ok {
+	res, err := self.inner.eval(args)
+	if err != nil {
+		if parseFailure, ok := err.(ErrorParseFailure); ok {
 			return *new(T), parseFailure.e
 		}
 	}
-
 	if comp, ok := args.check_complete(); ok {
 		return *new(T), ParseFailureCompletion(comp)
 	}
 
-	var err Error
-	if errr != nil {
-		err = Error(errr)
-	} else {
+	if err == nil {
 		if ix, _, ok := args.items_iter()(); ok {
 			err = ErrorUnconsumed(ix)
 		} else {
@@ -195,29 +190,31 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	// handle --help and --version messages
-	if extra, er := self.info.eval(args); er == nil {
-		detailed := false
-		var buffer Doc
-		if extra.Help {
-			detailed = true
-			buffer = render_help(
-				args.path,
-				self.info,
-				self.inner.meta,
-				self.info.meta(),
-				true,
-			)
-		} else {
-			tmp := Doc{}
-			tmp.token(TokenBlockStart(BlockBlock))
-			tmp.Text("Version: ")
-			tmp.Doc(extra.Version)
-			tmp.token(TokenBlockEnd(BlockBlock))
-			buffer = tmp
-		}
-		return *new(T), ParseFailureStdout{buffer, detailed}
+	extra, er := self.info.eval(args)
+	if er != nil {
+		return *new(T), render(&err, *args, self.inner.meta)
 	}
-	return *new(T), render(&err, *args, self.inner.meta)
+
+	detailed := false
+	var buffer Doc
+	if extra.Help {
+		detailed = true
+		buffer = render_help(
+			args.path,
+			self.info,
+			self.inner.meta,
+			self.info.meta(),
+			true,
+		)
+	} else {
+		tmp := Doc{}
+		tmp.token(TokenBlockStart(BlockBlock))
+		tmp.Text("Version: ")
+		tmp.Doc(extra.Version)
+		tmp.token(TokenBlockEnd(BlockBlock))
+		buffer = tmp
+	}
+	return *new(T), ParseFailureStdout{buffer, detailed}
 }
 
 // Get first line of description if Available
@@ -618,6 +615,11 @@ func (self Info) mk_help_parser() ParseFlag[struct{}] {
 
 func (self Info) mk_version_parser() ParseFlag[struct{}] {
 	return ReqFlag(self.version_arg, struct{}{})
+}
+
+// TODO: unused
+func (self Info) Parser() Parser[ExtraParams] {
+	return Parser[ExtraParams]{self.eval, self.meta()}
 }
 
 func (self Info) eval(args *State) (ExtraParams, Error) {
