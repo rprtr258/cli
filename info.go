@@ -198,9 +198,8 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	if extra, er := self.info.eval(args); er == nil {
 		detailed := false
 		var buffer Doc
-		switch {
-		case extra.isHelp:
-			detailed = extra.Help
+		if extra.Help {
+			detailed = true
 			buffer = render_help(
 				args.path,
 				self.info,
@@ -208,7 +207,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 				self.info.meta(),
 				true,
 			)
-		default:
+		} else {
 			tmp := Doc{}
 			tmp.token(TokenBlockStart(BlockBlock))
 			tmp.Text("Version: ")
@@ -624,7 +623,7 @@ func (self Info) mk_version_parser() ParseFlag[struct{}] {
 func (self Info) eval(args *State) (ExtraParams, Error) {
 	help := self.mk_help_parser()
 	if _, err := help.eval(args); err == nil {
-		return ExtraParamsHelp(true), nil
+		return ExtraParamsHelp(), nil
 	}
 
 	if version, ok := self.version.Unpack(); ok {
@@ -647,15 +646,14 @@ func (self Info) meta() Meta {
 }
 
 type ExtraParams struct {
-	isHelp  bool
 	Help    bool
 	Version Doc
 }
 
-func ExtraParamsHelp(b bool) ExtraParams {
-	return ExtraParams{true, b, Doc{}}
+func ExtraParamsHelp() ExtraParams {
+	return ExtraParams{true, Doc{}}
 }
 
 func ExtraParamsVersion(v Doc) ExtraParams {
-	return ExtraParams{false, false, v}
+	return ExtraParams{false, v}
 }
