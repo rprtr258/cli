@@ -8,20 +8,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-// func assertSuccess[T any](t *testing.T, parser FlagParser[T], expected T, args ...string) {
-// 	t.Helper()
-// 	ctx := newContext(args...)
-// 	got, err := parser.run(ctx).unpack()
-// 	require.Nil(t, err)
-// 	require.Equal(t, expected, got)
-// }
-
-// func assertFail[T any](t *testing.T, parser FlagParser[T], expected string, args ...string) {
-// 	t.Helper()
-// 	ctx := newContext(args...)
-// 	_, err := parser.run(ctx).unpack()
-// 	require.Equal(t, err, expected)
-// }
+func assertSuccess[T any](t *testing.T, expected T) func(T, ParseFailure) {
+	t.Helper()
+	return func(actual T, err ParseFailure) {
+		t.Helper()
+		require.Nil(t, err)
+		require.Equal(t, expected, actual)
+	}
+}
 
 // var optsSimpleSubcommand = Bool("g")
 
@@ -131,27 +125,16 @@ import (
 // 	)
 // }
 
-// type optsThirdCmdSub struct {
-// 	B bool `short:"b"`
-// }
-
-// func (x optsThirdCmdSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
-// type optsThirdCmd struct {
-// 	G          bool            `short:"g"`
-// 	SubCommand optsThirdCmdSub `command:"sub"`
-// }
-
-// func (x optsThirdCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
-// type optsThird struct {
-// 	Value   bool         `short:"v"`
-// 	Command optsThirdCmd `command:"cmd"`
-// }
-
-// func (x optsThird) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func Test_third_subsubcommandExtraArgs(t *testing.T) {
+// 	type optsThird struct {
+// 		Value   bool `short:"v"`
+// 		Command struct {
+// 			G          bool `short:"g"`
+// 			SubCommand struct {
+// 				B bool `short:"b"`
+// 			} `command:"sub"`
+// 		} `command:"cmd"`
+// 	}
 // 	assertFail[optsThird](t,
 // 		`extraneous positional arguments found: ["-v", "-g"]`,
 // 		"cmd", "sub", "-b", "-v", "-g",
@@ -162,14 +145,10 @@ import (
 // 	Value bool `short:"v"`
 // }
 
-// func (x optsFourthSub) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // type optsFourthCmd struct {
 // 	Value   bool          `short:"v"`
 // 	Command optsFourthSub `command:"sub"`
 // }
-
-// func (x optsFourthCmd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func Test_fourth_flagThenPresumablySubcommand(t *testing.T) {
 // 	assertFail[optsFourthCmd](t,
@@ -187,14 +166,11 @@ import (
 // 	)
 // }
 
-// type optsFourth struct {
-// 	Value   bool          `short:"v"`
-// 	Command optsFourthCmd `command:"cmd"`
-// }
-
-// func (x optsFourth) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func Test_fourth_altSubcommandFlag(t *testing.T) {
+// 	type optsFourth struct {
+// 		Value   bool          `short:"v"`
+// 		Command optsFourthCmd `command:"cmd"`
+// 	}
 // 	assertSuccess[optsFourth](t,
 // 		func(x optsFourthSub) {
 // 			require.True(t, x.Value)
@@ -208,10 +184,7 @@ import (
 // 		Cmd1 optsSimpleSubcommand `command:"remove"`
 // 		Cmd2 optsSimpleSubcommand `command:"add"`
 // 	}
-
-// 	assertFail[optsSix](t,
-// 		"Please specify one command of: add or remove\nUsage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m\n\n\n\nCommands:\n\t\x1b[91madd\x1b[0m      \n\t\x1b[91mremove\x1b[0m   \n\nFlags:\n\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message\n",
-// 	)
+//	assertFail[optsSix](t, "Please specify one command of: add or remove\nUsage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m\n\n\n\nCommands:\n\t\x1b[91madd\x1b[0m      \n\t\x1b[91mremove\x1b[0m   \n\nFlags:\n\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message\n")
 // }
 
 // func TestCommandEstimate2(t *testing.T) {
@@ -230,8 +203,6 @@ import (
 // 	G    bool     `short:"g"`
 // 	Args []string `positional-args:"yes"`
 // }
-
-// func (x optsSeven) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func Test_subcommands_posArgs(t *testing.T) {
 // 	type Opts struct {
@@ -253,8 +224,6 @@ import (
 // 	Args    []string `positional-args:"yes"`
 // }
 
-// func (x optsParse) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestParse(t *testing.T) {
 // 	assertSuccess[optsParse](t,
 // 		func(x optsParse) {
@@ -268,29 +237,23 @@ import (
 // 	)
 // }
 
-// type cmdTestGroupInline struct {
-// 	Value bool `short:"v"`
-// 	G     bool `short:"g"`
-// }
-
-// func (x cmdTestGroupInline) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestGroupInline(t *testing.T) {
+// 	type cmdTestGroupInline struct {
+// 		Value bool `short:"v"`
+// 		G     bool `short:"g"`
+// 	}
 // 	assertSuccess[cmdTestGroupInline](t, func(x cmdTestGroupInline) {
 // 		require.True(t, x.Value)
 // 		require.True(t, x.G)
 // 	}, "-v", "-g")
 // }
 
-// type cmdTestGroupAdd struct {
-// 	Value bool     `short:"v"`
-// 	G     bool     `short:"g"`
-// 	Args  []string `positional-args:"yes"`
-// }
-
-// func (x cmdTestGroupAdd) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestGroupAdd(t *testing.T) {
+// 	type cmdTestGroupAdd struct {
+// 		Value bool     `short:"v"`
+// 		G     bool     `short:"g"`
+// 		Args  []string `positional-args:"yes"`
+// 	}
 // 	assertSuccess[cmdTestGroupAdd](t, func(x cmdTestGroupAdd) {
 // 		require.Equal(t, []string{"rest"}, x.Args)
 // 		require.True(t, x.Value)
@@ -298,16 +261,13 @@ import (
 // 	}, "-v", "-g", "rest")
 // }
 
-// type cmdTestGroupNestedInline struct {
-// 	Value bool     `short:"v"`
-// 	G     bool     `short:"g"`
-// 	Nah   string   `long:"nah"`
-// 	Args  []string `positional-args:"yes"`
-// }
-
-// func (x cmdTestGroupNestedInline) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestGroupNestedInline(t *testing.T) {
+// 	type cmdTestGroupNestedInline struct {
+// 		Value bool     `short:"v"`
+// 		G     bool     `short:"g"`
+// 		Nah   string   `long:"nah"`
+// 		Args  []string `positional-args:"yes"`
+// 	}
 // 	assertSuccess[cmdTestGroupNestedInline](t, func(x cmdTestGroupNestedInline) {
 // 		require.Equal(t, []string{"rest"}, x.Args)
 // 		require.True(t, x.Value)
@@ -316,16 +276,13 @@ import (
 // 	}, "-v", "-g", "--nah", "n", "rest")
 // }
 
-// type cmdTestNestedInlineNamespace struct {
-// 	Opt       string   `long:"opt"`
-// 	SipOpt    string   `long:"sip.opt"`
-// 	SipSapOpt string   `long:"sip.sap.opt"`
-// 	Args      []string `positional-args:"yes"`
-// }
-
-// func (x cmdTestNestedInlineNamespace) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestGroupNestedInlineNamespace(t *testing.T) {
+// 	type cmdTestNestedInlineNamespace struct {
+// 		Opt       string   `long:"opt"`
+// 		SipOpt    string   `long:"sip.opt"`
+// 		SipSapOpt string   `long:"sip.sap.opt"`
+// 		Args      []string `positional-args:"yes"`
+// 	}
 // 	assertSuccess[cmdTestNestedInlineNamespace](t, func(x cmdTestNestedInlineNamespace) {
 // 		require.Equal(t, []string{"rest"}, x.Args)
 // 		require.Equal(t, x.Opt, "a")
@@ -334,13 +291,10 @@ import (
 // 	}, "--opt", "a", "--sip.opt", "b", "--sip.sap.opt", "c", "rest")
 // }
 
-// type cmdBoolFlag struct {
-// 	Test bool `long:"test"`
-// }
-
-// func (x cmdBoolFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestBoolFlag(t *testing.T) {
+// 	type cmdBoolFlag struct {
+// 		Test bool `long:"test"`
+// 	}
 // 	assertSuccess[cmdBoolFlag](t, func(x cmdBoolFlag) {
 // 		require.False(t, x.Test)
 // 	})
@@ -349,13 +303,10 @@ import (
 // 	}, "--test")
 // }
 
-// type cmdStringFlag struct {
-// 	Test string `long:"value"`
-// }
-
-// func (x cmdStringFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestStringFlag(t *testing.T) {
+// 	type cmdStringFlag struct {
+// 		Test string `long:"value"`
+// 	}
 // 	assertSuccess[cmdStringFlag](t, func(x cmdStringFlag) {
 // 		require.Equal(t, "value", x.Test)
 // 	}, "--value", "value")
@@ -364,8 +315,6 @@ import (
 // type cmdStringDefaultFlag struct {
 // 	Test string `long:"value" default:"uuh"`
 // }
-
-// func (x cmdStringDefaultFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func TestStringDefaultFlagValueProvided(t *testing.T) {
 // 	assertSuccess[cmdStringDefaultFlag](t, func(x cmdStringDefaultFlag) {
@@ -382,8 +331,6 @@ import (
 // type cmdStringOptionalFlag struct {
 // 	Test *string `long:"value"`
 // }
-
-// func (x cmdStringOptionalFlag) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func TestStringOptionalFlagValueProvided(t *testing.T) {
 // 	assertSuccess[cmdStringOptionalFlag](t, func(x cmdStringOptionalFlag) {
@@ -403,14 +350,11 @@ import (
 // 		"-f")
 // }
 
-// type cmdFlagsInPositionals struct {
-// 	Verbose bool     `short:"v"`
-// 	Args    []string `positional-args:"yes"`
-// }
-
-// func (x cmdFlagsInPositionals) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
-
 // func TestFlagsInPositionals(t *testing.T) {
+// 	type cmdFlagsInPositionals struct {
+// 		Verbose bool     `short:"v"`
+// 		Args    []string `positional-args:"yes"`
+// 	}
 // 	assertSuccess[cmdFlagsInPositionals](t, func(x cmdFlagsInPositionals) {
 // 		require.False(t, x.Verbose)
 // 		require.Equal(t, []string{"hello", "world", "-v", "--foo", "bar", "--verbose", "-f"}, x.Args)
@@ -425,8 +369,6 @@ import (
 // 		Rest     []string
 // 	} `positional-args:"yes"`
 // }
-
-// func (x cmdPositionals) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func TestPositional(t *testing.T) {
 // 	assertSuccess[cmdPositionals](t, func(x cmdPositionals) {
@@ -444,7 +386,6 @@ import (
 
 // func TestPositionalRequiredRest1Fail(t *testing.T) {
 // 	t.Skip()
-
 // 	type cmd struct {
 // 		Value      bool `short:"v"`
 // 		Positional struct {
@@ -452,22 +393,16 @@ import (
 // 			Rest []string
 // 		} `positional-args:"yes"`
 // 	}
-
-// 	assertFail[cmd](t,
-// 		`the required argument "Rest (at least 1 argument)" was not provided`,
-// 	)
+//	assertFail[cmd](t, `the required argument "Rest (at least 1 argument)" was not provided`)
 // }
-
-// type cmdRest1 struct {
-// 	Verbose    bool `short:"v"`
-// 	Positional struct {
-// 		Rest []string
-// 	} `positional-args:"yes"`
-// }
-
-// func (x cmdRest1) Execute(ctx context.Context) error { return fromCtx(ctx)(x) }
 
 // func TestRest1(t *testing.T) {
+// 	type cmdRest1 struct {
+// 		Verbose    bool `short:"v"`
+// 		Positional struct {
+// 			Rest []string
+// 		} `positional-args:"yes"`
+// 	}
 // 	assertSuccess[cmdRest1](t, func(x cmdRest1) {
 // 		require.Equal(t, []string{"rest1"}, x.Positional.Rest)
 // 		require.False(t, x.Verbose)
@@ -476,7 +411,6 @@ import (
 
 // func TestPositionalRequiredRest2Fail(t *testing.T) {
 // 	t.Skip()
-
 // 	type cmd struct {
 // 		Value      bool `short:"v"`
 // 		Positional struct {
@@ -484,10 +418,7 @@ import (
 // 			Rest []string
 // 		} `positional-args:"yes"`
 // 	}
-
-// 	assertFail[cmd](t,
-// 		`the required argument "Rest (at least 2 arguments, but got only 1)" was not provided`,
-// 		"rest1")
+// 	assertFail[cmd](t, `the required argument "Rest (at least 2 arguments, but got only 1)" was not provided`, "rest1")
 // 	assertSuccess[cmd](t, func(x cmd) {
 // 		require.Equal(t, []string{"rest1", "rest2", "rest3"}, x.Positional.Rest)
 // 	}, "rest1", "rest2", "rest3")
@@ -495,7 +426,6 @@ import (
 
 // func TestPositionalRequiredRestRangeFail(t *testing.T) {
 // 	t.Skip()
-
 // 	type cmd struct {
 // 		Value      bool `short:"v"`
 // 		Positional struct {
@@ -503,17 +433,13 @@ import (
 // 			Rest []string
 // 		} `positional-args:"yes"`
 // 	}
-
-// 	require.Fail(t,
-// 		`the required argument "Rest (at most 2 arguments, but got 3)" was not provided`,
-// 		"rest1", "rest2", "rest3")
+// 	require.Fail(t, `the required argument "Rest (at most 2 arguments, but got 3)" was not provided`, "rest1", "rest2", "rest3")
 // }
 
 // func TestShortTooLong(t *testing.T) {
 // 	type opts struct {
 // 		Value bool `short:"vv"`
 // 	}
-
 // 	assertFail[opts](t, `parse flag "Value": scan short name: must be single character, but was "vv"`)
 // }
 
@@ -583,18 +509,8 @@ func wtf_shenanigans_2(t *testing.T) {
 
 func de_yoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
-
-	{
-		r, err := parser.run_inner(newArgs())
-		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[bool, bool]{false, false})
-	}
-
-	{
-		r, err := parser.run_inner(newArgs("-a", "-b"))
-		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[bool, bool]{true, true})
-	}
+	assertSuccess(t, fun.Pair[bool, bool]{false, false})(parser.run_inner(newArgs()))
+	assertSuccess(t, fun.Pair[bool, bool]{true, true})(parser.run_inner(newArgs("-a", "-b")))
 }
 
 func TestConstructWithFn(t *testing.T) {
