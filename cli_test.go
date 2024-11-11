@@ -429,7 +429,6 @@ Available options:
 }
 
 func TestGroupHelpArgs(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').Help("flag A, related to B").Switch()
 	b := Short('b').Help("flag B, related to A").Switch()
 	c := Short('c').Help("flag C, unrelated").Switch()

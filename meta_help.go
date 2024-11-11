@@ -289,24 +289,26 @@ func (self *HelpItems) append_meta(meta Meta) {
 				return
 			}
 			*self = append(*self, HelpItemFromItem(Item(meta)))
-			// MetaSubsection(m, help){
-			//     if Valid(ty) := m.peek_front_ty() {
-			//         if no_ss {
-			//             GO(hi, m, true);
-			//         } else {
-			//             hi.items=append(hi.items,HelpItemGroupStart { help, ty });
-			//             GO(hi, m, true);
-			//             hi.items=append(hi.items,HelpItemGroupEnd { ty });
-			//         }
-			//     }
-			// }
-			// MetaSuffix(m, help){
-			//     if Valid(ty) := m.peek_front_ty() {
-			//         GO(hi, m, no_ss);
-			//         hi.items=append(hi.items,HelpItemDecorSuffix { help, ty });
-			//     }
-			// }
-			// MetaSkip(),
+		case MetaSubsection:
+			m := meta.m
+			help := meta.u
+			if ty, ok := peek_front_ty(m); ok {
+				if no_ss {
+					GO(m, true)
+				} else {
+					*self = append(*self, HelpItemGroupStart{help, ty})
+					GO(m, true)
+					*self = append(*self, HelpItemGroupEnd{ty})
+				}
+			}
+		case MetaSuffix:
+			m := meta.m
+			help := meta.u
+			if ty, ok := peek_front_ty(m); ok {
+				GO(m, no_ss)
+				*self = append(*self, HelpItemDecorSuffix{help, ty})
+			}
+		case MetaSkip:
 		}
 	}
 	GO(meta, false)
@@ -609,7 +611,7 @@ func (self *Doc) write_help_item_groups(items HelpItems, include_env bool) {
 
 		dd := Dedupdefault()
 		drain := items[rangee.start():rangee.end()]
-		items = append(items[rangee.start():], items[rangee.end():]...)
+		items = append(items[:rangee.start():rangee.start()], items[rangee.end():]...)
 		for _, item := range drain {
 			if dd.check(item) {
 				write_help_item(self, item, include_env)

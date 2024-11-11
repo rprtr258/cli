@@ -266,10 +266,6 @@ impl Meta {
                     *self = Meta::Skip;
                 }
             }
-            Meta::Adjacent(m) | Meta::Subsection(m, _) | Meta::Suffix(m, _) => {
-                m.normalize(for_usage, norm);
-                *self = std::mem::take(m);
-            }
             Meta::Item(i) => i.normalize(for_usage),
             Meta::Skip => {
                 // nothing to do with items and skip just bubbles upwards
@@ -277,17 +273,19 @@ impl Meta {
             Meta::CustomUsage(m, u) => {
                 m.normalize(for_usage, norm);
                 // strip CustomUsage if we are not in usage so writer can simply render it
-                if for_usage {
-                    if u.is_empty() {
-                        *self = Meta::Skip;
-                    }
-                } else {
+                if !for_usage {
                     *self = std::mem::take(m);
+                } else if u.is_empty() {
+                    *self = Meta::Skip;
                 }
             }
             Meta::Strict(m) => {
                 m.normalize(for_usage, norm);
                 norm.push();
+                *self = std::mem::take(m);
+            }
+            Meta::Adjacent(m) | Meta::Subsection(m, _) | Meta::Suffix(m, _) => {
+                m.normalize(for_usage, norm);
                 *self = std::mem::take(m);
             }
         }

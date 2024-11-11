@@ -85,6 +85,39 @@ func DefaultMeta() Meta {
 	return MetaSkip{}
 }
 
+func cloneMeta(m Meta) Meta {
+	cloneDoc := func(d Doc) Doc {
+		return Doc{d.payload, append([]Token(nil), d.tokens...)}
+	}
+	switch m := m.(type) {
+	case MetaAnd:
+		return MetaAnd(fun.Map[Meta](cloneMeta, m...))
+	case MetaOr:
+		return MetaOr(fun.Map[Meta](cloneMeta, m...))
+	case MetaOptional:
+		return MetaOptional{cloneMeta(m.m)}
+	case MetaRequired:
+		return MetaRequired{cloneMeta(m.m)}
+	case MetaAdjacent:
+		return MetaAdjacent{cloneMeta(m.m)}
+	case MetaItem:
+		return MetaItem(m) // TODO: clone item
+	case MetaMany:
+		return MetaMany{cloneMeta(m.m)}
+	case MetaSubsection:
+		return MetaSubsection{cloneMeta(m.m), cloneDoc(m.u)}
+	case MetaSuffix:
+		return MetaSuffix{cloneMeta(m.m), cloneDoc(m.u)}
+	case MetaSkip:
+		return MetaSkip{}
+	case MetaCustomUsage:
+		return MetaCustomUsage{cloneMeta(m.m), cloneDoc(m.u)}
+	case MetaStrict:
+		return MetaStrict{cloneMeta(m.m)}
+	}
+	panic("unreachable")
+}
+
 func IsAnd(m Meta) bool {
 	_, ok := m.(MetaAnd)
 	return ok
@@ -204,8 +237,8 @@ func positional_invariant_check(self Meta, verbose bool) {
 	GO(self, &is_pos, verbose)
 }
 
-func normalized(self Meta, for_usage bool) Meta {
-	m := self
+func normalized(m Meta, for_usage bool) Meta {
+	m = cloneMeta(m)
 	norm := StrictNormPull
 	normalize(&m, for_usage, &norm)
 	// strip outer () around meta unless inner
@@ -342,37 +375,36 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 			// and strip them elsewhere
 			*self = m
 		}
-	case MetaAdjacent:
-		normalize(&m.m, for_usage, norm)
-		*self = m
-	case MetaItem:
-		i := Item(m)
-		i.normalize(for_usage)
 	case MetaMany:
 		normalize(&m.m, for_usage, norm)
 		if IsSkip(m.m) {
 			*self = MetaSkip{}
 		}
-	case MetaSubsection:
-		normalize(&m.m, for_usage, norm)
-		*self = m.m
-	case MetaSuffix:
-		normalize(&m.m, for_usage, norm)
-		*self = m.m
-	// nothing to do with items and skip just bubbles upwards
+	case MetaItem:
+		i := Item(m)
+		i.normalize(for_usage)
+	case MetaSkip:
+		// nothing to do with items and skip just bubbles upwards
 	case MetaCustomUsage:
 		normalize(&m.m, for_usage, norm)
 		// strip CustomUsage if we are not in usage so writer can simply render it
 		if for_usage {
-			if m.u.is_empty() {
-				*self = MetaSkip{}
-			}
-		} else {
 			*self = m
+		} else if m.u.is_empty() {
+			*self = MetaSkip{}
 		}
 	case MetaStrict:
 		normalize(&m.m, for_usage, norm)
 		norm.push()
+		*self = m
+	case MetaAdjacent:
+		normalize(&m.m, for_usage, norm)
+		*self = m
+	case MetaSubsection:
+		normalize(&m.m, for_usage, norm)
+		*self = m
+	case MetaSuffix:
+		normalize(&m.m, for_usage, norm)
 		*self = m
 	}
 }

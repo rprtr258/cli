@@ -198,26 +198,24 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	if extra, er := self.info.eval(args); er == nil {
 		detailed := false
 		var buffer Doc
-		extra(
-			func(d bool) {
-				detailed = d
-				buffer = render_help(
-					args.path,
-					self.info,
-					self.inner.meta,
-					self.info.meta(),
-					true,
-				)
-			},
-			func(v Doc) {
-				tmp := Doc{}
-				tmp.token(TokenBlockStart(BlockBlock))
-				tmp.Text("Version: ")
-				tmp.Doc(v)
-				tmp.token(TokenBlockEnd(BlockBlock))
-				buffer = tmp
-			},
-		)
+		switch {
+		case extra.isHelp:
+			detailed = extra.Help
+			buffer = render_help(
+				args.path,
+				self.info,
+				self.inner.meta,
+				self.info.meta(),
+				true,
+			)
+		default:
+			tmp := Doc{}
+			tmp.token(TokenBlockStart(BlockBlock))
+			tmp.Text("Version: ")
+			tmp.Doc(extra.Version)
+			tmp.token(TokenBlockEnd(BlockBlock))
+			buffer = tmp
+		}
 		return *new(T), ParseFailureStdout{buffer, detailed}
 	}
 	return *new(T), render(&err, *args, self.inner.meta)
@@ -648,23 +646,16 @@ func (self Info) meta() Meta {
 	}
 }
 
-type ExtraParams = func(
-	Help func(bool),
-	Version func(Doc),
-)
+type ExtraParams struct {
+	isHelp  bool
+	Help    bool
+	Version Doc
+}
 
 func ExtraParamsHelp(b bool) ExtraParams {
-	return func(Help func(bool), _ func(Doc)) {
-		if Help != nil {
-			Help(b)
-		}
-	}
+	return ExtraParams{true, b, Doc{}}
 }
 
 func ExtraParamsVersion(v Doc) ExtraParams {
-	return func(_ func(bool), Version func(Doc)) {
-		if Version != nil {
-			Version(v)
-		}
-	}
+	return ExtraParams{false, false, v}
 }
