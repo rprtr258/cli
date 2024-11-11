@@ -531,10 +531,6 @@ func (self *State) comp_mut() (*Complete, bool) {
 	return &self.comp.Value, self.comp.Valid
 }
 
-func (self State) comp_ref() (Complete, bool) {
-	return self.comp.Unpack()
-}
-
 func (self *State) swap_comps(other *State) {
 	*self, *other = *other, *self
 }

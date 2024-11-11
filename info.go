@@ -141,7 +141,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	state := stateconstruct(args, short_flags, short_args, &err)
 
 	// this only handles disambiguation failure in construct
-	if msg, ok := err.Unpack(); ok && !func() bool { _, ok := state.comp_ref(); return ok }() {
+	if msg, ok := err.Unpack(); ok && !state.comp.Valid {
 		return *new(T), render(fun.Ptr(Error(msg)), state, self.inner.meta)
 	}
 

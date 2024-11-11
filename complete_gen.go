@@ -453,7 +453,7 @@ func PrefixLong(s string) Prefix {
 // `self.comp`, this part goes over collected heads and generates possible completions from
 // that
 func (self State) check_complete() (string, bool) {
-	comp, ok := self.comp_ref()
+	comp, ok := self.comp.Unpack()
 	if !ok {
 		return "", false
 	}
