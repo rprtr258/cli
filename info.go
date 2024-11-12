@@ -2,8 +2,6 @@ package cli
 
 import (
 	"os"
-
-	"github.com/rprtr258/fun"
 )
 
 // Information about the parser
@@ -137,12 +135,10 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	collect_shorts(self.inner.meta, &short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)
-	err := Invalid[Error]()
-	state := stateconstruct(args, short_flags, short_args, &err)
-
 	// this only handles disambiguation failure in construct
-	if msg, ok := err.Unpack(); ok && !state.comp.Valid {
-		return *new(T), render(fun.Ptr(Error(msg)), state, self.inner.meta)
+	state, err := stateconstruct(args, short_flags, short_args)
+	if err != nil && !state.comp.Valid {
+		return *new(T), render(&err, state, self.inner.meta)
 	}
 
 	return self.run_subparser(&state)

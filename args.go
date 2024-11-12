@@ -254,8 +254,7 @@ func stateconstruct(
 	args Args,
 	short_flags []byte,
 	short_args []byte,
-	err *Option[Error],
-) State {
+) (State, Error) {
 	items := []Arg{}
 	pos_only := false
 	double_dash_marker := Invalid[int]()
@@ -265,6 +264,7 @@ func stateconstruct(
 		name:     args.name,
 	}
 
+	var err Error
 LOOP:
 	for _, os := range args.items {
 		if pos_only {
@@ -287,7 +287,7 @@ LOOP:
 				short_args,
 				&items,
 			); ok {
-				*err = Valid(msg)
+				err = msg
 				break LOOP
 			}
 		case ok && argType == ArgTypeShort && arg.Valid:
@@ -345,7 +345,7 @@ LOOP:
 		path,
 		Option[Complete]{comp, ok},
 		Range{0, len(items)},
-	}
+	}, err
 }
 
 // creates iterator over remaining elements
