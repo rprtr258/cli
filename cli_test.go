@@ -1007,7 +1007,6 @@ func TestSomeDoesntPanic(t *testing.T) {
 }
 
 func TestCommandResetsLeftHeadState(t *testing.T) {
-	t.Skip() // TODO: fix
 	type Foo fun.Option[uint32]
 
 	a := Argument(Short('a'), "A", parseUint32).Parser().Fallback(0).Parser()
