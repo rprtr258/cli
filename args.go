@@ -669,7 +669,7 @@ func (self *State) take_cmd(w string) bool {
 
 	if func() bool {
 		switch x := a.value.(type) {
-		case argShort, argArgWord:
+		case argShort, argWord:
 			return true
 		case argLong:
 			return !x.is_adj

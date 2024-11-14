@@ -506,7 +506,6 @@ func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
 }
 
 func TestSubcommands(t *testing.T) {
-	t.Skip() // TODO: fix
 	bar := Short('b').Switch()
 	bar_cmd := bar.ToOptions().Descr("This is local info").Command("bar")
 	parser := bar_cmd.Parser().ToOptions().Descr("This is global info")
