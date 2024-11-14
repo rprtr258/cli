@@ -1337,7 +1337,6 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 }
 
 func TestCombine_flags_by_order(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('A'), false)
 	parser := Many(Choice(a.Parser(), b.Parser())).ToOptions()
