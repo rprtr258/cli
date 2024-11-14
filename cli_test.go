@@ -1022,7 +1022,6 @@ func TestCommandResetsLeftHeadState(t *testing.T) {
 }
 
 func TestCommand_preserves_custom_failure_message(t *testing.T) {
-	t.Skip() // TODO: fix
 	const msg = "need more cheese"
 	inner := Fail[struct{}](msg).Parser().ToOptions()
 
