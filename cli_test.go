@@ -1689,7 +1689,6 @@ func TestFlag_like_commands(t *testing.T) {
 	b := ReqFlag(Short('b'), 2).Parser().ToOptions().Command("remove")
 	parser := Choice(a.Parser(), b.Parser()).ToOptions()
 
-	t.Skip() // TODO: fix
 	assertSuccess(t, 1, parser, "--add", "-a")
 	assertSuccess(t, 2, parser, "remove", "-b")
 
