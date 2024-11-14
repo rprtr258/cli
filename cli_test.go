@@ -540,21 +540,18 @@ Available commands:
 }
 
 func TestMultipleAliases(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := ReqFlag(Short('a').Short('b').Short('c'), struct{}{}).Parser()
 	parser := a.ToOptions()
 
 	_, help := parser.run_inner(newArgs("--help"))
 	const expected_help = `Usage: -a
 
-	Available options:
-
-		-a
-		-h, --help  Prints help information
-
-	`
-
+Available options:
+    -a
+    -h, --help  Prints help information
+`
 	require.Equal(t, expected_help, unwrap_stdout(help))
+
 	{
 		_, err := parser.run_inner(newArgs("-a"))
 		require.Nil(t, err)
