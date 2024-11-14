@@ -1463,7 +1463,6 @@ func TestCatch_works(t *testing.T) {
 }
 
 func TestSneaky_command(t *testing.T) {
-	t.Skip() // TODO: fix
 	type Cmd struct {
 		isA bool
 		x   bool
