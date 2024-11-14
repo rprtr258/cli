@@ -857,7 +857,6 @@ Available options:
 }
 
 func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
-	t.Skip() // TODO: fix
 	type Foo bool
 	const (
 		FooFoo Foo = true
@@ -878,6 +877,7 @@ func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
 		const expected_help = `inner
 
 Usage: foo
+
 
 Available options:
     -h, --help  Prints help information
@@ -1559,7 +1559,12 @@ func TestEmpty_struct(t *testing.T) {
 	assertSuccess(t, Foo{}, parser)
 	{
 		_, r := parser.run_inner(newArgs("--help"))
-		require.Equal(t, unwrap_stdout(r), "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n")
+		require.Equal(t, unwrap_stdout(r), `Usage:
+
+
+Available options:
+    -h, --help  Prints help information
+`)
 	}
 }
 

@@ -138,7 +138,6 @@ impl Doc {
 
     #[allow(clippy::too_many_lines)] // it's a big ass match statement
     pub(crate) fn render_console(&self, full: bool, color: Color, max_width: usize) -> String {
-        let mut res = String::new();
         let mut tabstop = 0;
         let mut byte_pos = 0;
         {
@@ -184,6 +183,7 @@ impl Doc {
 
         let mut pending_margin = false;
 
+        let mut res = String::new();
         for token in self.tokens.iter().copied() {
             match token {
                 Token::Text { bytes, style } => {

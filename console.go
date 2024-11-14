@@ -265,6 +265,14 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	if pending_newline || pending_blank_line {
 		res += "\n"
 	}
+
+	{ // TODO: kalishe
+		i := strings.Index(res, " \n")
+		for i != -1 {
+			res = res[:i] + "\n" + res[i+1:]
+			i = strings.Index(res, " \n")
+		}
+	}
 	// if testing.Testing() && len(stack) != 0 {
 	// 	panic("assert")
 	// }
