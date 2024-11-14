@@ -1376,7 +1376,6 @@ func TestParse_many_errors_flag(t *testing.T) {
 }
 
 func TestCommand_with_req_parameters(t *testing.T) {
-	t.Skip() // TODO: fix
 	p := Positional("X", parseString).Parser().
 		ToOptions().
 		Command("cmd").Parser().
