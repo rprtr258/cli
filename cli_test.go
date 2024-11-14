@@ -1075,7 +1075,6 @@ func TestFailure_is_not_stupid_2(t *testing.T) {
 }
 
 func TestNo_fallback_out_of_command_parser(t *testing.T) {
-	t.Skip() // TODO: fix
 	alt1 := Positional("NAME", parseString).Parser().ToOptions().Command("cmd")
 	alt2 := Pure("")
 	parser := Choice(alt1.Parser(), alt2.Parser()).ToOptions()
