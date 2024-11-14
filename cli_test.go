@@ -878,7 +878,6 @@ func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
 
 Usage: foo
 
-
 Available options:
     -h, --help  Prints help information
 `
@@ -902,7 +901,6 @@ Available commands:
 }
 
 func TestCommandWithAliases(t *testing.T) {
-	t.Skip() // TODO: fix
 	inner := Pure(struct{}{}).Parser().ToOptions().Descr("inner descr")
 	cmd := inner.Command("foo").long("bar").short('f').short('b')
 	parser := cmd.Parser().ToOptions().Descr("outer")
@@ -1560,7 +1558,6 @@ func TestEmpty_struct(t *testing.T) {
 	{
 		_, r := parser.run_inner(newArgs("--help"))
 		require.Equal(t, unwrap_stdout(r), `Usage:
-
 
 Available options:
     -h, --help  Prints help information

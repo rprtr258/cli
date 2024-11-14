@@ -267,10 +267,11 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	}
 
 	{ // TODO: kalishe
-		i := strings.Index(res, " \n")
-		for i != -1 {
-			res = res[:i] + "\n" + res[i+1:]
-			i = strings.Index(res, " \n")
+		for i := strings.Index(res, " \n"); i != -1; i = strings.Index(res, " \n") {
+			res = strings.ReplaceAll(res, " \n", "\n")
+		}
+		for i := strings.Index(res, "\n\n\n"); i != -1; i = strings.Index(res, "\n\n") {
+			res = strings.ReplaceAll(res, "\n\n\n", "\n\n")
 		}
 	}
 	// if testing.Testing() && len(stack) != 0 {
