@@ -1153,7 +1153,6 @@ func TestDid_you_mean_command(t *testing.T) {
 }
 
 func TestDid_you_mean_two_and_arguments(t *testing.T) {
-	// t.Skip() // TODO: fix
 	a := Long("flag").Switch()
 	b := Long("parameter").Switch()
 	parser := cargo_helper("cmd", Pair(a, b).Parser()).ToOptions()
@@ -1199,7 +1198,6 @@ func TestDid_you_mean_two_or_arguments(t *testing.T) {
 		require.Equal(t, unwrap_stderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
 	}
 
-	t.Skip() // TODO: fix
 	{
 		_, r := parser.run_inner(newArgs("--parameter", "--flag"))
 		require.Equal(t, unwrap_stderr(r), "`--flag` cannot be used at the same time as `--parameter`")
