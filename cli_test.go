@@ -1586,7 +1586,7 @@ Available options:
     -c=C
     -h, --help  Prints help information
 `
-		require.Equal(t, unwrap_stdout(r), expected)
+		require.Equal(t, expected, unwrap_stdout(r))
 	}
 }
 
@@ -1628,7 +1628,6 @@ func TestSome_env(t *testing.T) {
 }
 
 func TestOption_requires_other_option1(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').Switch()
 	b := Argument(Short('b'), "B", parseString)
 	parser := Optional(Pair(a, b).Parser()).Parser().ToOptions()
