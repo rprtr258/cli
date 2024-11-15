@@ -87,7 +87,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 		return_(0, nil, false)
 	}
 	// it also should be a printable name
-	actual := arg.str
+	actual := arg.GoString()
 
 	// all the help items one level deep
 	hi := HelpItemsdefault()

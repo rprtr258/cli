@@ -194,19 +194,19 @@ func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 	items = items[1:]
 
 	// keep collecting until = or the end of the input
-	for _, c := range items {
+	for i, c := range items {
 		switch c {
 		case EQUALS:
 			if ty == ArgTypeShort && len(name) > 1 {
 				body := name[1:]
 				body = append(body, EQUALS)
-				body = append(body, items...)
+				body = append(body, items[i+1:]...)
 				name = name[1:]
 				os := ArgWord(string(body))
 				return ty, string(name), Valid(os), true
 			}
 
-			word := ArgWord(string(items))
+			word := ArgWord(string(items[i+1:]))
 			return ty, string(name), Valid(word), true
 		default:
 			name = append(name, c)

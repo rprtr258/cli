@@ -1121,17 +1121,17 @@ func TestDid_you_mean_req_flag(t *testing.T) {
 }
 
 func TestDid_you_mean_argument(t *testing.T) {
-	t.Skip() // TODO: fix
+	// t.Skip() // TODO: fix
 	parser := Argument(Long("flag"), "VAL", parseString).Parser().ToOptions()
-
-	{
-		_, res := parser.run_inner(newArgs("--fla"))
-		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
-	}
 
 	{
 		_, res := parser.run_inner(newArgs("--flg=hellop"))
 		require.Equal(t, unwrap_stderr(res), "no such flag: `--flg`, did you mean `--flag`?")
+	}
+
+	{
+		_, res := parser.run_inner(newArgs("--fla"))
+		require.Equal(t, unwrap_stderr(res), "no such flag: `--fla`, did you mean `--flag`?")
 	}
 }
 
