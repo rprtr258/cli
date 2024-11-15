@@ -99,13 +99,16 @@ func Pair[A, B any, PA interface {
 	meta := MetaAnd{pa.meta, pb.meta}
 	type R = fun.Pair[A, B]
 	inner := func(failfast bool, args *State) (R, Error) {
-		a, err := pa.eval(args)
-		if failfast && err != nil {
-			return R{}, err
+		a, erra := pa.eval(args)
+		if failfast && erra != nil {
+			return R{}, erra
 		}
-		b, err := pb.eval(args)
-		if err != nil {
-			return R{}, err
+		b, errb := pb.eval(args)
+		// if erra != nil {
+		// 	return R{}, erra
+		// }
+		if errb != nil {
+			return R{}, errb
 		}
 		args.current = Invalid[int]()
 		return R{a, b}, nil
