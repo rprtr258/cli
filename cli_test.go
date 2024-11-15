@@ -1235,7 +1235,6 @@ func TestCargo_show_asm_issue_guard(t *testing.T) {
 }
 
 func TestCargo_show_asm_issue_from_str(t *testing.T) {
-	t.Skip() // TODO: fix
 	target_dir := Argument(Short('t'), "T", parseUint)
 	verbosity := Short('v').Switch()
 	inner := Pair(target_dir, verbosity)
