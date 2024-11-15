@@ -1121,7 +1121,6 @@ func TestDid_you_mean_req_flag(t *testing.T) {
 }
 
 func TestDid_you_mean_argument(t *testing.T) {
-	// t.Skip() // TODO: fix
 	parser := Argument(Long("flag"), "VAL", parseString).Parser().ToOptions()
 
 	{
