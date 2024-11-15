@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"encoding/json"
 	"fmt"
 	"iter"
 	"strings"
@@ -195,19 +194,4 @@ func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
 			}
 		}
 	}
-}
-
-func clone[T any](t T) T {
-	b, err := json.Marshal(t)
-	if err != nil {
-		panic(err)
-	}
-
-	var res T
-
-	if err := json.Unmarshal(b, &res); err != nil {
-		panic(err)
-	}
-
-	return res
 }

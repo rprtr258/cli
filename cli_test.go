@@ -1252,7 +1252,6 @@ func TestCargo_show_asm_issue_from_str(t *testing.T) {
 }
 
 func TestCargo_show_asm_issue_parse(t *testing.T) {
-	t.Skip() // TODO: fix
 	target_dir := Parse(Argument(Short('t'), "T", parseString).Parser(),
 		func(string) (struct{}, Error) { return struct{}{}, ErrorParseFail("nope") })
 
