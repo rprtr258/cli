@@ -100,9 +100,9 @@ func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 			return R{}, erra
 		}
 		b, errb := pb.eval(args)
-		// if erra != nil {
-		// 	return R{}, erra
-		// }
+		if erra != nil {
+			return R{}, erra
+		}
 		if errb != nil {
 			return R{}, errb
 		}

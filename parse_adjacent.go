@@ -26,7 +26,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		}
 		return ErrorMissing([]MissingItem{missing_item})
 	}()
-	best_args := args
+	best_args := args.clone()
 	best_consumed := 0
 
 	iter := args.ranges(first_item)
@@ -45,7 +45,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		// expected:
 		// consider examples "42 -n" and "-n 42"
 		// without multi step approach first command line also parses into 42
-		scratch := this_arg
+		scratch := this_arg.clone()
 		scratch.set_scope(Range{start, start + width})
 		before := scratch.len()
 
@@ -77,7 +77,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 			if err == nil {
 				// there's a smaller adjacent scope, we must try it before returning.
 				if adj_scope, ok := this_arg.adjacent_scope(*args); ok {
-					this_arg = *args
+					this_arg = args.clone()
 					this_arg.set_scope(adj_scope)
 				} else {
 					stdmemswap(args, &this_arg)
@@ -88,7 +88,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 				consumed := before - this_arg.len()
 				if consumed > best_consumed {
 					best_consumed = consumed
-					stdmemswap(best_args, &this_arg)
+					stdmemswap(&best_args, &this_arg)
 					best_error = Error(err)
 				}
 				break
@@ -96,6 +96,6 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		}
 	}
 
-	stdmemswap(args, best_args)
+	stdmemswap(args, &best_args)
 	return *new(T), Error(best_error)
 }

@@ -136,7 +136,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 
 		args.path = append(args.path, self.longs[0])
 		if self.adjacent {
-			orig_args := args
+			orig_args := args.clone()
 
 			// narrow down the scope to adjacently available elements
 			args.set_scope(args.adjacently_available_from(args.scope.start() + 1))
@@ -153,11 +153,11 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 				return ok, nil
 			} else {
 				orig_scope := args.scope
-				if narrow_scope, ok := args.adjacent_scope(*orig_args); ok {
+				if narrow_scope, ok := args.adjacent_scope(orig_args); ok {
 					orig_args.set_scope(narrow_scope)
-					if res, err := self.subparser.run_subparser(orig_args); err == nil {
+					if res, err := self.subparser.run_subparser(&orig_args); err == nil {
 						orig_args.set_scope(orig_scope)
-						stdmemswap(orig_args, args)
+						stdmemswap(&orig_args, args)
 						return res, nil
 					}
 				}

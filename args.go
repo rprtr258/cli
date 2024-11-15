@@ -501,7 +501,7 @@ func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
 		}
 		// It should be possible to optimize this code a bit
 		// by checking if first item can possibly
-		args := self.args
+		args := self.args.clone()
 		args.set_scope(Range{cur, len(self.args.items)})
 		return ArgRangesIterItem{cur, self.width, args}, true
 	}

@@ -1,9 +1,5 @@
 package cli
 
-import (
-	"github.com/rprtr258/fun"
-)
-
 // #![warn(missing_docs)]
 // #![allow(clippyneedless_doctest_main)]
 // #![allow(clippyredundant_else)] // not useful
@@ -473,5 +469,5 @@ func (self Parser[T]) Run() T {
 // 4. Parse this word and then everything else as a tuple, return that second item.
 func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
 	skip := Optional(Literal(cmd)).Parser().Hide()
-	return Map(Pair(skip, parser).Parser(), func(x fun.Pair[Option[struct{}], T]) T { return x.V })
+	return Map2(skip, parser, func(_ Option[struct{}], x T) T { return x })
 }

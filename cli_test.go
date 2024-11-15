@@ -422,8 +422,7 @@ Available options:
 	require.Equal(t, expected_help, unwrap_stdout(help))
 	_, err := parser.run_inner(newArgs("-a", "-b"))
 	require.Equal(t,
-		"expected `-f=ARG`, got `-a`. Pass `--help` for usage information",
-		// TODO: // "`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
+		"`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
 		unwrap_stderr(err),
 	)
 }
