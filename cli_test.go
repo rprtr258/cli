@@ -1153,7 +1153,7 @@ func TestDid_you_mean_command(t *testing.T) {
 }
 
 func TestDid_you_mean_two_and_arguments(t *testing.T) {
-	t.Skip() // TODO: fix
+	// t.Skip() // TODO: fix
 	a := Long("flag").Switch()
 	b := Long("parameter").Switch()
 	parser := cargo_helper("cmd", Pair(a, b).Parser()).ToOptions()
