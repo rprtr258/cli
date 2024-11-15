@@ -1637,7 +1637,6 @@ func TestOption_requires_other_option1(t *testing.T) {
 }
 
 func TestOption_requires_other_option2(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').Switch()
 	b := Argument(Short('b'), "B", parseString)
 	parser := Optional(Pair(b, a).Parser()).Parser().ToOptions()
