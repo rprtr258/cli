@@ -295,6 +295,10 @@ func (self Parser[T]) Parser() Parser[T] {
 	return self
 }
 
+type parser[T any] interface {
+	Parser() Parser[T]
+}
+
 // {{{ or_else
 // If first parser fails - try the second one
 //

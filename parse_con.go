@@ -89,11 +89,7 @@ func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
 	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.meta}}
 }
 
-func Pair[A, B any, PA interface {
-	Parser() Parser[A]
-}, PB interface {
-	Parser() Parser[B]
-}](ppa PA, ppb PB) *ParseCon[fun.Pair[A, B]] {
+func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	pa := ppa.Parser()
 	pb := ppb.Parser()
 	meta := MetaAnd{pa.meta, pb.meta}
