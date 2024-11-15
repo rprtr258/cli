@@ -1337,14 +1337,13 @@ func TestCombine_flags_by_order(t *testing.T) {
 }
 
 func TestParse_many_errors_positional(t *testing.T) {
-	t.Skip() // TODO: fix
 	p := Many(Positional("N", parseUint32).Parser()).ToOptions()
 
-	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 	{
 		_, r := p.run_inner(newArgs("1", "2", "x"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string")
 	}
+	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 }
 
 func TestParse_collect_flag(t *testing.T) {

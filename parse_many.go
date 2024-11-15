@@ -14,16 +14,14 @@ func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	res := []T{}
 	for {
 		vr, err := parse_option(self.inner, &len, args, self.catch)
+		if err == nil && !vr.Valid {
+			break
+		}
 		if err != nil {
 			return nil, err
 		}
 
-		v, ok := vr.Unpack()
-		if !ok {
-			break
-		}
-
-		res = append(res, v)
+		res = append(res, vr.Value)
 	}
 	return res, nil
 }
