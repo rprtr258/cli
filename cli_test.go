@@ -1293,7 +1293,6 @@ func TestCargo_show_asm_issue_unknown_switch(t *testing.T) {
 }
 
 func TestDid_you_mean_inside_command(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Long("flag").Switch()
 	b := Long("parameter").Switch()
 	parser := Choice(a, b).ToOptions().Command("cmd").Parser().ToOptions()
