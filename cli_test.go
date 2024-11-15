@@ -1655,7 +1655,6 @@ func TestDefault_for_some(t *testing.T) {
 }
 
 func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').Switch()
 	b := Short('b').Switch()
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
