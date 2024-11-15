@@ -63,7 +63,7 @@ func (self Color) push_str(style Style, item string) string {
 		case StyleText:
 			return item
 		case StyleEmphasis:
-			return item /*.underline().bold()*/
+			return item /*TODO: .underline().bold()*/
 		case StyleLiteral:
 			return item /*.bold()*/
 		case StyleMetavar:

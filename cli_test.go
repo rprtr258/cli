@@ -1341,7 +1341,7 @@ func TestParse_many_errors_positional(t *testing.T) {
 
 	{
 		_, r := p.run_inner(newArgs("1", "2", "x"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string")
+		require.Equal(t, unwrap_stderr(r), "couldn't parse `x`: invalid digit found in string") // TODO: replace `x` with %q
 	}
 	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 }
