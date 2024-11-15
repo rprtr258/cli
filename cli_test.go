@@ -1218,7 +1218,6 @@ func TestDid_you_mean_two_or_arguments(t *testing.T) {
 // parse/guard failures should "taint" the arguments and disable the suggestion logic
 
 func TestCargo_show_asm_issue_guard(t *testing.T) {
-	t.Skip() // TODO: fix
 	target_dir := Argument(Short('t'), "T", parseString).Parser().Guard(func(string) bool { return false }, "nope")
 	verbosity := Short('v').Switch()
 	inner := Pair(target_dir, verbosity)
