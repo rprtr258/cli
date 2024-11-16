@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/rprtr258/fun"
+	"github.com/stretchr/testify/require"
 )
 
 func some(s string) (string, bool) { return s, true }
@@ -35,29 +36,24 @@ func TestGet_any_many2(t *testing.T) {
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
-// func Testget_any_magic(t *testing.T) {
-// 	var parser = Short('b').
-// 		Argument[string]("anana").
-// 		Adjacent().
-// 		Guard(func(b) b == "anana", "not anana").
-// 		Optional().
-// 		Catch().
-// 		Map((func(b) b.is_some)()).
-// 		ToOptions()
+func TestGet_any_magic(t *testing.T) {
+	parser := Map(Optional(Argument(Short('b'),
+		"anana", parseString).
+		Adjacent().Parser().
+		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser()).
+		Catch().Parser(),
+		func(b Option[string]) bool { return b.Valid }).
+		ToOptions()
 
-// 	// -b anana - isn't a -banana
-// 	var r = parser.
-// 		run_inner(newArgs("-b", "anana")).
-// 		unwrap_err().
-// 		unwrap_stderr()
-// 	require.Equal(t,r, "`-b` is not expected in this context")
+	// -b anana - isn't a -banana
+	_, r := parser.run_inner(newArgs("-b", "anana"))
+	require.Equal(t, unwrap_stderr(r), "`-b` is not expected in this context")
 
-// 	// close enough :)
-// 	assert(parser.run_inner(newArgs("-b=anana")).unwrap())
-
-// 	assert(parser.run_inner(newArgs("-banana")).unwrap())
-// 	assert(parser.run_inner(newArgs()).unwrap())
-// }
+	// close enough :)
+	assertSuccess(t, true, parser, "-b=anana")
+	assertSuccess(t, true, parser, "-banana")
+	assertSuccess(t, false, parser)
+}
 
 // func Testfrom_str_works_with_parse(t *testing.T) {
 // 	var parser = positional[string]("A").

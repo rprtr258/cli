@@ -120,8 +120,8 @@ func (self ParseArgument[T]) meta() Meta {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Argument.md"))]
 //
 // You can further restrict it using [adjacent](ParseArgumentadjacent)
-func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) ParseArgument[T] {
-	return ParseArgument[T]{
+func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) *ParseArgument[T] {
+	return &ParseArgument[T]{
 		named:    self,
 		metavar:  metavar,
 		adjacent: false,
