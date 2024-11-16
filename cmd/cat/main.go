@@ -21,14 +21,14 @@ func run() error {
 			cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 				Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
 				Parser()).Parser(),
-		func(pathOpt cli.Option[string]) (*os.File, cli.Error) {
+		func(pathOpt cli.Option[string]) (*os.File, error) {
 			path, ok := pathOpt.Unpack()
 			if !ok {
 				return os.Stdin, nil
 			}
 			f, err := os.Open(string(path))
 			if err != nil {
-				return nil, cli.Error(cli.ErrorParseFail(err.Error()))
+				return nil, err
 			}
 
 			return f, nil

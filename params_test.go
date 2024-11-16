@@ -55,14 +55,12 @@ func TestGet_any_magic(t *testing.T) {
 	assertSuccess(t, false, parser)
 }
 
-// func Testfrom_str_works_with_parse(t *testing.T) {
-// 	var parser = positional[string]("A").
-// 		parse(parseUint).
-// 		ToOptions()
-
-// 	var r = parser.run_inner(newArgs("42")).unwrap()
-// 	require.Equal(t,r, 42)
-// }
+func TestFrom_str_works_with_parse(t *testing.T) {
+	parser := Parse(Positional("A", parseString).Parser(),
+		parseUint).Parser().
+		ToOptions()
+	assertSuccess(t, uint(42), parser, "42")
+}
 
 // func Testsquashed_short_names(t *testing.T) {
 // 	var a = Short('a').Switch()

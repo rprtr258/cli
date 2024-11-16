@@ -3,7 +3,7 @@ package cli
 // Parser that transforms parsed value with a failing function, created with [parse](Parserparse)
 type ParseWith[T, R any] struct {
 	inner    Parser[T]
-	parse_fn func(T) (R, Error)
+	parse_fn func(T) (R, error)
 }
 
 func (self ParseWith[T, R]) Parser() Parser[R] {
@@ -16,9 +16,9 @@ func (self ParseWith[T, R]) eval(args *State) (R, Error) {
 		return *new(R), err
 	}
 
-	r, err := self.parse_fn(t)
-	if err != nil {
-		return *new(R), ErrorParseFailed{args.current, errorToString(err)}
+	r, errr := self.parse_fn(t)
+	if errr != nil {
+		return *new(R), ErrorParseFailed{args.current, errr.Error()}
 	}
 
 	return r, nil
@@ -48,7 +48,7 @@ func (self ParseWith[T, R]) eval(args *State) (R, Error) {
 // parameter `F` used by `Parse` in combinatoric API.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Parse.md"))]
-func Parse[T, R any](self Parser[T], f func(T) (R, Error)) ParseWith[T, R] {
+func Parse[T, R any](self Parser[T], f func(T) (R, error)) ParseWith[T, R] {
 	return ParseWith[T, R]{
 		inner:    self,
 		parse_fn: f,

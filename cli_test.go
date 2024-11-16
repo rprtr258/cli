@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
@@ -1057,7 +1058,7 @@ func TestMany_error_handling(t *testing.T) {
 
 func TestFailure_is_not_stupid_1(t *testing.T) {
 	a := Argument(Short('a'), "A", parseUint32)
-	b := Parse(Pure(struct{}{}).Parser(), func(struct{}) (string, Error) { return "", ErrorParseFail("nope") })
+	b := Parse(Pure(struct{}{}).Parser(), func(struct{}) (string, error) { return "", errors.New("nope") })
 	parser := Pair(a, b).Parser().ToOptions()
 
 	_, res := parser.run_inner(newArgs("-a", "42"))
@@ -1067,7 +1068,7 @@ func TestFailure_is_not_stupid_1(t *testing.T) {
 func TestFailure_is_not_stupid_2(t *testing.T) {
 	a := Argument(Short('a'), "A", parseUint32)
 	b := Argument(Short('b'), "B", parseUint32)
-	parser := Parse(Pair(a, b).Parser(), func(fun.Pair[uint32, uint32]) (string, Error) { return "", ErrorParseFail("nope") }).Parser().ToOptions()
+	parser := Parse(Pair(a, b).Parser(), func(fun.Pair[uint32, uint32]) (string, error) { return "", errors.New("nope") }).Parser().ToOptions()
 
 	_, res := parser.run_inner(newArgs("-a", "42", "-b", "42"))
 	require.Equal(t, unwrap_stderr(res), "couldn't parse: nope")
@@ -1253,7 +1254,7 @@ func TestCargo_show_asm_issue_from_str(t *testing.T) {
 
 func TestCargo_show_asm_issue_parse(t *testing.T) {
 	target_dir := Parse(Argument(Short('t'), "T", parseString).Parser(),
-		func(string) (struct{}, Error) { return struct{}{}, ErrorParseFail("nope") })
+		func(string) (struct{}, error) { return struct{}{}, errors.New("nope") })
 
 	verbosity := Short('v').Switch()
 	inner := Pair(target_dir, verbosity)
