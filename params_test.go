@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-	"github.com/stretchr/testify/require"
 )
 
 func TestGet_any_simple(t *testing.T) {
@@ -14,16 +13,8 @@ func TestGet_any_simple(t *testing.T) {
 
 	type R = fun.Pair[bool, string]
 	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
-	{
-		r, err := parser.run_inner(newArgs("-b", "-a"))
-		require.Nil(t, err)
-		require.Equal(t, R{true, "-b"}, r)
-	}
-	{
-		r, err := parser.run_inner(newArgs("-b=foo", "-a"))
-		require.Nil(t, err)
-		require.Equal(t, R{true, "-b=foo"}, r)
-	}
+	assertSuccess(t, R{true, "-b"}, parser, "-b", "-a")
+	assertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo", "-a")
 }
 
 // func Testget_any_many(t *testing.T) {
