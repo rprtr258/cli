@@ -6,9 +6,11 @@ import (
 	"github.com/rprtr258/fun"
 )
 
+func some(s string) (string, bool) { return s, true }
+
 func TestGet_any_simple(t *testing.T) {
 	a := Short('a').Switch()
-	b := Any("REST", func(s string) (string, bool) { return s, true }).Help("any help")
+	b := Any("REST", some).Help("any help")
 	var parser *OptionParser[fun.Pair[bool, string]] = Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]
@@ -17,23 +19,19 @@ func TestGet_any_simple(t *testing.T) {
 	assertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo", "-a")
 }
 
-// func Testget_any_many(t *testing.T) {
-// 	var a = Short('a').Switch()
-// 	var b = Any("REST", Some).Help("any help").many()
-// 	var parser OptionParser[fun.Pair[bool, []string]] = Pair(a, b).ToOptions()
+func TestGet_any_many(t *testing.T) {
+	var a = Short('a').Switch()
+	var b = Many(Any("REST", some).Help("any help").Parser())
+	var parser *OptionParser[fun.Pair[bool, []string]] = Pair(a, b).Parser().ToOptions()
 
-// 	var r = parser.run_inner(newArgs("-a", "-b")).unwrap()
-// 	require.Equal(t,r.V, []string{"-b"})
-
-// 	var r = parser.run_inner(newArgs("-b", "-a")).unwrap()
-// 	require.Equal(t,r.V, []string{"-b"})
-
-// 	var r = parser.run_inner(newArgs("-b", "-a", "-b")).unwrap()
-// 	require.Equal(t,r.V, []string{"-b", "-b"})
-// }
+	type R = fun.Pair[bool, []string]
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-b", "-a")
+	assertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b", "-a", "-b")
+}
 
 // func Testget_any_many2(t *testing.T) {
-// 	var parser OptionParser[[]string] = Any("REST", Some).many().ToOptions()
+// 	var parser OptionParser[[]string] = Any("REST", some).many().ToOptions()
 
 // 	var r = parser.run_inner(newArgs("-vvv")).unwrap()
 // 	require.Equal(t,r[0], "-vvv")
