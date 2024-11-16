@@ -567,10 +567,6 @@ Available options:
 }
 
 // mod git {
-//     use std::path::PathBuf;
-
-//     use super::*;
-
 //     #[derive(Debug, Clone)]
 //     #[allow(dead_code)]
 //     enum Opt {
@@ -582,7 +578,7 @@ Available options:
 //         Add {
 //             interactive: bool,
 //             all: bool,
-//             files: Vec<PathBuf>,
+//             files: Vec<string>,
 //         },
 //     }
 
@@ -602,7 +598,7 @@ Available options:
 
 //         interactive := short('i').switch();
 //         all := long("all").switch();
-//         files := positional::<PathBuf>("FILE").many();
+//         files := positional::<string>("FILE").many();
 //         add := construct(Opt::Add {
 //             interactive,
 //             all,
@@ -690,66 +686,59 @@ Available options:
 //     }
 // }
 
-// func arg_bench() {
-//     use std::path::PathBuf;
+func TestArg_bench(t *testing.T) {
+	type AppArgs struct {
+		number     uint32
+		opt_number Option[uint32]
+		width      uint32
+		input      []string
+	}
 
-//     #[derive(Clone, Debug, PartialEq, Eq)]
-//     struct AppArgs {
-//         number: uint32,
-//         opt_number: Option<uint32>,
-//         width: uint32,
-//         input: Vec<PathBuf>,
-//     }
+	number := Argument[uint32](Long("number").
+		Help("Sets a number\nin two lines"),
+		"number", parseUint32)
 
-//     number := long("number")
-//         .help("Sets a number\nin two lines")
-//         .argument::<uint32>("number");
+	opt_number := Optional(Argument[uint32](Long("opt-number").
+		Help("Sets an optional number"),
+		"opt-number", parseUint32).Parser(),
+	)
 
-//     opt_number := long("opt-number")
-//         .help("Sets an optional number")
-//         .argument::<uint32>("opt-number")
-//         .optional();
+	width := Argument[uint32](Long("width").
+		Help("Sets width"),
+		"width", parseUint32).Parser().
+		Guard(func(n uint32) bool { return n > 0 }, "Width must be positive").Parser().
+		Fallback(10)
 
-//     width := long("width")
-//         .help("Sets width")
-//         .argument::<uint32>("width")
-//         .guard(|n| *n > 0, "Width must be positive")
-//         .fallback(10);
+	input := Many(Positional("INPUT", parseString).Parser())
 
-//     input := positional::<PathBuf>("INPUT").many();
+	parser := Map4(
+		number.Parser(),
+		opt_number.Parser(),
+		width.Parser(),
+		input,
+		func(number uint32, opt_number Option[uint32], width uint32, input []string) AppArgs {
+			return AppArgs{
+				number,
+				opt_number,
+				width,
+				input,
+			}
+		},
+	).ToOptions()
 
-//     parser := construct(AppArgs {
-//         number,
-//         opt_number,
-//         width,
-//         input
-//     })
-//     .ToOptions();
-
-//     require.Equal(t,
-//         AppArgs {
-//             number: 42,
-//             opt_number: Invalid(),
-//             width: 10,
-//             input: vec[PathBuf::from("foo"), PathBuf::from("foo2")],
-//         },
-//         parser
-//             .run_inner(newArgs("--number", "42", "foo", "foo2"))
-//             .unwrap()
-//     );
-
-//     require.Equal(t,
-//         AppArgs {
-//             number: 42,
-//             opt_number: Invalid(),
-//             width: 10,
-//             input: Vec::new()
-//         },
-//         parser.run_inner(newArgs("--number", "42")).unwrap()
-//     );
-
-//     drop(parser);
-// }
+	assertSuccess(t, AppArgs{
+		number:     42,
+		opt_number: Invalid[uint32](),
+		width:      10,
+		input:      []string{"foo", "foo2"},
+	}, parser, "--number", "42", "foo", "foo2")
+	assertSuccess(t, AppArgs{
+		number:     42,
+		opt_number: Invalid[uint32](),
+		width:      10,
+		input:      []string{},
+	}, parser, "--number", "42")
+}
 
 func TestSimpleCargoHelper(t *testing.T) {
 	a := Short('a').Long("AAAAA").Help("two lines\nof help").Switch()
