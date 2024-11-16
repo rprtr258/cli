@@ -30,12 +30,10 @@ func TestGet_any_many(t *testing.T) {
 	assertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b", "-a", "-b")
 }
 
-// func Testget_any_many2(t *testing.T) {
-// 	var parser OptionParser[[]string] = Any("REST", some).many().ToOptions()
-
-// 	var r = parser.run_inner(newArgs("-vvv")).unwrap()
-// 	require.Equal(t,r[0], "-vvv")
-// }
+func TestGet_any_many2(t *testing.T) {
+	var parser *OptionParser[[]string] = Many(Any("REST", some).Parser()).ToOptions()
+	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
+}
 
 // func Testget_any_magic(t *testing.T) {
 // 	var parser = Short('b').
