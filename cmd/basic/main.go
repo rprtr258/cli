@@ -31,7 +31,7 @@ func opts() *cli.OptionParser[Out] {
 	// use `max` inside `map`
 	verbose := cli.Map(cli.Many(cli.ReqFlag(cli.Short('v').
 		Long("verbose").
-		Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).Parser()),
+		Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).Parser()).Parser(),
 		func(xs []struct{}) uint { return uint(len(xs)) }).
 		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 

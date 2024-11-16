@@ -9,6 +9,10 @@ type ParseMany[T any] struct {
 	catch bool
 }
 
+func (self ParseMany[T]) Parser() Parser[[]T] {
+	return Parser[[]T]{self.eval, MetaMany{MetaOptional{self.inner.meta}}}
+}
+
 func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	len := uint(math.MaxUint)
 	res := []T{}
@@ -63,10 +67,9 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 // structure
 // }}}
 // TODO: compiler ne mogyet v return Parser[[]T] in method
-func Many[T any](self Parser[T]) Parser[[]T] {
-	p := ParseMany[T]{
+func Many[T any](self Parser[T]) *ParseMany[T] {
+	return &ParseMany[T]{
 		inner: self,
 		catch: false,
 	}
-	return Parser[[]T]{p.eval, MetaMany{MetaOptional{p.inner.meta}}}
 }

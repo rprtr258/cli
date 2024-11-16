@@ -36,7 +36,7 @@ var verbose cli.Parser[uint] = cli.
 	Map(cli.Many(cli.ReqFlag(cli.Short('v').
 		Long("verbose").
 		Help("Increase the verbosity\nYou can specify it up to 3 times\neither as -v -v -v or as -vvv"),
-		struct{}{}).Parser()), func(xs []struct{}) uint { return uint(len(xs)) }).
+		struct{}{}).Parser()).Parser(), func(xs []struct{}) uint { return uint(len(xs)) }).
 	Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this").
 	Parser()
 
@@ -71,7 +71,7 @@ var nb_cars cli.Parser[uint32] = cli.
 var files_to_process cli.Parser[[]PathBuf] = cli.
 	Many(cli.Argument(cli.Short('f').
 		Long("file").
-		Help("File to process"), "FILE", parsePathBuf).Parser())
+		Help("File to process"), "FILE", parsePathBuf).Parser()).Parser()
 
 func main() {
 	// packing things in a struct assumes parser for each field is in scope.

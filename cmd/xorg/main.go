@@ -56,7 +56,7 @@ var options cli.Parser[Options] = cli.Map4(
 		Switch(),
 	toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false).Parser(),
 	toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true).Parser(),
-	cli.Many(extension),
+	cli.Many(extension).Parser(),
 	func(turbo bool, backing bool, xinerama bool, extensions []fun.Pair[string, bool]) Options {
 		return Options{turbo, backing, xinerama, extensions}
 	},

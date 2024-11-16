@@ -11,7 +11,7 @@ func TestTest_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Short('b').Switch()
 	var c = Short('c').Switch()
-	var parser = Many(Triple(a.Parser(), b, c).Adjacent().Parser()).ToOptions()
+	var parser = Many(Triple(a.Parser(), b, c).Adjacent().Parser()).Parser().ToOptions()
 
 	type R = triple[struct{}, bool, bool]
 	{
@@ -117,7 +117,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 func TestAdjacent_is_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("B", parseUint)
-	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V })).ToOptions()
+	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V })).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a", "-a", "10", "20"))
 	require.Equal(t, unwrap_stderr(r), "expected `B`, pass `--help` for usage information")

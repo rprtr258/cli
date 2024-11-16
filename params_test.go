@@ -32,7 +32,7 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	var parser *OptionParser[[]string] = Many(Any("REST", some).Parser()).ToOptions()
+	var parser *OptionParser[[]string] = Many(Any("REST", some).Parser()).Parser().ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 

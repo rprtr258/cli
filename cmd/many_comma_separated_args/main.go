@@ -25,7 +25,7 @@ var args cli.Parser[[]uint16] = cli.
 				res[i] = uint16(u)
 			}
 			return res, nil
-		}).Parser()), func(nested [][]uint16) []uint16 {
+		}).Parser()).Parser(), func(nested [][]uint16) []uint16 {
 		return fun.ConcatMap(func(x []uint16) []uint16 { return x }, nested...)
 	})
 

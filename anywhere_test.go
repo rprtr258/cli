@@ -95,24 +95,31 @@ func TestAnywhere_catch_optional(t *testing.T) {
 	}
 }
 
-// #[test]
-// fn anywhere_catch_many() {
-//     var a = short('a').req_flag(struct{}{});
-//     var b = positional::<usize>("x");
-//     var ab = construct(a, b).adjacent().many().catch();
-//     var bc = short('a').Switch();
-//     var parser = construct(ab, bc).to_options();
+func TestAnywhere_catch_many(t *testing.T) {
+	var a = ReqFlag(Short('a'), struct{}{})
+	var b = Positional("x", parseUint)
+	var ab = Many(Pair(a, b).Adjacent().Parser()).Catch()
+	var bc = Short('a').Switch()
+	var parser = Pair(ab, bc).Parser().ToOptions()
 
-//     var r = parser.run_inner(newArgs("-a")).unwrap();
-
-//     require.Equal(t, r, (vec![], true));
-
-//     var r = parser.run_inner(newArgs("-a", "10")).unwrap();
-//     require.Equal(t, r, (vec![((), 10)], false));
-
-//     var r = parser.run_inner(newArgs()).unwrap();
-//     require.Equal(t, r, (Vec::new(), false));
-// }
+	type P = fun.Pair[struct{}, uint]
+	type R = fun.Pair[[]fun.Pair[struct{}, uint], bool]
+	{
+		r, err := parser.run_inner(newArgs("-a"))
+		require.Nil(t, err)
+		require.Equal(t, r, R{[]P{}, true})
+	}
+	{
+		r, err := parser.run_inner(newArgs("-a", "10"))
+		require.Nil(t, err)
+		require.Equal(t, r, R{[]P{{struct{}{}, 10}}, false})
+	}
+	{
+		r, err := parser.run_inner(newArgs())
+		require.Nil(t, err)
+		require.Equal(t, r, R{[]P{}, false})
+	}
+}
 
 // #[test]
 // fn anywhere_catch_fallback() {
