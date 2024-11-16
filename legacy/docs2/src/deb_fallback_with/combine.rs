@@ -10,10 +10,10 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let version = long("version")
-        .help("Specify protocol version")
-        .argument("VERS")
-        .fallback_with(try_to_get_version)
-        .debug_fallback();
-    construct!(Options { version }).to_options()
+    let version = long("version").
+        help("Specify protocol version").
+        argument("VERS").
+        fallback_with(try_to_get_version).
+        debug_fallback();
+    construct(Options { version }).to_options()
 }

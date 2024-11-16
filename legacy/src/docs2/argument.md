@@ -8,22 +8,22 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let name = short('n')
-        .long("name")
-        .help("Specify user name")
+    let name = short('n').
+        long("name").
+        help("Specify user name")
         // you can specify exact type argument should produce
-        // for as long as it implements `FromStr`
-        .argument::<String>("NAME");
+        // for as long as it implements `FromStr`.
+        argument::<String>("NAME");
 
-    let age = long("age")
-        .help("Specify user age")
+    let age = long("age").
+        help("Specify user age")
         // but often rust can figure it out from the context,
-        // here age is going to be `usize`
-        .argument("AGE")
-        .fallback(18)
-        .display_fallback();
+        // here age is going to be `usize`.
+        argument("AGE").
+        fallback(18).
+        display_fallback();
 
-    construct!(Options { name, age }).to_options()
+    construct(Options { name, age }).to_options()
 }
 
 fn main() {

@@ -25,28 +25,28 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let agree = long("agree")
-        .help("You must agree to perform the action")
-        .req_flag(());
+    let agree = long("agree").
+        help("You must agree to perform the action").
+        req_flag(());
 
-    let intel = long("intel")
-        .help("Show assembly using Intel style")
-        .req_flag(Style::Intel);
-    let att = long("att")
-        .help("Show assembly using AT&T style")
-        .req_flag(Style::Att);
+    let intel = long("intel").
+        help("Show assembly using Intel style").
+        req_flag(Style::Intel);
+    let att = long("att").
+        help("Show assembly using AT&T style").
+        req_flag(Style::Att);
     let llvm = long("llvm").help("Show llvm-ir").req_flag(Style::Llvm);
-    let style = construct!([intel, att, llvm]);
+    let style = construct([intel, att, llvm]);
 
-    let detailed = long("detailed")
-        .help("Include detailed report")
-        .req_flag(Report::Detailed);
-    let minimal = long("minimal")
-        .help("Include minimal report")
-        .req_flag(Report::Minimal);
-    let report = construct!([detailed, minimal]).fallback(Report::Undecided);
+    let detailed = long("detailed").
+        help("Include detailed report").
+        req_flag(Report::Detailed);
+    let minimal = long("minimal").
+        help("Include minimal report").
+        req_flag(Report::Minimal);
+    let report = construct([detailed, minimal]).fallback(Report::Undecided);
 
-    construct!(Options {
+    construct(Options {
         agree,
         style,
         report

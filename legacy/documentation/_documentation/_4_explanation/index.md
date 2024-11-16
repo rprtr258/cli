@@ -89,8 +89,8 @@ fn plus_one(input: Option<u32>) -> Option<u32> {
 let present = Some(10);
 let absent = None;
 
-assert_eq!(plus_one(present), Some(11));
-assert_eq!(plus_one(absent), None);
+assert.Equal(t, plus_one(present), Some(11));
+assert.Equal(t, plus_one(absent), None);
 ```
 
 `Vec`, `Result` and other types that implement `map` are `Functors` as well, but `Functor`
@@ -121,7 +121,7 @@ impl<T: 'static> Reader<T> {
 let val = Reader::<u32>::new();
 let val = val.map(|x| x + 1);
 let res = val.run(10);
-assert_eq!(res, 11);
+assert.Equal(t, res, 11);
 ```
 
 Not all the collections are `Functors` - by `Functor` laws mapping the *value in context*
@@ -142,9 +142,9 @@ let present_1 = Some(10);
 let present_2 = Some(20);
 let absent = None;
 
-assert_eq!(add_numbers(present_1, present_2), Some(30));
-assert_eq!(add_numbers(present_1, absent), None);
-assert_eq!(add_numbers(absent, absent), None);
+assert.Equal(t, add_numbers(present_1, present_2), Some(30));
+assert.Equal(t, add_numbers(present_1, absent), None);
+assert.Equal(t, add_numbers(absent, absent), None);
 ```
 
 Similarly to `Functors`, `Applicative Functors` are not limited to containers and can
@@ -170,10 +170,10 @@ fn pick_number(a: Option<u32>, b: Option<u32>) -> Option<u32> {
 let present_1 = Some(10);
 let present_2 = Some(20);
 let empty = None;
-assert_eq!(pick_number(present_1, present_2), present_1);
-assert_eq!(pick_number(present_1, empty), present_1);
-assert_eq!(pick_number(empty, present_1), present_1);
-assert_eq!(pick_number(empty, empty), empty);
+assert.Equal(t, pick_number(present_1, present_2), present_1);
+assert.Equal(t, pick_number(present_1, empty), present_1);
+assert.Equal(t, pick_number(empty, present_1), present_1);
+assert.Equal(t, pick_number(empty, empty), empty);
 ```
 
 ## `Parser` trait and `construct!` macro

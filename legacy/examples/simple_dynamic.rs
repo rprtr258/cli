@@ -25,11 +25,11 @@ fn crates(input: &String) -> Vec<(&'static str, Option<&'static str>)> {
         ("uggo", "CLI tool to query builds from u.gg"),
     ];
 
-    crates
-        .iter()
-        .filter(|p| p.0.starts_with(input))
-        .map(|name| (name.0, Some(name.1)))
-        .collect::<Vec<_>>()
+    crates.
+        iter().
+        filter(|p| p.0.starts_with(input)).
+        map(|name| (name.0, Some(name.1))).
+        collect::<Vec<_>>()
 }
 
 #[derive(Debug, Clone, Copy, Bpaf)]

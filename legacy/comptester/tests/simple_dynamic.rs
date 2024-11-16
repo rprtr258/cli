@@ -17,7 +17,7 @@ newdoc                   -- Generate pre-populated module files
 nust64                   -- Tools for compiling a Rust project into an N64 ROM
 uggo                     -- CLI tool to query builds from u.gg";
 
-    assert_eq!(buf, expected);
+    assert.Equal(t, buf, expected);
     //    let buf = zsh_comptest("simple_dynamic ?").unwrap();
     //    todo!("\n{}", buf);
 }

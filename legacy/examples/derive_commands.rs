@@ -33,21 +33,21 @@ pub enum Action {
 fn feature_if() -> impl Parser<Option<String>> {
     // here feature starts as any string on a command line that does not start with a dash
     positional::<String>("FEATURE")
-        // guard restricts it such that it can't be a valid version
-        .guard(move |s| !is_version(s), "")
+        // guard restricts it such that it can't be a valid version.
+        guard(move |s| !is_version(s), "")
         // last two steps describe what to do with strings in this position but are actually
         // versions.
-        // optional allows parser to represent an ignored value with None
-        .optional()
-        // and catch lets optional to handle parse failures coming from guard
-        .catch()
+        // optional allows parser to represent an ignored value with None.
+        optional()
+        // and catch lets optional to handle parse failures coming from guard.
+        catch()
 }
 
 fn version_if() -> impl Parser<Option<String>> {
-    positional::<String>("VERSION")
-        .guard(move |s| is_version(s), "")
-        .optional()
-        .catch()
+    positional::<String>("VERSION").
+        guard(move |s| is_version(s), "").
+        optional().
+        catch()
 }
 
 fn is_version(v: &str) -> bool {

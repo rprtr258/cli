@@ -21,32 +21,32 @@ where
     // `os_str_bytes` or a similar crate
     any("", move |s: String| Some(s.strip_prefix(name)?.to_owned()))
         // this defines custom metavar for the help message
-        // so it looks like something it designed to parse
-        .metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..])
-        .help(help)
+        // so it looks like something it designed to parse.
+        metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..]).
+        help(help)
         // this makes it so tag parser tries to read all (unconsumed by earlier parsers)
-        // item on a command line instead of trying and failing on the first one
-        .anywhere()
+        // item on a command line instead of trying and failing on the first one.
+        anywhere()
         // At this point parser produces `String` while consumer might expect some other
-        // type. [parse](Parser::parse) handles that
-        .parse(|s| s.parse())
+        // type. [parse](Parser::parse) handles that.
+        parse(|s| s.parse())
 }
 
 pub fn options() -> OptionParser<Options> {
-    let block_size = tag("bs=", "BLOCK", "How many bytes to read at once")
-        .fallback(1024)
-        .display_fallback();
+    let block_size = tag("bs=", "BLOCK", "How many bytes to read at once").
+        fallback(1024).
+        display_fallback();
     let count = tag("count=", "NUM", "How many blocks to read").fallback(1);
     let output_file = tag("of=", "FILE", "Save results into this file");
 
     // this consumes literal value of "+turbo" locate and produces `bool`
-    let turbo = literal("+turbo")
-        .help("Engage turbo mode!")
-        .anywhere()
-        .map(|_| true)
-        .fallback(false);
+    let turbo = literal("+turbo").
+        help("Engage turbo mode!").
+        anywhere().
+        map(|_| true).
+        fallback(false);
 
-    construct!(Options {
+    construct(Options {
         block_size,
         count,
         output_file,
@@ -97,11 +97,11 @@ fn output_file() -> impl Parser<String> {
 }
 
 fn turbo() -> impl Parser<bool> {
-    literal("+turbo")
-        .help("Engage turbo mode!")
-        .anywhere()
-        .map(|_| true)
-        .fallback(false)
+    literal("+turbo").
+        help("Engage turbo mode!").
+        anywhere().
+        map(|_| true).
+        fallback(false)
 }
 
 /// Parses a string that starts with `name`, returns the suffix parsed in a usual way
@@ -116,15 +116,15 @@ where
     // `os_str_bytes` or a similar crate
     any("", move |s: String| Some(s.strip_prefix(name)?.to_owned()))
         // this defines custom metavar for the help message
-        // so it looks like something it designed to parse
-        .metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..])
-        .help(help)
+        // so it looks like something it designed to parse.
+        metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..]).
+        help(help)
         // this makes it so tag parser tries to read all (unconsumed by earlier parsers)
-        // item on a command line instead of trying and failing on the first one
-        .anywhere()
+        // item on a command line instead of trying and failing on the first one.
+        anywhere()
         // At this point parser produces `String` while consumer might expect some other
-        // type. [parse](Parser::parse) handles that
-        .parse(|s| s.parse())
+        // type. [parse](Parser::parse) handles that.
+        parse(|s| s.parse())
 }
 
 fn main() {

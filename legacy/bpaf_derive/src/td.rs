@@ -426,7 +426,7 @@ impl ToTokens for EAttr {
             Self::FallbackUsage => quote!(fallback_to_usage()),
 
             Self::UnnamedCommand | Self::UnitShort(_) | Self::UnitLong(_) => unreachable!(),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }

@@ -36,17 +36,17 @@ fn toggle_option(name: &'static str, help: &'static str) -> impl Parser<bool> {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let backing = toggle_option("backing", "Enable or disable backing")
-        .fallback(false)
-        .debug_fallback();
-    let xinerama = toggle_option("xinerama", "enable or disable Xinerama")
-        .fallback(true)
-        .debug_fallback();
-    let turbo = short('t')
-        .long("turbo")
-        .help("Engage the turbo mode")
-        .switch();
-    construct!(Options {
+    let backing = toggle_option("backing", "Enable or disable backing").
+        fallback(false).
+        debug_fallback();
+    let xinerama = toggle_option("xinerama", "enable or disable Xinerama").
+        fallback(true).
+        debug_fallback();
+    let turbo = short('t').
+        long("turbo").
+        help("Engage the turbo mode").
+        Switch();
+    construct(Options {
         turbo,
         backing,
         xinerama,

@@ -36,21 +36,21 @@ fn extension() -> impl Parser<(String, bool)> {
     })
     .anywhere();
 
-    let name = positional::<String>("EXT")
-        .help("Extension to enable or disable, see documentation for the full list");
-    construct!(state, name).adjacent().map(|(a, b)| (b, a))
+    let name = positional::<String>("EXT").
+        help("Extension to enable or disable, see documentation for the full list");
+    construct(state, name).adjacent().map(|(a, b)| (b, a))
 }
 
 pub fn options() -> OptionParser<Options> {
     let backing = toggle_options("(+|-)backing", "backing", "Set backing status").fallback(false);
     let xinerama =
         toggle_options("(+|-)xinerama", "xinerama", "Set Xinerama status").fallback(true);
-    let turbo = short('t')
-        .long("turbo")
-        .help("Engage the turbo mode")
-        .switch();
+    let turbo = short('t').
+        long("turbo").
+        help("Engage the turbo mode").
+        Switch();
     let extensions = extension().many();
-    construct!(Options {
+    construct(Options {
         turbo,
         backing,
         xinerama,

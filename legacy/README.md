@@ -117,7 +117,7 @@ contains examples for both combinatoric and derive style.
 	        .argument::<f64>("DIST");
 
 	    // parser containing information about both speed and distance
-	    let parser = construct!(SpeedAndDistance { speed, distance });
+	    let parser = construct(SpeedAndDistance { speed, distance });
 
 	    // option parser with metainformation attached
 	    let speed_and_distance
@@ -171,9 +171,9 @@ subcommands or binaries can share a lot of the code:
 // a regular function that doesn't depend on any context, you can export it
 // and share across subcommands and binaries
 fn speed() -> impl Parser<f64> {
-    long("speed")
-        .help("Speed in KPH")
-        .argument::<f64>("SPEED")
+    long("speed").
+        help("Speed in KPH").
+        argument::<f64>("SPEED")
 }
 
 // this parser accepts multiple `--speed` flags from a command line when used,
@@ -196,18 +196,18 @@ state of each sub-parser and you can have several stages as well:
 #[derive(Clone, Debug)]
 struct Speed(f64);
 fn speed() -> impl Parser<Speed> {
-    long("speed")
-        .help("Speed in KPH")
-        .argument::<f64>("SPEED")
+    long("speed").
+        help("Speed in KPH").
+        argument::<f64>("SPEED")
 
         // You can perform additional validation with `parse` and `guard` functions
         // in as many steps as required.
-        // Before and after next two applications the type is still `impl Parser<f64>`
-        .guard(|&speed| speed >= 0.0, "You need to buy a DLC to move backwards")
-        .guard(|&speed| speed <= 100.0, "You need to buy a DLC to break the speed limits")
+        // Before and after next two applications the type is still `impl Parser<f64>`.
+        guard(|&speed| speed >= 0.0, "You need to buy a DLC to move backwards").
+        guard(|&speed| speed <= 100.0, "You need to buy a DLC to break the speed limits")
 
-        // You can transform contained values, next line gives `impl Parser<Speed>` as a result
-        .map(|speed| Speed(speed))
+        // You can transform contained values, next line gives `impl Parser<Speed>` as a result.
+        map(|speed| Speed(speed))
 }
 ```
 
@@ -333,16 +333,16 @@ pub struct Options {
 
 #[test]
 fn test_my_options() {
-    let help = options()
-        .run_inner(newArgs("--help"])
-        .unwrap_err()
-        .unwrap_stdout();
+    let help = options().
+        run_inner(newArgs("--help"]).
+        unwrap_err().
+        unwrap_stdout();
     let expected_help = "\
 Usage --user=ARG
 <skip>
 ";
 
-    assert_eq!(help, expected_help);
+    assert.Equal(t, help, expected_help);
 }
 ```
 

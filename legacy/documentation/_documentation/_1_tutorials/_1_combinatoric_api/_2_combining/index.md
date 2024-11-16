@@ -23,7 +23,7 @@ fn both() -> impl Parser<Options> {
     let beta = long("beta").argument("BETA");
     // call `alpha` function, and use result to make parser
     // for field `alpha`, use parser `beta` for field `beta`
-    construct!(Options { alpha(), beta })
+    construct(Options { alpha(), beta })
 }
 ```
 
@@ -42,8 +42,8 @@ the data user gave.
 
 If parsers inside parallel composition can parse the same object - the longest possible match
 should go first since `bpaf` picks an earlier parser if everything else is equal, otherwise it
-does not matter. In this example `construct!([miles, km])` produces the same results as
-`construct!([km, miles])` and only `--help` message is going to be different.
+does not matter. In this example `construct([miles, km])` produces the same results as
+`construct([km, miles])` and only `--help` message is going to be different.
 
 Parsers created with [`construct!`] still implement the [Parser] trait so you can apply more
 transformation on top. For example same as you can make a simple parser optional - you can make
@@ -60,6 +60,6 @@ struct Options {
 fn parser() -> impl Parser<Option<Options>> {
     let alpha = long("alpha").argument("ALPHA");
     let beta = long("beta").argument("BETA");
-    construct!(Options { alpha, beta }).optional()
+    construct(Options { alpha, beta }).optional()
 }
 ```

@@ -19,7 +19,7 @@ import (
 // # use bpaf*;
 // parser := short('f')
 //
-//	.switch()
+//	.Switch()
 //	.to_options();
 //
 // value := parser
@@ -56,7 +56,7 @@ func newArgs(value ...string) Args {
 //
 // ```rust
 // # use bpaf*;
-// parser := short('f').switch().to_options();
+// parser := short('f').Switch().to_options();
 // // ask bpaf to produce more input from "-", for
 // // suggesting new items use "" at the end
 // r := parser.run_inner(Argsfrom(&["-"])
@@ -80,7 +80,7 @@ func (self *Args) set_comp(rev uint) *Args {
 // Add an application name for args created from custom input
 // ```rust
 // # use bpaf*;
-// parser := short('f').switch().to_options();
+// parser := short('f').Switch().to_options();
 // r := parser
 //
 //	.run_inner(Argsfrom(&["--help"]).set_name("my_app"))

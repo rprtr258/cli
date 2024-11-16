@@ -245,46 +245,46 @@ pub use bpaf_derive::Bpaf;
 /// ```rust
 /// # use bpaf::*;
 /// # { struct Res(bool, bool, bool);
-/// # let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // structs with unnamed fields:
-/// construct!(Res(a, b, c));
+/// construct(Res(a, b, c));
 /// # }
 ///
 /// # { struct Res { a: bool, b: bool, c: bool }
-/// # let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // structs with named fields:
-/// construct!(Res {a, b, c});
+/// construct(Res {a, b, c});
 /// # }
 ///
 /// # { enum Ty { Res(bool, bool, bool) }
-/// # let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // enums with unnamed fields:
-/// construct!(Ty::Res(a, b, c));
+/// construct(Ty::Res(a, b, c));
 /// # }
 ///
 /// # { enum Ty { Res { a: bool, b: bool, c: bool } }
-/// # let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // enums with named fields:
-/// construct!(Ty::Res {a, b, c});
+/// construct(Ty::Res {a, b, c});
 /// # }
 ///
-/// # { let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # { let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // tuples:
-/// construct!(a, b, c);
+/// construct(a, b, c);
 /// # }
 ///
-/// # { let a = short('a').switch(); let b = short('b').switch(); let c = short('c').switch();
+/// # { let a = short('a').Switch(); let b = short('b').Switch(); let c = short('c').Switch();
 /// // parallel composition, tries all parsers, picks one that consumes the left most value,
 /// // or if they consume the same (or not at all) - the left most in a list
-/// construct!([a, b, c]);
+/// construct([a, b, c]);
 /// # }
 ///
 /// // defining primitive parsers inside construct macro :)
-/// construct!(a(short('a').switch()), b(long("arg").argument::<usize>("ARG")));
+/// construct(a(short('a').Switch()), b(long("arg").argument::<usize>("ARG")));
 ///
-/// # { let a = short('a').switch();
+/// # { let a = short('a').Switch();
 /// // defining a boxed parser
-/// construct!(a);
+/// construct(a);
 /// # }
 /// ```
 ///
@@ -315,26 +315,26 @@ pub use bpaf_derive::Bpaf;
 /// // You can construct structs or enums with unnamed fields
 /// fn res() -> impl Parser<Res> {
 ///     let b = short('b').argument::<u32>("n");
-///     construct!(Res ( a(), b ))
+///     construct(Res ( a(), b ))
 /// }
 ///
 /// // You can construct structs or enums with named fields
 /// fn ult() -> impl Parser<Ul> {
 ///     let b = short('b').argument::<u32>("n");
-///     construct!(Ul::T { a(), b })
+///     construct(Ul::T { a(), b })
 /// }
 ///
 /// // You can also construct simple tuples
 /// fn tuple() -> impl Parser<(u32, u32)> {
 ///     let b = short('b').argument::<u32>("n");
-///     construct!(a(), b)
+///     construct(a(), b)
 /// }
 ///
 /// // You can create boxed version of parsers so the type matches as long
 /// // as return type is the same - can be useful for all sort of dynamic parsers
 /// fn boxed() -> Box<dyn Parser<u32>> {
 ///     let a = short('a').argument::<u32>("n");
-///     construct!(a)
+///     construct(a)
 /// }
 ///
 /// // In addition to having primitives defined before using them - you can also define
@@ -346,9 +346,9 @@ pub use bpaf_derive::Bpaf;
 /// }
 ///
 /// fn coyoda() -> impl Parser<Options> {
-///     construct!(Options {
+///     construct(Options {
 ///         arg(short('a').argument::<u32>("ARG")),
-///         switch(short('s').switch())
+///         switch(short('s').Switch())
 ///     })
 /// }
 /// ```
@@ -366,7 +366,7 @@ pub use bpaf_derive::Bpaf;
 /// fn a_or_b() -> impl Parser<u32> {
 ///     let a = short('a').argument::<u32>("NUM");
 ///     // equivalent way of writing this would be `a.or_else(b())`
-///     construct!([a, b()])
+///     construct([a, b()])
 /// }
 /// ```
 ///
@@ -402,28 +402,28 @@ pub use bpaf_derive::Bpaf;
 
 #[macro_export]
 macro_rules! construct {
-    // construct!(Enum::Cons { a, b, c })
-    ($(::)? $ns:ident $(:: $con:ident)* { $($tokens:tt)* }) => {{ $crate::construct!(@prepare [named [$ns $(:: $con)*]] [] $($tokens)*) }};
+    // construct(Enum::Cons { a, b, c })
+    ($(::)? $ns:ident $(:: $con:ident)* { $($tokens:tt)* }) => {{ $crate::construct(@prepare [named [$ns $(:: $con)*]] [] $($tokens)*) }};
 
-    // construct!(Enum::Cons ( a, b, c ))
-    ($(::)? $ns:ident $(:: $con:ident)* ( $($tokens:tt)* )) => {{ $crate::construct!(@prepare [pos [$ns $(:: $con)*]] [] $($tokens)*) }};
+    // construct(Enum::Cons ( a, b, c ))
+    ($(::)? $ns:ident $(:: $con:ident)* ( $($tokens:tt)* )) => {{ $crate::construct(@prepare [pos [$ns $(:: $con)*]] [] $($tokens)*) }};
 
-    // construct!( a, b, c )
-    ($first:ident $($tokens:tt)*) => {{ $crate::construct!(@prepare [pos] [] $first $($tokens)*) }};
+    // construct( a, b, c )
+    ($first:ident $($tokens:tt)*) => {{ $crate::construct(@prepare [pos] [] $first $($tokens)*) }};
 
     // construct![a, b, c]
-    ([$first:ident $($tokens:tt)*]) => {{ $crate::construct!(@prepare [alt] [] $first $($tokens)*) }};
+    ([$first:ident $($tokens:tt)*]) => {{ $crate::construct(@prepare [alt] [] $first $($tokens)*) }};
 
     (@prepare $ty:tt [$($fields:tt)*] $field:ident () $(, $($rest:tt)*)? ) => {{
         let $field = $field();
-        $crate::construct!(@prepare $ty [$($fields)* $field] $($($rest)*)?)
+        $crate::construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
     }};
     (@prepare $ty:tt [$($fields:tt)*] $field:ident ($expr:expr) $(, $($rest:tt)*)?) => {{
         let $field = $expr;
-        $crate::construct!(@prepare $ty [$($fields)* $field] $($($rest)*)?)
+        $crate::construct(@prepare $ty [$($fields)* $field] $($($rest)*)?)
     }};
     (@prepare $ty:tt [$($fields:tt)*] $field:ident $(, $($rest:tt)*)? ) => {{
-        $crate::construct!(@prepare $ty [$($fields)* $field] $($($rest)* )?)
+        $crate::construct(@prepare $ty [$($fields)* $field] $($($rest)* )?)
     }};
 
     (@prepare [alt] [$first:ident $($fields:ident)*]) => {
@@ -432,7 +432,7 @@ macro_rules! construct {
     };
 
     (@prepare $ty:tt [$($fields:tt)*]) => {
-        $crate::construct!(@fin $ty [ $($fields)* ])
+        $crate::construct(@fin $ty [ $($fields)* ])
     };
 
     (@make [named [$($con:tt)+]] [$($fields:ident)*]) => { $($con)+ { $($fields),* } };
@@ -462,7 +462,7 @@ macro_rules! construct {
 
             args.current = None;
             ::std::result::Result::Ok::<_, $crate::Error>
-                ($crate::construct!(@make $ty [$front $($fields)*]))
+                ($crate::construct(@make $ty [$front $($fields)*]))
         };
         $crate::ParseCon { inner, meta, failfast: false }
     }};
@@ -543,7 +543,7 @@ macro_rules! construct {
 ///         .help("Height of the rectangle")
 ///         .argument::<u32>("PX")
 ///         .guard(|&x| 1 <= x && x <= 10, invalid_size);
-///     construct!(Rectangle { width, height })
+///     construct(Rectangle { width, height })
 ///         .guard(|&r| r.width * r.height <= 400, invalid_area)
 /// }
 /// ```
@@ -917,7 +917,7 @@ pub trait Parser<T> {
     /// }
     ///
     /// fn a_or_b_comb() -> impl Parser<u32> {
-    ///     construct!([a(), b()])
+    ///     construct([a(), b()])
     /// }
     ///
     /// fn a_or_b_comb2() -> impl Parser<u32> {
@@ -972,7 +972,7 @@ pub trait Parser<T> {
     #[doc(hidden)]
     #[deprecated(
         since = "0.5.0",
-        note = "instead of a.or_else(b) you should use construct!([a, b])"
+        note = "instead of a.or_else(b) you should use construct([a, b])"
     )]
     fn or_else<P>(self, alt: P) -> ParseOrElse<T>
     where
@@ -1273,7 +1273,7 @@ where
 /// fn must_agree() -> impl Parser<()> {
 ///     let a = long("accept").req_flag(());
 ///     let no_a = fail("You must accept the license agreement with --agree before proceeding");
-///     construct!([a, no_a])
+///     construct([a, no_a])
 /// }
 /// ```
 ///
@@ -1382,10 +1382,10 @@ pub fn env(variable: &'static str) -> NamedArg {
 /// For example for non-positional `non_pos` and positional `pos` parsers
 /// ```rust
 /// # use bpaf::*;
-/// # let non_pos = || short('n').switch();
+/// # let non_pos = || short('n').Switch();
 /// # let pos = ||positional::<String>("POS");
-/// let valid = construct!(non_pos(), pos());
-/// let invalid = construct!(pos(), non_pos());
+/// let valid = construct(non_pos(), pos());
+/// let invalid = construct(pos(), non_pos());
 /// ```
 ///
 /// **`bpaf` panics during help generation unless this restriction holds**
@@ -1488,8 +1488,8 @@ where
 /// or not.
 #[must_use]
 pub fn literal(val: &'static str) -> ParseAny<()> {
-    any("", move |s: String| if s == val { Some(()) } else { None })
-        .metavar(&[(val, crate::buffer::Style::Literal)][..])
+    any("", move |s: String| if s == val { Some(()) } else { None }).
+        metavar(&[(val, crate::buffer::Style::Literal)][..])
 }
 
 /// Strip a command name if present at the front when used as a `cargo` command
@@ -1503,7 +1503,7 @@ where
     P: Parser<T>,
 {
     let skip = literal(cmd).optional().hide();
-    construct!(skip, parser).map(|x| x.1)
+    construct(skip, parser).map(|x| x.1)
 }
 
 /// Choose between several parsers specified at runtime

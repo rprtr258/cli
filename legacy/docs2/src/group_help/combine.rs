@@ -15,22 +15,22 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let argument = long("argument")
-        .help("important argument")
-        .argument("ARG")
-        .fallback(30);
+    let argument = long("argument").
+        help("important argument").
+        argument("ARG").
+        fallback(30);
 
-    let width = long("width")
-        .help("Width of the rectangle")
-        .argument("W")
-        .fallback(10);
-    let height = long("height")
-        .help("Height of the rectangle")
-        .argument("H")
-        .fallback(10);
-    let rectangle = construct!(Rectangle { width, height }).group_help("Takes a rectangle");
+    let width = long("width").
+        help("Width of the rectangle").
+        argument("W").
+        fallback(10);
+    let height = long("height").
+        help("Height of the rectangle").
+        argument("H").
+        fallback(10);
+    let rectangle = construct(Rectangle { width, height }).group_help("Takes a rectangle");
 
-    construct!(Options {
+    construct(Options {
         argument,
         rectangle
     })

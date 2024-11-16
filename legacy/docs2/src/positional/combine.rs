@@ -8,18 +8,18 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let verbose = short('v')
-        .long("verbose")
-        .help("Display detailed information")
-        .switch();
+    let verbose = short('v').
+        long("verbose").
+        help("Display detailed information").
+        Switch();
 
     let crate_name = positional("CRATE").help("Crate name to use");
 
-    let feature_name = positional("FEATURE")
-        .help("Display information about this feature")
-        .optional();
+    let feature_name = positional("FEATURE").
+        help("Display information about this feature").
+        optional();
 
-    construct!(Options {
+    construct(Options {
         verbose,
         // You must place positional items and commands after
         // all other parsers

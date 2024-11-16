@@ -8,20 +8,20 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let verbose = short('v')
-        .long("verbose")
-        .help("Produce verbose output")
-        .switch();
-    let release = long("release")
-        .help("Build artifacts in release mode")
-        .flag(true, false);
-    let default_features = long("no-default-features")
-        .help("Do not activate default features")
+    let verbose = short('v').
+        long("verbose").
+        help("Produce verbose output").
+        Switch();
+    let release = long("release").
+        help("Build artifacts in release mode").
+        flag(true, false);
+    let default_features = long("no-default-features").
+        help("Do not activate default features")
         // default_features uses opposite values,
-        // producing `true` when value is absent
-        .flag(false, true);
+        // producing `true` when value is absent.
+        flag(false, true);
 
-    construct!(Options {
+    construct(Options {
         verbose,
         release,
         default_features,

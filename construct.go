@@ -4,9 +4,9 @@ package cli
 //
 // # Usage reference
 // ```rust
-// # a := short('a').switch();
-// # b := short('b').switch();
-// # c := short('c').switch();
+// # a := short('a').Switch();
+// # b := short('b').Switch();
+// # c := short('c').Switch();
 //
 // // structs with unnamed fields:
 // # use bpaf*;
@@ -33,7 +33,7 @@ package cli
 // construct([a, b, c]);
 //
 // // defining primitive parsers inside construct macro :)
-// construct(a(short('a').switch()), b(long("arg").argument[uint]("ARG")));
+// construct(a(short('a').Switch()), b(long("arg").argument[uint]("ARG")));
 //
 // // defining a boxed parser
 // construct(a);
@@ -99,7 +99,7 @@ package cli
 // func coyoda()impl Parser<fun.Options> {
 //     construct(Options {
 //         arg(short('a').argument<u32>("ARG")),
-//         switch(short('s').switch())
+//         switch(short('s').Switch())
 //     })
 // }
 // ```

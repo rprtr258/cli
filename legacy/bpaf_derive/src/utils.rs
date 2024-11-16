@@ -101,10 +101,10 @@ pub(crate) fn to_custom_case(input: &str, sep: char) -> String {
 
 #[test]
 fn check_to_snake_case() {
-    assert_eq!(to_snake_case("Foo"), "foo");
-    assert_eq!(to_snake_case("FooBar"), "foo_bar");
-    assert_eq!(to_snake_case("FOO"), "f_o_o");
-    assert_eq!(to_snake_case("r#in"), "in");
+    assert.Equal(t, to_snake_case("Foo"), "foo");
+    assert.Equal(t, to_snake_case("FooBar"), "foo_bar");
+    assert.Equal(t, to_snake_case("FOO"), "f_o_o");
+    assert.Equal(t, to_snake_case("r#in"), "in");
 }
 
 /// Contains a slice of strings that used to represent doc comment lines
@@ -193,20 +193,20 @@ fn split(input: &str) -> LineIter {
 #[test]
 fn splitter_preserves_line_breaks() {
     let x = split("a\nb").collect::<Vec<_>>();
-    assert_eq!(x, ["a\nb"]);
+    assert.Equal(t, x, ["a\nb"]);
 
     let x = split("a\n\nb").collect::<Vec<_>>();
-    assert_eq!(x, ["a\n\nb"]);
+    assert.Equal(t, x, ["a\n\nb"]);
 
     let x = split("a\n\n\nb").collect::<Vec<_>>();
-    assert_eq!(x, ["a", "b"]);
+    assert.Equal(t, x, ["a", "b"]);
 }
 
 #[test]
 fn splitter_with_code_blocks() {
     let input = "Make a tree\n\n\n\n\nExamples:\n\n```sh\ncargo 1\ncargo 2\n```";
     let out = split(input).collect::<Vec<_>>();
-    assert_eq!(
+    assert.Equal(t,
         out,
         [
             "Make a tree",

@@ -32,13 +32,13 @@ fn style() -> impl Parser<Style> {
             .collect()
     }
 
-    short('t')
-        .long("style")
-        .help("help message for style")
-        .argument::<String>("STYLE")
-        .complete(complete_fn)
-        .parse(|x| x.parse())
-        .fallback(DEFAULT)
+    short('t').
+        long("style").
+        help("help message for style").
+        argument::<String>("STYLE").
+        complete(complete_fn).
+        parse(|x| x.parse()).
+        fallback(DEFAULT)
 }
 
 #[derive(Debug, Bpaf)]
@@ -83,10 +83,10 @@ pub enum Options {
 fn completion_test_1() {
     let parser = options();
 
-    let r = parser
-        .run_inner(Args::from(&[""]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&[""]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected = "\
 --add\t--add\t\tAdd a file
@@ -101,18 +101,18 @@ File { mask: None }
 File { mask: None }
 File { mask: None }
 ";
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 
-    let r = parser
-        .run_inner(Args::from(&["--"]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
-    assert_eq!(r, expected);
+    let r = parser.
+        run_inner(Args::from(&["--"]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
+    assert.Equal(t, r, expected);
 
-    let r = parser
-        .run_inner(Args::from(&["--s"]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&["--s"]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
 
     // style is valid in two different branches, as far as bpaf is concerned they might be
     // different. Hopefully shell can deduplicate it?
@@ -122,18 +122,18 @@ File { mask: None }
 --style\t--style=STYLE\t\thelp message for style
 
 ";
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 
-    let r = parser
-        .run_inner(Args::from(&["--smart-add", ""]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&["--smart-add", ""]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
     let expected = "\
 --style\t--style=STYLE\t\thelp message for style
 
 File { mask: None }
 ";
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 }
 
 #[test]
@@ -151,17 +151,17 @@ fn completion_test_2() {
 
     let parser = options();
 
-    let r = parser
-        .run_inner(Args::from(&["-"]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&["-"]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected = "\
 --doctor\t--doctor\t\tPerform environment sanity check
 
 File { mask: None }
 ";
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 }
 
 #[test]
@@ -183,10 +183,10 @@ fn completion_test_3() {
 
     let parser = options();
 
-    let r = parser
-        .run_inner(Args::from(&["--"]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&["--"]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected = "\
 --doctor\t--doctor\t\tPerform environment sanity check
@@ -194,7 +194,7 @@ fn completion_test_3() {
 
 File { mask: None }
 ";
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 }
 
 #[test]
@@ -216,10 +216,10 @@ fn completion_test_4() {
 
     let parser = options();
 
-    let r = parser
-        .run_inner(Args::from(&["--d"]).set_comp(0))
-        .unwrap_err()
-        .unwrap_stdout();
+    let r = parser.
+        run_inner(Args::from(&["--d"]).set_comp(0)).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected = "\
 --doctor\t--doctor\t\tPerform environment sanity check
@@ -227,5 +227,5 @@ fn completion_test_4() {
 
 ";
 
-    assert_eq!(r, expected);
+    assert.Equal(t, r, expected);
 }

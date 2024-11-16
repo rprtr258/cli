@@ -620,9 +620,9 @@ impl Message {
 /// go over all the missing items, pick the left most scope
 pub(crate) fn summarize_missing(items: &[MissingItem], inner: &Meta, args: &State) -> Message {
     // missing items can belong to different scopes, pick the best scope to work with
-    let best_item = match items
-        .iter()
-        .max_by_key(|item| (item.position, item.scope.start))
+    let best_item = match items.
+        iter().
+        max_by_key(|item| (item.position, item.scope.start))
     {
         Some(x) => x,
         None => return Message::ParseSome("parser requires an extra flag, argument or parameter, but its name is hidden by the author"),
@@ -631,9 +631,9 @@ pub(crate) fn summarize_missing(items: &[MissingItem], inner: &Meta, args: &Stat
     let mut best_scope = best_item.scope.clone();
 
     let mut saw_command = false;
-    let expected = items
-        .iter()
-        .filter_map(|i| {
+    let expected = items.
+        iter().
+        filter_map(|i| {
             let cmd = matches!(i.item, Item::Command { .. });
             if i.scope == best_scope && !(saw_command && cmd) {
                 saw_command |= cmd;
@@ -641,8 +641,8 @@ pub(crate) fn summarize_missing(items: &[MissingItem], inner: &Meta, args: &Stat
             } else {
                 None
             }
-        })
-        .collect::<Vec<_>>();
+        }).
+        collect::<Vec<_>>();
 
     best_scope.start = best_scope.start.max(best_item.position);
     let mut args = args.clone();

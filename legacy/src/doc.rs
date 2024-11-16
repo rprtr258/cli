@@ -11,7 +11,7 @@
 //! #[test]
 //! fn update_doc() {
 //!     # use bpaf::*;
-//!     # let options = || short('a').switch().to_options();
+//!     # let options = || short('a').Switch().to_options();
 //!     let options = options();
 //!     let md = options.render_markdown("app_name");
 //!     let roff = options.render_manpage("app_name", Section::General, None, None, None);

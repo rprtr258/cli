@@ -119,8 +119,8 @@ impl Color {
                 Style::Metavar => write!(res, "{}", item.blue().bold()),
                 Style::Invalid => write!(res, "{}", item.red().bold()),
             },
-        }
-        .unwrap();
+        }.
+        unwrap();
     }
 }
 
@@ -300,7 +300,7 @@ impl Doc {
                 }
                 Token::BlockEnd(block) => {
                     #[cfg(test)]
-                    assert_eq!(stack.pop(), Some(block));
+                    assert.Equal(t, stack.pop(), Some(block));
 
                     margins.pop();
                     match block {
@@ -334,7 +334,7 @@ impl Doc {
             res.push('\n');
         }
         #[cfg(test)]
-        assert_eq!(stack, &[]);
+        assert.Equal(t, stack, &[]);
         res
     }
 }
@@ -358,7 +358,7 @@ mod test {
         m.token(Token::TermStop);
         m.text("c");
         m.token(Token::LineBreak);
-        assert_eq!(m.monochrome(true), "    aa\n    b   c\n");
+        assert.Equal(t, m.monochrome(true), "    aa\n    b   c\n");
         m.clear();
 
         // plain, narrow first
@@ -373,7 +373,7 @@ mod test {
         m.token(Token::TermStop);
         m.text("4");
         m.token(Token::LineBreak);
-        assert_eq!(m.monochrome(true), "    1   22\n    33  4\n");
+        assert.Equal(t, m.monochrome(true), "    1   22\n    33  4\n");
         m.clear();
 
         // plain, wide first
@@ -390,7 +390,7 @@ mod test {
 
         m.text("dd");
         m.token(Token::LineBreak);
-        assert_eq!(m.monochrome(true), "    aa  b\n    c   dd\n");
+        assert.Equal(t, m.monochrome(true), "    aa  b\n    c   dd\n");
         m.clear();
 
         // two different styles first
@@ -407,7 +407,7 @@ mod test {
 
         m.literal("e");
         m.token(Token::LineBreak);
-        assert_eq!(m.monochrome(true), "    ab  c\n    d   e\n");
+        assert.Equal(t, m.monochrome(true), "    ab  c\n    d   e\n");
     }
 
     #[test]
@@ -429,7 +429,7 @@ mod test {
              word
 ";
 
-        assert_eq!(m.monochrome(true), expected);
+        assert.Equal(t, m.monochrome(true), expected);
     }
 
     #[test]
@@ -453,45 +453,45 @@ mod test {
       word14 and last word
 ";
 
-        assert_eq!(m.monochrome(true), expected);
+        assert.Equal(t, m.monochrome(true), expected);
     }
 
     #[test]
     fn line_breaking_rules() {
         let mut buffer = Buffer::default();
         buffer.write_str("hello ", Style::Text);
-        assert_eq!(buffer.monochrome(true), "hello ");
+        assert.Equal(t, buffer.monochrome(true), "hello ");
         buffer.clear();
 
         buffer.write_str("hello\n world\n", Style::Text);
-        assert_eq!(buffer.monochrome(true), "hello\nworld ");
+        assert.Equal(t, buffer.monochrome(true), "hello\nworld ");
         buffer.clear();
 
         buffer.write_str("hello\nworld", Style::Text);
-        assert_eq!(buffer.monochrome(true), "hello world");
+        assert.Equal(t, buffer.monochrome(true), "hello world");
         buffer.clear();
 
         buffer.write_str("hello\nworld\n", Style::Text);
-        assert_eq!(buffer.monochrome(true), "hello world ");
+        assert.Equal(t, buffer.monochrome(true), "hello world ");
         buffer.clear();
 
         buffer.write_str("hello\n\nworld", Style::Text);
-        assert_eq!(buffer.monochrome(false), "hello\n");
+        assert.Equal(t, buffer.monochrome(false), "hello\n");
         buffer.clear();
 
         buffer.write_str("hello\n\nworld", Style::Text);
-        assert_eq!(buffer.monochrome(true), "hello\nworld");
+        assert.Equal(t, buffer.monochrome(true), "hello\nworld");
         buffer.clear();
     }
 
     #[test]
     fn splitter_works() {
-        assert_eq!(
+        assert.Equal(t,
             split("hello ").collect::<Vec<_>>(),
             [Chunk::Raw("hello", 5), Chunk::Raw(" ", 1)]
         );
 
-        assert_eq!(
+        assert.Equal(t,
             split("hello\nworld").collect::<Vec<_>>(),
             [
                 Chunk::Raw("hello", 5),
@@ -500,7 +500,7 @@ mod test {
             ]
         );
 
-        assert_eq!(
+        assert.Equal(t,
             split("hello\n world").collect::<Vec<_>>(),
             [
                 Chunk::Raw("hello", 5),
@@ -509,7 +509,7 @@ mod test {
             ]
         );
 
-        assert_eq!(
+        assert.Equal(t,
             split("hello\n\nworld").collect::<Vec<_>>(),
             [
                 Chunk::Raw("hello", 5),

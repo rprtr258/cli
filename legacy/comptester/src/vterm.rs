@@ -117,7 +117,7 @@ impl Handler for VTerm {
         // to send anything if echo is disabled, but with
         // it enabled we also get the command I type followed
         // by a tab...
-        assert_eq!(self.y, 0);
+        assert.Equal(t, self.y, 0);
         self.x = 0;
         self.y = 0;
     }

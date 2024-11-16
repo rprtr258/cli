@@ -87,9 +87,9 @@ pub fn parse_runnable(package: Rc<RefCell<Option<&'static str>>>) -> impl Parser
 
     let package0 = package.clone();
     const RUNNABLE: &[&str] = &["bin", "example"];
-    let pos = positional::<String>("EXE")
-        .complete(move |i| complete_target_kind(&[i], *package.borrow(), RUNNABLE))
-        .parse::<_, _, String>(move |name| {
+    let pos = positional::<String>("EXE").
+        complete(move |i| complete_target_kind(&[i], *package.borrow(), RUNNABLE)).
+        parse::<_, _, String>(move |name| {
             unique_match(
                 matching_targets(
                     MatchKind::exact(*package0.borrow()),
@@ -100,7 +100,7 @@ pub fn parse_runnable(package: Rc<RefCell<Option<&'static str>>>) -> impl Parser
             )
         });
 
-    construct!([pos, bin, example])
+    construct([pos, bin, example])
 }
 
 pub fn parse_testable(package: Rc<RefCell<Option<&'static str>>>) -> impl Parser<Exec> {
@@ -108,7 +108,7 @@ pub fn parse_testable(package: Rc<RefCell<Option<&'static str>>>) -> impl Parser
     let example = parse_example(package.clone());
     let test = parse_exec_target('t', "test", "use this test", &["test"], package.clone());
     let bench = parse_exec_target('b', "bench", "use this benchmark", &["bench"], package);
-    construct!([bin, example, test, bench])
+    construct([bin, example, test, bench])
 }
 
 fn parse_bin(package: Rc<RefCell<Option<&'static str>>>) -> impl Parser<Exec> {
@@ -127,12 +127,12 @@ fn parse_exec_target(
     package: Rc<RefCell<Option<&'static str>>>,
 ) -> impl Parser<Exec> {
     let package0 = package.clone();
-    long(long_name)
-        .short(short_name)
-        .help(help)
-        .argument::<String>("NAME")
-        .complete(move |i| complete_target_kind(&[i], *package.borrow(), kinds))
-        .parse::<_, _, String>(move |name| {
+    long(long_name).
+        short(short_name).
+        help(help).
+        argument::<String>("NAME").
+        complete(move |i| complete_target_kind(&[i], *package.borrow(), kinds)).
+        parse::<_, _, String>(move |name| {
             unique_match(
                 matching_targets(
                     MatchKind::exact(*package0.borrow()),

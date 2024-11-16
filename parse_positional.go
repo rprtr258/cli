@@ -137,7 +137,7 @@ func (self ParsePositional[T]) eval(args *State) (T, Error) {
 //
 // For example for non-Positional `non_pos` and Positional `pos` parsers
 //
-//	# non_pos := short('n').switch();
+//	# non_pos := short('n').Switch();
 //	# pos := Positional[string]("POS");
 //	valid := Pair(non_pos, pos);
 //	invalid := Pair(pos, non_pos);

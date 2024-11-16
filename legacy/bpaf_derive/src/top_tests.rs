@@ -17,13 +17,13 @@ fn cargo_command_helper() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             ::bpaf::cargo_helper("asm", {
-                let verbose = ::bpaf::long("verbose").switch();
-                ::bpaf::construct!(Opts { verbose, })
+                let verbose = ::bpaf::long("verbose").Switch();
+                ::bpaf::construct(Opts { verbose, })
             })
             .to_options()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -40,14 +40,14 @@ fn fallback_usage_top() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let verbose = ::bpaf::long("verbose").switch();
-                ::bpaf::construct!(Opts { verbose, })
+                let verbose = ::bpaf::long("verbose").Switch();
+                ::bpaf::construct(Opts { verbose, })
             }
             .to_options()
             .fallback_to_usage()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -69,7 +69,7 @@ fn fallback_usage_subcommand() {
                 .command("opt")
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -95,7 +95,7 @@ fn fallback_usage_lut() {
                 .to_options()
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -109,13 +109,13 @@ fn top_struct_construct() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
             {
-                let verbose = ::bpaf::long("verbose").switch();
-                ::bpaf::construct!(Opt { verbose, })
+                let verbose = ::bpaf::long("verbose").Switch();
+                ::bpaf::construct(Opt { verbose, })
             }
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -129,13 +129,13 @@ fn top_enum_construct() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
             {
-                let verbose_name = ::bpaf::long("verbose-name").switch();
-                ::bpaf::construct!(Opt::Foo { verbose_name, })
+                let verbose_name = ::bpaf::long("verbose-name").Switch();
+                ::bpaf::construct(Opt::Foo { verbose_name, })
             }
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -157,7 +157,7 @@ fn top_struct_options1() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
                 {
-                    ::bpaf::construct!(Opt {})
+                    ::bpaf::construct(Opt {})
                 }
                 .to_options()
                 .descr("those are options")
@@ -166,7 +166,7 @@ fn top_struct_options1() {
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -181,14 +181,14 @@ fn options_with_custom_usage() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
                 {
-                    ::bpaf::construct!(Opt {})
+                    ::bpaf::construct(Opt {})
                 }
                 .to_options()
                 .usage("App: usage")
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -204,14 +204,14 @@ fn struct_options2() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
             {
-                ::bpaf::construct!(Opt {})
+                ::bpaf::construct(Opt {})
             }
             .to_options()
             .descr("those are options")
         }
     };
 
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -232,7 +232,7 @@ fn struct_command_no_decor() {
                 .command("opt")
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -256,7 +256,7 @@ fn struct_command_decor() {
                 .help(help)
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -272,7 +272,7 @@ fn struct_command_short() {
             #[allow (unused_imports)]
             use ::bpaf::Parser;
             {
-                ::bpaf::construct!(O{ })
+                ::bpaf::construct(O{ })
             }
             .to_options()
             .descr("those are options")
@@ -281,7 +281,7 @@ fn struct_command_short() {
 
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 /*
@@ -315,13 +315,13 @@ fn unnamed_command_enum() {
                 let alt0 = ::bpaf::pure(Opts::Alpha).to_options().command("alpha1");
                 let alt1 = ::bpaf::long("beta").req_flag(Opts::Beta);
                 let alt2 = ::bpaf::long("gamma").req_flag(Opts::Gamma);
-                ::bpaf::construct!([alt0, alt1, alt2,])
+                ::bpaf::construct([alt0, alt1, alt2,])
             }
             .to_options()
             .command("opts")
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -349,8 +349,8 @@ fn enum_markdownish() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let field = ::bpaf::long("field").switch();
-                ::bpaf::construct!(Opt::Opt { field ,})
+                let field = ::bpaf::long("field").Switch();
+                ::bpaf::construct(Opt::Opt { field ,})
             }
             .to_options()
             .footer("Examples:\n\n```sh\ncargo 1\ncargo 2\n```")
@@ -360,7 +360,7 @@ fn enum_markdownish() {
         }
     };
 
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -391,7 +391,7 @@ fn enum_command() {
             {
                 let alt0 = {
                     let field = ::bpaf::long("field").argument::<usize>("ARG");
-                    ::bpaf::construct!(Opt::Foo { field, })
+                    ::bpaf::construct(Opt::Foo { field, })
                 }
                 .to_options()
                 .footer("footer")
@@ -400,21 +400,21 @@ fn enum_command() {
                 .command("foo");
 
                 let alt1 = {
-                    let field = ::bpaf::long("field").switch();
-                    ::bpaf::construct!(Opt::Bar { field, })
+                    let field = ::bpaf::long("field").Switch();
+                    ::bpaf::construct(Opt::Bar { field, })
                 }
                 .to_options()
                 .descr("bar doc")
                 .command("bar")
                 .adjacent();
-                ::bpaf::construct!([alt0, alt1, ])
+                ::bpaf::construct([alt0, alt1, ])
             }
             .to_options()
             .header(h)
             .footer(f)
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -433,12 +433,12 @@ fn unnamed_struct() {
             use ::bpaf::Parser;
             {
                 let f0 = ::bpaf::positional::<PathBuf>("ARG").help("help");
-                ::bpaf::construct!(Opt(f0,))
+                ::bpaf::construct(Opt(f0,))
             }
             .to_options()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -457,13 +457,13 @@ fn unnamed_enum() {
             {
                 let f0 = ::bpaf::positional::<PathBuf>("ARG");
                 let f1 = ::bpaf::positional::<usize>("ARG");
-                ::bpaf::construct!(Opt1::Con1(f0, f1,))
+                ::bpaf::construct(Opt1::Con1(f0, f1,))
             }
             .to_options()
             .version(env!("CARGO_PKG_VERSION"))
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -494,19 +494,19 @@ fn enum_to_flag_and_switches() {
                 let alt2 = ::bpaf::long("bar-foo").req_flag(Opt::BarFoo);
                 let alt3 = {
                     let f0 = ::bpaf::long("bazz").argument::<String>("ARG");
-                    ::bpaf::construct!(Opt::Baz(f0, ))
+                    ::bpaf::construct(Opt::Baz(f0, ))
                 };
                 let alt4 = {
                     let strange = ::bpaf::long("strange").argument::<String>("ARG");
-                    ::bpaf::construct!(Opt::Strange { strange, })
+                    ::bpaf::construct(Opt::Strange { strange, })
                 };
                 let alt5 = ::bpaf::pure(Opt::Alpha).to_options().usage("custom").command("alpha");
                 let alt6 = ::bpaf::pure(Opt::Omega).to_options().command("omega");
-                ::bpaf::construct!([alt0, alt1, alt2, alt3, alt4, alt5, alt6, ])
+                ::bpaf::construct([alt0, alt1, alt2, alt3, alt4, alt5, alt6, ])
             }
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -530,14 +530,14 @@ fn help_generation() {
             use ::bpaf::Parser;
             {
                 let f0 = ::bpaf::positional::<PathBuf>("ARG");
-                ::bpaf::construct!(Opt(f0, ))
+                ::bpaf::construct(Opt(f0, ))
             }
             .to_options()
             .descr("descr\n  a")
             .footer("footer\n a")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -556,13 +556,13 @@ fn version_with_commands() {
             {
                 let alt0 = ::bpaf::long("alpha").req_flag(Action::Alpha);
                 let alt1 = ::bpaf::long("beta").req_flag(Action::Beta);
-                ::bpaf::construct!([alt0, alt1, ])
+                ::bpaf::construct([alt0, alt1, ])
             }
             .to_options()
             .version(env!("CARGO_PKG_VERSION"))
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -594,12 +594,12 @@ fn hidden_command() {
                     .command("hidden")
                     .hide();
 
-                ::bpaf::construct!([alt0, alt1, ])
+                ::bpaf::construct([alt0, alt1, ])
             }
             .to_options()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -615,7 +615,7 @@ fn req_flag_struct() {
             ::bpaf::long("foo").req_flag(Foo)
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -631,7 +631,7 @@ fn generate_parser() {
             ::bpaf::long("foo").req_flag(Foo)
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -647,7 +647,7 @@ fn generate_options() {
             ::bpaf::long("foo").req_flag(Foo).to_options()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -663,7 +663,7 @@ fn generate_command() {
             ::bpaf::pure(Foo).to_options().command("foo")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -681,8 +681,8 @@ fn command_with_aliases_struct() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let i = ::bpaf::short('i').switch();
-                ::bpaf::construct!(Command { i, })
+                let i = ::bpaf::short('i').Switch();
+                ::bpaf::construct(Command { i, })
             }
             .to_options()
             .descr("help")
@@ -692,7 +692,7 @@ fn command_with_aliases_struct() {
             .long("long2")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -712,8 +712,8 @@ fn command_with_aliases_enum() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let i = ::bpaf::short('i').switch();
-                ::bpaf::construct!(Options::Command { i, })
+                let i = ::bpaf::short('i').Switch();
+                ::bpaf::construct(Options::Command { i, })
             }
             .to_options()
             .descr("help")
@@ -723,7 +723,7 @@ fn command_with_aliases_enum() {
             .long("long2")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -745,13 +745,13 @@ fn version_with_commands_with_cargo_helper() {
                 ::bpaf::cargo_helper("subcargo", {
                     let alt0 = ::bpaf::pure(Action::Alpha).to_options().command("alpha");
                     let alt1 = ::bpaf::pure(Action::Beta).to_options().command("beta");
-                    ::bpaf::construct!([alt0, alt1, ])
+                    ::bpaf::construct([alt0, alt1, ])
                 })
                 .to_options()
                 .version(env!("CARGO_PKG_VERSION"))
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -770,11 +770,11 @@ fn named_to_positional_with_metavar() {
             use ::bpaf::Parser;
             {
                 let path = ::bpaf::positional::<PathBuf>("PATH");
-                ::bpaf::construct!(Options { path, })
+                ::bpaf::construct(Options { path, })
             }
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -793,11 +793,11 @@ fn named_to_positional_without_metavar() {
             use ::bpaf::Parser;
             {
                 let path = ::bpaf::positional::<PathBuf>("ARG");
-                ::bpaf::construct!(Options { path, })
+                ::bpaf::construct(Options { path, })
             }
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -816,11 +816,11 @@ fn private_visibility() {
             use ::bpaf::Parser;
             {
                 let path = ::bpaf::long("path").argument::<PathBuf>("ARG");
-                ::bpaf::construct!(Options { path, })
+                ::bpaf::construct(Options { path, })
             }
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -855,12 +855,12 @@ fn hidden_default_enum_singleton() {
                 let alt3 = ::bpaf::long("dunno").req_flag(Decision::Dunno);
                 let alt4 = ::bpaf::short('u').req_flag(Decision::Umm);
                 let alt5 = ::bpaf::short('U').req_flag(Decision::Ummmmmmm);
-                ::bpaf::construct!([alt0, alt1, alt2, alt3, alt4, alt5,])
+                ::bpaf::construct([alt0, alt1, alt2, alt3, alt4, alt5,])
             }
             .fallback(Decision::No)
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 /*
 #[test]
@@ -891,13 +891,13 @@ fn explicit_external() {
             use ::bpaf::Parser;
             {
                 let action = actions().fallback(Action::List);
-                ::bpaf::construct!(Options { action, })
+                ::bpaf::construct(Options { action, })
             }
             .to_options()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -916,13 +916,13 @@ fn implicit_external() {
             use ::bpaf::Parser;
             {
                 let action = action().fallback(Action::List);
-                ::bpaf::construct!(Options { action, })
+                ::bpaf::construct(Options { action, })
             }
             .to_options()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -944,14 +944,14 @@ fn fallback_for_options() {
                 let alt0 = ::bpaf::long("llvm").req_flag(Opts::Llvm);
                 let alt1 = ::bpaf::long("att").req_flag(Opts::Att);
                 let alt2 = ::bpaf::long("dummy").req_flag(Opts::Dummy);
-                ::bpaf::construct!([alt0, alt1, alt2,])
+                ::bpaf::construct([alt0, alt1, alt2,])
             }
             .fallback(Opts::Dummy)
             .to_options()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -966,15 +966,15 @@ fn implicitly_named_switch() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let f0 = ::bpaf::long("release").switch();
-                ::bpaf::construct!(Opts(f0,))
+                let f0 = ::bpaf::long("release").Switch();
+                ::bpaf::construct(Opts(f0,))
             }
             .fallback(Opts::Dummy)
             .to_options()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -997,12 +997,12 @@ fn fallback_for_enum() {
             {
                 let alt0 = ::bpaf::long("yes").req_flag(Decision::Yes);
                 let alt1 = ::bpaf::short('n').long("nay").req_flag(Decision::No);
-                ::bpaf::construct!([alt0, alt1,])
+                ::bpaf::construct([alt0, alt1,])
             }
             .fallback(Decision::No)
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1020,12 +1020,12 @@ fn fallback_for_struct() {
             use ::bpaf::Parser;
             {
                 let count = ::bpaf::long("count").argument::<usize>("ARG");
-                ::bpaf::construct!(Value { count, })
+                ::bpaf::construct(Value { count, })
             }
             .fallback(Value { count: 10 })
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1045,13 +1045,13 @@ fn adjacent_for_struct() {
             {
                 let a = ::bpaf::short('a').argument::<String>("ARG");
                 let b = ::bpaf::short('b').argument::<String>("ARG");
-                ::bpaf::construct!(Opts { a, b, })
+                ::bpaf::construct(Opts { a, b, })
             }
             .adjacent()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1071,13 +1071,13 @@ fn box_for_struct() {
             {
                 let a = ::bpaf::short('a').argument::<String>("ARG");
                 let b = ::bpaf::short('b').argument::<String>("ARG");
-                ::bpaf::construct!(Opts { a, b, })
+                ::bpaf::construct(Opts { a, b, })
             }
             .boxed()
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1091,12 +1091,12 @@ fn no_fields_declaration() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                ::bpaf::construct!(Opts {})
+                ::bpaf::construct(Opts {})
             }
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1114,7 +1114,7 @@ fn single_unit_command() {
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1132,7 +1132,7 @@ fn single_unit_adjacent_command() {
         }
     };
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1156,11 +1156,11 @@ fn ingore_doc_comment_top_level_1() {
             {
                 let alt0 = ::bpaf::long("intel").help("intel help").req_flag(Mode::Intel);
                 let alt1 = ::bpaf::long("att").help("att help").req_flag(Mode::Att);
-                ::bpaf::construct!([alt0, alt1, ])
+                ::bpaf::construct([alt0, alt1, ])
             }
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1184,12 +1184,12 @@ fn ingore_doc_comment_top_level_2() {
             {
                 let alt0 = ::bpaf::long("intel").help("intel help").req_flag(Mode::Intel);
                 let alt1 = ::bpaf::long("att").help("att help").req_flag(Mode::Att);
-                ::bpaf::construct!([alt0, alt1,])
+                ::bpaf::construct([alt0, alt1,])
             }
             .to_options()
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1212,12 +1212,12 @@ fn top_comment_is_group_help_enum() {
             {
                 let alt0 = ::bpaf::long("intel").help("intel help").req_flag(Mode::Intel);
                 let alt1 = ::bpaf::long("att").help("att help").req_flag(Mode::Att);
-                ::bpaf::construct!([alt0, alt1, ])
+                ::bpaf::construct([alt0, alt1, ])
             }
             .group_help("present")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1238,14 +1238,14 @@ fn top_comment_is_group_help_struct() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let intel = ::bpaf::long("intel").help("help").switch();
-                let att = ::bpaf::long("att").help("help").switch();
-                ::bpaf::construct!(Mode { intel, att, })
+                let intel = ::bpaf::long("intel").help("help").Switch();
+                let att = ::bpaf::long("att").help("help").Switch();
+                ::bpaf::construct(Mode { intel, att, })
             }
             .group_help("present")
         }
     };
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1262,14 +1262,14 @@ fn max_width() {
             #[allow(unused_imports)]
             use ::bpaf::Parser;
             {
-                let verbose = ::bpaf::long("verbose").switch();
-                ::bpaf::construct!(Opt { verbose, })
+                let verbose = ::bpaf::long("verbose").Switch();
+                ::bpaf::construct(Opt { verbose, })
             }
             .to_options()
             .max_width(110)
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1286,13 +1286,13 @@ fn custom_bpaf_path_options() {
             #[allow(unused_imports)]
             use ::indirector::bpaf::Parser;
             {
-                let verbose = ::indirector::bpaf::long("verbose").switch();
-                ::indirector::bpaf::construct!(Options { verbose, })
+                let verbose = ::indirector::bpaf::long("verbose").Switch();
+                ::indirector::bpaf::construct(Options { verbose, })
             }
             .to_options()
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1309,12 +1309,12 @@ fn custom_bpaf_path_parser() {
             #[allow(unused_imports)]
             use ::indirector::bpaf::Parser;
             {
-                let verbose = ::indirector::bpaf::long("verbose").switch();
-                ::indirector::bpaf::construct!(Items { verbose, })
+                let verbose = ::indirector::bpaf::long("verbose").Switch();
+                ::indirector::bpaf::construct(Items { verbose, })
             }
         }
     };
-    assert_eq!(input.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, input.to_token_stream().to_string(), expected.to_string());
 }
 
 /*
@@ -1331,7 +1331,7 @@ fn push_down_command() {
 
     let expected = quote! {};
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 
 #[test]
@@ -1348,6 +1348,6 @@ fn push_down_argument() {
 
     let expected = quote! {};
 
-    assert_eq!(top.to_token_stream().to_string(), expected.to_string());
+    assert.Equal(t, top.to_token_stream().to_string(), expected.to_string());
 }
 */

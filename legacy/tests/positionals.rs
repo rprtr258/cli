@@ -4,7 +4,7 @@ use bpaf::*;
 fn positional_with_help() {
     let user = positional::<String>("USER").help("github user\nin two lines");
     let api = positional::<String>("API_KEY").help("api key to use");
-    let parser = construct!(user, api).to_options();
+    let parser = construct(user, api).to_options();
 
     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
     let expected_help = "\
@@ -17,14 +17,14 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 }
 
 #[test]
 fn help_for_positional() {
     let c = positional::<String>("C").help("help for\nc");
     let d = positional::<String>("DDD").help("help for\nddd");
-    let parser = construct!(c, d).to_options();
+    let parser = construct(c, d).to_options();
     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
     let expected_help = "\
@@ -37,31 +37,31 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 }
 
 #[test]
 fn dash_is_positional() {
     let a = positional::<String>("FILE");
     let parser = a.to_options();
-    assert_eq!("-", parser.run_inner(newArgs("-")).unwrap());
+    assert.Equal(t, "-", parser.run_inner(newArgs("-")).unwrap());
 }
 
 #[test]
 fn helpful_error_message() {
-    let parser = positional::<String>("FOO")
-        .some("you need to specify at least one FOO")
-        .to_options();
+    let parser = positional::<String>("FOO").
+        some("you need to specify at least one FOO").
+        to_options();
 
     let err = parser.run_inner(newArgs()).unwrap_err().unwrap_stderr();
-    assert_eq!("you need to specify at least one FOO", err);
+    assert.Equal(t, "you need to specify at least one FOO", err);
 }
 
 #[test]
 fn positional_argument() {
-    let p = positional::<String>("FILE")
-        .help("file name")
-        .group_help("File to process");
+    let p = positional::<String>("FILE").
+        help("file name").
+        group_help("File to process");
     let parser = p.to_options();
 
     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
@@ -76,15 +76,15 @@ Available options:
     -h, --help  Prints help information
 ";
 
-    assert_eq!(expected, help);
+    assert.Equal(t, expected, help);
 }
 
 #[test]
 #[should_panic(expected = "bpaf usage BUG: all positional")]
 fn positional_help_complain_1() {
     let a = positional::<String>("a");
-    let b = short('b').switch();
-    let parser = construct!(a, b).to_options();
+    let b = short('b').Switch();
+    let parser = construct(a, b).to_options();
 
     parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stderr();
 }
@@ -93,10 +93,10 @@ fn positional_help_complain_1() {
 #[should_panic(expected = "bpaf usage BUG: all positional")]
 fn positional_help_complain_2() {
     let a = positional::<String>("a");
-    let b = short('b').switch();
-    let ba = construct!(b, a);
-    let c = short('c').switch();
-    let parser = construct!(ba, c).to_options();
+    let b = short('b').Switch();
+    let ba = construct(b, a);
+    let c = short('c').Switch();
+    let parser = construct(ba, c).to_options();
 
     parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stderr();
 }
@@ -106,9 +106,9 @@ fn positional_help_complain_2() {
 fn positional_help_complain_3() {
     let a = positional::<String>("a");
     let b = short('b').argument::<String>("B");
-    let ba = construct!([b, a]);
-    let c = short('c').switch();
-    let parser = construct!(ba, c).to_options();
+    let ba = construct([b, a]);
+    let c = short('c').Switch();
+    let parser = construct(ba, c).to_options();
 
     parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stderr();
 }
@@ -117,7 +117,7 @@ fn positional_help_complain_3() {
 fn positional_help_complain_4() {
     let a = positional::<String>("a");
     let b = short('b').argument::<String>("B");
-    let parser = construct!([b, a]).to_options();
+    let parser = construct([b, a]).to_options();
 
     parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 }
@@ -127,22 +127,22 @@ fn strictly_positional() {
     let parser = positional::<String>("A").strict().to_options();
 
     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-    assert_eq!(
+    assert.Equal(t,
         r,
         "Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n"
     );
 
     let r = parser.run_inner(newArgs("a")).unwrap_err().unwrap_stderr();
-    assert_eq!(r, "expected `A` to be on the right side of `--`");
+    assert.Equal(t, r, "expected `A` to be on the right side of `--`");
 
     let r = parser.run_inner(newArgs("--", "a")).unwrap();
-    assert_eq!(r, "a");
+    assert.Equal(t, r, "a");
 
     let r = parser.run_inner(newArgs("a", "--")).unwrap_err().unwrap_stderr();
-    assert_eq!(r, "expected `A` to be on the right side of `--`");
+    assert.Equal(t, r, "expected `A` to be on the right side of `--`");
 
     let r = parser.run_inner(newArgs("--")).unwrap_err().unwrap_stderr();
-    assert_eq!(r, "expected `A`, pass `--help` for usage information");
+    assert.Equal(t, r, "expected `A`, pass `--help` for usage information");
 }
 
 #[test]
@@ -150,11 +150,11 @@ fn non_strictly_positional() {
     let parser = positional::<String>("A").non_strict().to_options();
 
     let r = parser.run_inner(newArgs("a")).unwrap();
-    assert_eq!(r, "a");
+    assert.Equal(t, r, "a");
 
     let r = parser.run_inner(newArgs("--", "a")).unwrap_err().unwrap_stderr();
-    assert_eq!(r, "expected `A` to be on the left side of `--`");
+    assert.Equal(t, r, "expected `A` to be on the left side of `--`");
 
     let r = parser.run_inner(newArgs("--")).unwrap_err().unwrap_stderr();
-    assert_eq!(r, "expected `A`, pass `--help` for usage information");
+    assert.Equal(t, r, "expected `A`, pass `--help` for usage information");
 }

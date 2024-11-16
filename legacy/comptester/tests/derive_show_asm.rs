@@ -31,7 +31,7 @@ Pick output type
 --att                    -- Generate assembly using AT&T style
 Item to pick from the output
 FUNCTION: Complete or partial function name to filter";
-    assert_eq!(buf, expected);
+    assert.Equal(t, buf, expected);
 }
 
 #[test]
@@ -58,44 +58,44 @@ fn all_options_fish() {
 --rust                              (Print interleaved Rust code)
 --target-dir    (Custom target directory for generated artifacts)
 --test                                 (Show results from a test)";
-    assert_eq!(buf, expected);
+    assert.Equal(t, buf, expected);
 }
 
 #[test]
 fn single_result_zsh() {
     let buf = zsh_comptest("derive_show_asm --li\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --lib");
+    assert.Equal(t, buf, "% derive_show_asm --lib");
 }
 
 #[test]
 fn single_result_fish() {
     let buf = fish_comptest("derive_show_asm --li\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --lib");
+    assert.Equal(t, buf, "% derive_show_asm --lib");
 }
 
 #[test]
 fn zsh_file_completion() {
     let buf = zsh_comptest("derive_show_asm --manifest-path \t").unwrap();
-    assert_eq!(
+    assert.Equal(t,
         buf,
         "% derive_show_asm --manifest-path
 Cargo.toml  src/        tests/"
     );
 
     let buf = zsh_comptest("derive_show_asm --manifest-path C\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --manifest-path Cargo.toml");
+    assert.Equal(t, buf, "% derive_show_asm --manifest-path Cargo.toml");
 }
 
 #[test]
 fn zsh_example_single() {
     let buf = zsh_comptest("derive_show_asm --example de\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --example derive_show_asm");
+    assert.Equal(t, buf, "% derive_show_asm --example derive_show_asm");
 }
 
 #[test]
 fn fish_example_single() {
     let buf = fish_comptest("derive_show_asm --example de\t").unwrap();
-    assert_eq!(
+    assert.Equal(t,
         buf,
         "% derive_show_asm --example derive_show_asm derive_show_asm"
     );
@@ -104,7 +104,7 @@ fn fish_example_single() {
 #[test]
 fn zsh_example_variants() {
     let buf = zsh_comptest("derive_show_asm --example co\t").unwrap();
-    assert_eq!(
+    assert.Equal(t,
         buf,
         "% derive_show_asm --example co
 Select artifact to use for analysis
@@ -113,26 +113,26 @@ comonad"
     );
     let buf = zsh_comptest("derive_show_asm --example core\t").unwrap();
 
-    assert_eq!(buf, "% derive_show_asm --example coreutils");
+    assert.Equal(t, buf, "% derive_show_asm --example coreutils");
 }
 
 #[test]
 fn fish_example_variants() {
     let buf = fish_comptest("derive_show_asm --example co\t").unwrap();
-    assert_eq!(
+    assert.Equal(t,
         buf,
         "% derive_show_asm --example comonad
 comonad  coreutils"
     );
     let buf = fish_comptest("derive_show_asm --example core\t").unwrap();
 
-    assert_eq!(buf, "% derive_show_asm --example coreutils coreutils");
+    assert.Equal(t, buf, "% derive_show_asm --example coreutils coreutils");
 }
 
 #[test]
 fn single_result_bash() {
     let buf = bash_comptest("derive_show_asm --li\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --lib");
+    assert.Equal(t, buf, "% derive_show_asm --lib");
 }
 
 #[test]
@@ -162,36 +162,36 @@ Pick output type
 --att                    -- Generate assembly using AT&T style
 Item to pick from the output
 FUNCTION: Complete or partial function name to filter";
-    assert_eq!(buf, expected);
+    assert.Equal(t, buf, expected);
 }
 
 #[test]
 fn bash_file_completion() {
     let buf = bash_comptest("derive_show_asm --manifest-path \t\t").unwrap();
     // TODO - "FUNCTION" looks a bit wonky here...
-    assert_eq!(buf, "%\nCargo.toml  src/        tests/");
+    assert.Equal(t, buf, "%\nCargo.toml  src/        tests/");
 
     // file completion with mask in bash uses _filedir which
     // renders directories all the time
     let buf = bash_comptest("derive_show_asm --manifest-path Ca\t\t").unwrap();
-    assert_eq!(buf, "%\nCargo.toml  src/        tests/");
+    assert.Equal(t, buf, "%\nCargo.toml  src/        tests/");
 }
 
 #[test]
 fn bash_example_single() {
     let buf = bash_comptest("derive_show_asm --example de\t").unwrap();
-    assert_eq!(buf, "% derive_show_asm --example derive_show_asm");
+    assert.Equal(t, buf, "% derive_show_asm --example derive_show_asm");
 }
 
 #[test]
 fn bash_example_variants() {
     let buf = bash_comptest("derive_show_asm --example co\t\t").unwrap();
-    assert_eq!(
+    assert.Equal(t,
         buf,
         "%\nSelect artifact to use for analysis    coreutils
 EXAMPLE: Show results from an example  comonad"
     );
     let buf = bash_comptest("derive_show_asm --example core\t").unwrap();
 
-    assert_eq!(buf, "% derive_show_asm --example coreutils");
+    assert.Equal(t, buf, "% derive_show_asm --example coreutils");
 }

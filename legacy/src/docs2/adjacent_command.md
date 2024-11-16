@@ -16,39 +16,39 @@ enum Cmd {
 }
 
 fn cmd() -> impl Parser<Cmd> {
-    let eat = positional::<String>("FOOD")
-        .to_options()
-        .descr("Performs eating action")
-        .command("eat")
-        .adjacent()
-        .map(Cmd::Eat);
+    let eat = positional::<String>("FOOD").
+        to_options().
+        descr("Performs eating action").
+        command("eat").
+        adjacent().
+        map(Cmd::Eat);
 
-    let coffee = long("coffee")
-        .help("Are you going to drink coffee?")
-        .switch();
-    let drink = construct!(Cmd::Drink { coffee })
-        .to_options()
-        .descr("Performs drinking action")
-        .command("drink")
-        .adjacent();
+    let coffee = long("coffee").
+        help("Are you going to drink coffee?").
+        Switch();
+    let drink = construct(Cmd::Drink { coffee }).
+        to_options().
+        descr("Performs drinking action").
+        command("drink").
+        adjacent();
 
     let time = long("time").argument::<usize>("HOURS");
-    let sleep = construct!(Cmd::Sleep { time })
-        .to_options()
-        .descr("Performs taking a nap action")
-        .command("sleep")
-        .adjacent();
+    let sleep = construct(Cmd::Sleep { time }).
+        to_options().
+        descr("Performs taking a nap action").
+        command("sleep").
+        adjacent();
 
-    construct!([eat, drink, sleep])
+    construct([eat, drink, sleep])
 }
 
 pub fn options() -> OptionParser<Options> {
-    let premium = short('p')
-        .long("premium")
-        .help("Opt in for premium serivces")
-        .switch();
+    let premium = short('p').
+        long("premium").
+        help("Opt in for premium serivces").
+        Switch();
     let commands = cmd().many();
-    construct!(Options { premium, commands }).to_options()
+    construct(Options { premium, commands }).to_options()
 }
 
 fn main() {

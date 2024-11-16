@@ -21,10 +21,10 @@ fn help_with_default_parse() {
 
     let parser = action();
 
-    let help = parser
-        .run_inner(newArgs("add", "--help"])
-        .unwrap_err()
-        .unwrap_stdout();
+    let help = parser.
+        run_inner(newArgs("add", "--help"]).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected_help = "\
 Add a new TODO item
@@ -37,7 +37,7 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 
     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
@@ -51,7 +51,7 @@ Available commands:
     add               Add a new TODO item
     check-connection  Test connection to the server
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 }
 
 #[test]
@@ -71,10 +71,10 @@ fn command_and_fallback() {
     use bpaf::Parser;
     let parser = action().fallback(Action::NoAction).to_options();
 
-    let help = parser
-        .run_inner(newArgs("add", "--help"])
-        .unwrap_err()
-        .unwrap_stdout();
+    let help = parser.
+        run_inner(newArgs("add", "--help"]).
+        unwrap_err().
+        unwrap_stdout();
 
     let expected_help = "\
 Add a new TODO item
@@ -84,7 +84,7 @@ Usage: add ARG
 Available options:
     -h, --help  Prints help information
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 
     let help = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
@@ -98,7 +98,7 @@ Available commands:
     add         Add a new TODO item
     no-action   Does nothing
 ";
-    assert_eq!(expected_help, help);
+    assert.Equal(t, expected_help, help);
 }
 
 #[test]
@@ -118,8 +118,8 @@ Available options:
 Available commands:
     one
 ";
-    assert_eq!(help, expected);
+    assert.Equal(t, help, expected);
 
     let r = parser.run_inner(newArgs("one")).unwrap();
-    assert_eq!(r, One);
+    assert.Equal(t, r, One);
 }

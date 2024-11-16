@@ -26,11 +26,11 @@ struct Options {
 }
 
 fn verbose() -> impl Parser<LevelFilter> {
-    short('v')
-        .help("Verbosity level, use multiple times for more verbosity")
-        .req_flag(())
-        .count()
-        .map(|l| {
+    short('v').
+        help("Verbosity level, use multiple times for more verbosity").
+        req_flag(()).
+        count().
+        map(|l| {
             use LevelFilter::*;
             [Off, Error, Warn, Info, Debug, Trace][l.max(5)]
         })

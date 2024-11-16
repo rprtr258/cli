@@ -35,29 +35,29 @@ fn user() -> impl Parser<Option<String>> {
     // match only literal "-user"
     let tag = literal("-user").anywhere();
     let value = positional("USER").help("User name");
-    construct!(tag, value)
-        .adjacent()
-        .map(|pair| pair.1)
-        .optional()
+    construct(tag, value).
+        adjacent().
+        map(|pair| pair.1).
+        optional()
 }
 
 // parsers -exec xxx yyy zzz ;
 fn exec() -> impl Parser<Option<Vec<OsString>>> {
-    let tag = literal("-exec")
-        .help("for every file find finds execute a separate shell command")
-        .anywhere();
+    let tag = literal("-exec").
+        help("for every file find finds execute a separate shell command").
+        anywhere();
 
-    let item = any::<OsString, _, _>("ITEM", |s| (s != ";").then_some(s))
-        .help("command with its arguments, find will replace {} with a file name")
-        .many();
+    let item = any::<OsString, _, _>("ITEM", |s| (s != ";").then_some(s)).
+        help("command with its arguments, find will replace {} with a file name").
+        many();
 
-    let endtag = any::<String, _, _>(";", |s| (s == ";").then_some(()))
-        .help("anything after literal \";\" will be considered a regular option again");
+    let endtag = any::<String, _, _>(";", |s| (s == ";").then_some(())).
+        help("anything after literal \";\" will be considered a regular option again");
 
-    construct!(tag, item, endtag)
-        .adjacent()
-        .map(|triple| triple.1)
-        .optional()
+    construct(tag, item, endtag).
+        adjacent().
+        map(|triple| triple.1).
+        optional()
 }
 
 /// parses symbolic permissions `-perm -mode`, `-perm /mode` and `-perm mode`
@@ -79,9 +79,9 @@ fn perm() -> impl Parser<Option<Perm>> {
 
     // `any` here is used to parse an arbitrary string that can also start with dash (-)
     // regular positional parser won't work here
-    let mode = any("MODE", Some)
-        .help("(perm | -perm | /perm), where perm is any subset of rwx characters, ex +rw")
-        .parse::<_, _, String>(|s: String| {
+    let mode = any("MODE", Some).
+        help("(perm | -perm | /perm), where perm is any subset of rwx characters, ex +rw").
+        parse::<_, _, String>(|s: String| {
             if let Some(m) = s.strip_prefix('-') {
                 Ok(Perm::All(parse_mode(m)?))
             } else if let Some(m) = s.strip_prefix('/') {
@@ -91,16 +91,16 @@ fn perm() -> impl Parser<Option<Perm>> {
             }
         });
 
-    construct!(tag, mode)
-        .adjacent()
-        .map(|pair| pair.1)
-        .optional()
+    construct(tag, mode).
+        adjacent().
+        map(|pair| pair.1).
+        optional()
 }
 
 pub fn options() -> OptionParser<Options> {
     let paths = positional::<PathBuf>("PATH").many();
 
-    construct!(Options {
+    construct(Options {
         exec(),
         user(),
         perm(),

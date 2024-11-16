@@ -203,19 +203,19 @@ mod test {
     #[test]
     fn escape_dash_in_plaintext() {
         let text = Roff::default().plaintext("-").render(NO_AP);
-        assert_eq!(r"\-", text);
+        assert.Equal(t, r"\-", text);
     }
 
     #[test]
     fn escape_backslash_in_plaintext() {
         let text = Roff::default().plaintext(r"\x").render(NO_AP);
-        assert_eq!(r"\\x", text);
+        assert.Equal(t, r"\\x", text);
     }
 
     #[test]
     fn escape_backslash_and_dash_in_plaintext() {
         let text = Roff::default().plaintext(r"\-").render(NO_AP);
-        assert_eq!(r"\\\-", text);
+        assert.Equal(t, r"\\\-", text);
     }
 
     #[test]
@@ -223,19 +223,19 @@ mod test {
         let text = Roff::default()
             .plaintext("foo\n.bar\n'yo\n hmm")
             .render(NO_AP);
-        assert_eq!("foo\n\\&.bar\n\\&'yo\n hmm", text);
+        assert.Equal(t, "foo\n\\&.bar\n\\&'yo\n hmm", text);
     }
 
     #[test]
     fn escape_plain_in_plaintext() {
         let text = Roff::default().plaintext("abc").render(NO_AP);
-        assert_eq!("abc", text);
+        assert.Equal(t, "abc", text);
     }
 
     #[test]
     fn render_dash_in_plaintext() {
         let text = Roff::default().plaintext("foo-bar").render(NO_AP);
-        assert_eq!("foo\\-bar", text);
+        assert.Equal(t, "foo\\-bar", text);
     }
 
     #[test]
@@ -243,25 +243,25 @@ mod test {
         let text = Roff::default()
             .text(&[(Font::Roman, "foo-bar")])
             .render(NO_AP);
-        assert_eq!(text, "\\fRfoo\\-bar\\fP");
+        assert.Equal(t, text, "\\fRfoo\\-bar\\fP");
     }
 
     #[test]
     fn render_roman() {
         let text = Roff::default().text(&[(Font::Roman, "foo")]).render(NO_AP);
-        assert_eq!("\\fRfoo\\fP", text);
+        assert.Equal(t, "\\fRfoo\\fP", text);
     }
 
     #[test]
     fn render_italic() {
         let text = Roff::default().text(&[(Font::Italic, "foo")]).render(NO_AP);
-        assert_eq!("\\fIfoo\\fP", text);
+        assert.Equal(t, "\\fIfoo\\fP", text);
     }
 
     #[test]
     fn render_bold() {
         let text = Roff::default().text(&[(Font::Bold, "foo")]).render(NO_AP);
-        assert_eq!("\\fBfoo\\fP", text);
+        assert.Equal(t, "\\fBfoo\\fP", text);
     }
 
     #[test]
@@ -269,7 +269,7 @@ mod test {
         let text = Roff::default()
             .text(&[(Font::Roman, "roman")])
             .render(NO_AP);
-        assert_eq!("\\fRroman\\fP", text);
+        assert.Equal(t, "\\fRroman\\fP", text);
     }
 
     #[test]
@@ -277,7 +277,7 @@ mod test {
         let text = Roff::default()
             .text(&[(Font::Roman, ".roman")])
             .render(NO_AP);
-        assert_eq!("\\fR.roman\\fP", text);
+        assert.Equal(t, "\\fR.roman\\fP", text);
     }
 
     #[test]
@@ -285,7 +285,7 @@ mod test {
         let text = Roff::default()
             .text(&[(Font::Roman, "foo\n.roman")])
             .render(NO_AP);
-        assert_eq!(text, "\\fRfoo\n\\&.roman\\fP");
+        assert.Equal(t, text, "\\fRfoo\n\\&.roman\\fP");
     }
 
     #[test]
@@ -295,7 +295,7 @@ mod test {
             .control("br", None::<&str>)
             .text(&[(Font::Roman, "more\n")])
             .render(NO_AP);
-        assert_eq!(text, "\\fRroman\n\\fP\n.br\n\\fRmore\n\\fP");
+        assert.Equal(t, text, "\\fRroman\n\\fP\n.br\n\\fRmore\n\\fP");
     }
 
     #[test]
@@ -303,7 +303,7 @@ mod test {
         let text = Roff::default()
             .control("foo", ["bar", "foo and bar"])
             .render(NO_AP);
-        assert_eq!(".foo bar foo\\ and\\ bar\n", text);
+        assert.Equal(t, ".foo bar foo\\ and\\ bar\n", text);
     }
 
     #[test]
@@ -316,7 +316,7 @@ mod test {
             ])
             .render(NO_AP);
 
-        assert_eq!(text, "\\fBbold,\\fR more bold\\fB and more bold\\fP");
+        assert.Equal(t, text, "\\fBbold,\\fR more bold\\fB and more bold\\fP");
     }
 
     #[test]
@@ -326,6 +326,6 @@ mod test {
             .control0("br")
             .control("br", None::<&str>)
             .render(NO_AP);
-        assert_eq!(".br\n.br\n.br\n", text);
+        assert.Equal(t, ".br\n.br\n.br\n", text);
     }
 }

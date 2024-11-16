@@ -3,11 +3,11 @@ use bpaf::*;
 /// suggest completions for the input
 fn completer(input: &String) -> Vec<(&'static str, Option<&'static str>)> {
     let names = ["Yuri", "Lupusregina", "Solution", "Shizu", "Entoma"];
-    names
-        .iter()
-        .filter(|name| name.starts_with(input))
-        .map(|name| (*name, None))
-        .collect::<Vec<_>>()
+    names.
+        iter().
+        filter(|name| name.starts_with(input)).
+        map(|name| (*name, None)).
+        collect::<Vec<_>>()
 }
 
 #[derive(Debug, Clone, Bpaf)]

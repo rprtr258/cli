@@ -27,10 +27,10 @@ fn shared() -> impl Parser<Vec<String>> {
 
 fn parse_command() -> impl Parser<(Command, Vec<String>)> {
     let action = action().map(Command::Action);
-    let action = construct!(action, shared()).to_options().command("action");
+    let action = construct(action, shared()).to_options().command("action");
     let build = build().map(Command::Build);
-    let build = construct!(build, shared()).to_options().command("build");
-    construct!([action, build])
+    let build = construct(build, shared()).to_options().command("build");
+    construct([action, build])
 }
 
 fn main() {

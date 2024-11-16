@@ -315,8 +315,8 @@ impl ToTokens for Top {
             replaced.to_token_stream()
         } else {
             original
-        }
-        .to_tokens(tokens)
+        }.
+        to_tokens(tokens)
     }
 }
 
@@ -363,8 +363,8 @@ impl Body {
         match self {
             Body::Single(b) => &b.ident,
             Body::Alternatives(n, _) => n,
-        }
-        .clone()
+        }.
+        clone()
     }
 }
 
@@ -423,11 +423,11 @@ impl ToTokens for Body {
                 let name_t = name_f.clone();
                 quote! {{
                     #( let #name_f = #branches; )*
-                    ::bpaf::construct!([ #( #name_t, )* ])
+                    ::bpaf::construct([ #( #name_t, )* ])
                 }}
             }
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 
@@ -644,7 +644,7 @@ impl ToTokens for Branch {
                 let value = fields.iter();
                 quote! {{
                     #( let #name = #value; )*
-                    ::bpaf::construct!( #enum_name #ident { #( #result , )* })
+                    ::bpaf::construct( #enum_name #ident { #( #result , )* })
                 }}
             }
             FieldSet::Unnamed(fields) => {
@@ -656,7 +656,7 @@ impl ToTokens for Branch {
                 let value = fields.iter();
                 quote! {{
                     #( let #name = #value; )*
-                    ::bpaf::construct!( #enum_name #ident ( #( #result , )* ))
+                    ::bpaf::construct( #enum_name #ident ( #( #result , )* ))
                 }}
             }
             FieldSet::Unit(ident, names, help) => {
@@ -671,8 +671,8 @@ impl ToTokens for Branch {
                 }
             }
             FieldSet::Pure(x) => quote!(#x),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 // }}}

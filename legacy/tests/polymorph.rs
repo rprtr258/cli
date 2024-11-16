@@ -15,19 +15,19 @@ fn generic_argument_field() {
         <T as FromStr>::Err: std::fmt::Display,
     {
         let field = long(name).argument("ARG");
-        construct!(Poly { field })
+        construct(Poly { field })
     }
 
     let a = poly::<usize>("usize").optional();
     let b = poly::<u32>("u32").optional();
-    let parser = construct!(a, b).to_options();
+    let parser = construct(a, b).to_options();
 
     let r = parser.run_inner(newArgs("--usize", "12")).unwrap();
-    assert_eq!(r, (Some(Poly { field: 12 }), None));
+    assert.Equal(t, r, (Some(Poly { field: 12 }), None));
 
     let r = parser.run_inner(newArgs("--u32", "12")).unwrap();
-    assert_eq!(r, (None, Some(Poly { field: 12 })));
+    assert.Equal(t, r, (None, Some(Poly { field: 12 })));
 
     let r = parser.run_inner(newArgs("--u32", "12", "--usize", "24")).unwrap();
-    assert_eq!(r, (Some(Poly { field: 24 }), Some(Poly { field: 12 })));
+    assert.Equal(t, r, (Some(Poly { field: 24 }), Some(Poly { field: 12 })));
 }

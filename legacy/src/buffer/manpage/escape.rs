@@ -138,6 +138,6 @@ mod test {
             (Escape::Unescaped, "\\fP"),
         ];
         let output = escape_to_string(items.iter().map(|p| (&p.0, p.1)), ap);
-        assert_eq!("\\fItest\\fP", output);
+        assert.Equal(t, "\\fItest\\fP", output);
     }
 }

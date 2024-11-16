@@ -76,12 +76,12 @@ impl PackageAndTestables {
 }
 
 pub fn parse_package(help: &'static str) -> impl Parser<Option<&'static str>> {
-    short('p')
-        .long("package")
-        .help(help)
-        .argument::<String>("NAME")
-        .complete(|i| suggest_available(&[i], METADATA.packages.iter().map(|p| p.name.as_str())))
-        .parse(|i| {
+    short('p').
+        long("package").
+        help(help).
+        argument::<String>("NAME").
+        complete(|i| suggest_available(&[i], METADATA.packages.iter().map(|p| p.name.as_str()))).
+        parse(|i| {
             METADATA
                 .packages
                 .iter()
@@ -93,17 +93,17 @@ pub fn parse_package(help: &'static str) -> impl Parser<Option<&'static str>> {
                     }
                 })
                 .ok_or_else(|| format!("{} is not a known package", i))
-        })
-        .optional()
+        }).
+        optional()
 }
 
 pub fn parse_features(cur_pkg: Rc<RefCell<Option<&'static str>>>) -> impl Parser<Vec<String>> {
-    short('F')
-        .long("feature")
-        .help("Feature to activate, one at a time")
-        .argument("FEATURES")
-        .many()
-        .complete(move |i| {
+    short('F').
+        long("feature").
+        help("Feature to activate, one at a time").
+        argument("FEATURES").
+        many().
+        complete(move |i| {
             match cur_pkg
                 .borrow()
                 .and_then(|p| METADATA.packages.iter().find(|pkg| pkg.name == p))
@@ -123,7 +123,7 @@ pub fn package_and_testables() -> impl Parser<PackageAndTestables> {
         p
     });
 
-    construct!(PackageAndTestables {
+    construct(PackageAndTestables {
         package,
         testables,
         features

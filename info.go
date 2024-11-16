@@ -234,7 +234,7 @@ func (self OptionParser[T]) short_descr() Option[Doc] {
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
-//	       .switch()
+//	       .Switch()
 //	       .to_options()
 //	       .version(env!("CARGO_PKG_VERSION"))
 //	}
@@ -279,7 +279,7 @@ func (self *OptionParser[T]) version(version string) *OptionParser[T] {
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
-//	       .switch()
+//	       .Switch()
 //	       .to_options()
 //	       .Descr("This is a description")
 //	       .header("This is a header")
@@ -348,7 +348,7 @@ func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
-//	       .switch()
+//	       .Switch()
 //	       .to_options()
 //	       .descr("This is a description")
 //	       .Header("This is a Header")
@@ -417,7 +417,7 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
-//	       .switch()
+//	       .Switch()
 //	       .to_options()
 //	       .descr("This is a description")
 //	       .header("This is a header")
@@ -509,7 +509,7 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 // # use bpaf*;
 // #[test]
 // func check_options() {
-// # fun.Options := || short('p').switch().to_options();
+// # fun.Options := || short('p').Switch().to_options();
 //
 //	    fun.Options().check_invariants(false)
 //	}
@@ -554,7 +554,7 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 //
 // ```rust
 // # use bpaf*;
-// # func fun.Options()OptionParser<bool> { short('a').switch().to_options() }
+// # func fun.Options()OptionParser<bool> { short('a').Switch().to_options() }
 // // create fun.Option parser in a usual way, derive or combinatoric API
 // opts := fun.Options().FallbackToUsage().run();
 // ```

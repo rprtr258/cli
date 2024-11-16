@@ -13,14 +13,14 @@ pub enum Decision {
 }
 
 fn parse_decision() -> impl Parser<Decision> {
-    long("decision")
-        .help("Positive decision")
-        .flag(Decision::Yes, Decision::No)
+    long("decision").
+        help("Positive decision").
+        flag(Decision::Yes, Decision::No)
 }
 
 pub fn options() -> OptionParser<Options> {
     let decision = parse_decision();
-    construct!(Options { decision }).to_options()
+    construct(Options { decision }).to_options()
 }
 
 fn main() {

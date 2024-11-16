@@ -89,12 +89,12 @@ fn main() {
     let format = output_format().run();
     // what happens when none matches? Or all of them?
     // What happens when you add a new output format?
-    if format.intel {
-        ...
-    } else if format.att {
-        ...
-    } else if format.llvm {
-        ...
+    if format.intel {.
+        ..
+    } else if format.att {.
+        ..
+    } else if format.llvm {.
+        ..
     } else {
         // can this branch be reached?
     }

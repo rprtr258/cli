@@ -1,5 +1,5 @@
 //! deriving for tri-state enabled/disabled/undecided switch, combinatoric version would use
-//! combination of `req_flag` and `construct!([on, off])`
+//! combination of `req_flag` and `construct([on, off])`
 
 #![allow(dead_code)]
 use bpaf::Bpaf;

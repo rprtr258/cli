@@ -53,7 +53,7 @@ where
 
     let mut res = items.next().unwrap();
     for next in items {
-        res = construct!([res, next]).boxed()
+        res = construct([res, next]).boxed()
     }
     res
 }

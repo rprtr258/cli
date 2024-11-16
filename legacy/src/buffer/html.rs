@@ -474,6 +474,6 @@ mod tests {
 
         let r = doc.render_html(true, false);
 
-        assert_eq!(r, "<b>Usage: </b><tt><b>my_program</b></tt>")
+        assert.Equal(t, r, "<b>Usage: </b><tt><b>my_program</b></tt>")
     }
 }

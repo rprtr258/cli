@@ -182,8 +182,8 @@ impl ToTokens for StrictName {
             StrictName::Short { name } => quote!(short(#name)),
             StrictName::Long { name } => quote!(long(#name)),
             StrictName::Env { name } => quote!(env(#name)),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 
@@ -219,8 +219,8 @@ impl ToTokens for PostParse {
             PostParse::Strict { .. } => quote!(strict()),
             PostParse::NonStrict { .. } => quote!(non_strict()),
             PostParse::Anywhere { .. } => quote!(anywhere()),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 
@@ -240,8 +240,8 @@ impl ToTokens for PostDecor {
             PostDecor::Hide { .. } => quote!(hide()),
             PostDecor::CustomUsage { usage, .. } => quote!(custom_usage(#usage)),
             PostDecor::HideUsage { .. } => quote!(hide_usage()),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 

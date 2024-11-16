@@ -56,11 +56,11 @@ fn complete_binary_args(input: &[OsString], exec: Option<Exec>) -> Vec<(String, 
 
     cmd.arg("--quiet").arg("--").arg(revision).args(input);
 
-    let output = cmd
-        .stderr(std::process::Stdio::piped())
-        .spawn()
-        .unwrap()
-        .wait_with_output();
+    let output = cmd.
+        stderr(std::process::Stdio::piped()).
+        spawn().
+        unwrap().
+        wait_with_output();
 
     match output {
         Ok(ok) => {
@@ -84,13 +84,13 @@ pub fn parse_run() -> impl Parser<Run> {
     let package = remember_opt(parse_package("Package with the target to run"), &cur_pkg);
     let runnable = remember_req(parse_runnable(cur_pkg), &cur_exec);
 
-    let args = positional::<OsString>("args")
-        .help("Cauwugo will pass arguments after -- to the child process")
-        .strict()
-        .many()
-        .complete(move |input| complete_binary_args(input, *cur_exec.borrow()));
+    let args = positional::<OsString>("args").
+        help("Cauwugo will pass arguments after -- to the child process").
+        strict().
+        many().
+        complete(move |input| complete_binary_args(input, *cur_exec.borrow()));
 
-    construct!(Run {
+    construct(Run {
         cargo_opts(),
         package,
         runnable,

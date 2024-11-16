@@ -118,7 +118,8 @@ type triple[A, B, C any] struct {
 	C C
 }
 
-func Triple[A, B, C any](pa Parser[A], pb Parser[B], pc Parser[C]) *ParseCon[triple[A, B, C]] {
+func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[triple[A, B, C]] {
+	pa, pb, pc := ppa.Parser(), ppb.Parser(), ppc.Parser()
 	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
 	type R = triple[A, B, C]
 	inner := func(failfast bool, args *State) (R, Error) {

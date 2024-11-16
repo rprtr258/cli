@@ -22,17 +22,17 @@ of them and collect them all into a `Vec`
 ```rust
 use bpaf::*;
 fn maybe_krate() -> impl Parser<Option<String>> {
-    long("crate")
-        .help("Crate name to process")
-        .argument("CRATE")
-        .optional()
+    long("crate").
+        help("Crate name to process").
+        argument("CRATE").
+        optional()
 }
 
 fn krates() -> impl Parser<Vec<String>> {
-    long("crate")
-        .help("Crate name to process")
-        .argument("CRATE")
-        .many()
+    long("crate").
+        help("Crate name to process").
+        argument("CRATE").
+        many()
 }
 ```
 
@@ -55,10 +55,10 @@ Validation first:
 ```rust
 # use bpaf::*;
 fn even() -> impl Parser<Option<usize>> {
-    long("even")
-        .argument("N")
-        .guard(|&n| n % 2 == 0, "number must be even")
-        .optional()
+    long("even").
+        argument("N").
+        guard(|&n| n % 2 == 0, "number must be even").
+        optional()
 }
 ```
 
@@ -67,10 +67,10 @@ Optional first:
 ```rust
 # use bpaf::*;
 fn even() -> impl Parser<Option<usize>> {
-    long("even")
-        .argument("N")
-        .optional()
-        .guard(|&n| n.map_or(true, |n| n % 2 == 0), "number must be even")
+    long("even").
+        argument("N").
+        optional().
+        guard(|&n| n.map_or(true, |n| n % 2 == 0), "number must be even")
 }
 ```
 
@@ -95,8 +95,8 @@ fn mk_even(n: usize) -> Result<Even, &'static str> {
 }
 
 fn even() -> impl Parser<Even> {
-    long("even")
-        .argument::<usize>("N")
-        .parse(mk_even)
+    long("even").
+        argument::<usize>("N").
+        parse(mk_even)
 }
 ```

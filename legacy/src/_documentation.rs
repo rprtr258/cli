@@ -708,7 +708,7 @@
                     //! ```rust
                     //! # use bpaf::*;
                     //! fn simple_switch() -> impl Parser<bool> {
-                    //!     short('s').long("simple").switch()
+                    //!     short('s').long("simple").Switch()
                     //! }
                     //! ```
                     //!
@@ -1063,7 +1063,7 @@
                 //!     let beta = long("beta").argument("BETA");
                 //!     // call `alpha` function, and use result to make parser
                 //!     // for field `alpha`, use parser `beta` for field `beta`
-                //!     construct!(Options { alpha(), beta })
+                //!     construct(Options { alpha(), beta })
                 //! }
                 //! ```
                 //!
@@ -1082,8 +1082,8 @@
                 //!
                 //! If parsers inside parallel composition can parse the same object - the longest possible match
                 //! should go first since `bpaf` picks an earlier parser if everything else is equal, otherwise it
-                //! does not matter. In this example `construct!([miles, km])` produces the same results as
-                //! `construct!([km, miles])` and only `--help` message is going to be different.
+                //! does not matter. In this example `construct([miles, km])` produces the same results as
+                //! `construct([km, miles])` and only `--help` message is going to be different.
                 //!
                 //! Parsers created with [`construct!`] still implement the [Parser] trait so you can apply more
                 //! transformation on top. For example same as you can make a simple parser optional - you can make
@@ -1100,7 +1100,7 @@
                 //! fn parser() -> impl Parser<Option<Options>> {
                 //!     let alpha = long("alpha").argument("ALPHA");
                 //!     let beta = long("beta").argument("BETA");
-                //!     construct!(Options { alpha, beta }).optional()
+                //!     construct(Options { alpha, beta }).optional()
                 //! }
                 //! ```
                 //!
@@ -2141,7 +2141,7 @@
             //! <skip>
             //! ";
             //!
-            //!     assert_eq!(help, expected_help);
+            //!     assert.Equal(t, help, expected_help);
             //! }
             //!
             //! #[test]
@@ -2149,7 +2149,7 @@
             //!     let value = options()
             //!          .run_inner(newArgs("--user", "Bob"])
             //!          .unwrap();
-            //!     assert_eq!(value.user, "Bob");
+            //!     assert.Equal(t, value.user, "Bob");
             //! }
             //! ```
             //!
@@ -3022,8 +3022,8 @@
         //! let present = Some(10);
         //! let absent = None;
         //!
-        //! assert_eq!(plus_one(present), Some(11));
-        //! assert_eq!(plus_one(absent), None);
+        //! assert.Equal(t, plus_one(present), Some(11));
+        //! assert.Equal(t, plus_one(absent), None);
         //! ```
         //!
         //! `Vec`, `Result` and other types that implement `map` are `Functors` as well, but `Functor`
@@ -3054,7 +3054,7 @@
         //! let val = Reader::<u32>::new();
         //! let val = val.map(|x| x + 1);
         //! let res = val.run(10);
-        //! assert_eq!(res, 11);
+        //! assert.Equal(t, res, 11);
         //! ```
         //!
         //! Not all the collections are `Functors` - by `Functor` laws mapping the *value in context*
@@ -3075,9 +3075,9 @@
         //! let present_2 = Some(20);
         //! let absent = None;
         //!
-        //! assert_eq!(add_numbers(present_1, present_2), Some(30));
-        //! assert_eq!(add_numbers(present_1, absent), None);
-        //! assert_eq!(add_numbers(absent, absent), None);
+        //! assert.Equal(t, add_numbers(present_1, present_2), Some(30));
+        //! assert.Equal(t, add_numbers(present_1, absent), None);
+        //! assert.Equal(t, add_numbers(absent, absent), None);
         //! ```
         //!
         //! Similarly to `Functors`, `Applicative Functors` are not limited to containers and can
@@ -3103,10 +3103,10 @@
         //! let present_1 = Some(10);
         //! let present_2 = Some(20);
         //! let empty = None;
-        //! assert_eq!(pick_number(present_1, present_2), present_1);
-        //! assert_eq!(pick_number(present_1, empty), present_1);
-        //! assert_eq!(pick_number(empty, present_1), present_1);
-        //! assert_eq!(pick_number(empty, empty), empty);
+        //! assert.Equal(t, pick_number(present_1, present_2), present_1);
+        //! assert.Equal(t, pick_number(present_1, empty), present_1);
+        //! assert.Equal(t, pick_number(empty, present_1), present_1);
+        //! assert.Equal(t, pick_number(empty, empty), empty);
         //! ```
         //!
         //! ## `Parser` trait and `construct!` macro

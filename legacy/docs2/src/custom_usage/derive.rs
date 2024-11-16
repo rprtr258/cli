@@ -7,22 +7,22 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let binary = short('b')
-        .long("binary")
-        .help("Binary to run")
-        .argument("BIN")
-        .optional()
-        .custom_usage(&[
+    let binary = short('b').
+        long("binary").
+        help("Binary to run").
+        argument("BIN").
+        optional().
+        custom_usage(&[
             ("--binary", Style::Literal),
             ("=", Style::Text),
             ("BINARY", Style::Metavar),
         ]);
 
-    let package = short('p')
-        .long("package")
-        .help("Package to check")
-        .argument("PACKAGE")
-        .optional();
+    let package = short('p').
+        long("package").
+        help("Package to check").
+        argument("PACKAGE").
+        optional();
 
-    construct!(Options { binary, package }).to_options()
+    construct(Options { binary, package }).to_options()
 }

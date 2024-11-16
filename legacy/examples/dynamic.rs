@@ -11,36 +11,36 @@ enum Value {
 
 fn number(name: &'static str) -> impl Parser<(String, Value)> {
     let label = name.to_string();
-    long(name)
-        .argument::<usize>("NUM")
-        .map(move |n| (label.clone(), Value::Number(n)))
+    long(name).
+        argument::<usize>("NUM").
+        map(move |n| (label.clone(), Value::Number(n)))
 }
 
 fn bool(name: &'static str) -> impl Parser<(String, Value)> {
     let label = name.to_string();
-    long(name)
-        .switch()
-        .map(move |n| (label.clone(), Value::Bool(n)))
+    long(name).
+        Switch().
+        map(move |n| (label.clone(), Value::Bool(n)))
 }
 
 fn string(name: &'static str) -> impl Parser<(String, Value)> {
     let label = name.to_string();
-    long(name)
-        .help("this can use a help message")
-        .argument::<String>("NUM")
-        .map(move |n| (label.clone(), Value::String(n)))
+    long(name).
+        help("this can use a help message").
+        argument::<String>("NUM").
+        map(move |n| (label.clone(), Value::String(n)))
 }
 
 fn cons<T>(acc: Box<dyn Parser<Vec<T>>>, cur: Box<dyn Parser<T>>) -> Box<dyn Parser<Vec<T>>>
 where
     T: 'static,
 {
-    construct!(acc, cur)
-        .map(|(mut acc, cur)| {
+    construct(acc, cur).
+        map(|(mut acc, cur)| {
             acc.push(cur);
             acc
-        })
-        .boxed()
+        }).
+        boxed()
 }
 
 enum Ty {

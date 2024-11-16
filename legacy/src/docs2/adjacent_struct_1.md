@@ -17,19 +17,19 @@ struct Rect {
 
 fn rect() -> impl Parser<Rect> {
     let rect = long("rect").help("Define a new rectangle").req_flag(());
-    let width = short('w')
-        .long("width")
-        .help("Rectangle width in pixels")
-        .argument::<usize>("PX");
-    let height = short('h')
-        .long("height")
-        .help("Rectangle height in pixels")
-        .argument::<usize>("PX");
-    let painted = short('p')
-        .long("painted")
-        .help("Should rectangle be filled?")
-        .switch();
-    construct!(Rect {
+    let width = short('w').
+        long("width").
+        help("Rectangle width in pixels").
+        argument::<usize>("PX");
+    let height = short('h').
+        long("height").
+        help("Rectangle height in pixels").
+        argument::<usize>("PX");
+    let painted = short('p').
+        long("painted").
+        help("Should rectangle be filled?").
+        Switch();
+    construct(Rect {
         rect,
         width,
         height,
@@ -39,9 +39,9 @@ fn rect() -> impl Parser<Rect> {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let mirror = long("mirror").help("Mirror the image").switch();
+    let mirror = long("mirror").help("Mirror the image").Switch();
     let rect = rect().many();
-    construct!(Options { rect, mirror }).to_options()
+    construct(Options { rect, mirror }).to_options()
 }
 
 fn main() {

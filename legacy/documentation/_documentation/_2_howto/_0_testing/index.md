@@ -12,16 +12,16 @@ pub struct Options {
 
 #[test]
 fn test_my_options() {
-    let help = options()
-        .run_inner(newArgs("--help"])
-        .unwrap_err()
-        .unwrap_stdout();
+    let help = options().
+        run_inner(newArgs("--help"]).
+        unwrap_err().
+        unwrap_stdout();
     let expected_help = "\
 Usage --user=ARG
 <skip>
 ";
 
-    assert_eq!(help, expected_help);
+    assert.Equal(t, help, expected_help);
 }
 
 #[test]
@@ -29,7 +29,7 @@ fn test_value() {
     let value = options()
          .run_inner(newArgs("--user", "Bob"])
          .unwrap();
-    assert_eq!(value.user, "Bob");
+    assert.Equal(t, value.user, "Bob");
 }
 ```
 

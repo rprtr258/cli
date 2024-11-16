@@ -14,23 +14,23 @@ pub struct Options {
 }
 
 fn cmd() -> impl Parser<Cmd> {
-    let flag = long("flag")
-        .help("This flag is specific to command")
-        .switch();
+    let flag = long("flag").
+        help("This flag is specific to command").
+        Switch();
     let arg = long("arg").argument::<usize>("ARG");
-    construct!(Cmd { flag, arg })
-        .to_options()
-        .descr("Command to do something")
-        .command("cmd")
-        // you can chain add extra short and long names
-        .short('c')
+    construct(Cmd { flag, arg }).
+        to_options().
+        descr("Command to do something").
+        command("cmd")
+        // you can chain add extra short and long names.
+        short('c')
 }
 
 pub fn options() -> OptionParser<Options> {
-    let flag = long("flag")
-        .help("This flag is specific to the outer layer")
-        .switch();
-    construct!(Options { flag, cmd() }).to_options()
+    let flag = long("flag").
+        help("This flag is specific to the outer layer").
+        Switch();
+    construct(Options { flag, cmd() }).to_options()
 }
 
 fn main() {

@@ -7,17 +7,17 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let release = short('r')
-        .long("release")
-        .help("Perform actions in release mode")
-        .switch();
+    let release = short('r').
+        long("release").
+        help("Perform actions in release mode").
+        Switch();
 
-    let binary = short('b')
-        .long("binary")
-        .help("Use this binary")
-        .argument("BIN");
+    let binary = short('b').
+        long("binary").
+        help("Use this binary").
+        argument("BIN");
 
-    construct!(Options { release, binary })
-        .to_options()
-        .usage("Usage: my_program [--release] [--binary=BIN] ...")
+    construct(Options { release, binary }).
+        to_options().
+        usage("Usage: my_program [--release] [--binary=BIN] ...")
 }

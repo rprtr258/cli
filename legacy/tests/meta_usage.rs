@@ -3,20 +3,20 @@ use bpaf::*;
 #[track_caller]
 fn assert_usage<T: std::fmt::Debug>(parser: OptionParser<T>, expected: &str) {
     let output = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-    let usage = output
-        .lines()
-        .next()
-        .unwrap()
-        .strip_prefix("Usage: ")
-        .unwrap();
-    assert_eq!(usage, expected);
+    let usage = output.
+        lines().
+        next().
+        unwrap().
+        strip_prefix("Usage: ").
+        unwrap();
+    assert.Equal(t, usage, expected);
 }
 
 #[test]
 fn optional_group_meta() {
     let a = short('a').argument::<String>("A");
     let b = short('b').argument::<String>("B");
-    let parser = construct!(a, b).optional().to_options();
+    let parser = construct(a, b).optional().to_options();
 
     assert_usage(parser, "[-a=A -b=B]");
 }
@@ -25,7 +25,7 @@ fn optional_group_meta() {
 fn sensors_many() {
     let a = short('a').argument::<String>("A");
     let b = short('b').argument::<String>("B");
-    let parser = construct!(a, b).many().to_options();
+    let parser = construct(a, b).many().to_options();
     assert_usage(parser, "[-a=A -b=B]...");
 }
 
@@ -33,7 +33,7 @@ fn sensors_many() {
 fn sensors_some() {
     let a = short('a').argument::<String>("A");
     let b = short('b').argument::<String>("B");
-    let parser = construct!(a, b).some("want some sensors").to_options();
+    let parser = construct(a, b).some("want some sensors").to_options();
     assert_usage(parser, "(-a=A -b=B)...");
 }
 
@@ -51,13 +51,13 @@ fn some_arg() {
 
 #[test]
 fn many_switch() {
-    let parser = short('a').switch().many().to_options();
+    let parser = short('a').Switch().many().to_options();
     assert_usage(parser, "[-a]...");
 }
 
 #[test]
 fn some_switch() {
-    let parser = short('a').switch().some("ARG").to_options();
+    let parser = short('a').Switch().some("ARG").to_options();
     assert_usage(parser, "[-a]...");
 }
 
@@ -65,7 +65,7 @@ fn some_switch() {
 fn optional_req_select() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!([a, b]).optional().to_options();
+    let parser = construct([a, b]).optional().to_options();
 
     assert_usage(parser, "[-a | -b]");
 }
@@ -73,7 +73,7 @@ fn optional_req_select() {
 #[test]
 fn single_optional_req_select() {
     let a = short('a').req_flag(());
-    let parser = construct!([a]).optional().to_options();
+    let parser = construct([a]).optional().to_options();
 
     assert_usage(parser, "[-a]");
 }
@@ -82,7 +82,7 @@ fn single_optional_req_select() {
 fn fallback_req_select() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!([a, b]).fallback(()).to_options();
+    let parser = construct([a, b]).fallback(()).to_options();
 
     assert_usage(parser, "[-a | -b]");
 }
@@ -90,7 +90,7 @@ fn fallback_req_select() {
 #[test]
 fn single_fallback_req_select() {
     let a = short('a').req_flag(());
-    let parser = construct!([a]).fallback(()).to_options();
+    let parser = construct([a]).fallback(()).to_options();
 
     assert_usage(parser, "[-a]");
 }
@@ -99,7 +99,7 @@ fn single_fallback_req_select() {
 fn optional_argument_select() {
     let a = short('a').argument::<String>("A");
     let b = short('b').argument::<String>("B");
-    let parser = construct!([a, b]).optional().to_options();
+    let parser = construct([a, b]).optional().to_options();
 
     assert_usage(parser, "[-a=A | -b=B]");
 }
@@ -108,7 +108,7 @@ fn optional_argument_select() {
 fn commands_no_fallback_meta() {
     let a = pure(()).to_options().command("a");
     let b = pure(()).to_options().command("b");
-    let parser = construct!([a, b]).to_options();
+    let parser = construct([a, b]).to_options();
 
     assert_usage(parser, "COMMAND ...");
 }
@@ -117,7 +117,7 @@ fn commands_no_fallback_meta() {
 fn commands_and_fallback_meta() {
     let a = pure(()).to_options().command("a");
     let b = pure(()).to_options().command("b");
-    let parser = construct!([a, b]).fallback(()).to_options();
+    let parser = construct([a, b]).fallback(()).to_options();
 
     assert_usage(parser, "[COMMAND ...]");
 }
@@ -142,7 +142,7 @@ fn command_and_fallback_meta() {
 fn requierd_select() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!([a, b]).to_options();
+    let parser = construct([a, b]).to_options();
 
     assert_usage(parser, "(-a | -b)");
 }
@@ -151,7 +151,7 @@ fn requierd_select() {
 fn requierd_and() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!(a, b).to_options();
+    let parser = construct(a, b).to_options();
 
     assert_usage(parser, "-a -b");
 }
@@ -162,9 +162,9 @@ fn required_or_and() {
     let b = short('b').req_flag(());
     let c = short('c').req_flag(());
     let d = short('d').req_flag(());
-    let ab = construct!(a, b);
-    let cd = construct!(c, d);
-    let parser = construct!([ab, cd]).to_options();
+    let ab = construct(a, b);
+    let cd = construct(c, d);
+    let parser = construct([ab, cd]).to_options();
     assert_usage(parser, "(-a -b | -c -d)");
 }
 
@@ -172,7 +172,7 @@ fn required_or_and() {
 fn required_one_many() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!(a, b).many().to_options();
+    let parser = construct(a, b).many().to_options();
     assert_usage(parser, "[-a -b]...");
 }
 
@@ -180,7 +180,7 @@ fn required_one_many() {
 fn optional_one_many() {
     let a = short('a').req_flag(());
     let b = short('b').req_flag(());
-    let parser = construct!(a, b).optional().many().to_options();
+    let parser = construct(a, b).optional().many().to_options();
     assert_usage(parser, "[-a -b]...");
 }
 
@@ -190,12 +190,12 @@ fn required_or_many() {
     let b = short('b').req_flag(());
     let c = short('c').req_flag(());
     let d = short('d').req_flag(());
-    let ab = construct!(a, b);
-    let cd = construct!(c, d);
+    let ab = construct(a, b);
+    let cd = construct(c, d);
     let e = pure(((), ()));
     let f = pure(((), ()));
-    let ef = construct!([e, f]);
-    let parser = construct!([ab, cd, ef]).many().to_options();
+    let ef = construct([e, f]);
+    let parser = construct([ab, cd, ef]).many().to_options();
     assert_usage(parser, "[-a -b | -c -d]...");
 }
 
@@ -204,7 +204,7 @@ fn no_actual_arguments_also_works() {
     let parser = pure(true).to_options();
 
     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
-    assert_eq!(
+    assert.Equal(t,
         r,
         "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n"
     );
@@ -214,7 +214,7 @@ fn no_actual_arguments_also_works() {
 fn a_or_b() {
     let a = short('a').long("aaa").argument::<String>("A");
     let b = short('b').long("bbb").argument::<String>("B");
-    let parser = construct!([a, b]).to_options();
+    let parser = construct([a, b]).to_options();
     assert_usage(parser, "(-a=A | -b=B)");
 }
 
@@ -228,9 +228,9 @@ fn some_req_flag() {
 fn a_or_b_and_c() {
     let a = short('a').long("aaa").argument::<String>("A");
     let b = short('b').long("bbb").argument::<String>("B");
-    let ab = construct!([a, b]);
+    let ab = construct([a, b]);
     let c = positional::<String>("C");
-    let parser = construct!(ab, c).to_options();
+    let parser = construct(ab, c).to_options();
     assert_usage(parser, "(-a=A | -b=B) C");
 }
 
@@ -238,7 +238,7 @@ fn a_or_b_and_c() {
 fn a_or_b_opt() {
     let a = short('a').long("aaa").argument::<String>("A");
     let b = short('b').long("bbb").argument::<String>("B");
-    let parser = construct!([a, b]).optional().to_options();
+    let parser = construct([a, b]).optional().to_options();
     assert_usage(parser, "[-a=A | -b=B]");
 }
 
@@ -246,9 +246,9 @@ fn a_or_b_opt() {
 fn a_or_b_opt_and_c() {
     let a = short('a').long("aaa").argument::<String>("A");
     let b = short('b').long("bbb").argument::<String>("B");
-    let ab = construct!([a, b]).optional();
+    let ab = construct([a, b]).optional();
     let c = positional::<String>("C");
-    let parser = construct!(ab, c).to_options();
+    let parser = construct(ab, c).to_options();
     assert_usage(parser, "[-a=A | -b=B] C");
 }
 
@@ -256,7 +256,7 @@ fn a_or_b_opt_and_c() {
 fn any_in_adjacent() {
     let a = short('a').req_flag(());
     let b = any("A", Some);
-    let parser: OptionParser<((), i64)> = construct!(a, b).adjacent().to_options();
+    let parser: OptionParser<((), i64)> = construct(a, b).adjacent().to_options();
 
     assert_usage(parser, "-a A");
 }
@@ -268,9 +268,9 @@ fn positionals_in_branches_are_okay() {
     let c = positional::<String>("C");
     let d = positional::<String>("D");
 
-    let ac = construct!(a, c);
-    let bd = construct!(b, d);
-    let parser = construct!([ac, bd]).to_options();
+    let ac = construct(a, c);
+    let bd = construct(b, d);
+    let parser = construct([ac, bd]).to_options();
     assert_usage(parser, "(-a=A C | -b=B D)");
 }
 
@@ -278,7 +278,7 @@ fn positionals_in_branches_are_okay() {
 fn optional_last_of_many() {
     let a = short('a').req_flag(true);
     let b = short('b').req_flag(false);
-    let ab = construct!([a, b]).last().fallback(false);
+    let ab = construct([a, b]).last().fallback(false);
     let parser = ab.to_options();
 
     assert_usage(parser, "[-a | -b]...");
@@ -307,23 +307,23 @@ fn hidden_fallback_branch() {
 
 #[test]
 fn custom_usage() {
-    let a = short('a').switch();
+    let a = short('a').Switch();
 
     let mut buf = Doc::default();
     buf.text("<also takes flag b>");
-    let b = short('b').switch().custom_usage(buf);
+    let b = short('b').Switch().custom_usage(buf);
 
-    let parser = construct!(a, b).to_options();
+    let parser = construct(a, b).to_options();
 
     assert_usage(parser, "[-a] <also takes flag b>")
 }
 
 #[test]
 fn double_strict() {
-    let a = short('a').switch();
+    let a = short('a').Switch();
     let b = positional::<usize>("B").strict();
     let c = positional::<usize>("C").strict();
-    let parser = construct!(a, b, c).to_options();
+    let parser = construct(a, b, c).to_options();
     assert_usage(parser, "[-a] -- B C");
 }
 
@@ -335,38 +335,38 @@ fn optional_strict() {
 
 #[test]
 fn many_strict() {
-    let a = short('a').switch();
+    let a = short('a').Switch();
     let b = positional::<usize>("B").strict().many();
-    let parser = construct!(a, b).to_options();
+    let parser = construct(a, b).to_options();
     assert_usage(parser, "[-a] -- [B]...");
 }
 
 #[test]
 fn quadruple_strict() {
-    let a = short('a').switch();
+    let a = short('a').Switch();
     let b = positional::<usize>("B").strict();
     let c = positional::<usize>("C").strict();
-    let abc = construct!(a, b, c);
+    let abc = construct(a, b, c);
 
-    let d = short('d').switch();
+    let d = short('d').Switch();
     let e = positional::<usize>("E").strict();
     let f = positional::<usize>("F").strict();
-    let def = construct!(d, e, f);
+    let def = construct(d, e, f);
 
-    let parser = construct!([abc, def]).to_options();
+    let parser = construct([abc, def]).to_options();
     assert_usage(parser, "([-a] -- B C | [-d] -- E F)");
 }
 
 #[test]
 fn quadruple_strict_many() {
-    let a = short('a').switch();
+    let a = short('a').Switch();
     let b = positional::<usize>("B").strict().many();
-    let ab = construct!(a, b);
+    let ab = construct(a, b);
 
-    let d = short('d').switch();
+    let d = short('d').Switch();
     let f = positional::<usize>("F").strict().many();
-    let df = construct!(d, f);
+    let df = construct(d, f);
 
-    let parser = construct!([ab, df]).to_options();
+    let parser = construct([ab, df]).to_options();
     assert_usage(parser, "([-a] -- [B]... | [-d] -- [F]...)");
 }

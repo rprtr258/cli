@@ -108,10 +108,10 @@ fn complete_subtest_name(input: &str, current_test: Option<Exec>) -> Vec<(String
 pub fn parse_specific() -> impl Parser<Test> {
     let cur_exec = Rc::new(RefCell::new(None));
     let cur_exec2 = cur_exec.clone();
-    let test = positional::<String>("TEST")
-        .help("Test file name")
-        .complete(move |i| complete_target_kind(&[i], None, TESTABLE))
-        .parse::<_, _, String>(move |name| {
+    let test = positional::<String>("TEST").
+        help("Test file name").
+        complete(move |i| complete_target_kind(&[i], None, TESTABLE)).
+        parse::<_, _, String>(move |name| {
             let mut iter = matching_targets(MatchKind::Any, MatchKind::Exact(&name), TESTABLE);
             match (iter.next(), iter.next()) {
                 (None, _) => Err(format!("{} is not a known test name", name)),
@@ -123,19 +123,19 @@ pub fn parse_specific() -> impl Parser<Test> {
             }
         });
 
-    let name = positional::<String>("NAME")
-        .help("Test name in a file")
-        .complete(move |i| complete_subtest_name(i, *cur_exec2.borrow()))
-        .optional();
+    let name = positional::<String>("NAME").
+        help("Test name in a file").
+        complete(move |i| complete_subtest_name(i, *cur_exec2.borrow())).
+        optional();
 
-    construct!(Specific { test, name }).map(Test::Specific)
+    construct(Specific { test, name }).map(Test::Specific)
 }
 
 pub fn parse_test() -> impl Parser<Test> {
     let general = parse_test_general().map(Test::All);
-    construct!([general, parse_specific()])
-        .to_options()
-        .descr("Execute unit and integration tests")
-        .command("test")
-        .short('t')
+    construct([general, parse_specific()]).
+        to_options().
+        descr("Execute unit and integration tests").
+        command("test").
+        short('t')
 }

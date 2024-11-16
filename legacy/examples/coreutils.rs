@@ -249,7 +249,7 @@ mod cat {
     }
 
     pub fn parse_cat() -> impl Parser<Cat> {
-        construct!(extra(), cat())
+        construct(extra(), cat())
             .map(|(extra, mut cat)| {
                 if extra.show_all {
                     cat.show_tabs = true;

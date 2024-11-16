@@ -8,5 +8,5 @@ pub struct Options {
 pub fn options() -> OptionParser<Options> {
     let version = long("version").argument("VERS").optional();
     let feature = long("feature").argument("FEAT").optional();
-    construct!(Options { version, feature }).to_options()
+    construct(Options { version, feature }).to_options()
 }

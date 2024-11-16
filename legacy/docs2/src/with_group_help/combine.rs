@@ -25,22 +25,22 @@ fn generate_rectangle_help(meta: MetaInfo) -> Doc {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let argument = long("argument")
-        .help("important argument")
-        .argument("ARG")
-        .fallback(30);
-    let width = long("width")
-        .help("Width of the rectangle")
-        .argument("W")
-        .fallback(10);
-    let height = long("height")
-        .help("Height of the rectangle")
-        .argument("H")
-        .fallback(10);
+    let argument = long("argument").
+        help("important argument").
+        argument("ARG").
+        fallback(30);
+    let width = long("width").
+        help("Width of the rectangle").
+        argument("W").
+        fallback(10);
+    let height = long("height").
+        help("Height of the rectangle").
+        argument("H").
+        fallback(10);
     let rectangle =
-        construct!(Rectangle { width, height }).with_group_help(generate_rectangle_help);
+        construct(Rectangle { width, height }).with_group_help(generate_rectangle_help);
 
-    construct!(Options {
+    construct(Options {
         argument,
         rectangle
     })

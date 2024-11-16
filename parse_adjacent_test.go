@@ -122,7 +122,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let a = short('a').req_flag(());
 //     let b = positional::<usize>("B");
 //     let c = positional::<usize>("C");
-//     let d = short('d').switch();
+//     let d = short('d').Switch();
 //     let adj = construct(a, b, c).adjacent();
 //     let parser = construct(adj, d).to_options();
 
@@ -134,7 +134,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let a = short('a').req_flag(());
 //     let b = short('b').argument::<usize>("B");
 //     let c = short('c').argument::<usize>("C");
-//     let d = short('d').switch();
+//     let d = short('d').Switch();
 //     let adj = construct(a, b, c).adjacent();
 //     let parser = construct(adj, d).to_options();
 
@@ -149,7 +149,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let a = short('a').req_flag(());
 //     let b = positional::<usize>("B");
 //     let c = positional::<usize>("C");
-//     let d = short('d').switch();
+//     let d = short('d').Switch();
 //     let adj = construct(a, b, c).adjacent().many();
 //     let parser = construct(adj, d).to_options();
 
@@ -161,7 +161,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let a = short('a').req_flag(());
 //     let b = short('b').argument::<usize>("B");
 //     let c = short('c').argument::<usize>("C");
-//     let d = short('d').switch();
+//     let d = short('d').Switch();
 //     let adj = construct(a, b, c).adjacent().many();
 //     let parser = construct(adj, d).to_options();
 
@@ -192,7 +192,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let a = short('a').req_flag(());
 //     let b = positional::<usize>("B");
 //     let ab = construct(a, b).adjacent().map(|t| t.1).many();
-//     let c = short('c').switch();
+//     let c = short('c').Switch();
 //     let parser = construct(ab, c).to_options();
 
 //     let r = parser.run_inner(newArgs("-a", "10", "-c")).unwrap();
@@ -207,7 +207,7 @@ func TestAdjacentPrefix(t *testing.T) {
 
 // func adjacent_limits_commands() {
 //     let x = pure(()).to_options().command("a").adjacent();
-//     let s = short('s').switch();
+//     let s = short('s').Switch();
 //     let parser = construct(s, x).to_options();
 
 //     let r = parser.run_inner(newArgs("a", "-s")).unwrap();
@@ -229,7 +229,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //         .adjacent();
 
 //     let cmds = construct([eat, sleep]);
-//     let switch = short('s').switch();
+//     let switch = short('s').Switch();
 
 //     let parser = construct(switch, cmds).to_options();
 
@@ -257,7 +257,7 @@ func TestAdjacentPrefix(t *testing.T) {
 // func two_adjacent_args() {
 //     let x = short('x').argument::<usize>("X");
 //     let y = short('y').argument::<usize>("Y");
-//     let c = short('c').switch();
+//     let c = short('c').Switch();
 //     let point = construct(x, y).adjacent();
 //     let parser = construct(point, c).to_options();
 

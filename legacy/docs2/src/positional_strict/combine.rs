@@ -8,16 +8,16 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let verbose = short('v')
-        .long("verbose")
-        .help("Produce detailed report")
-        .switch();
+    let verbose = short('v').
+        long("verbose").
+        help("Produce detailed report").
+        Switch();
     let binary = long("bin").help("Binary to execute").argument("BIN");
-    let args = positional("ARG")
-        .help("Arguments for the binary")
-        .strict()
-        .many();
-    construct!(Options {
+    let args = positional("ARG").
+        help("Arguments for the binary").
+        strict().
+        many();
+    construct(Options {
         verbose,
         binary,
         args

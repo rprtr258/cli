@@ -9,10 +9,10 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let argument = long("argument")
-        .help("important argument")
-        .argument("ARG")
-        .collect();
-    let switches = long("switch").help("some switch").switch().collect();
-    construct!(Options { argument, switches }).to_options()
+    let argument = long("argument").
+        help("important argument").
+        argument("ARG").
+        collect();
+    let switches = long("switch").help("some switch").Switch().collect();
+    construct(Options { argument, switches }).to_options()
 }

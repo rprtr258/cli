@@ -283,10 +283,10 @@ impl<T> OptionParser<T> {
     /// For example for non positional `non_pos` and a command `command` parsers
     /// ```rust
     /// # use bpaf::*;
-    /// # let non_pos = || short('n').switch();
+    /// # let non_pos = || short('n').Switch();
     /// # let command = || pure(()).to_options().command("POS");
-    /// let valid = construct!(non_pos(), command());
-    /// let invalid = construct!(command(), non_pos());
+    /// let valid = construct(non_pos(), command());
+    /// let invalid = construct(command(), non_pos());
     /// ```
     ///
     /// **`bpaf` panics during help generation unless if this restriction holds**
@@ -339,7 +339,7 @@ impl<P> ParseCommand<P> {
     /// fn inner() -> OptionParser<bool> {
     ///     short('i')
     ///         .help("Mysterious inner switch")
-    ///         .switch()
+    ///         .Switch()
     ///         .to_options()
     ///         .descr("performs an operation")
     /// }

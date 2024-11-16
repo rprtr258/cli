@@ -10,5 +10,5 @@ pub fn options() -> OptionParser<Options> {
         |n| *n <= 10,
         "Values greater than 10 are only available in the DLC pack!",
     );
-    construct!(Options { number }).to_options()
+    construct(Options { number }).to_options()
 }

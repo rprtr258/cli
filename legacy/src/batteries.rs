@@ -27,21 +27,21 @@ use crate::{construct, literal, parsers::NamedArg, short, Parser};
 #[must_use]
 pub fn verbose_and_quiet_by_number(offset: isize, min: isize, max: isize) -> impl Parser<isize> {
     #![allow(clippy::cast_possible_wrap)]
-    let verbose = short('v')
-        .long("verbose")
-        .help("Increase output verbosity, can be used several times")
-        .req_flag(())
-        .many()
-        .map(|v| v.len() as isize);
+    let verbose = short('v').
+        long("verbose").
+        help("Increase output verbosity, can be used several times").
+        req_flag(()).
+        many().
+        map(|v| v.len() as isize);
 
-    let quiet = short('q')
-        .long("quiet")
-        .help("Decrease output verbosity, can be used several times")
-        .req_flag(())
-        .many()
-        .map(|v| v.len() as isize);
+    let quiet = short('q').
+        long("quiet").
+        help("Decrease output verbosity, can be used several times").
+        req_flag(()).
+        many().
+        map(|v| v.len() as isize);
 
-    construct!(verbose, quiet).map(move |(v, q)| (v - q + offset).clamp(min, max))
+    construct(verbose, quiet).map(move |(v, q)| (v - q + offset).clamp(min, max))
 }
 
 /// `--verbose` and `--quiet` flags with results choosen from a slice of values
@@ -68,15 +68,15 @@ pub fn verbose_and_quiet_by_number(offset: isize, min: isize, max: isize) -> imp
 /// }
 /// # let parser = verbose().to_options();
 /// # let res = parser.run_inner(newArgs()).unwrap();
-/// # assert_eq!(Level::Info, res);
+/// # assert.Equal(t, Level::Info, res);
 /// # let res = parser.run_inner(newArgs("-q")).unwrap();
-/// # assert_eq!(Level::Warning, res);
+/// # assert.Equal(t, Level::Warning, res);
 /// # let res = parser.run_inner(newArgs("-qqq")).unwrap();
-/// # assert_eq!(Level::Error, res);
+/// # assert.Equal(t, Level::Error, res);
 /// # let res = parser.run_inner(newArgs("-qqqq")).unwrap();
-/// # assert_eq!(Level::Error, res);
+/// # assert.Equal(t, Level::Error, res);
 /// # let res = parser.run_inner(newArgs("-vvvvq")).unwrap();
-/// # assert_eq!(Level::Trace, res);
+/// # assert.Equal(t, Level::Trace, res);
 /// ```
 #[must_use]
 pub fn verbose_by_slice<T: Copy + 'static, const N: usize>(
@@ -85,8 +85,8 @@ pub fn verbose_by_slice<T: Copy + 'static, const N: usize>(
 ) -> impl Parser<T> {
     #![allow(clippy::cast_possible_wrap)]
     #![allow(clippy::cast_sign_loss)]
-    verbose_and_quiet_by_number(offset as isize, 0, items.len() as isize - 1)
-        .map(move |i| items[i as usize])
+    verbose_and_quiet_by_number(offset as isize, 0, items.len() as isize - 1).
+        map(move |i| items[i as usize])
 }
 
 /// Pick last passed value between two different flags
@@ -133,7 +133,7 @@ pub fn toggle_flag<T: Copy + 'static>(
 ) -> impl Parser<Option<T>> {
     let a = a.req_flag(val_a);
     let b = b.req_flag(val_b);
-    construct!([a, b]).many().map(|xs| xs.into_iter().last())
+    construct([a, b]).many().map(|xs| xs.into_iter().last())
 }
 
 /// Strip a command name if present at the front when used as a `cargo` command
@@ -157,7 +157,7 @@ where
     P: Parser<T>,
 {
     let skip = literal(cmd).optional().hide();
-    construct!(skip, parser).map(|x| x.1)
+    construct(skip, parser).map(|x| x.1)
 }
 
 /// Get usage for a parser

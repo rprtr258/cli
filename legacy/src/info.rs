@@ -175,7 +175,7 @@ impl<T> OptionParser<T> {
     /// Available options:
     ///     -h, --help  Prints help information
     /// ";
-    ///     assert_eq!(expected_help, help);
+    ///     assert.Equal(t, expected_help, help);
     /// # /*
     /// }
     /// # */
@@ -318,7 +318,7 @@ impl<T> OptionParser<T> {
     /// use bpaf::*;
     /// fn options() -> OptionParser<bool>  {
     ///    short('s')
-    ///        .switch()
+    ///        .Switch()
     ///        .to_options()
     ///        .version(env!("CARGO_PKG_VERSION"))
     /// }
@@ -359,7 +359,7 @@ impl<T> OptionParser<T> {
     /// # use bpaf::*;
     /// fn options() -> OptionParser<bool>  {
     ///    short('s')
-    ///        .switch()
+    ///        .Switch()
     ///        .to_options()
     ///        .descr("This is a description")
     ///        .header("This is a header")
@@ -424,7 +424,7 @@ impl<T> OptionParser<T> {
     /// # use bpaf::*;
     /// fn options() -> OptionParser<bool>  {
     ///    short('s')
-    ///        .switch()
+    ///        .Switch()
     ///        .to_options()
     ///        .descr("This is a description")
     ///        .header("This is a header")
@@ -489,7 +489,7 @@ impl<T> OptionParser<T> {
     /// # use bpaf::*;
     /// fn options() -> OptionParser<bool>  {
     ///    short('s')
-    ///        .switch()
+    ///        .Switch()
     ///        .to_options()
     ///        .descr("This is a description")
     ///        .header("This is a header")
@@ -604,7 +604,7 @@ impl<T> OptionParser<T> {
     /// # use bpaf::*;
     /// #[test]
     /// fn check_options() {
-    /// # let options = || short('p').switch().to_options();
+    /// # let options = || short('p').Switch().to_options();
     ///     options().check_invariants(false)
     /// }
     /// ```
@@ -651,7 +651,7 @@ impl<T> OptionParser<T> {
     ///
     /// ```rust
     /// # use bpaf::*;
-    /// # fn options() -> OptionParser<bool> { short('a').switch().to_options() }
+    /// # fn options() -> OptionParser<bool> { short('a').Switch().to_options() }
     /// // create option parser in a usual way, derive or combinatoric API
     /// let opts = options().fallback_to_usage().run();
     /// ```

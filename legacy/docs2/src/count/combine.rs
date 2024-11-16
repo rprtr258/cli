@@ -6,11 +6,11 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let verbosity = short('v')
-        .long("verbose")
-        .help("Increase the verbosity level")
-        .req_flag(())
-        .count();
+    let verbosity = short('v').
+        long("verbose").
+        help("Increase the verbosity level").
+        req_flag(()).
+        count();
 
-    construct!(Options { verbosity }).to_options()
+    construct(Options { verbosity }).to_options()
 }

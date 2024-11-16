@@ -8,15 +8,15 @@ pub struct Options {
 }
 
 pub fn options() -> OptionParser<Options> {
-    let argument = long("argument")
-        .help("important argument")
-        .argument("ARG")
-        .fallback(30);
-    let switch = long("switch")
-        .help("not that important switch")
-        .switch()
-        .hide_usage();
-    construct!(Options { argument, switch }).to_options()
+    let argument = long("argument").
+        help("important argument").
+        argument("ARG").
+        fallback(30);
+    let switch = long("switch").
+        help("not that important switch").
+        Switch().
+        hide_usage();
+    construct(Options { argument, switch }).to_options()
 }
 
 fn main() {

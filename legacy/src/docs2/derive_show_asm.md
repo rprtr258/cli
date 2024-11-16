@@ -49,13 +49,13 @@ pub struct SelectedFunction {
 }
 
 fn parse_manifest_path() -> impl Parser<PathBuf> {
-    long("manifest-path")
-        .help("Path to Cargo.toml")
-        .argument::<PathBuf>("PATH")
-        .complete_shell(ShellComp::File {
+    long("manifest-path").
+        help("Path to Cargo.toml").
+        argument::<PathBuf>("PATH").
+        complete_shell(ShellComp::File {
             mask: Some("*.toml"),
-        })
-        .parse(|p| {
+        }).
+        parse(|p| {
             // cargo-metadata wants to see
             if p.is_absolute() {
                 Ok(p)
@@ -64,8 +64,8 @@ fn parse_manifest_path() -> impl Parser<PathBuf> {
                     .map(|d| d.join(p))
                     .and_then(|full_path| full_path.canonicalize())
             }
-        })
-        .fallback_with(|| std::env::current_dir().map(|x| x.join("Cargo.toml")))
+        }).
+        fallback_with(|| std::env::current_dir().map(|x| x.join("Cargo.toml")))
 }
 
 #[derive(Debug, Clone, Bpaf)]
@@ -96,13 +96,13 @@ pub enum Syntax {
 }
 
 fn color_detection() -> impl Parser<bool> {
-    let yes = long("color")
-        .help("Enable color highlighting")
-        .req_flag(true);
-    let no = long("no-color")
-        .help("Disable color highlighting")
-        .req_flag(false);
-    construct!([yes, no]).fallback_with::<_, Infallible>(|| {
+    let yes = long("color").
+        help("Enable color highlighting").
+        req_flag(true);
+    let no = long("no-color").
+        help("Disable color highlighting").
+        req_flag(false);
+    construct([yes, no]).fallback_with::<_, Infallible>(|| {
         // we can call for supports-color crate here
         Ok(true)
     })
@@ -111,16 +111,16 @@ fn color_detection() -> impl Parser<bool> {
 fn comp_examples(prefix: &String) -> Vec<(String, Option<String>)> {
     // in the actual app we can ask cargo-metadata for this info
     let examples = ["derive_show_asm", "coreutils", "comonad"];
-    examples
-        .iter()
-        .filter_map(|e| {
+    examples.
+        iter().
+        filter_map(|e| {
             if e.starts_with(prefix) {
                 Some((e.to_string(), None))
             } else {
                 None
             }
-        })
-        .collect()
+        }).
+        collect()
 }
 
 #[derive(Debug, Clone, Bpaf)]

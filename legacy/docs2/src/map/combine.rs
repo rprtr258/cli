@@ -8,5 +8,5 @@ pub struct Options {
 }
 pub fn options() -> OptionParser<Options> {
     let number = long("number").argument::<u32>("N").map(|x| x * 2);
-    construct!(Options { number }).to_options()
+    construct(Options { number }).to_options()
 }

@@ -797,7 +797,7 @@ Available options:
 //     _ = construct(std::option::Option::Some(a));
 
 //     b := Short('b').Switch();
-//     _ = construct!(::std::option::Option::Some(b));
+//     _ = construct(::std::option::Option::Some(b));
 // }
 
 func TestHiddenEnv(t *testing.T) {

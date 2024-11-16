@@ -16,7 +16,7 @@ pub fn options() -> OptionParser<Options> {
     let name = long("name").help("Use a custom user name").argument("NAME");
     // but not starting amount of money
     let money = pure_with(starting_money);
-    construct!(Options { name, money }).to_options()
+    construct(Options { name, money }).to_options()
 }
 
 fn main() {

@@ -28,7 +28,7 @@ type ParseCommand[T any] struct {
 //	func inner()OptionParser<bool> {
 //	    short('i')
 //	        .help("Mysterious inner switch")
-//	        .switch()
+//	        .Switch()
 //	        .to_options()
 //	        .descr("performs an operation")
 //	}
@@ -208,7 +208,7 @@ func (self ParseCommand[T]) item() Item {
 // For example for non positional `non_pos` and a Command `Command` parsers
 // ```rust
 // # use bpaf*;
-// # non_pos := || short('n').switch();
+// # non_pos := || short('n').Switch();
 // # Command := || pure(struct{}{}).to_options().Command("POS");
 // valid := construct(non_pos(), Command());
 // invalid := construct(Command(), non_pos());

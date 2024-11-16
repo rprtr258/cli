@@ -3,12 +3,12 @@ use once_cell::sync::Lazy;
 use std::process::Command;
 
 pub static METADATA: Lazy<Metadata> = Lazy::new(|| {
-    MetadataCommand::new()
-        .manifest_path("./Cargo.toml")
-        .features(CargoOpt::AllFeatures)
-        .no_deps()
-        .exec()
-        .unwrap()
+    MetadataCommand::new().
+        manifest_path("./Cargo.toml").
+        features(CargoOpt::AllFeatures).
+        no_deps().
+        exec().
+        unwrap()
 });
 
 pub fn bpaf_passthough_for(pkg: &str) -> bool {
@@ -63,11 +63,11 @@ pub fn matching_targets<'a>(
     name: MatchKind<'a>,
     kinds: &'static [&'static str],
 ) -> impl Iterator<Item = Exec> + 'a {
-    METADATA
-        .packages
-        .iter()
-        .filter(move |p| package.matches(&p.name))
-        .flat_map(move |p| {
+    METADATA.
+        packages.
+        iter().
+        filter(move |p| package.matches(&p.name)).
+        flat_map(move |p| {
             p.targets
                 .iter()
                 .filter(move |t| {

@@ -24,39 +24,39 @@ where
     // it is possible to parse OsString here and strip the prefix with
     // `os_str_bytes` or a similar crate
     any("", move |s: String| Some(s.strip_prefix(name)?.to_owned()))
-        // this defines custom metavar for the help message
-        .metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..])
-        .help(help)
-        .anywhere()
-        .parse(|s| s.parse())
+        // this defines custom metavar for the help message.
+        metavar(&[(name, Style::Literal), (meta, Style::Metavar)][..]).
+        help(help).
+        anywhere().
+        parse(|s| s.parse())
 }
 
 fn in_file() -> impl Parser<String> {
-    tag::<String>("if=", "FILE", "read from FILE")
-        .fallback(String::from("-"))
-        .display_fallback()
+    tag::<String>("if=", "FILE", "read from FILE").
+        fallback(String::from("-")).
+        display_fallback()
 }
 
 fn out_file() -> impl Parser<String> {
-    tag::<String>("of=", "FILE", "write to FILE")
-        .fallback(String::from("-"))
-        .display_fallback()
+    tag::<String>("of=", "FILE", "write to FILE").
+        fallback(String::from("-")).
+        display_fallback()
 }
 
 fn block_size() -> impl Parser<usize> {
     // it is possible to parse notation used by dd itself as well,
     // using usuze only for simplicity
-    tag::<usize>("bs=", "SIZE", "read/write SIZE blocks at once")
-        .fallback(512)
-        .display_fallback()
+    tag::<usize>("bs=", "SIZE", "read/write SIZE blocks at once").
+        fallback(512).
+        display_fallback()
 }
 
 pub fn options() -> OptionParser<Options> {
-    let magic = short('m')
-        .long("magic")
-        .help("a usual switch still works")
-        .switch();
-    construct!(Options {
+    let magic = short('m').
+        long("magic").
+        help("a usual switch still works").
+        Switch();
+    construct(Options {
         magic,
         in_file(),
         out_file(),

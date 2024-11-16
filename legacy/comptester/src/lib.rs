@@ -27,9 +27,9 @@ pub fn zsh_comptest_with(input: &str, width: u16) -> anyhow::Result<String> {
     let cwd = cwd.parent().unwrap().to_str().unwrap();
     let path = format!("{}:{cwd}/target/release/examples", std::env::var("PATH")?,);
     let mut command = Command::new("zsh");
-    command
-        .env("PATH", path)
-        .env("ZDOTDIR", format!("{cwd}/dotfiles"));
+    command.
+        env("PATH", path).
+        env("ZDOTDIR", format!("{cwd}/dotfiles"));
     comptest(command, false, input, width, ZSH_TIMEOUT)
 }
 
@@ -38,9 +38,9 @@ pub fn bash_comptest(input: &str) -> anyhow::Result<String> {
     let cwd = cwd.parent().unwrap().to_str().unwrap();
     let path = format!("{}:{cwd}/target/release/examples", std::env::var("PATH")?,);
     let mut command = Command::new("bash");
-    command
-        .env("PATH", path)
-        .args(["--rcfile", &format!("{cwd}/dotfiles/.bashrc")]);
+    command.
+        env("PATH", path).
+        args(["--rcfile", &format!("{cwd}/dotfiles/.bashrc")]);
     let echo = !input.contains("\t\t");
     comptest(command, echo, input, 120, BASH_TIMEOUT)
 }
@@ -50,9 +50,9 @@ pub fn fish_comptest(input: &str) -> anyhow::Result<String> {
     let cwd = cwd.parent().unwrap().to_str().unwrap();
     let path = format!("{}:{cwd}/target/release/examples", std::env::var("PATH")?,);
     let mut command = Command::new("fish");
-    command
-        .env("PATH", path)
-        .env("XDG_CONFIG_HOME", format!("{cwd}/dotfiles"));
+    command.
+        env("PATH", path).
+        env("XDG_CONFIG_HOME", format!("{cwd}/dotfiles"));
     comptest(command, false, input, 120, FISH_TIMEOUT)
 }
 
@@ -61,9 +61,9 @@ pub fn elvish_comptest(input: &str) -> anyhow::Result<String> {
     let cwd = cwd.parent().unwrap().to_str().unwrap();
     let path = format!("{}:{cwd}/target/release/examples", std::env::var("PATH")?,);
     let mut command = Command::new("elvish");
-    command
-        .env("PATH", path)
-        .env("XDG_CONFIG_HOME", format!("{cwd}/dotfiles"));
+    command.
+        env("PATH", path).
+        env("XDG_CONFIG_HOME", format!("{cwd}/dotfiles"));
     comptest(command, false, input, 120, ELVISH_TIMEOUT)
 }
 

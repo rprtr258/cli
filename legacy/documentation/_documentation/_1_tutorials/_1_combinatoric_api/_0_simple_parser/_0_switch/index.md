@@ -20,7 +20,7 @@ right away without assigning `NamedArg` to a variable.
 ```rust
 # use bpaf::*;
 fn simple_switch() -> impl Parser<bool> {
-    short('s').long("simple").switch()
+    short('s').long("simple").Switch()
 }
 ```
 

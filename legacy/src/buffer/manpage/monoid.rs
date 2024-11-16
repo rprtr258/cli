@@ -7,15 +7,15 @@
 #[test]
 fn typical_usage() {
     let mut m = FreeMonoid::<char>::default();
-    m.push_str('a', "string ")
-        .push_str('b', "more string")
-        .push('d', '!');
+    m.push_str('a', "string ").
+        push_str('b', "more string").
+        push('d', '!');
 
     let mut r = String::new();
     for (a, slice) in &m {
         r += &format!("{}: {:?}; ", a, slice);
     }
-    assert_eq!("a: \"string \"; b: \"more string\"; d: \"!\"; ", r);
+    assert.Equal(t, "a: \"string \"; b: \"more string\"; d: \"!\"; ", r);
 }
 
 /// A Free Monoid on set of annotated string slices

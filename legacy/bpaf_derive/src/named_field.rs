@@ -102,8 +102,8 @@ impl ToTokens for Consumer {
             Consumer::PureWith { expr, .. } => {
                 quote!(::bpaf::pure_with(#expr))
             }
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 
@@ -136,8 +136,8 @@ impl ToTokens for StructField {
                 quote!(#prefix #( #names .)* #cons #(.help(#help))* #(.#postpr)*)
             }
             HelpPlacement::NotAvailable => quote!(#prefix #(#names.)* #cons #(.#postpr)*),
-        }
-        .to_tokens(tokens);
+        }.
+        to_tokens(tokens);
     }
 }
 

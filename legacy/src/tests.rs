@@ -34,9 +34,9 @@ fn wtf_shenanigans_1() {
         os_string.push(&i_suffix);
 
         let (o_c, o_prefix, o_suffix) = split_os_argument(&os_string).unwrap();
-        assert_eq!(i_c, o_c);
-        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
-        assert_eq!(Arg::ArgWord(i_suffix), o_suffix.unwrap());
+        assert.Equal(t, i_c, o_c);
+        assert.Equal(t, i_prefix.to_str().unwrap(), o_prefix);
+        assert.Equal(t, Arg::ArgWord(i_suffix), o_suffix.unwrap());
     }
 }
 
@@ -63,14 +63,14 @@ fn wtf_shenanigans_2() {
         os_string.push(&i_suffix);
 
         let (o_c, o_prefix, o_suffix) = split_os_argument(&os_string).unwrap();
-        assert_eq!(i_c, o_c);
-        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
-        assert_eq!(Arg::ArgWord(i_suffix.clone()), o_suffix.unwrap());
+        assert.Equal(t, i_c, o_c);
+        assert.Equal(t, i_prefix.to_str().unwrap(), o_prefix);
+        assert.Equal(t, Arg::ArgWord(i_suffix.clone()), o_suffix.unwrap());
 
         let (o_c, o_prefix, o_suffix) = split_os_argument_fallback(&os_string).unwrap();
-        assert_eq!(i_c, o_c);
-        assert_eq!(i_prefix.to_str().unwrap(), o_prefix);
-        assert_eq!(Arg::ArgWord(i_suffix.clone()), o_suffix.unwrap());
+        assert.Equal(t, i_c, o_c);
+        assert.Equal(t, i_prefix.to_str().unwrap(), o_prefix);
+        assert.Equal(t, Arg::ArgWord(i_suffix.clone()), o_suffix.unwrap());
     }
 }
 
@@ -80,17 +80,17 @@ fn fallback_with_strange_args_produces_same_results() {
     let s = std::ffi::OsString::from("-Obits=2048");
     let r1 = split_os_argument(&s);
     let r2 = split_os_argument_fallback(&s);
-    assert_eq!(r1, r2);
+    assert.Equal(t, r1, r2);
 }
 
 #[test]
 fn de_yoda() {
     use bpaf::*;
-    let parser = construct!(a(short('a').switch()), b(short('b').switch())).to_options();
+    let parser = construct(a(short('a').Switch()), b(short('b').Switch())).to_options();
 
     let r = parser.run_inner(newArgs()).unwrap();
-    assert_eq!(r, (false, false));
+    assert.Equal(t, r, (false, false));
 
     let r = parser.run_inner(newArgs("-a", "-b")).unwrap();
-    assert_eq!(r, (true, true));
+    assert.Equal(t, r, (true, true));
 }
