@@ -148,47 +148,45 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 	}
 }
 
-// #[test]
-// fn parse_anywhere_catch_optional() {
-//     var a = short('a').req_flag(struct{}{});
-//     var b = positional::<usize>("x");
+func TestParse_anywhere_catch_optional(t *testing.T) {
+	var a = ReqFlag(Short('a'), struct{}{})
+	var b = Positional("x", parseUint)
 
-//     // optional + catch makes it so parser succeeds without consuming anything
-//     // usually leaving `-a` untouched to be consumed by something else
-//     var ab = construct(a, b).adjacent().optional().catch();
-//     var c = short('c').Switch();
-//     var parser = construct(ab, c).to_options();
+	// optional + catch makes it so parser succeeds without consuming anything
+	// usually leaving `-a` untouched to be consumed by something else
+	var ab = Optional(Pair(a, b).Adjacent().Parser()).Catch()
+	var c = Short('c').Switch()
+	var parser = Pair(ab, c).Parser().ToOptions()
 
-//     var r = parser.
-//         run_inner(newArgs("-a", "221b"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-
-//     var r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "`3` is not expected in this context");
-
-//     var r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-
-//     var r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-
-//     var r = parser.
-//         run_inner(newArgs("-c", "-a", "221b"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-
-//     var r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-
-//     var r = parser.
-//         run_inner(newArgs("-a", "221b", "-c"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "`-a` is not expected in this context");
-// }
+	{
+		_, r := parser.run_inner(newArgs("-a", "221b"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("3", "-a"))
+		require.Equal(t, unwrap_stderr(r), "`3` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-c", "-a"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-c", "-a", "221b"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a", "-c"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a", "221b", "-c"))
+		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+	}
+}
 
 // #[test]
 // fn anywhere_literal() {
