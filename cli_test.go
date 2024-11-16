@@ -566,125 +566,139 @@ Available options:
 	}
 }
 
-// mod git {
-//     #[derive(Debug, Clone)]
-//     #[allow(dead_code)]
-//     enum Opt {
-//         Fetch {
-//             dry_run: bool,
-//             all: bool,
-//             repository: String,
-//         },
-//         Add {
-//             interactive: bool,
-//             all: bool,
-//             files: Vec<string>,
-//         },
-//     }
+func TestGit(t *testing.T) {
+	type Opt func(
+		Fetch func(
+			dry_run bool,
+			all bool,
+			repository string,
+		),
+		Add func(
+			interactive bool,
+			all bool,
+			files []string,
+		),
+	)
+	OptFetch := func(dry_run bool, all bool, repository string) Opt {
+		return func(
+			Fetch func(
+				dry_run bool,
+				all bool,
+				repository string,
+			),
+			Add func(
+				interactive bool,
+				all bool,
+				files []string,
+			),
+		) {
+			Fetch(dry_run, all, repository)
+		}
+	}
+	OptAdd := func(interactive bool, all bool, files []string) Opt {
+		return func(
+			Fetch func(
+				dry_run bool,
+				all bool,
+				repository string,
+			),
+			Add func(
+				interactive bool,
+				all bool,
+				files []string,
+			),
+		) {
+			Add(interactive, all, files)
+		}
+	}
 
-//     func setup() -> OptionParser<Opt> {
-//         dry_run := long("dry_run").switch();
-//         all := long("all").switch();
-//         repository := positional::<String>("SRC").fallback("origin");
-//         fetch := construct(Opt::Fetch {
-//             dry_run,
-//             all,
-//             repository
-//         });
-//         fetch_inner := fetch
-//             .ToOptions()
-//             .descr("fetches branches from remote repository");
-//         fetch_cmd := fetch_inner.command("fetch");
+	parser := func() *OptionParser[Opt] {
+		fetch := Map3(
+			Long("dry_run").Switch(),
+			Long("all").Switch(),
+			Positional("SRC", parseString).Parser().Fallback("origin").Parser(),
+			OptFetch)
+		fetch_inner := fetch.
+			ToOptions().
+			Descr("fetches branches from remote repository")
+		fetch_cmd := fetch_inner.Command("fetch")
 
-//         interactive := short('i').switch();
-//         all := long("all").switch();
-//         files := positional::<string>("FILE").many();
-//         add := construct(Opt::Add {
-//             interactive,
-//             all,
-//             files
-//         });
-//         add_inner := add.ToOptions().descr("add files to the staging area");
-//         add_cmd := add_inner.command("add");
+		add := Map3(
+			Short('i').Switch(),
+			Long("all").Switch(),
+			Many(Positional("FILE", parseString).Parser()),
+			OptAdd)
+		add_inner := add.ToOptions().Descr("add files to the staging area")
+		add_cmd := add_inner.Command("add")
 
-//         construct([fetch_cmd, add_cmd))
-//             .ToOptions()
-//             .descr("The stupid content tracker")
-//     }
+		return Choice(fetch_cmd, add_cmd).Parser().
+			ToOptions().
+			Descr("The stupid content tracker")
+	}()
 
-//     func no_command() {
-//         parser := setup();
+	t.Run("no_command", func(t *testing.T) {
+		const expected_err = "expected `COMMAND ...`, pass `--help` for usage information"
+		_, err := parser.run_inner(newArgs())
+		require.Equal(t,
+			expected_err,
+			unwrap_stderr(err),
+		)
+	})
 
-//         expected_err := "expected `COMMAND ...`, pass `--help` for usage information";
-//         require.Equal(t,
-//             expected_err,
-//             parser.run_inner(newArgs()).unwrap_err().unwrap_stderr()
-//         );
-//     }
+	t.Run("root_help", func(t *testing.T) {
+		const expected_help = `The stupid content tracker
 
-//     func root_help() {
-//         parser := setup();
-//         expected_help := "\
-// The stupid content tracker
+Usage: COMMAND ...
 
-// Usage: COMMAND ...
+Available options:
+    -h, --help  Prints help information
 
-// Available options:
-//     -h, --help  Prints help information
+Available commands:
+    fetch       fetches branches from remote repository
+    add         add files to the staging area
+`
 
-// Available commands:
-//     fetch       fetches branches from remote repository
-//     add         add files to the staging area
-// ";
+		_, err := parser.run_inner(newArgs("--help"))
+		require.Equal(t,
+			expected_help,
+			unwrap_stdout(err),
+		)
+	})
 
-//         require.Equal(t,
-//             expected_help,
-//             parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout()
-//         );
-//     }
+	t.Run("fetch_help", func(t *testing.T) {
+		const expected_help = `fetches branches from remote repository
 
-//     func fetch_help() {
-//         parser := setup();
-//         expected_help := "\
-// fetches branches from remote repository
+Usage: fetch [--dry_run] [--all] [SRC]
 
-// Usage: fetch [--dry_run] [--all] [SRC]
+Available options:
+    --dry_run
+    --all
+    -h, --help  Prints help information
+`
+		_, err := parser.run_inner(newArgs("fetch", "--help"))
+		require.Equal(t,
+			expected_help,
+			unwrap_stdout(err),
+		)
+	})
 
-// Available options:
-//         --dry_run
-//         --all
-//     -h, --help     Prints help information
-// ";
-//         require.Equal(t,
-//             expected_help,
-//             parser
-//                 .run_inner(newArgs("fetch", "--help"))
-//                 .unwrap_err()
-//                 .unwrap_stdout()
-//         );
-//     }
+	t.Run("add_help", func(t *testing.T) {
+		expected_help := `add files to the staging area
 
-//     func add_help() {
-//         parser := setup();
-//         expected_help := "\
-// add files to the staging area
+Usage: add [-i] [--all] [FILE]...
 
-// Usage: add [-i] [--all] [FILE]...
-
-// Available options:
-//     -i
-//         --all
-//     -h, --help  Prints help information
-// ";
-//         require.Equal(t,
-//             expected_help,
-//             parser
-//                 .run_inner(newArgs("add", "--help"))
-//                 .unwrap_err()
-//                 .unwrap_stdout()
-//         );
-//     }
-// }
+Available options:
+    -i
+    --all
+    -h, --help  Prints help information
+`
+		_, err := parser.run_inner(newArgs("add", "--help"))
+		require.Equal(t,
+			expected_help,
+			unwrap_stdout(err),
+		)
+	})
+}
 
 func TestArg_bench(t *testing.T) {
 	type AppArgs struct {
