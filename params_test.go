@@ -13,11 +13,7 @@ func TestGet_any_simple(t *testing.T) {
 	var parser *OptionParser[fun.Pair[bool, string]] = Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]
-	{
-		r, err := parser.run_inner(newArgs("-a", "-b"))
-		require.Nil(t, err)
-		require.Equal(t, R{true, "-b"}, r)
-	}
+	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
 	{
 		r, err := parser.run_inner(newArgs("-b", "-a"))
 		require.Nil(t, err)
