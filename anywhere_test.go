@@ -30,46 +30,44 @@ Available options:
 	parser.check_invariants(true)
 }
 
-// #[test]
-// fn parse_anywhere_no_catch() {
-//     let a = short('a').req_flag(());
-//     let b = positional::<usize>("X");
-//     let ab = construct(a, b).adjacent();
-//     let c = short('c').Switch();
-//     let parser = construct(ab, c).to_options();
+func TestParse_anywhere_no_catch(t *testing.T) {
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("X", parseUint)
+	ab := Pair(a, b).Adjacent()
+	c := Short('c').Switch()
+	parser := Pair(ab, c).Parser().ToOptions()
 
-//     // Usage: -a <x> [-c],
+	// Usage: -a <x> [-c],
 
-//     let r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
-
-//     let r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
-
-//     let r = parser.
-//         run_inner(newArgs("-a", "221b"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
-
-//     let r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
-
-//     let r = parser.
-//         run_inner(newArgs("-c", "-a", "221b"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
-
-//     let r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
-//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
-
-//     let r = parser.
-//         run_inner(newArgs("-a", "221b", "-c"]).
-//         unwrap_err().
-//         unwrap_stderr();
-//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
-// }
+	{
+		_, r := parser.run_inner(newArgs("3", "-a"))
+		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a"))
+		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a", "221b"))
+		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-c", "-a"))
+		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-c", "-a", "221b"))
+		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a", "-c"))
+		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+	}
+	{
+		_, r := parser.run_inner(newArgs("-a", "221b", "-c"))
+		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+	}
+}
 
 // #[test]
 // fn anywhere_catch_optional() {
