@@ -8,42 +8,64 @@ import (
 
 type Meta interface {
 	isMeta()
+	clone() Meta
 }
 
 // All arguments listed in a vector must be present
 type MetaAnd []Meta
 
 func (MetaAnd) isMeta() {}
+func (self MetaAnd) clone() Meta {
+	return MetaAnd(fun.Map[Meta](Meta.clone, self...))
+}
 
 // One of arguments listed in a vector must be present
 type MetaOr []Meta
 
 func (MetaOr) isMeta() {}
+func (self MetaOr) clone() Meta {
+	return MetaOr(fun.Map[Meta](Meta.clone, self...))
+}
 
 // Arguments are fun.Optional and encased in [] when rendered
 type MetaOptional struct{ m Meta }
 
 func (MetaOptional) isMeta() {}
+func (self MetaOptional) clone() Meta {
+	return MetaOptional{self.m.clone()}
+}
 
 // Arguments are requred and encased in () when rendered
 type MetaRequired struct{ m Meta }
 
 func (MetaRequired) isMeta() {}
+func (self MetaRequired) clone() Meta {
+	return MetaRequired{self.m.clone()}
+}
 
 // Argumens are required to be adjacent to each other
 type MetaAdjacent struct{ m Meta }
 
 func (MetaAdjacent) isMeta() {}
+func (self MetaAdjacent) clone() Meta {
+	return MetaAdjacent{self.m.clone()}
+}
 
 // Primitive argument as described
 type MetaItem Item
 
 func (MetaItem) isMeta() {}
+func (self MetaItem) clone() Meta {
+	return MetaItem(Item(self).clone())
+}
 
 // Accepts multiple arguments
 type MetaMany struct{ m Meta }
 
 func (MetaMany) isMeta() {}
+func (self MetaMany) clone() Meta {
+	return MetaMany{self.m.clone()}
+}
 
 // Arguments form a subsection with buffer being it's header
 //
@@ -54,6 +76,9 @@ type MetaSubsection struct {
 }
 
 func (MetaSubsection) isMeta() {}
+func (self MetaSubsection) clone() Meta {
+	return MetaSubsection{self.m.clone(), self.u.clone()}
+}
 
 // Buffer is rendered after
 type MetaSuffix struct {
@@ -62,11 +87,17 @@ type MetaSuffix struct {
 }
 
 func (MetaSuffix) isMeta() {}
+func (self MetaSuffix) clone() Meta {
+	return MetaSuffix{self.m.clone(), self.u.clone()}
+}
 
 // This item is not rendered in the help message
 type MetaSkip struct{}
 
 func (MetaSkip) isMeta() {}
+func (MetaSkip) clone() Meta {
+	return MetaSkip{}
+}
 
 // TODO make it Option[Doc]
 type MetaCustomUsage struct {
@@ -75,11 +106,17 @@ type MetaCustomUsage struct {
 }
 
 func (MetaCustomUsage) isMeta() {}
+func (self MetaCustomUsage) clone() Meta {
+	return MetaCustomUsage{self.m.clone(), self.u.clone()}
+}
 
 // this meta must be prefixed with -- in unsage group
 type MetaStrict struct{ m Meta }
 
 func (MetaStrict) isMeta() {}
+func (self MetaStrict) clone() Meta {
+	return MetaStrict{self.m.clone()}
+}
 
 func DefaultMeta() Meta {
 	return MetaSkip{}

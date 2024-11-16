@@ -11,16 +11,16 @@ func (self ParseAdjacent[T]) Parser() Parser[T] {
 func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 	original_scope := args.scope
 
-	item, ok := Metafirst_item(self.inner.meta).Unpack()
-	if !ok {
-		panic("bpaf usage BUG: adjacent should start with a required argument")
-	}
-
 	var first_item Item
 	best_error := func() Error {
+		item, ok := Metafirst_item(self.inner.meta).Unpack()
+		if !ok {
+			panic("bpaf usage BUG: adjacent should start with a required argument")
+		}
+
 		first_item = item
 		missing_item := MissingItem{
-			item:     item,
+			item:     item.clone(),
 			position: original_scope.start(),
 			scope:    original_scope,
 		}

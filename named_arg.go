@@ -40,6 +40,15 @@ type NamedArg struct {
 	help  Option[Doc]
 }
 
+func (self NamedArg) clone() NamedArg {
+	return NamedArg{
+		append([]byte(nil), self.short...),
+		append([]string(nil), self.long...),
+		append([]string(nil), self.env...),
+		self.help.clone(),
+	}
+}
+
 func (self NamedArg) flag_item() (Item, bool) {
 	x, ok := ShortLongtry_from(self)
 	if !ok {

@@ -50,6 +50,15 @@ func (o Option[T]) String() string {
 	}
 }
 
+func (o Option[T]) clone() Option[T] {
+	switch t := any(o.Value).(type) {
+	case interface{ clone() T }:
+		return Option[T]{t.clone(), o.Valid}
+	default:
+		panic(1)
+	}
+}
+
 func Invalid[T any]() Option[T] {
 	return Option[T]{}
 }

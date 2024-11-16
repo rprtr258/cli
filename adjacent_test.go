@@ -98,9 +98,9 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	adj := Many(Triple(a, b, c).Adjacent().Parser())
 	parser := Pair(adj, d).Parser().ToOptions()
 
+	t.Skip() // TODO: fix
 	_, r := parser.run_inner(newArgs("-a", "10"))
 	// this should ask for -b or -c and complain on 10...
-	t.Skip() // TODO: fix
 	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
 }
 

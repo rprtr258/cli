@@ -18,6 +18,20 @@ type Info struct {
 	max_width             uint
 }
 
+func (self Info) clone() Info {
+	return Info{
+		self.version.clone(),
+		self.descr.clone(),
+		self.header.clone(),
+		self.footer.clone(),
+		self.usage.clone(),
+		self.help_arg.clone(),
+		self.version_arg,
+		self.help_if_no_args,
+		self.max_width,
+	}
+}
+
 func NewInfo() Info {
 	return Info{
 		version:         Invalid[Doc](),

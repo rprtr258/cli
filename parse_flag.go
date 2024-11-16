@@ -78,7 +78,7 @@ func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 
 // Required flag with custom value
 //
-// Similar to [flag](NamedArgflag) takes no fun.Option arguments, but would only
+// Similar to [flag](NamedArgflag) takes no Option arguments, but would only
 // succeed if user specifies its name on a command line.
 // Works best in combination with other parsers.
 //

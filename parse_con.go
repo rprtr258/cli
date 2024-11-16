@@ -1,6 +1,8 @@
 package cli
 
-import "github.com/rprtr258/fun"
+import (
+	"github.com/rprtr258/fun"
+)
 
 // Create parser from a function, [construct](crateconstruct) uses it internally
 type ParseCon[T any] struct {
@@ -123,17 +125,20 @@ func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[
 	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
 	type R = triple[A, B, C]
 	inner := func(failfast bool, args *State) (R, Error) {
-		a, err := pa.eval(args)
-		if failfast && err != nil {
-			return R{}, err
+		a, erra := pa.eval(args)
+		if failfast && erra != nil {
+			return R{}, erra
 		}
-		b, err := pb.eval(args)
-		if failfast && err != nil {
-			return R{}, err
+		b, errb := pb.eval(args)
+		c, errc := pc.eval(args)
+		if erra != nil {
+			return R{}, erra
 		}
-		c, err := pc.eval(args)
-		if err != nil {
-			return R{}, err
+		if errb != nil {
+			return R{}, errb
+		}
+		if errc != nil {
+			return R{}, errc
 		}
 		args.current = Invalid[int]()
 		return R{a, b, c}, nil

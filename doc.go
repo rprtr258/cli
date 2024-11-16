@@ -228,6 +228,13 @@ type Doc struct {
 	tokens  []Token
 }
 
+func (d Doc) clone() Doc {
+	return Doc{
+		d.payload,
+		append([]Token(nil), d.tokens...),
+	}
+}
+
 func (d Doc) String() string {
 	return d.render_console(true, Colordefault, MAX_WIDTH)
 }

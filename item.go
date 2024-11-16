@@ -2,7 +2,10 @@ package cli
 
 import "fmt"
 
-type item interface{ isItem() }
+type item interface {
+	isItem()
+	clone() item
+}
 
 type ItemAny struct {
 	metavar Doc
@@ -10,13 +13,15 @@ type ItemAny struct {
 	anywhere bool
 }
 
-func (ItemAny) isItem() {}
+func (ItemAny) isItem()          {}
+func (self ItemAny) clone() item { return ItemAny{self.metavar.clone(), self.anywhere} }
 
 // Positional item, consumed from the the front of the arguments
 // <FILE>
 type ItemPositional struct{ metavar Metavar }
 
-func (ItemPositional) isItem() {}
+func (ItemPositional) isItem()          {}
+func (self ItemPositional) clone() item { return ItemPositional{self.metavar} }
 
 type ItemCommand struct {
 	name  string
@@ -26,6 +31,14 @@ type ItemCommand struct {
 }
 
 func (ItemCommand) isItem() {}
+func (self ItemCommand) clone() item {
+	return ItemCommand{
+		self.name,
+		self.short,
+		self.meta.clone(),
+		self.info.clone(),
+	}
+}
 
 // short or long name, consumed anywhere
 // -f
@@ -38,6 +51,13 @@ type ItemFlag struct {
 }
 
 func (ItemFlag) isItem() {}
+func (self ItemFlag) clone() item {
+	return ItemFlag{
+		self.name,
+		append([]byte(nil), self.shorts...),
+		self.env,
+	}
+}
 
 // Short or long name followed by a value, consumed anywhere
 // -f <VAL>
@@ -51,10 +71,28 @@ type ItemArgument struct {
 }
 
 func (ItemArgument) isItem() {}
+func (self ItemArgument) clone() item {
+	return ItemArgument{
+		self.name,
+		append([]byte(nil), self.shorts...),
+		self.metavar,
+		self.env,
+	}
+}
 
 type Item struct {
 	help Option[Doc]
 	v    item
+}
+
+func (i Item) clone() Item {
+	return Item{
+		Option[Doc]{
+			i.help.Value.clone(),
+			i.help.Valid,
+		},
+		i.v.clone(),
+	}
 }
 
 func (i Item) String() string {

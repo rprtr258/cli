@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"unicode/utf8"
+
+	"github.com/rprtr258/fun/iter"
 )
 
 // All currently present command line parameters with fun.Valid extra metainfo
@@ -521,13 +523,10 @@ func (self State) ranges(item Item) ArgRangesIter {
 // Mark everything outside of `range` as removed
 func (self *State) set_scope(scope Range) {
 	self.scope = scope
-	remaining := 0
-	for _, v := range self.item_state[self.scope[0]:self.scope[1]] {
-		if v.present() {
-			remaining++
-		}
-	}
-	self.remaining = remaining
+	self.remaining = iter.
+		FromMany(self.item_state[self.scope[0]:self.scope[1]]...).
+		Filter(ItemState.present).
+		Count()
 }
 
 // check if bpaf tries to complete last consumed element
