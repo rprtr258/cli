@@ -1,29 +1,34 @@
 package cli
 
-// #[test]
-// fn parse_anywhere_positional() {
-//     let a = any("X", |h| if h != "--help" { Some(h) } else { None }).
-//         help("all the things").
-//         anywhere();
+import (
+	"testing"
 
-//     let b = short('b').help("batch mode").Switch();
-//     let parser: OptionParser<(String, bool)> = construct(a, b).to_options();
+	"github.com/rprtr258/fun"
+	"github.com/stretchr/testify/require"
+)
 
-//     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+func TestParse_anywhere_positional(t *testing.T) {
+	a := Any("X", func(h string) (string, bool) { return h, h != "--help" }).
+		Help("all the things").
+		Anywhere()
 
-//     let expected = "\
-// Usage: X [-b]
+	b := Short('b').Help("batch mode").Switch()
+	var parser *OptionParser[fun.Pair[string, bool]] = Pair(a, b).Parser().ToOptions()
 
-// Available options:
-//     X           all the things
-//     -b          batch mode
-//     -h, --help  Prints help information
-// ";
+	_, r := parser.run_inner(newArgs("--help"))
 
-//     assert.Equal(t, r, expected);
-//     // this should be allowed because "anywhere" prevents anything inside from being positional
-//     parser.check_invariants(true);
-// }
+	const expected = `Usage: X [-b]
+
+Available options:
+    X           all the things
+    -b          batch mode
+    -h, --help  Prints help information
+`
+
+	require.Equal(t, unwrap_stdout(r), expected)
+	// this should be allowed because "anywhere" prevents anything inside from being positional
+	parser.check_invariants(true)
+}
 
 // #[test]
 // fn parse_anywhere_no_catch() {
@@ -36,34 +41,34 @@ package cli
 //     // Usage: -a <x> [-c],
 
 //     let r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "expected `X`, pass `--help` for usage information");
+//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
 
 //     let r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "expected `X`, pass `--help` for usage information");
+//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
 
 //     let r = parser.
 //         run_inner(newArgs("-a", "221b"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
+//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
 
 //     let r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "expected `X`, pass `--help` for usage information");
+//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
 
 //     let r = parser.
 //         run_inner(newArgs("-c", "-a", "221b"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
+//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
 
 //     let r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "expected `X`, pass `--help` for usage information");
+//     require.Equal(t, r, "expected `X`, pass `--help` for usage information");
 
 //     let r = parser.
 //         run_inner(newArgs("-a", "221b", "-c"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
+//     require.Equal(t, r, "couldn't parse `221b`: invalid digit found in string");
 // }
 
 // #[test]
@@ -75,13 +80,13 @@ package cli
 //     let parser = construct(ab, bc).to_options();
 
 //     let r = parser.run_inner(newArgs("-a", "10")).unwrap();
-//     assert.Equal(t, r, (Some(((), 10)), false));
+//     require.Equal(t, r, (Some(((), 10)), false));
 
 //     let r = parser.run_inner(newArgs("-a")).unwrap();
-//     assert.Equal(t, r, (None, true));
+//     require.Equal(t, r, (None, true));
 
 //     let r = parser.run_inner(newArgs()).unwrap();
-//     assert.Equal(t, r, (None, false));
+//     require.Equal(t, r, (None, false));
 // }
 
 // #[test]
@@ -94,13 +99,13 @@ package cli
 
 //     let r = parser.run_inner(newArgs("-a")).unwrap();
 
-//     assert.Equal(t, r, (vec![], true));
+//     require.Equal(t, r, (vec![], true));
 
 //     let r = parser.run_inner(newArgs("-a", "10")).unwrap();
-//     assert.Equal(t, r, (vec![((), 10)], false));
+//     require.Equal(t, r, (vec![((), 10)], false));
 
 //     let r = parser.run_inner(newArgs()).unwrap();
-//     assert.Equal(t, r, (Vec::new(), false));
+//     require.Equal(t, r, (Vec::new(), false));
 // }
 
 // #[test]
@@ -112,13 +117,13 @@ package cli
 //     let parser = construct(ab, bc).to_options();
 
 //     let r = parser.run_inner(newArgs("-a", "12")).unwrap();
-//     assert.Equal(t, r, (((), 12), false));
+//     require.Equal(t, r, (((), 12), false));
 
 //     let r = parser.run_inner(newArgs("-a")).unwrap();
-//     assert.Equal(t, r, (((), 10), true));
+//     require.Equal(t, r, (((), 10), true));
 
 //     let r = parser.run_inner(newArgs()).unwrap();
-//     assert.Equal(t, r, (((), 10), false));
+//     require.Equal(t, r, (((), 10), false));
 // }
 
 // #[test]
@@ -136,31 +141,31 @@ package cli
 //         run_inner(newArgs("-a", "221b"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 
 //     let r = parser.run_inner(newArgs("3", "-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "`3` is not expected in this context");
+//     require.Equal(t, r, "`3` is not expected in this context");
 
 //     let r = parser.run_inner(newArgs("-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 
 //     let r = parser.run_inner(newArgs("-c", "-a")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 
 //     let r = parser.
 //         run_inner(newArgs("-c", "-a", "221b"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 
 //     let r = parser.run_inner(newArgs("-a", "-c")).unwrap_err().unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 
 //     let r = parser.
 //         run_inner(newArgs("-a", "221b", "-c"]).
 //         unwrap_err().
 //         unwrap_stderr();
-//     assert.Equal(t, r, "`-a` is not expected in this context");
+//     require.Equal(t, r, "`-a` is not expected in this context");
 // }
 
 // #[test]
@@ -175,11 +180,11 @@ package cli
 //     let parser: OptionParser<(Vec<((), usize)>, bool)> = construct(a, b).to_options();
 
 //     let r = parser.run_inner(newArgs("-b", "-mode", "12")).unwrap();
-//     assert.Equal(t, r, (vec![((), 12)], true));
+//     require.Equal(t, r, (vec![((), 12)], true));
 
 //     let r = parser.run_inner(newArgs("-mode", "12", "-b")).unwrap();
-//     assert.Equal(t, r, (vec![((), 12)], true));
+//     require.Equal(t, r, (vec![((), 12)], true));
 
 //     let r = parser.run_inner(newArgs("-mode", "12")).unwrap();
-//     assert.Equal(t, r, (vec![((), 12)], false));
+//     require.Equal(t, r, (vec![((), 12)], false));
 // }
