@@ -62,7 +62,7 @@ func TestFrom_str_works_with_parse(t *testing.T) {
 	assertSuccess(t, uint(42), parser, "42")
 }
 
-func Testsquashed_short_names(t *testing.T) {
+func TestSquashed_short_names(t *testing.T) {
 	var a = Short('a').Switch()
 	var b = Argument(Short('b'), "B", parseString)
 	var parser = Pair(a, b).Parser().ToOptions()
