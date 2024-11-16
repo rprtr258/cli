@@ -1524,7 +1524,6 @@ func TestParse_some_catch(t *testing.T) {
 	a2 := ParseSomeParser(Map(Argument(Short('a'), "S", parseString).Parser(), AS).Some("A").Catch()).Hide()
 	parser := Choice(a1, a2).ToOptions()
 
-	t.Skip() // TODO: fix
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
 	assertSuccess(t, []A{AS("x")}, parser, "-a", "x")
 	{
