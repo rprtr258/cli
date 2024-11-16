@@ -1559,7 +1559,6 @@ func TestOptional_bool_states(t *testing.T) {
 }
 
 func TestFancy_negative(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Any("A", func(s string) (int32, bool) { res, err := strconv.ParseInt(s, 10, 32); return int32(res), err == nil })
 	ab := Map(Pair(a, b).Adjacent().Parser(), func(x fun.Pair[struct{}, int32]) int32 { return x.V })

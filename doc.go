@@ -149,17 +149,11 @@ func (self *Doc) write_meta(meta Meta, for_usage bool) {
 			self.write_str("(", StyleText)
 			gO(m.m)
 			self.write_str(")", StyleText)
-		case MetaAdjacent:
-			gO(m.m)
-			self.write_str("...", StyleText)
 		case MetaItem:
 			self.write_item(Item(m))
 		case MetaMany:
 			gO(m.m)
-		case MetaSubsection:
-			gO(m.m)
-		case MetaSuffix:
-			gO(m.m)
+			self.write_str("...", StyleText)
 		case MetaSkip:
 			// self.write_str("no parameters expected", StyleText)
 		case MetaCustomUsage:
@@ -167,6 +161,12 @@ func (self *Doc) write_meta(meta Meta, for_usage bool) {
 		case MetaStrict:
 			self.write_str("--", StyleLiteral)
 			self.write_str(" ", StyleText)
+			gO(m.m)
+		case MetaAdjacent:
+			gO(m.m)
+		case MetaSubsection:
+			gO(m.m)
+		case MetaSuffix:
 			gO(m.m)
 		}
 	}
