@@ -115,7 +115,7 @@ func (self OptionParser[T]) Run() T {
 // # */
 // ```
 //
-// See also [Args] and it's `From` impls to produce input and
+// See also [rawArgs] and it's `From` impls to produce input and
 // [ParseFailureunwrap_stderr] / [ParseFailureunwrap_stdout] for processing results.
 //
 // # Errors

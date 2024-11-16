@@ -185,7 +185,9 @@ func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 
 	// second item may or may not be, but should be present
 	var ty ArgType
-	if len(items) > 0 && items[0] == DASH {
+	if len(items) == 0 {
+		return false, "", Invalid[Arg](), false
+	} else if items[0] == DASH {
 		ty = ArgTypeLong
 	} else {
 		ty = ArgTypeShort
@@ -201,7 +203,7 @@ func split_os_argument(input string) (ArgType, string, Option[Arg], bool) {
 				body := name[1:]
 				body = append(body, EQUALS)
 				body = append(body, items[i+1:]...)
-				name = name[1:]
+				name = name[:1]
 				os := ArgWord(string(body))
 				return ty, string(name), Valid(os), true
 			}

@@ -1548,7 +1548,6 @@ Available options:
 }
 
 func TestStrange_short_option(t *testing.T) {
-	t.Skip() // TODO: fix
 	parser := Argument(Short('O'), "ARG", parseString).Parser().ToOptions()
 	assertSuccess(t, "bits=2048", parser, "-Obits=2048")
 }
