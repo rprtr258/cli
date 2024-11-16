@@ -24,7 +24,6 @@ func requireNoParseFailure(t *testing.T, err ParseFailure) {
 }
 
 func TestAdjacent(t *testing.T) {
-	t.Skip() // TODO: unskip
 	type cmd struct {
 		a    struct{}
 		b, c bool
