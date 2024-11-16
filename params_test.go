@@ -12,20 +12,21 @@ func TestGet_any_simple(t *testing.T) {
 	b := Any("REST", func(s string) (string, bool) { return s, true }).Help("any help")
 	var parser *OptionParser[fun.Pair[bool, string]] = Pair(a, b).Parser().ToOptions()
 
+	type R = fun.Pair[bool, string]
 	{
 		r, err := parser.run_inner(newArgs("-a", "-b"))
 		require.Nil(t, err)
-		require.Equal(t, "-b", r.V)
+		require.Equal(t, R{true, "-b"}, r)
 	}
 	{
 		r, err := parser.run_inner(newArgs("-b", "-a"))
 		require.Nil(t, err)
-		require.Equal(t, "-b", r.V)
+		require.Equal(t, R{true, "-b"}, r)
 	}
 	{
 		r, err := parser.run_inner(newArgs("-b=foo", "-a"))
 		require.Nil(t, err)
-		require.Equal(t, "-b=foo", r.V)
+		require.Equal(t, R{true, "-b=foo"}, r)
 	}
 }
 
