@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func Testget_any_simple(t *testing.T) {
+func TestGet_any_simple(t *testing.T) {
 	a := Short('a').Switch()
 	b := Any("REST", func(s string) (string, bool) { return s, true }).Help("any help")
 	var parser *OptionParser[fun.Pair[bool, string]] = Pair(a, b).Parser().ToOptions()
@@ -15,21 +15,21 @@ func Testget_any_simple(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-a", "-b"))
 		require.Nil(t, err)
-		require.Equal(t, r.V, "-b")
+		require.Equal(t, "-b", r.V)
 	}
 	{
 		r, err := parser.run_inner(newArgs("-b", "-a"))
 		require.Nil(t, err)
-		require.Equal(t, r, "-b")
+		require.Equal(t, "-b", r.V)
 	}
 	{
 		r, err := parser.run_inner(newArgs("-b=foo", "-a"))
 		require.Nil(t, err)
-		require.Equal(t, r, "-b=foo")
+		require.Equal(t, "-b=foo", r.V)
 	}
 }
 
-// func Testget_any_many() {
+// func Testget_any_many(t *testing.T) {
 // 	var a = Short('a').Switch()
 // 	var b = Any("REST", Some).Help("any help").many()
 // 	var parser OptionParser[fun.Pair[bool, []string]] = Pair(a, b).ToOptions()
@@ -44,14 +44,14 @@ func Testget_any_simple(t *testing.T) {
 // 	require.Equal(t,r.V, []string{"-b", "-b"})
 // }
 
-// func Testget_any_many2() {
+// func Testget_any_many2(t *testing.T) {
 // 	var parser OptionParser[[]string] = Any("REST", Some).many().ToOptions()
 
 // 	var r = parser.run_inner(newArgs("-vvv")).unwrap()
 // 	require.Equal(t,r[0], "-vvv")
 // }
 
-// func Testget_any_magic() {
+// func Testget_any_magic(t *testing.T) {
 // 	var parser = Short('b').
 // 		Argument[string]("anana").
 // 		Adjacent().
@@ -75,7 +75,7 @@ func Testget_any_simple(t *testing.T) {
 // 	assert(parser.run_inner(newArgs()).unwrap())
 // }
 
-// func Testfrom_str_works_with_parse() {
+// func Testfrom_str_works_with_parse(t *testing.T) {
 // 	var parser = positional[string]("A").
 // 		parse(parseUint).
 // 		ToOptions()
@@ -84,7 +84,7 @@ func Testget_any_simple(t *testing.T) {
 // 	require.Equal(t,r, 42)
 // }
 
-// func Testsquashed_short_names() {
+// func Testsquashed_short_names(t *testing.T) {
 // 	var a = Short('a').Switch()
 // 	var b = Short('b').Argument[string]("B")
 // 	var parser = Pair(a, b).ToOptions()
@@ -108,7 +108,7 @@ func Testget_any_simple(t *testing.T) {
 // 	require.Equal(t,r.V, "foo")
 // }
 
-// // func Testcommand_alias() {
+// // func Testcommand_alias(t *testing.T) {
 // //     #[derive(Debug, Bpaf, Clone)]
 // //     #[bpaf(options)]
 // //     enum Groups {
