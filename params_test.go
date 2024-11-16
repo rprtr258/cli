@@ -62,38 +62,36 @@ func TestFrom_str_works_with_parse(t *testing.T) {
 	assertSuccess(t, uint(42), parser, "42")
 }
 
-// func Testsquashed_short_names(t *testing.T) {
-// 	var a = Short('a').Switch()
-// 	var b = Short('b').Argument[string]("B")
-// 	var parser = Pair(a, b).ToOptions()
+func Testsquashed_short_names(t *testing.T) {
+	var a = Short('a').Switch()
+	var b = Argument(Short('b'), "B", parseString)
+	var parser = Pair(a, b).Parser().ToOptions()
 
-// 	// For now instead of supporting I parse "-Obits=2048" instead as "-O" with "bits=2048" body
-// 	// https://github.com/pacak/bpaf/issues/121
-// 	//
-// 	// var r = parser.run_inner(newArgs("-ab=foo")).unwrap();
-// 	// require.Equal(t,r.V, "foo");
+	type R = fun.Pair[bool, string]
+	// For now instead of supporting I parse "-Obits=2048" instead as "-O" with "bits=2048" body
+	// https://github.com/pacak/bpaf/issues/121
+	//
+	// var r = parser.run_inner(newArgs("-ab=foo")).unwrap();
+	// require.Equal(t,r.V, "foo");
 
-// 	// an odd one, short flag a is squashed with short argument b
-// 	var r = parser.run_inner(newArgs("-ab", "foo")).unwrap()
-// 	require.Equal(t,r.V, "foo")
+	// an odd one, short flag a is squashed with short argument b
+	assertSuccess(t, R{true, "foo"}, parser, "-ab", "foo")
 
-// 	// same, but body for b is adjacent as well
-// 	var r = parser.run_inner(newArgs("-abfoo")).unwrap()
-// 	require.Equal(t,r.V, "foo")
+	// same, but body for b is adjacent as well
+	assertSuccess(t, R{true, "foo"}, parser, "-abfoo")
 
-// 	// normal
-// 	var r = parser.run_inner(newArgs("-a", "-bfoo")).unwrap()
-// 	require.Equal(t,r.V, "foo")
+	// normal
+	assertSuccess(t, R{true, "foo"}, parser, "-a", "-bfoo")
+}
+
+// func Testcommand_alias(t *testing.T) {
+//     #[derive(Debug, Bpaf, Clone)]
+//     #[bpaf(options)]
+//     enum Groups {
+//         #[bpaf(command("top"), long("top-alias"))]
+//         Command,
+//     }
+
+//     groups().run_inner(newArgs("top")).unwrap();
+//     groups().run_inner(newArgs("top-alias")).unwrap();
 // }
-
-// // func Testcommand_alias(t *testing.T) {
-// //     #[derive(Debug, Bpaf, Clone)]
-// //     #[bpaf(options)]
-// //     enum Groups {
-// //         #[bpaf(command("top"), long("top-alias"))]
-// //         Command,
-// //     }
-
-// //     groups().run_inner(newArgs("top")).unwrap();
-// //     groups().run_inner(newArgs("top-alias")).unwrap();
-// // }
