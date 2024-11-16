@@ -1502,7 +1502,6 @@ func TestParse_option_catch(t *testing.T) {
 	a2 := Optional(Map(Argument(Short('a'), "S", parseString).Parser(), AS)).Catch()
 	parser := Choice(a1.Parser(), a2.Parser()).ToOptions()
 
-	t.Skip() // TODO: fix
 	assertSuccess(t, Valid(AU32(10)), parser, "-a", "10")
 	assertSuccess(t, Valid(AS("x")), parser, "-a", "x")
 	assertSuccess(t, Invalid[A](), parser)
