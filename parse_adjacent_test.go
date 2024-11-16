@@ -67,14 +67,9 @@ func TestAdjacent(t *testing.T) {
 }
 
 func TestAdjacentPrefix(t *testing.T) {
-	t.Skip() // TODO: unskip
-
-	type cmd struct {
-		ab Option[fun.Pair[struct{}, uint]]
-		c  bool
-	}
+	type cmd = fun.Pair[Option[fun.Pair[struct{}, uint]], bool]
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional[uint]("X", func(s string) (uint, error) {
+	b := Positional("X", func(s string) (uint, error) {
 		u, err := strconv.ParseUint(s, 10, 32)
 		return uint(u), err
 	})
