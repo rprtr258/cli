@@ -65,6 +65,16 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 	require.Equal(t, unwrap_stderr(r), "expected `C`, pass `--help` for usage information")
 }
 
+func TestAdjacent_error_message_arg_single0(t *testing.T) {
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Argument(Short('b'), "B", parseUint)
+	parser := Pair(a, b).Adjacent().Parser().ToOptions()
+
+	t.Skip() // TODO: fix
+	_, r := parser.run_inner(newArgs("-a", "10"))
+	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
+}
+
 func TestAdjacent_error_message_arg_single(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Argument(Short('b'), "B", parseUint)
