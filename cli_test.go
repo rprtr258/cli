@@ -1448,9 +1448,8 @@ func TestCatch_works(t *testing.T) {
 		Hide())
 	parser := Choice(a_n.Parser(), a_s.Parser()).ToOptions()
 
-	t.Skip() // TODO: fix
-	assertSuccess(t, Valid(ANum(1)), parser, "-a", "1")
 	assertSuccess(t, Valid(AStr("x1")), parser, "-a", "x1")
+	assertSuccess(t, Valid(ANum(1)), parser, "-a", "1")
 }
 
 func TestSneaky_command(t *testing.T) {

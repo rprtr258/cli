@@ -767,9 +767,9 @@ where
             // anything left unconsumed - this won't be lost.
 
             let missing = matches!(err, Message::Missing(_));
-
-            if catch || (missing && orig_args.len() == args.len()) || (!missing && err.can_catch())
-            {
+            if catch ||
+                missing && orig_args.len() == args.len() ||
+                !missing && err.can_catch() {
                 std::mem::swap(&mut orig_args, args);
                 #[cfg(feature = "autocomplete")]
                 if orig_args.comp_mut().is_some() {

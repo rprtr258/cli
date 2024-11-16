@@ -80,8 +80,7 @@ func parse_option[T any](
 		if _, missing := err.(ErrorMissing); catch ||
 			missing && orig_args.len() == args.len() ||
 			!missing && can_catch(Error(err)) {
-			orig_args = *args
-
+			stdmemswap(&orig_args, args)
 			if _, ok := orig_args.comp_mut(); ok {
 				args.swap_comps(&orig_args)
 			}

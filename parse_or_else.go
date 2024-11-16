@@ -220,7 +220,7 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 // API, but you can use it in Derive API with `extern`.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Choice.md"))]
-func Choice[T any](parsers ...Parser[T]) Parser[T] {
+func Choice[T any](parsers ...parser[T]) Parser[T] {
 	if len(parsers) == 0 {
 		p := Fail[T]("Invalid choice usage")
 		return Parser[T]{p.eval, MetaSkip{}}
@@ -228,8 +228,8 @@ func Choice[T any](parsers ...Parser[T]) Parser[T] {
 
 	this := parsers[0]
 	for _, that := range parsers[1:] {
-		p := ParseOrElse[T]{this, that}
+		p := ParseOrElse[T]{this.Parser(), that.Parser()}
 		this = Parser[T]{p.eval, or(p.this.meta, p.that.meta)}
 	}
-	return this
+	return this.Parser()
 }
