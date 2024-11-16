@@ -1,33 +1,40 @@
-use std::str::FromStr;
+package cli
 
-use bpaf::*;
+import (
+	"testing"
 
-#[test]
-fn generic_argument_field() {
-    #[derive(Debug, Clone, Eq, PartialEq)]
-    struct Poly<T> {
-        field: T,
-    }
+	"github.com/rprtr258/fun"
+	"github.com/stretchr/testify/require"
+)
 
-    fn poly<T>(name: &'static str) -> impl Parser<Poly<T>>
-    where
-        T: FromStr + 'static,
-        <T as FromStr>::Err: std::fmt::Display,
-    {
-        let field = long(name).argument("ARG");
-        construct(Poly { field })
-    }
+type Poly[T any] struct {
+	field T
+}
 
-    let a = poly::<usize>("usize").optional();
-    let b = poly::<u32>("u32").optional();
-    let parser = construct(a, b).to_options();
+func poly[T any](name string, parse func(string) (T, error)) Parser[Poly[T]] {
+	field := Argument(Long(name), "ARG", parse)
+	return Map(field.Parser(), func(a T) Poly[T] { return Poly[T]{a} })
+}
 
-    let r = parser.run_inner(newArgs("--usize", "12")).unwrap();
-    assert.Equal(t, r, (Some(Poly { field: 12 }), None));
+func TestGeneric_argument_field(t *testing.T) {
+	a := Optional(poly("uint", parseUint))
+	b := Optional(poly("uint32", parseUint32))
+	parser := Pair(a, b).Parser().ToOptions()
 
-    let r = parser.run_inner(newArgs("--u32", "12")).unwrap();
-    assert.Equal(t, r, (None, Some(Poly { field: 12 })));
-
-    let r = parser.run_inner(newArgs("--u32", "12", "--usize", "24")).unwrap();
-    assert.Equal(t, r, (Some(Poly { field: 24 }), Some(Poly { field: 12 })));
+	type R = fun.Pair[Option[Poly[uint]], Option[Poly[uint32]]]
+	{
+		r, err := parser.run_inner(newArgs("--uint", "12"))
+		require.Nil(t, err)
+		require.Equal(t, r, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()})
+	}
+	{
+		r, err := parser.run_inner(newArgs("--uint32", "12"))
+		require.Nil(t, err)
+		require.Equal(t, r, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})})
+	}
+	{
+		r, err := parser.run_inner(newArgs("--uint32", "12", "--uint", "24"))
+		require.Nil(t, err)
+		require.Equal(t, r, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})})
+	}
 }
