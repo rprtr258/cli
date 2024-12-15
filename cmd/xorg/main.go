@@ -53,7 +53,7 @@ var options cli.Parser[Options] = cli.Map4(
 	cli.Short('t').
 		Long("turbo").
 		Help("Engage the turbo mode").
-		Switch(),
+		Switch().Parser(),
 	toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false).Parser(),
 	toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true).Parser(),
 	cli.Many(extension).Parser(),

@@ -54,7 +54,7 @@ func (self ParseFlag[T]) meta() Meta {
 // Add a help message to `flag`
 //
 // See [NamedArghelp]
-func (self *ParseFlag[T]) help(help Doc) *ParseFlag[T] {
+func (self ParseFlag[T]) help(help Doc) ParseFlag[T] {
 	self.named.help = Valid(help)
 	return self
 }

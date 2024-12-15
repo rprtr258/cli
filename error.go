@@ -574,11 +574,11 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		doc.Text(" is not expected in this context")
 	case ErrorAmbiguity:
 		name, ix := e.name, e.ix
-		// Error: app supports -f as both an fun.Option and an fun.Option-argument, try to split -foo
+		// Error: app supports -f as both an option and an fun.Option-argument, try to split -foo
 		// into invididual fun.Options (-f -o ..) or use -f=oo syntax to disambiguate
 		first := name[0]
 		second := name[1]
-		rest := name[2:]
+		rest := name[1:]
 		s := args.items[ix].str
 
 		if name, ok := First(args.path).Unpack(); ok {
@@ -592,11 +592,11 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		doc.Literal("-")
 		doc.write_char(first, StyleLiteral)
 		doc.token(TokenBlockEnd(BlockTermRef))
-		doc.Text(" as both an fun.Option and an fun.Option-argument, try to split ")
+		doc.Text(" as both an option and an option-argument, try to split ")
 		doc.token(TokenBlockStart(BlockTermRef))
 		doc.write(s, StyleLiteral)
 		doc.token(TokenBlockEnd(BlockTermRef))
-		doc.Text(" into individual fun.Options (")
+		doc.Text(" into individual options (")
 		doc.Literal("-")
 		doc.write_char(first, StyleLiteral)
 		doc.Literal(" -")

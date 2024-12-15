@@ -15,13 +15,6 @@ func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 	return res
 }
 
-// Parser metainformation
-//
-// This is a newtype around internal parser metainfo representation, generated
-// with [Parserwith_group_help](crateParserwith_group_help) and consumed by
-// [Docmeta](Docmeta)
-type MetaInfo = Meta
-
 // Append a fragment of plain Text to [Doc]
 //
 // See [Doc] for usage examples
@@ -53,7 +46,7 @@ func (self *Doc) Invalid(text string) {
 // Append a fragment of parser metadata to [Doc]
 //
 // See [Doc] for usage examples
-func (self *Doc) Meta(meta MetaInfo, for_usage bool) {
+func (self *Doc) Meta(meta Meta, for_usage bool) {
 	self.write_meta(meta, for_usage)
 }
 

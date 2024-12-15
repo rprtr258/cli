@@ -433,16 +433,16 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 	case MetaStrict:
 		normalize(&m.m, for_usage, norm)
 		norm.push()
-		*self = m
+		*self = m.m
 	case MetaAdjacent:
 		normalize(&m.m, for_usage, norm)
-		*self = m
+		*self = m.m
 	case MetaSubsection:
 		normalize(&m.m, for_usage, norm)
-		*self = m
+		*self = m.m
 	case MetaSuffix:
 		normalize(&m.m, for_usage, norm)
-		*self = m
+		*self = m.m
 	}
 }
 

@@ -22,7 +22,11 @@ func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
 // Parser with attached message to several fields, created with [group_help](Parsergroup_help).
 type ParseWithGroupHelp[T any] struct {
 	inner Parser[T]
-	f     func(MetaInfo) Doc
+	f     func(Meta) Doc
+}
+
+func (self ParseWithGroupHelp[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta()}
 }
 
 func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
@@ -31,8 +35,7 @@ func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
 
 func (self ParseWithGroupHelp[T]) meta() Meta {
 	meta := self.inner.meta
-	buf := (self.f)(MetaInfo(meta))
-
+	buf := self.f(meta)
 	return MetaSubsection{meta, buf}
 }
 

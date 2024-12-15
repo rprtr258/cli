@@ -12,7 +12,7 @@ import (
 func main() {
 	opt := cli.Short('d').
 		Help("Release the dragon").
-		Switch().
+		Switch().Parser().
 		ToOptions().
 		Descr("I am a program and I do things").
 		Header("Sometimes they even work.").

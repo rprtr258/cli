@@ -29,7 +29,7 @@ var debug cli.Parser[bool] = cli.
 	Short('d').
 	Long("debug").
 	Help("Activate debug mode").
-	Switch()
+	Switch().Parser()
 
 // number of occurrences of the v/verbose flag capped at 3
 var verbose cli.Parser[uint] = cli.

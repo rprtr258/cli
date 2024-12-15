@@ -91,9 +91,9 @@ func TestConstructWithFn(t *testing.T) {
 		a, b, c bool
 	}
 
-	a := Short('a').Switch()
-	b := Short('b').Switch()
-	c := Short('c').Switch()
+	a := Short('a').Switch().Parser()
+	b := Short('b').Switch().Parser()
+	c := Short('c').Switch().Parser()
 	parser := Map3(a, b, c, func(a bool, b bool, c bool) Opts { return Opts{a, b, c} }).ToOptions()
 
 	_, err := parser.run_inner(newArgs("--help"))
@@ -149,7 +149,7 @@ Available options:
 
 func TestSimpleTwoOptionalFlagsWithOneHidden(t *testing.T) {
 	a := Short('a').Long("AAAAA").Switch()
-	b := Short('b').Switch().Hide()
+	b := Short('b').Switch().Parser().Hide()
 	decorated := Pair(a, b).Parser().ToOptions().Descr("this is a test")
 
 	// no version information given - no version field generated
@@ -254,7 +254,7 @@ func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
 	a := ReqFlag(Short('a'), true).Parser()
 	b := ReqFlag(Short('b'), false).Parser()
 	c := Short('c').Switch()
-	p := a.or_else(b).Parser().or_else(c).Parser()
+	p := a.or_else(b).Parser().or_else(c.Parser()).Parser()
 	decorated := p.ToOptions().version("1.0")
 
 	_, ver := decorated.run_inner(newArgs("-V"))
@@ -451,17 +451,17 @@ Available options:
 
 func TestGroupHelpCommands(t *testing.T) {
 	a := Short('a').
-		Switch().
+		Switch().Parser().
 		ToOptions().
 		Command("cmd_a").
 		Help("command that does A").Parser()
 	b := Short('a').
-		Switch().
+		Switch().Parser().
 		ToOptions().
 		Command("cmd_b").
 		Help("command that does B").Parser()
 	c := Short('a').
-		Switch().
+		Switch().Parser().
 		ToOptions().
 		Command("cmd_c").
 		Help("command that does C").Parser()
@@ -507,7 +507,7 @@ func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
 
 func TestSubcommands(t *testing.T) {
 	bar := Short('b').Switch()
-	bar_cmd := bar.ToOptions().Descr("This is local info").Command("bar")
+	bar_cmd := bar.Parser().ToOptions().Descr("This is local info").Command("bar")
 	parser := bar_cmd.Parser().ToOptions().Descr("This is global info")
 
 	{
@@ -614,8 +614,8 @@ func TestGit(t *testing.T) {
 
 	parser := func() *OptionParser[Opt] {
 		fetch := Map3(
-			Long("dry_run").Switch(),
-			Long("all").Switch(),
+			Long("dry_run").Switch().Parser(),
+			Long("all").Switch().Parser(),
 			Positional("SRC", parseString).Parser().Fallback("origin").Parser(),
 			OptFetch)
 		fetch_inner := fetch.
@@ -624,8 +624,8 @@ func TestGit(t *testing.T) {
 		fetch_cmd := fetch_inner.Command("fetch")
 
 		add := Map3(
-			Short('i').Switch(),
-			Long("all").Switch(),
+			Short('i').Switch().Parser(),
+			Long("all").Switch().Parser(),
 			Many(Positional("FILE", parseString).Parser()).Parser(),
 			OptAdd)
 		add_inner := add.ToOptions().Descr("add files to the staging area")
@@ -1000,12 +1000,12 @@ Available commands:
 }
 
 func TestManyDoesntPanic(t *testing.T) {
-	parser := Map(Many(Short('a').Switch()).Parser(), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(Many(Short('a').Switch().Parser()).Parser(), func(m []bool) int { return len(m) }).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Map(ParseSomeParser(Short('a').Switch().Some("")), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("")), func(m []bool) int { return len(m) }).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
@@ -1418,13 +1418,13 @@ func TestReject_fbar(t *testing.T) {
 }
 
 func TestCustom_usage_override_fixed(t *testing.T) {
-	parser := Short('p').Switch().ToOptions().Usage(newDocFromString("Usage: hey [-p]"))
+	parser := Short('p').Switch().Parser().ToOptions().Usage(newDocFromString("Usage: hey [-p]"))
 	_, r := parser.run_inner(newArgs("--help"))
 	require.Equal(t, unwrap_stdout(r), "Usage: hey [-p]\n\nAvailable options:\n    -p\n    -h, --help  Prints help information\n")
 }
 
 func TestCustom_usage_override_with_fn(t *testing.T) {
-	parser := Short('p').Switch().ToOptions().WithUsage(func(b Doc) Doc {
+	parser := Short('p').Switch().Parser().ToOptions().WithUsage(func(b Doc) Doc {
 		buf := Doc{}
 		buf.Text("Usage: hey ")
 		buf.Doc(b)
@@ -1464,11 +1464,11 @@ func TestSneaky_command(t *testing.T) {
 	CmdA := func(x bool) Cmd { return Cmd{true, x} }
 	CmdB := func(x bool) Cmd { return Cmd{false, x} }
 	cmd := Map(Short('f').
-		Switch().
+		Switch().Parser().
 		ToOptions().
 		Command("hello").Parser(),
 		CmdA)
-	b := Map(Short('f').Switch(), CmdB)
+	b := Map(Short('f').Switch().Parser(), CmdB)
 
 	sneaky := true // TODO: ???
 
@@ -1557,7 +1557,7 @@ func TestStrange_short_option(t *testing.T) {
 }
 
 func TestOptional_bool_states(t *testing.T) {
-	parser := Optional(Short('a').Switch()).Parser().ToOptions()
+	parser := Optional(Short('a').Switch().Parser()).Parser().ToOptions()
 	assertSuccess(t, Valid(true), parser, "-a")
 	assertSuccess(t, Valid(false), parser)
 }
@@ -1576,7 +1576,7 @@ func TestFancy_negative(t *testing.T) {
 	{
 		_, r := parser.run_inner(newArgs("--help"))
 		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
-		expected := `Usage: -a A [-c=C]
+		const expected = `Usage: -a A [-c=C]
 
 Available options:
   -a A
@@ -1605,7 +1605,7 @@ func TestEnv_hidden_arg(t *testing.T) {
 
 func TestEnv_hidden_switch(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := Env("USER1").Switch().ToOptions()
+	parser := Env("USER1").Switch().Parser().ToOptions()
 	assertSuccess(t, true, parser)
 }
 
@@ -1681,7 +1681,7 @@ func TestFlag_like_commands(t *testing.T) {
 
 	{
 		_, r := parser.run_inner(newArgs("--help"))
-		expected := "Usage: COMMAND ...\n\nAvailable options:\n    -h, --help  Prints help information\n\nAvailable commands:\n    --add\n    remove\n"
+		const expected = "Usage: COMMAND ...\n\nAvailable options:\n    -h, --help  Prints help information\n\nAvailable commands:\n    --add\n    remove\n"
 		require.Equal(t, unwrap_stdout(r), expected)
 	}
 

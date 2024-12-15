@@ -13,7 +13,7 @@ func TestParse_anywhere_positional(t *testing.T) {
 		Anywhere()
 
 	b := Short('b').Help("batch mode").Switch()
-	var parser *OptionParser[fun.Pair[string, bool]] = Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("--help"))
 
@@ -70,11 +70,11 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 }
 
 func TestAnywhere_catch_optional(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("x", parseUint)
-	var ab = Optional(Pair(a, b).Adjacent().Parser()).Catch()
-	var bc = Short('a').Switch()
-	var parser = Pair(ab, bc).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("x", parseUint)
+	ab := Optional(Pair(a, b).Adjacent().Parser()).Catch()
+	bc := Short('a').Switch()
+	parser := Pair(ab, bc).Parser().ToOptions()
 
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Option[P], bool]
@@ -96,11 +96,11 @@ func TestAnywhere_catch_optional(t *testing.T) {
 }
 
 func TestAnywhere_catch_many(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("x", parseUint)
-	var ab = Many(Pair(a, b).Adjacent().Parser()).Catch()
-	var bc = Short('a').Switch()
-	var parser = Pair(ab, bc).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("x", parseUint)
+	ab := Many(Pair(a, b).Adjacent().Parser()).Catch()
+	bc := Short('a').Switch()
+	parser := Pair(ab, bc).Parser().ToOptions()
 
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]fun.Pair[struct{}, uint], bool]
@@ -123,11 +123,11 @@ func TestAnywhere_catch_many(t *testing.T) {
 
 func TestAnywhere_catch_fallback(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("x", parseUint)
-	var ab = Pair(a, b).Adjacent().Parser().Fallback(P{struct{}{}, 10})
-	var bc = Short('a').Switch()
-	var parser = Pair(ab, bc).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("x", parseUint)
+	ab := Pair(a, b).Adjacent().Parser().Fallback(P{struct{}{}, 10})
+	bc := Short('a').Switch()
+	parser := Pair(ab, bc).Parser().ToOptions()
 
 	type R = fun.Pair[P, bool]
 	{
@@ -149,14 +149,14 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 }
 
 func TestParse_anywhere_catch_optional(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("x", parseUint)
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("x", parseUint)
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
-	var ab = Optional(Pair(a, b).Adjacent().Parser()).Catch()
-	var c = Short('c').Switch()
-	var parser = Pair(ab, c).Parser().ToOptions()
+	ab := Optional(Pair(a, b).Adjacent().Parser()).Catch()
+	c := Short('c').Switch()
+	parser := Pair(ab, c).Parser().ToOptions()
 
 	{
 		_, r := parser.run_inner(newArgs("-a", "221b"))
@@ -189,16 +189,16 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 }
 
 func TestAnywhere_literal(t *testing.T) {
-	var tag = Any(
+	tag := Any(
 		"-mode",
 		func(x string) (struct{}, bool) { return struct{}{}, x == "-mode" },
 	)
-	var mode = Positional("value", parseUint)
-	var a = Many(Pair(tag, mode).Adjacent().Parser()).Catch()
-	var b = Short('b').Switch()
+	mode := Positional("value", parseUint)
+	a := Many(Pair(tag, mode).Adjacent().Parser()).Catch()
+	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]P, bool]
-	var parser *OptionParser[R] = Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).Parser().ToOptions()
 
 	{
 		t.Skip() // TODO: fix

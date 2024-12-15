@@ -12,7 +12,7 @@ func some(s string) (string, bool) { return s, true }
 func TestGet_any_simple(t *testing.T) {
 	a := Short('a').Switch()
 	b := Any("REST", some).Help("any help")
-	var parser *OptionParser[fun.Pair[bool, string]] = Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]
 	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
@@ -21,9 +21,9 @@ func TestGet_any_simple(t *testing.T) {
 }
 
 func TestGet_any_many(t *testing.T) {
-	var a = Short('a').Switch()
-	var b = Many(Any("REST", some).Help("any help").Parser())
-	var parser *OptionParser[fun.Pair[bool, []string]] = Pair(a, b).Parser().ToOptions()
+	a := Short('a').Switch()
+	b := Many(Any("REST", some).Help("any help").Parser())
+	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, []string]
 	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
@@ -32,7 +32,7 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	var parser *OptionParser[[]string] = Many(Any("REST", some).Parser()).Parser().ToOptions()
+	parser := Many(Any("REST", some).Parser()).Parser().ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
@@ -63,15 +63,15 @@ func TestFrom_str_works_with_parse(t *testing.T) {
 }
 
 func TestSquashed_short_names(t *testing.T) {
-	var a = Short('a').Switch()
-	var b = Argument(Short('b'), "B", parseString)
-	var parser = Pair(a, b).Parser().ToOptions()
+	a := Short('a').Switch()
+	b := Argument(Short('b'), "B", parseString)
+	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]
 	// For now instead of supporting I parse "-Obits=2048" instead as "-O" with "bits=2048" body
 	// https://github.com/pacak/bpaf/issues/121
 	//
-	// var r = parser.run_inner(newArgs("-ab=foo")).unwrap();
+	// r := parser.run_inner(newArgs("-ab=foo")).unwrap();
 	// require.Equal(t,r.V, "foo");
 
 	// an odd one, short flag a is squashed with short argument b

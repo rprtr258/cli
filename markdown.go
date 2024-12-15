@@ -69,7 +69,7 @@ package cli
 // //     }
 
 // //     r := options().render_markdown("options");
-// //     expected := "
+// //     const expected = "
 
 // // # Command summary
 
@@ -117,7 +117,7 @@ package cli
 // 	opts := Short('a').Help("help\n\nmore help").Switch().ToOptions()
 // 	r := opts.render_markdown("ml")
 
-// 	expected := `# ml
+// 	const expected = `# ml
 
 // **Usage**: **` + "`" + `ml` + "`" + `** \\[**` + "`" + `-a` + "`" + `**\\]
 
@@ -138,7 +138,7 @@ package cli
 
 // 	r := opts.render_markdown("ml")
 
-// 	expected := `# ml
+// 	const expected = `# ml
 
 // **Usage**: **` + "`" + `ml` + "`" + `** \\[**` + "`" + `-a` + "`" + `**\\] \\[**` + "`" + `-b` + "`" + `**\\]
 
@@ -162,7 +162,7 @@ package cli
 // //     }
 
 // //     r := options().run_inner(newArgs("-hh")).unwrap_err().unwrap_stdout();
-// //     expected := "\
+// //     const expected = "\
 // // Usage: [--verbose]
 
 // // Available options:
@@ -176,7 +176,7 @@ package cli
 // //     require.Equal(t,r, expected);
 
 // //     r := options().render_markdown("ml");
-// //     expected := "\
+// //     const expected = "\
 // // # ml
 
 // // **Usage**: **`ml`** \\[**`--verbose`**\\]
@@ -211,7 +211,7 @@ package cli
 // //     }
 
 // //     r := options().run_inner(newArgs("-hh")).unwrap_err().unwrap_stdout();
-// //     expected := "\
+// //     const expected = "\
 // // Usage: [--verbose]
 
 // // Available options:
@@ -226,7 +226,7 @@ package cli
 // //     require.Equal(t,r, expected);
 
 // //     r := options().render_markdown("ml");
-// //     expected := "\
+// //     const expected = "\
 // // # ml
 
 // // **Usage**: **`ml`** \\[**`--verbose`**\\]
