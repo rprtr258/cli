@@ -8,6 +8,10 @@ type ParseUsage[T any] struct {
 	usage Doc
 }
 
+func (self ParseUsage[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta()}
+}
+
 func (self ParseUsage[T]) eval(args *State) (T, Error) {
 	return self.inner.eval(args)
 }

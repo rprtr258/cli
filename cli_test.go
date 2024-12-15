@@ -82,8 +82,8 @@ func wtf_shenanigans_2(t *testing.T) {
 
 func de_yoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
-	assertSuccess(t, fun.Pair[bool, bool]{false, false}, parser)
-	assertSuccess(t, fun.Pair[bool, bool]{true, true}, parser, "-a", "-b")
+	assertSuccess(t, pair(false, false), parser)
+	assertSuccess(t, pair(true, true), parser, "-a", "-b")
 }
 
 func TestConstructWithFn(t *testing.T) {
@@ -763,10 +763,10 @@ func TestSimpleCargoHelper(t *testing.T) {
 		Descr("this is a test")
 
 	// cargo run variant
-	assertSuccess(t, fun.Pair[bool, bool]{true, false}, decorated, "-a")
+	assertSuccess(t, pair(true, false), decorated, "-a")
 
 	// cargo simple variant
-	assertSuccess(t, fun.Pair[bool, bool]{false, true}, decorated, "simple", "-b")
+	assertSuccess(t, pair(false, true), decorated, "simple", "-b")
 
 	{
 		_, err := decorated.
@@ -1571,8 +1571,8 @@ func TestFancy_negative(t *testing.T) {
 
 	parser := Pair(ab, c).Parser().ToOptions()
 
-	assertSuccess(t, fun.Pair[int32, uint]{-10, 42}, parser, "-a", "-10")
-	assertSuccess(t, fun.Pair[int32, uint]{-20, 110}, parser, "-a=-20", "-c", "110")
+	assertSuccess(t, pair[int32, uint](-10, 42), parser, "-a", "-10")
+	assertSuccess(t, pair[int32, uint](-20, 110), parser, "-a=-20", "-c", "110")
 	{
 		_, r := parser.run_inner(newArgs("--help"))
 		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
@@ -1657,8 +1657,8 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 	b := Short('b').Switch()
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
 
-	assertSuccess(t, fun.Pair[bool, bool]{true, false}, parser, "-a")
-	assertSuccess(t, fun.Pair[bool, bool]{false, true}, parser, "-b")
+	assertSuccess(t, pair(true, false), parser, "-a")
+	assertSuccess(t, pair(false, true), parser, "-b")
 }
 
 func TestFallback_for_some(t *testing.T) {

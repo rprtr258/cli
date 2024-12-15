@@ -42,11 +42,14 @@ func Map2[A, B, R any](
 }
 
 func Map3[A, B, C, R any](
-	pa Parser[A],
-	pb Parser[B],
-	pc Parser[C],
+	ppa parser[A],
+	ppb parser[B],
+	ppc parser[C],
 	f func(A, B, C) R,
 ) Parser[R] {
+	pa := ppa.Parser()
+	pb := ppb.Parser()
+	pc := ppc.Parser()
 	return Map(Pair(Pair(pa, pb).Parser(), pc).Parser(), func(x fun.Pair[fun.Pair[A, B], C]) R { return f(x.K.K, x.K.V, x.V) })
 }
 

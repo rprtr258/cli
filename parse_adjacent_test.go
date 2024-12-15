@@ -91,21 +91,21 @@ func TestAdjacentPrefix(t *testing.T) {
 		"-a 1": {
 			args: []string{"-a", "1"},
 			expected: cmd{
-				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				Valid(pair[struct{}, uint](struct{}{}, 1)),
 				false,
 			},
 		},
 		"-c -a 1": {
 			args: []string{"-c", "-a", "1"},
 			expected: cmd{
-				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				Valid(pair[struct{}, uint](struct{}{}, 1)),
 				true,
 			},
 		},
 		"-a 1 -c": {
 			args: []string{"-a", "1", "-c"},
 			expected: cmd{
-				Valid(fun.Pair[struct{}, uint]{struct{}{}, 1}),
+				Valid(pair[struct{}, uint](struct{}{}, 1)),
 				true,
 			},
 		},

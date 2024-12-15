@@ -7,6 +7,10 @@ type ParseLast[T any] struct {
 	inner Parser[T]
 }
 
+func (self ParseLast[T]) Parser() Parser[T] {
+	return Parser[T]{self.eval, self.meta()}
+}
+
 func (self ParseLast[T]) eval(args *State) (T, Error) {
 	last := Invalid[T]()
 	current := args.len()

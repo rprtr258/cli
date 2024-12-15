@@ -496,7 +496,7 @@ Available options:
 	{
 		r, err := parser.run_inner(newArgs("-a", "-c"))
 		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[fun.Pair[bool, bool], bool]{fun.Pair[bool, bool]{true, false}, true})
+		require.Equal(t, r, pair(pair(true, false), true))
 	}
 }
 

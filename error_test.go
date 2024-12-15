@@ -3,7 +3,6 @@ package cli
 import (
 	"testing"
 
-	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,7 +30,7 @@ func TestNo_argument(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-a", "-42"))
 		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[int32, bool]{-42, false})
+		require.Equal(t, r, pair(-42, false))
 	}
 
 	{
@@ -191,7 +190,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 		// try to parse -a as a flag - this works
 		r, err := parser.run_inner(newArgs("-a", "hello"))
 		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[uint, struct{}]{0, struct{}{}})
+		require.Equal(t, r, pair(0, struct{}{}))
 	}
 }
 

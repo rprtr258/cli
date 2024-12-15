@@ -161,7 +161,7 @@ func TestAdjacent_limits_commands(t *testing.T) {
 
 	r, err := parser.run_inner(newArgs("a", "-s"))
 	require.Nil(t, err)
-	require.Equal(t, r, fun.Pair[bool, struct{}]{true, struct{}{}})
+	require.Equal(t, r, pair(true, struct{}{}))
 }
 
 func TestCommands_and_adjacent(t *testing.T) {
@@ -186,7 +186,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("sleep", "--time", "12", "-s"))
 		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[bool, string]{true, "12"})
+		require.Equal(t, r, pair(true, "12"))
 	}
 
 	_, r := parser.run_inner(newArgs("--help"))
@@ -214,7 +214,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"))
 		require.Nil(t, err)
-		require.Equal(t, r, fun.Pair[fun.Pair[uint, uint], bool]{fun.Pair[uint, uint]{3, 4}, true})
+		require.Equal(t, r, pair(pair(3, 4), true))
 	}
 	{
 		// they are adjacent to each other, but the way it is coded currently - they must be adjacent
