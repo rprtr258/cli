@@ -545,22 +545,18 @@ func arg_matches(arg string, name ShortLong) (string, bool) {
 		return preferred_name(name), true
 	}
 
-	can_switch := false
-
 	// separately check for short and long names, fancy strip prefix things is here to avoid
 	// allocations and cloning
-	can_switch = can_switch || map_or(strip_prefixb(arg, '-').
+	can_switch := map_or(strip_prefixb(arg, '-').
 		and_then(func(a string) Option[string] { return strip_prefixb(a, name.Short) }),
-		false, stris_empty)
-
-	// and long string too
-	can_switch = can_switch || map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) })
-
-	if !can_switch {
-		return "", false
+		false, stris_empty) ||
+		// and long string too
+		map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) })
+	if can_switch {
+		return preferred_name(name), true
 	}
 
-	return preferred_name(name), true
+	return "", false
 }
 
 func cmd_matches(arg string, name string, short Option[byte]) (string, bool) {
