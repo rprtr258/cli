@@ -11,6 +11,40 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+type PSOS = fun.Pair[string, Option[string]]
+type SSOS = stditer.Seq2[string, Option[string]]
+
+func test_completer(input string) SSOS {
+	vec := test_completer_descr(input)
+	return func(yield func(string, Option[string]) bool) {
+		for v := range vec {
+			if !yield(v, Invalid[string]()) {
+				return
+			}
+		}
+	}
+}
+
+func test_completer2(input string) SSOS {
+	items := []string{"auto", "mala"}
+
+	return zalupa12(
+		iter.Map(
+			iter.
+				FromMany(items...).
+				Filter(func(item string) bool { return strings.HasPrefix(item, input) }),
+			func(item string) PSOS { return PSOS{item, Invalid[string]()} }))
+}
+
+func test_completer_descr(input string) SSOS {
+	items := []string{"alpha", "beta", "banana", "cat", "durian"}
+	return zalupa12(
+		iter.Map(
+			iter.FromMany(items...).Filter(
+				func(item string) bool { return strings.HasPrefix(item, input) }),
+			func(item string) PSOS { return PSOS{item, Valid(item)} }))
+}
+
 func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	arg := ReqFlag(Short('b').Help("Option b"), uint(10))
@@ -624,41 +658,6 @@ func TestJust_positional(t *testing.T) {
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
 	}
-}
-
-type PSOS = fun.Pair[string, Option[string]]
-type SSOS = stditer.Seq2[string, Option[string]]
-
-func test_completer(input string) SSOS {
-	vec := test_completer_descr(input)
-	return func(yield func(string, Option[string]) bool) {
-		for v := range vec {
-			if !yield(v, Invalid[string]()) {
-				return
-			}
-		}
-	}
-}
-
-func test_completer2(input string) SSOS {
-	items := []string{"auto", "mala"}
-
-	return zalupa12(
-		iter.Map(
-			iter.Filter(
-				iter.FromMany(items...),
-				func(item string) bool { return strings.HasPrefix(item, input) }),
-			func(item string) PSOS { return PSOS{item, Invalid[string]()} }))
-}
-
-func test_completer_descr(input string) SSOS {
-	items := []string{"alpha", "beta", "banana", "cat", "durian"}
-	return zalupa12(
-		iter.Map(
-			iter.Filter(
-				iter.FromMany(items...),
-				func(item string) bool { return strings.HasPrefix(item, input) }),
-			func(item string) PSOS { return PSOS{item, Valid(item)} }))
 }
 
 func TestDynamic_complete_test_1(t *testing.T) {
