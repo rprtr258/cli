@@ -324,14 +324,14 @@ LOOP:
 
 // creates iterator over remaining elements
 func (self State) items_iter() func() (int, Arg, bool) {
-	args, i := self, self.scope[0]
+	i := self.scope[0]
 	return func() (int, Arg, bool) {
 		for {
-			if !args.scope.contains(i) || i >= len(args.item_state) {
+			if !self.scope.contains(i) || i >= len(self.item_state) {
 				return 0, Arg{}, false
 			}
-			if !args.item_state[i].parsed() {
-				a, b := i, args.items[i]
+			if !self.item_state[i].parsed() {
+				a, b := i, self.items[i]
 				i++
 				return a, b, true
 			}
