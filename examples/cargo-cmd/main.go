@@ -3,7 +3,7 @@
 // first argument would be `cmd`. A way to support both cases - when it's present and it's absent
 // would be to use a combination of `literal`, `optional` and `hide`.
 // `bpaf` also provides a helper `cargo_helper` that does exactly this.
-package main
+package cargo_cmd
 
 import (
 	"fmt"

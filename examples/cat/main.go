@@ -4,7 +4,7 @@
 // Main motivation for this example is that you can open a file as part of the argument parsing
 // and give a reader directly to user. In practice to replicate `cat`'s behavior you'd accept
 // multiple files with `many` and open them one by one in your code.
-package main
+package cat
 
 import (
 	"bufio"

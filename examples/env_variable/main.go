@@ -1,5 +1,5 @@
 // Consume a named argument with fallback to environment variable
-package main
+package env_variable
 
 import (
 	"fmt"

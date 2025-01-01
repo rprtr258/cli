@@ -1,5 +1,5 @@
 // A way to represent xorg like flags, not a typical usage
-package main
+package xorg
 
 import (
 	"fmt"

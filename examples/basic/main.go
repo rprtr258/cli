@@ -1,5 +1,5 @@
 // A somewhat comprehensive example of a typical combinatoric `bpaf` usage in combinatoric mode
-package main
+package basic
 
 import (
 	"fmt"

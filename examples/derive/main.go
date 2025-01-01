@@ -1,5 +1,5 @@
 // pretty basic derive example with external function
-package main
+package derive
 
 // import (
 // 	"fmt"

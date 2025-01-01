@@ -1,5 +1,5 @@
 // parsing argument value into enum. You can use crate `strum`'s `EnumString` for this purposes as well
-package main
+package enum_in_args
 
 import (
 	"errors"

@@ -1,5 +1,5 @@
 // Numeric flags similar to zip compression levels, accepts -1 to -9, produces usize
-package main
+package compression
 
 import (
 	"fmt"

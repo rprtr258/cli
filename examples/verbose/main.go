@@ -1,7 +1,7 @@
 // Several ways of creating more fancier flags from primitive components
 // In practice for "verbose" you'd use a builder pattern and define the variable only once, for
 // trim on/off you need to define the variables but they can be in a local scope with {}
-package main
+package verbose
 
 import (
 	"fmt"

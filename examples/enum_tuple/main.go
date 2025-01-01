@@ -1,5 +1,5 @@
 // How to extract subcommands' args into external structs.
-package main
+package enum_tuple
 
 import (
 	"fmt"

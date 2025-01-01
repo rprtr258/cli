@@ -3,7 +3,7 @@
 // Most important thing is probably a notion of "A pair of values, where each value can be one of
 // two different values", here it's distance which can be miles and kilometers and speed - miles
 // and kilometers per hours. Generated usage line can give a better hint to what's going on
-package main
+package travel
 
 import (
 	"fmt"

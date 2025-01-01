@@ -1,6 +1,6 @@
 // Parsing negative numbers from the command line. `bpaf` won't try to do anything special here,
 // user will have to escape minus sign either with `=` or --
-package main
+package negative
 
 import (
 	"fmt"

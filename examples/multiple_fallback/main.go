@@ -5,7 +5,7 @@
 // - the environmental variable
 // - the config file
 // - the hard-coded default
-package main
+package multiple_fallback
 
 import (
 	"fmt"

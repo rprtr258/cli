@@ -9,7 +9,7 @@
 //
 // Generated usage reflects that:
 // Usage: numeric_prefix [PREFIX] COMMAND
-package main
+package numeric_prefix
 
 import (
 	"fmt"

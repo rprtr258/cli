@@ -1,5 +1,5 @@
 // Non derive version for positional arguments
-package main
+package ex_positional
 
 import (
 	"fmt"
@@ -10,11 +10,9 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type PathBuf string
-
 type Options struct {
 	value uint32
-	files []PathBuf
+	files []string
 }
 
 func Main() {
@@ -27,10 +25,10 @@ func Main() {
 		Parser().
 		Fallback(42).
 		Parser()
-	files := cli.Many(cli.Positional[PathBuf]("FILE", func(s string) (PathBuf, error) {
-		return PathBuf(s), nil
+	files := cli.Many(cli.Positional("FILE", func(s string) (string, error) {
+		return s, nil
 	}).Parser(), false)
-	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []PathBuf]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
+	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []string]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }

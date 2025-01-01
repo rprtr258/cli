@@ -1,5 +1,5 @@
 // This example shows dynamic shell completion features
-package main
+package csample
 
 import (
 	"fmt"
@@ -14,8 +14,8 @@ func complete_calculator(input string) iter.Seq2[string, cli.Option[string]] {
 	items := []string{"alpha", "beta", "banana", "cat", "durian"}
 	return func(yield func(string, cli.Option[string]) bool) {
 		for _, item := range items {
-			if strings.HasPrefix(item, input) {
-				yield(item, cli.Invalid[string]())
+			if strings.HasPrefix(item, input) && !yield(item, cli.Invalid[string]()) {
+				return
 			}
 		}
 	}

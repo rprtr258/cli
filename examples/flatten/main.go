@@ -1,6 +1,6 @@
 // All the flags don't have to live in the same structure, this example uses non derive version.
 // with derive API you would use `external` annotation
-package main
+package flatten
 
 import (
 	"fmt"

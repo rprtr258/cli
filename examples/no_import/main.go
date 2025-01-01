@@ -1,5 +1,5 @@
 // You don't need to import bpaf in order to use it, it will look ugly though
-package main
+package no_import
 
 import (
 	"fmt"

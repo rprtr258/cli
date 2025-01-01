@@ -1,7 +1,7 @@
 // `--help` output customizations
 //
 // help header, help footer, a short description and a custom usage line
-package main
+package customize_help
 
 import (
 	"fmt"

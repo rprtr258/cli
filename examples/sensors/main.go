@@ -13,7 +13,7 @@
 //	        --sensor-name="temperature_tmp102_indoor" \
 //	        --sensor-i2c-bus=1 \
 //	        --sensor-i2c-address=0x49 \
-package main
+package sensors
 
 import (
 	"fmt"

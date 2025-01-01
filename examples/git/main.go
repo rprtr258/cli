@@ -3,7 +3,7 @@
 //
 // Note, this "fetch" command uses fallback to inner description to get the help message, "add"
 // uses explicit override with the same value.
-package main
+package git
 
 import (
 	"fmt"

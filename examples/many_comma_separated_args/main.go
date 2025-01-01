@@ -1,5 +1,5 @@
 // To parse comma separated values it's easier to treat them as strings
-package main
+package many_comma_separated_args
 
 import (
 	"fmt"

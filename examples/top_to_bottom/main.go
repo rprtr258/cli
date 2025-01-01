@@ -1,6 +1,6 @@
 // A somewhat comprehensive example of a typical `bpaf` usage.
 // Since those can be functions - order doesn't really matter
-package main
+package top_to_bottom
 
 import (
 	"fmt"

@@ -1,5 +1,5 @@
 // A simple combinatoric parser with extra metainformation attached, see --help
-package main
+package rectangle
 
 import (
 	"fmt"
