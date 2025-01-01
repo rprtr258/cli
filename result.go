@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/rprtr258/fun"
+	funiter "github.com/rprtr258/fun/iter"
 )
 
 func get[T any](xs []T, ix int) Option[T] {
@@ -199,6 +200,16 @@ func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
 	return func(yield func(A, B) bool) {
 		for {
 			if a, b, ok := next(); !ok || !yield(a, b) {
+				return
+			}
+		}
+	}
+}
+
+func zalupa12[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for v := range seq {
+			if !yield(v.K, v.V) {
 				return
 			}
 		}

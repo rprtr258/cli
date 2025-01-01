@@ -28,12 +28,10 @@ func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 
 func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	arg := func() Parser[uint] { return Argument[uint](Short('b').Help("Option b"), "HELLO", parseUint).Parser() }
-	pos := func() Parser[uint] {
-		return Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
-	}
+	arg := Argument[uint](Short('b').Help("Option b"), "HELLO", parseUint).Parser()
+	pos := Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
 
-	_, err := Choice(arg(), pos()).
+	_, err := Choice(arg, pos).
 		ToOptions().
 		run_inner(newArgs("").set_comp(0))
 	r := unwrap_stdout(err)
@@ -636,16 +634,6 @@ func test_completer(input string) SSOS {
 	return func(yield func(string, Option[string]) bool) {
 		for v := range vec {
 			if !yield(v, Invalid[string]()) {
-				return
-			}
-		}
-	}
-}
-
-func zalupa12[K, V any](seq iter.Seq[fun.Pair[K, V]]) stditer.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		for v := range seq {
-			if !yield(v.K, v.V) {
 				return
 			}
 		}
