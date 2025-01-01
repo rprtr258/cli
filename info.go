@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/rprtr258/fun"
 )
@@ -81,7 +82,13 @@ type OptionParser[T any] struct {
 //	    var verbosity int = verbosity().Run()
 //	}
 func (self OptionParser[T]) Run(args []string) T {
-	t, err := self.run_inner(current_args(args...))
+	current_args := Args{
+		items: args[1:],
+		name:  Valid(filepath.Base(args[0])),
+		c_rev: Invalid[uint](),
+	}
+
+	t, err := self.run_inner(current_args)
 	if err != nil {
 		// Prints a message to `stdout` or `stderr` appropriate to the failure.
 		color := Colordefault

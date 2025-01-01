@@ -3,7 +3,6 @@ package cli
 import (
 	"bytes"
 	"math"
-	"path/filepath"
 	"unicode/utf8"
 
 	"github.com/rprtr258/fun"
@@ -66,27 +65,6 @@ func newArgs(value ...string) Args {
 func (self Args) set_comp(rev uint) Args {
 	self.c_rev = Valid(rev)
 	return self
-}
-
-// Add an application name for args created from custom input
-//
-//	# use bpaf*;
-//	parser := short('f').Switch().to_options();
-//	_, err := parser.run_inner(newArgs("--help").set_name("my_app"))
-//	r := unwrap_stdout(err)
-func (self Args) set_name(name string) Args {
-	self.name = Valid(name)
-	return self
-}
-
-// Get a list of command line arguments from OS
-func current_args(args ...string) Args {
-	name := args[0]
-	return Args{
-		items: args[1:],
-		name:  Valid(filepath.Base(name)),
-		c_rev: Invalid[uint](),
-	}
 }
 
 type ItemStateKind uint8
