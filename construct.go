@@ -9,7 +9,6 @@ package cli
 // # c := short('c').Switch();
 //
 // // structs with unnamed fields:
-// # use bpaf*;
 // # { struct Res(bool, bool, bool) }
 // construct(Res(a, b, c));
 //
@@ -53,7 +52,6 @@ package cli
 // approach only for simple parsers.
 //
 // ```rust
-// # use bpaf*;
 // struct Res (u32, u32);
 // enum Ul { T { a: u32, b: u32 } }
 //
@@ -109,7 +107,6 @@ package cli
 // or functions:
 //
 // ```rust
-// # use bpaf*;
 // func b()impl Parser<u32> {
 //     short('b').argument<u32>("NUM")
 // }
@@ -126,7 +123,6 @@ package cli
 // `bpaf` would combine fields of struct or enum constructors sequentially and enum
 // variants in parallel.
 // ```rust
-// # use bpaf*;
 // // to satisfy this parser user needs to pass both -a and -b
 //
 // struct Res {

@@ -62,7 +62,6 @@ type OptionParser[T any] struct {
 //
 // # Usage
 // ```rust
-// # use bpaf*;
 // // Parses number of repetitions of `-v` on a command line
 //
 //	fn verbosity()OptionParser[uint] {
@@ -252,7 +251,6 @@ func (self OptionParser[T]) short_descr() Option[Doc] {
 // an fun.Optional argument - version value to use, otherwise `bpaf_derive` would use value from cargo.
 //
 // ```rust
-// # use bpaf*;
 //
 // #[bpaf(options, version)]
 //
@@ -280,7 +278,6 @@ func (self *OptionParser[T]) version(version string) *OptionParser[T] {
 //
 // # Combinatoric usage
 // ```rust
-// # use bpaf*;
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
@@ -300,7 +297,6 @@ func (self *OptionParser[T]) version(version string) *OptionParser[T] {
 // description, second block - header, third block - footer.
 //
 // ```rust
-// # use bpaf*;
 //
 // #[bpaf(options, version)]
 // // This is a description
@@ -349,7 +345,6 @@ func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
 //
 // # Combinatoric usage
 // ```rust
-// # use bpaf*;
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
@@ -369,7 +364,6 @@ func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
 // description, second block - Header, third block - footer.
 //
 // ```rust
-// # use bpaf*;
 //
 // #[bpaf(options, version)]
 // // This is a description
@@ -418,7 +412,6 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 //
 // # Combinatoric usage
 // ```rust
-// # use bpaf*;
 //
 //	fn fun.Options()OptionParser<bool>  {
 //	   short('s')
@@ -438,7 +431,6 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 // description, second block - header, third block - Footer.
 //
 // ```rust
-// # use bpaf*;
 //
 // #[bpaf(options, version)]
 // // This is a description
@@ -511,7 +503,6 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 //
 // Best used as part of your test suite:
 // ```rust
-// # use bpaf*;
 // #[test]
 // func check_options() {
 // # fun.Options := || short('p').Switch().to_options();
@@ -558,7 +549,6 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 // the help message.
 //
 // ```rust
-// # use bpaf*;
 // # func fun.Options()OptionParser<bool> { short('a').Switch().to_options() }
 // // create fun.Option parser in a usual way, derive or combinatoric API
 // opts := fun.Options().FallbackToUsage().run();

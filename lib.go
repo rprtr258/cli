@@ -203,7 +203,6 @@ package cli
 //
 // The same logic applies to derive API - the current type depends on the order of annotations:
 // ```rust
-// # use bpaf*;
 // # func less_than_10(a: &uint)bool { true }
 // # func all_less_than_10(a: &Vec[uint])bool { true }
 // #[derive(Bpaf, Debug, Clone)]
@@ -222,7 +221,6 @@ package cli
 // consumes it might look like this:
 //
 // ```rust
-// # use bpaf*;
 // #[derive(Debug, Copy, Clone)]
 //
 //	struct Rectangle {
@@ -256,7 +254,6 @@ package cli
 // [group_help](Parsergroup_help) but not the rest of them.
 //
 // ```rust
-// # use bpaf*;
 //
 //	struct fun.Options {
 //	    // no annotation at all - `bpaf` inserts implicit `argument` and gets the right type
@@ -304,7 +301,6 @@ type parser[T any] interface {
 // # Combinatoric usage:
 // There's two ways to write this combinator with identical results:
 // ```rust
-// # use bpaf*;
 //
 //	func a()impl Parser<u32> {
 //	    short('a').argument<u32>("NUM")
@@ -342,7 +338,6 @@ type parser[T any] interface {
 // produce different results.
 //
 // ```bpaf
-// # use bpaf*;
 //
 //	enum Flag {
 //	    A { a: u32 }
@@ -434,15 +429,10 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 // Generally, you'd want to use [Parserto_options] to finalize the parser and [OptionParserrun],
 // but this also works for simple cases:
 //
-// ```rust
-// # use bpaf*;
-//
 //	func main() {
-//	    name := short('n').long("name").argument<String>("USER").run();
+//	    name := Short('n').Long("name").Argument[tring]("USER").run();
 //	    // do things with name
 //	}
-//
-// ```
 func (self Parser[T]) Run() T {
 	return self.ToOptions().Run()
 }

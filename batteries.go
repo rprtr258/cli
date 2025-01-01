@@ -53,7 +53,6 @@ func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 //
 // # Usage
 // ```rust
-// # use bpaf*;
 // use bpafbatteries*;
 //
 // #[derive(Debug, Copy, Clone, Eq, PartialEq, Ord, PartialOrd)]

@@ -56,7 +56,6 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 //
 // # Combinatoric usage
 // ```rust
-// # use bpaf*;
 //
 //	func output()impl Parser<String> {
 //	    long("output")
@@ -69,7 +68,6 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 //
 // # Derive usage
 // ```rust
-// # use bpaf*;
 //
 //	struct fun.Options {
 //	    // Cargo.toml file to use as output

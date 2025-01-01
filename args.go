@@ -48,7 +48,6 @@ func newArgs(value ...string) Args {
 // # Use revision 0 if you want to test completion mechanism
 //
 // ```rust
-// # use bpaf*;
 // parser := short('f').Switch().to_options();
 // // ask bpaf to produce more input from "-", for
 // // suggesting new items use "" at the end

@@ -23,7 +23,6 @@ type ParseCommand[T any] struct {
 // # Combinatoric usage
 //
 // ```rust
-// # use bpaf*;
 //
 //	func inner()OptionParser<bool> {
 //	    short('i')
@@ -44,7 +43,6 @@ type ParseCommand[T any] struct {
 // `bpaf_derive` uses doc comments for inner parser, no specific fun.Options are available.
 // See [descr](OptionParserdescr) for more details
 // ```rust
-// # use bpaf*;
 // // This command performs a mystery operation
 //
 // #[bpaf(command)]
@@ -207,7 +205,6 @@ func (self ParseCommand[T]) item() Item {
 //
 // For example for non positional `non_pos` and a Command `Command` parsers
 // ```rust
-// # use bpaf*;
 // # non_pos := || short('n').Switch();
 // # Command := || pure(struct{}{}).to_options().Command("POS");
 // valid := construct(non_pos(), Command());
