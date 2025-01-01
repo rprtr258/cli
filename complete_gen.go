@@ -487,7 +487,7 @@ func (self State) check_complete() (string, bool) {
 	switch {
 	// case ok && Valid((ArgShort(_, true, _os) | ArgLong(_, true, _os), full_lit)):
 	//     pos_only,full_lit=false, full_lit
-	// case ok && (ArgPosWord(_), _): pos_only,full_lit=true, lit
+	// case ok && (ArgPositional(_), _): pos_only,full_lit=true, lit
 	// default: pos_only,full_lit=false, lit
 	}
 

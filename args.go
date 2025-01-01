@@ -224,7 +224,7 @@ func stateconstruct(
 LOOP:
 	for _, os := range args.items {
 		if pos_only {
-			items = append(items, ArgPosWord(os))
+			items = append(items, ArgPositional(os))
 			continue
 		}
 
@@ -264,7 +264,7 @@ LOOP:
 			}
 			items = append(items, func() Arg {
 				if pos_only {
-					return ArgPosWord(os)
+					return ArgPositional(os)
 				} else {
 					return ArgWord(os)
 				}
@@ -561,7 +561,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 			ix = ixix
 			strict, ok = false, true
 			w = arg
-		case ArgKindPosWord:
+		case ArgKindPositional:
 			ix = ixix
 			strict, ok = true, true
 			w = arg

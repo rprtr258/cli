@@ -83,7 +83,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 		return_(0, nil, false)
 	}
 	// don't try to suggest fixes for typos in strictly positional items
-	if arg.IsPosWord() {
+	if arg.IsPositional() {
 		return_(0, nil, false)
 	}
 	// it also should be a printable name

@@ -5,9 +5,9 @@ import "fmt"
 type ArgKind uint8
 
 const (
-	// shortFlag e.g. `-f`
+	// -f
 	ArgKindShortFlag ArgKind = iota
-	// longFlag e.g. `--flag`
+	// --flag
 	ArgKindLongFlag
 	// "val" part of --key=val -k=val -kval
 	ArgKindArgWord
@@ -18,9 +18,8 @@ const (
 	// e.g. `hello`
 	ArgKindWord
 	// separate word that goes after `--`, strictly positional
-	//
 	// Can start with `-` or `--`, doesn't have to be valid utf8
-	ArgKindPosWord
+	ArgKindPositional
 )
 
 // Preprocessed command line argument
@@ -46,8 +45,8 @@ func ArgArgWord(str string) Arg {
 	return Arg{str: str, kind: ArgKindArgWord}
 }
 
-func ArgPosWord(str string) Arg {
-	return Arg{str: str, kind: ArgKindPosWord}
+func ArgPositional(str string) Arg {
+	return Arg{str: str, kind: ArgKindPositional}
 }
 
 func ArgShort(str string, c byte, b bool) Arg {
@@ -66,8 +65,8 @@ func (self Arg) IsLong() bool {
 	return self.kind == ArgKindLongFlag
 }
 
-func (self Arg) IsPosWord() bool {
-	return self.kind == ArgKindPosWord
+func (self Arg) IsPositional() bool {
+	return self.kind == ArgKindPositional
 }
 
 func (self Arg) match_short(val byte) bool {
@@ -88,8 +87,8 @@ func (self Arg) String() string {
 		return fmt.Sprintf("ArgWord(%s)", self.str)
 	case ArgKindWord:
 		return fmt.Sprintf("Word(%s)", self.str)
-	case ArgKindPosWord:
-		return fmt.Sprintf("PosWord(%s)", self.str)
+	case ArgKindPositional:
+		return fmt.Sprintf("Positional(%s)", self.str)
 	}
 	panic("unreachable")
 }
