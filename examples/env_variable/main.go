@@ -12,7 +12,7 @@ type Opts struct {
 	key string
 }
 
-func main() {
+func Main() {
 	key := cli.Argument[string](cli.Long("key").
 		Env("ACCESS_KEY").
 		Help("access key to use"),

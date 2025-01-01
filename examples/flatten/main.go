@@ -24,7 +24,7 @@ type Cmdline struct {
 	daemon_opts DaemonOpts
 }
 
-func main() {
+func Main() {
 	verbose := cli.Short('v').Help("switch verbosity on").Switch()
 	user := cli.Argument(cli.Short('u').Help("daemon user"), "USER", func(s string) (string, error) { return s, nil }).Parser()
 	group := cli.Argument(cli.Short('g').Help("daemon group"), "GROUP", func(s string) (string, error) { return s, nil }).Parser()

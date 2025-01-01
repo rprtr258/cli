@@ -10,7 +10,7 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func main() {
+func Main() {
 	age := cli.Argument[int64](cli.Long("age"), "AGE", func(s string) (int64, error) {
 		return strconv.ParseInt(s, 10, 64)
 	}).Parser()

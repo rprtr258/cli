@@ -23,7 +23,7 @@ var compression cli.Parser[uint] = cli.
 	Help("Compression level").
 	Parser()
 
-func main() {
+func Main() {
 	opts := compression.ToOptions().Run(os.Args)
 	fmt.Println(opts)
 }

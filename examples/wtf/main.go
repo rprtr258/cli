@@ -106,7 +106,7 @@ package main
 // 	Docker  cmdDocker  `command:"docker" description:"Manage Docker"`
 // }
 
-// func main() {
+// func Main() {
 // 	if err := cli.Run[cmdRoot](context.Background(), os.Args...); err != nil {
 // 		fmt.Fprintln(os.Stderr, err.Error())
 // 		os.Exit(1)

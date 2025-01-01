@@ -17,7 +17,7 @@ type Options struct {
 	files []PathBuf
 }
 
-func main() {
+func Main() {
 	value := cli.Argument[uint32](cli.Long("value").
 		Help("Mysterious value"),
 		"VAL", func(s string) (uint32, error) {

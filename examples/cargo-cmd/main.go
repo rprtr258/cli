@@ -24,7 +24,7 @@ func parseUint(s string) (uint, error) {
 	return uint(u), err
 }
 
-func main() {
+func Main() {
 	// defining a parser in a usual way
 	width := cli.Argument(cli.Short('w'), "WIDTH", parseUint).Parser().Fallback(10)
 	height := cli.Argument(cli.Short('h'), "HEIGHT", parseUint).Parser().Fallback(10)

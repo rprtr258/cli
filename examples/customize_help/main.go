@@ -10,7 +10,7 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func main() {
+func Main() {
 	opt := cli.Short('d').
 		Help("Release the dragon").
 		Switch().Parser().

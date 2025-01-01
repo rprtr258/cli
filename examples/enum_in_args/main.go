@@ -30,7 +30,7 @@ func parseBaz(s string) (Baz, error) {
 	}
 }
 
-func main() {
+func Main() {
 	opt := cli.Argument(cli.Long("baz").
 		Short('b').
 		Help("choose between foo, bar or foobar"), "CMD", parseBaz).

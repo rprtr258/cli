@@ -62,6 +62,6 @@ var options cli.Parser[Options] = cli.Map4(
 	},
 )
 
-func main() {
+func Main() {
 	fmt.Println(options.ToOptions().Run(os.Args))
 }

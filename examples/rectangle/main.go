@@ -25,7 +25,7 @@ func parseUint(s string) (uint, error) {
 	return uint(u), err
 }
 
-func main() {
+func Main() {
 	width := cli.Argument[uint](cli.Short('w').
 		Long("width").
 		Help("Width of the rectangle"),

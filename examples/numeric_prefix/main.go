@@ -39,6 +39,6 @@ var options = func() cli.Parser[Options] {
 	return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Option[uint], string]) Options { return Options{x.K, x.V} })
 }()
 
-func main() {
+func Main() {
 	fmt.Println(options.ToOptions().Run(os.Args))
 }

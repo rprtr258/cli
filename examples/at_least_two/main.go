@@ -10,7 +10,7 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func main() {
+func Main() {
 	opt := cli.Many(cli.ReqFlag(cli.Short('f'), struct{}{}).Parser(), false).Parser().
 		Guard(func(x []struct{}) bool { return len(x) >= 2 }, "at least two arguments are required").
 		Parser().

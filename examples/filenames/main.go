@@ -12,7 +12,7 @@ import (
 
 type PathBuf string
 
-func main() {
+func Main() {
 	parser := cli.Many(cli.Positional("FILE", func(s string) (PathBuf, error) {
 		return PathBuf(s), nil
 	}).Parser().

@@ -46,6 +46,6 @@ package main
 // 	return input > 1
 // }
 
-// func main() {
+// func Main() {
 // 	fmt.Println(opts().run())
 // }

@@ -28,7 +28,7 @@ var DEFAULT_CONFIG = Config{
 	field2: 10,
 }
 
-func main() {
+func Main() {
 	field1 := cli.Argument[uint32](cli.Long("field1").
 		Env("FIELD1").
 		Help("Field 1"),

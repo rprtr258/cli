@@ -24,7 +24,7 @@ func CommandFoo(foo Foo) Command {
 	}
 }
 
-func main() {
+func Main() {
 	bar := cli.Optional(cli.Argument[string](cli.Short('b').
 		Long("bar").
 		Help("some bar command"),

@@ -30,6 +30,6 @@ var args cli.Parser[[]uint16] = cli.
 		return fun.ConcatMap(func(x []uint16) []uint16 { return x }, nested...)
 	})
 
-func main() {
+func Main() {
 	fmt.Println(args.ToOptions().Run(os.Args))
 }

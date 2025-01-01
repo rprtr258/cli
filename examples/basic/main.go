@@ -112,7 +112,7 @@ func opts() *cli.OptionParser[Out] {
 		Descr("This is a description")
 }
 
-func main() {
+func Main() {
 	opts := opts().FallbackToUsage().Run(os.Args)
 	fmt.Println(opts)
 }

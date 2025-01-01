@@ -21,7 +21,7 @@ func complete_calculator(input string) iter.Seq2[string, cli.Option[string]] {
 	}
 }
 
-func main() {
+func Main() {
 	a := cli.Short('a').Long("avocado").Help("Use avocado").Switch()
 	b := cli.Short('b').Long("banana").Help("Use banana").Switch()
 	bb := cli.Long("bananananana").Help("I'm Batman").Switch()

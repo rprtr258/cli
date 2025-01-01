@@ -74,7 +74,7 @@ var files_to_process cli.Parser[[]PathBuf] = cli.
 		Long("file").
 		Help("File to process"), "FILE", parsePathBuf).Parser(), false).Parser()
 
-func main() {
+func Main() {
 	// packing things in a struct assumes parser for each field is in scope.
 	opt := (cli.Map6(
 		debug,

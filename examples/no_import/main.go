@@ -15,7 +15,7 @@ type Out struct {
 	speed float64
 }
 
-func main() {
+func Main() {
 	// A flag, true if used in the command line. Can be required, this one is optional
 	debug := cli.
 		Short('d').

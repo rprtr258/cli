@@ -49,7 +49,7 @@ func OptAdd(interactive bool, all bool, files []PathBuf) Opt {
 	}
 }
 
-func main() {
+func Main() {
 	dry_run := cli.Long("dry_run").Switch()
 	all := cli.Long("all").Switch()
 	repository := cli.Positional("SRC", func(s string) (string, error) {

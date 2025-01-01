@@ -17,7 +17,7 @@ const (
 	TrimOn  Trim = true
 )
 
-func main() {
+func Main() {
 	// program takes one or more -v or --verbose flags, more flags = higher verbosity.
 	// parser handles number and produces a single flag.
 	//

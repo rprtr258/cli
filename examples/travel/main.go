@@ -37,7 +37,7 @@ func parseFloat64(s string) (float64, error) {
 	return strconv.ParseFloat(s, 64)
 }
 
-func main() {
+func Main() {
 	// Suppose we want to calcualte a total time of a travel, where parts of
 	// a travel can be given either as pairs of speed and distance or just by time.
 	// Speed can be given by KPH or MPH. Distance - either miles or km.

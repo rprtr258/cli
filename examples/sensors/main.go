@@ -95,6 +95,6 @@ var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 	return cli.Map(sensors.Parser(), func(x []Sensor) Opts { return Opts{x} })
 }()
 
-func main() {
+func Main() {
 	fmt.Println(opts.ToOptions().Run(os.Args))
 }
