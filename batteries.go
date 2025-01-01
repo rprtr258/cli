@@ -34,15 +34,13 @@ func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
 		struct{}{}), false).Parser()
-	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta},
-		func(v []struct{}) int { return len(v) })
+	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta}, Len)
 
 	qp := Many(ReqFlag(Short('q').
 		Long("quiet").
 		Help("Decrease output verbosity, can be used several times"),
 		struct{}{}), false).Parser()
-	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta},
-		func(v []struct{}) int { return len(v) })
+	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta}, Len)
 
 	return Map(Pair(verbose, quiet).Parser(), func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
 }

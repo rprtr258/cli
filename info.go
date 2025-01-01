@@ -61,25 +61,22 @@ type OptionParser[T any] struct {
 // Execute the [OptionParser], extract a parsed value or print some diagnostic and exit
 //
 // # Usage
-// ```rust
-// // Parses number of repetitions of `-v` on a command line
 //
-//	fn verbosity()OptionParser[uint] {
+//	// Parses number of repetitions of `-v` on a command line
+//	func verbosity() Parser[uint] {
 //	    parser := short('v')
 //	        .req_flag(struct{}{})
 //	        .many()
-//	        .map(|xs|xs.len());
+//	        .map(len)
 //
 //	    parser
 //	        .to_options()
 //	        .descr("Takes verbosity flag and does nothing else")
 //	}
 //
-//	fn main() {
-//	    let verbosity: uint = verbosity().Run();
+//	func main() {
+//	    var verbosity uint = verbosity().Run()
 //	}
-//
-// ```
 func (self OptionParser[T]) Run(args []string) T {
 	t, err := self.run_inner(current_args(args...))
 	if err != nil {

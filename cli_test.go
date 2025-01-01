@@ -1000,12 +1000,12 @@ Available commands:
 }
 
 func TestManyDoesntPanic(t *testing.T) {
-	parser := Map(Many(Short('a').Switch(), false).Parser(), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(Many(Short('a').Switch(), false).Parser(), Len).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("", false)), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("", false)), Len).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 

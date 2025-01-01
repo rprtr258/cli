@@ -215,3 +215,7 @@ func zalupa12[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
 		}
 	}
 }
+
+func Len[T any](xs []T) int {
+	return len(xs)
+}
