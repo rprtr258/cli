@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"iter"
+	"slices"
 	"strings"
 
 	"github.com/rprtr258/fun"
@@ -124,18 +125,8 @@ func find_map[T, R any](xs []T, f func(T) (R, bool)) (R, bool) {
 	return *new(R), false
 }
 
-func is_empty[T any](xs []T) bool {
-	return len(xs) == 0
-}
-
 func rev[T any](xs []T) iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for i := len(xs) - 1; i >= 0; i-- {
-			if !yield(xs[i]) {
-				break
-			}
-		}
-	}
+	return iter.Seq[T](funiter.Values(slices.Backward(xs)))
 }
 
 func filter[T any](it iter.Seq[T], f func(T) bool) iter.Seq[T] {

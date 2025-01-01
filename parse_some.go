@@ -17,10 +17,9 @@ func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
 
 func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	res := []T{}
-	len := uint(math.MaxUint)
-
+	lenn := uint(math.MaxUint)
 	for {
-		val, err := parse_option(self.inner, &len, args, self.catch)
+		val, err := parse_option(self.inner, &lenn, args, self.catch)
 		if err != nil {
 			break
 		}
@@ -30,8 +29,7 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 			break
 		}
 	}
-
-	if is_empty(res) {
+	if len(res) == 0 {
 		return nil, ErrorParseFail(self.message)
 	}
 

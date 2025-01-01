@@ -204,11 +204,11 @@ func (self *ShortLong) normalize(short bool) {
 
 func ShortLongtry_from(named NamedArg) (ShortLong, bool) {
 	switch {
-	case is_empty(named.short) && is_empty(named.long):
+	case len(named.short) == 0 && len(named.long) == 0:
 		return ShortLong{}, false
-	case is_empty(named.short):
+	case len(named.short) == 0:
 		return ShortLongLong(named.long[0]), true
-	case is_empty(named.long):
+	case len(named.long) == 0:
 		return ShortLongShort(named.short[0]), true
 	default:
 		return ShortLongBoth(named.short[0], named.long[0]), true
