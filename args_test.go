@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var M Metavar = Metavar("M")
+var M = Metavar("M")
 
 func Statefrom(value []string) State {
 	args := newArgs(value...)
@@ -25,7 +25,7 @@ func unwrapunwrap(s Option[string], err Error) string {
 	return s.unwrap()
 }
 
-func testLong_arg(t *testing.T) {
+func TestLong_arg(t *testing.T) {
 	a := Statefrom([]string{"--speed", "12"})
 	s := unwrapunwrap(a.take_arg(Long("speed"), false, M))
 	require.Equal(t, s, "12")
