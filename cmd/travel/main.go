@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -91,7 +92,7 @@ This example defines two separate travel segments, one given by speed/distance c
 	// either --time OR one speed and one distance, both can be given in miles or km.
 	// number of speed flags must correspond to number of distance flags, more or
 	// less results in parser error messages
-	opt := decorated.Run()
+	opt := decorated.Run(os.Args)
 
 	fmt.Println(opt)
 }

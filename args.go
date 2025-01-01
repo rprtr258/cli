@@ -80,7 +80,7 @@ func (self Args) set_name(name string) Args {
 }
 
 // Get a list of command line arguments from OS
-func current_args(args []string) Args {
+func current_args(args ...string) Args {
 	name := args[0]
 	return Args{
 		items: args[1:],

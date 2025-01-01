@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -29,7 +30,7 @@ func main() {
 	files := cli.Many(cli.Positional[PathBuf]("FILE", func(s string) (PathBuf, error) {
 		return PathBuf(s), nil
 	}).Parser(), false)
-	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []PathBuf]) Options { return Options{x.K, x.V} }).ToOptions().Run()
+	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []PathBuf]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }

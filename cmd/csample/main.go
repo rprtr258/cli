@@ -4,6 +4,7 @@ package main
 import (
 	"fmt"
 	"iter"
+	"os"
 	"strings"
 
 	"github.com/rprtr258/cli"
@@ -38,5 +39,5 @@ $ csample --bpaf-complete-style-zsh
 $ csample --bpaf-complete-style-fish
 $ csample --bpaf-complete-style-elvish`)
 
-	fmt.Println(parser.FallbackToUsage().Run())
+	fmt.Println(parser.FallbackToUsage().Run(os.Args))
 }

@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -48,6 +49,6 @@ func main() {
 
 	parser := cli.Pair(verbose.Parser(), trim)
 
-	opt := parser.Parser().ToOptions().Run()
+	opt := parser.Parser().ToOptions().Run(os.Args)
 	fmt.Println(opt)
 }

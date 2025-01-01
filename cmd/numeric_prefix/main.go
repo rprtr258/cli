@@ -13,6 +13,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -39,5 +40,5 @@ var options = func() cli.Parser[Options] {
 }()
 
 func main() {
-	fmt.Println(options.ToOptions().Run())
+	fmt.Println(options.ToOptions().Run(os.Args))
 }

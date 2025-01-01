@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -34,7 +35,7 @@ func main() {
 		Parser()
 
 	// packing things in a struct assumes parser for each field is in scope.
-	opt := cli.Map(cli.Pair(debug, speed).Parser(), func(x fun.Pair[bool, float64]) Out { return Out{x.K, x.V} }).ToOptions().Run()
+	opt := cli.Map(cli.Pair(debug, speed).Parser(), func(x fun.Pair[bool, float64]) Out { return Out{x.K, x.V} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opt)
 }

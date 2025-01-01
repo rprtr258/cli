@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -17,6 +18,6 @@ func main() {
 	}).Parser().
 		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).Parser(), false)
 
-	r := parser.Parser().ToOptions().Run()
+	r := parser.Parser().ToOptions().Run(os.Args)
 	fmt.Println(r)
 }

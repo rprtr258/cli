@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -13,7 +14,7 @@ func main() {
 	opt := cli.Many(cli.ReqFlag(cli.Short('f'), struct{}{}).Parser(), false).Parser().
 		Guard(func(x []struct{}) bool { return len(x) >= 2 }, "at least two arguments are required").
 		Parser().
-		ToOptions().Run()
+		ToOptions().Run(os.Args)
 
 	fmt.Println(opt)
 }

@@ -36,7 +36,7 @@ func run() error {
 		Parser().
 		ToOptions().
 		Descr("Concatenate a file to standard output").
-		Run()
+		Run(os.Args)
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)

@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -30,5 +31,5 @@ var args cli.Parser[[]uint16] = cli.
 	})
 
 func main() {
-	fmt.Println(args.ToOptions().Run())
+	fmt.Println(args.ToOptions().Run(os.Args))
 }

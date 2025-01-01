@@ -5,6 +5,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -24,7 +25,7 @@ func main() {
 			u.Doc(doc)
 			return u
 		}).
-		Run()
+		Run(os.Args)
 
 	fmt.Println(opt)
 }

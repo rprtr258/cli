@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/rprtr258/cli"
@@ -62,5 +63,5 @@ var options cli.Parser[Options] = cli.Map4(
 )
 
 func main() {
-	fmt.Println(options.ToOptions().Run())
+	fmt.Println(options.ToOptions().Run(os.Args))
 }

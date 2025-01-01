@@ -4,6 +4,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -34,7 +35,7 @@ func main() {
 		Short('b').
 		Help("choose between foo, bar or foobar"), "CMD", parseBaz).
 		Parser().
-		ToOptions().Run()
+		ToOptions().Run(os.Args)
 
 	fmt.Println(opt)
 }

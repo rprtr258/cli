@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 )
@@ -19,7 +20,7 @@ func main() {
 			return s, nil
 		}).Parser()
 
-	opts := cli.Map(key, func(key string) Opts { return Opts{key} }).ToOptions().Run()
+	opts := cli.Map(key, func(key string) Opts { return Opts{key} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }

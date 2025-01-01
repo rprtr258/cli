@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/rprtr258/cli"
 	"github.com/rprtr258/fun"
@@ -74,7 +75,7 @@ func main() {
 	opt := cli.Choice(fetch_cmd.Parser(), add_cmd.Parser()).
 		ToOptions().
 		Descr("The stupid content tracker").
-		Run()
+		Run(os.Args)
 
 	fmt.Println(opt)
 }

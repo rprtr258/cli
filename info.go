@@ -80,8 +80,8 @@ type OptionParser[T any] struct {
 //	}
 //
 // ```
-func (self OptionParser[T]) Run() T {
-	t, err := self.run_inner(current_args(os.Args))
+func (self OptionParser[T]) Run(args []string) T {
+	t, err := self.run_inner(current_args(args...))
 	if err != nil {
 		print_message(err, self.info.max_width)
 		os.Exit(exit_code(err)) // TODO: remove

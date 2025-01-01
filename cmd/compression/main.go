@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -23,6 +24,6 @@ var compression cli.Parser[uint] = cli.
 	Parser()
 
 func main() {
-	opts := compression.ToOptions().Run()
+	opts := compression.ToOptions().Run(os.Args)
 	fmt.Println(opts)
 }

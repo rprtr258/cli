@@ -7,6 +7,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -32,7 +33,7 @@ func main() {
 	cmd := cli.Optional(cli.Literal("cmd"), false).Parser().Hide()
 	combined_parser := cli.Map(cli.Pair(cmd, parser).Parser(), func(x fun.Pair[cli.Option[struct{}], Opts]) Opts { return x.V })
 
-	opts := combined_parser.ToOptions().Run()
+	opts := combined_parser.ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }

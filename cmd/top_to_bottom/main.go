@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -84,6 +85,6 @@ func main() {
 		files_to_process,
 		func(debug bool, verbose uint, speed float64, output PathBuf, nb_cars uint32, files_to_process []PathBuf) Out {
 			return Out{debug, verbose, speed, output, nb_cars, files_to_process}
-		})).ToOptions().Run()
+		})).ToOptions().Run(os.Args)
 	fmt.Println(opt)
 }

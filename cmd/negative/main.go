@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -20,6 +21,6 @@ This will pass '-1' to '--age' handler and leave remaining arguments as is
 This will transform everything after '--' into non flags, '--age' will handle '-1'
 and positional handlers will be able to handle the rest.
     --age -- -1`
-	num := age.ToOptions().Descr(msg).Run()
+	num := age.ToOptions().Descr(msg).Run(os.Args)
 	fmt.Printf("age: %d\n", num)
 }

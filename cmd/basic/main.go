@@ -3,6 +3,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/rprtr258/cli"
@@ -112,6 +113,6 @@ func opts() *cli.OptionParser[Out] {
 }
 
 func main() {
-	opts := opts().FallbackToUsage().Run()
+	opts := opts().FallbackToUsage().Run(os.Args)
 	fmt.Println(opts)
 }

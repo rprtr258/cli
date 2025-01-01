@@ -18,6 +18,7 @@ package main
 import (
 	"fmt"
 	"iter"
+	"os"
 	"strconv"
 	"strings"
 
@@ -95,5 +96,5 @@ var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 }()
 
 func main() {
-	fmt.Println(opts.ToOptions().Run())
+	fmt.Println(opts.ToOptions().Run(os.Args))
 }
