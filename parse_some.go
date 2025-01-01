@@ -15,20 +15,6 @@ func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
 	return Parser[[]T]{self.eval, MetaMany{MetaRequired{self.inner.meta}}}
 }
 
-// Handle parse failures
-//
-// Can be useful to decide to skip parsing of some items on a command line
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
-func (self ParseSome[T]) Catch() ParseSome[T] {
-	self.catch = true
-	return self
-}
-
 func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	res := []T{}
 	len := uint(math.MaxUint)
@@ -70,10 +56,22 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 // [many](Parsermany) also collects results to a vector but succeeds with
 // no matching values. [collect](Parsercollect) collects results into a [FromIterator]
 // structure
-func (self Parser[T]) Some(message string) ParseSome[T] {
+func (self Parser[T]) Some(
+	message string,
+	// Handle parse failures
+	//
+	// Can be useful to decide to skip parsing of some items on a command line
+	// When parser succeeds - `catch` version would return a value as usual
+	// if it fails - `catch` would restore all the consumed values and return Invalid().
+	//
+	// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+	// and [ParseSome], behavior should be identical for all of them.
+	// #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
+	catch bool,
+) ParseSome[T] {
 	return ParseSome[T]{
 		inner:   self,
 		message: message,
-		catch:   false,
+		catch:   catch,
 	}
 }

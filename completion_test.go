@@ -819,7 +819,7 @@ func TestMany_does_not_duplicate_metadata(t *testing.T) {
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := ParseSomeParser(Positional("D", parseString).Parser().Some("")).ToOptions()
+	parser := ParseSomeParser(Positional("D", parseString).Parser().Some("", false)).ToOptions()
 	_, err := parser.run_inner(newArgs("xxx").set_comp(0))
 	r := unwrap_stdout(err)
 	assert.Equal(t, r, "\tD\t\t\n\n")

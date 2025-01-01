@@ -98,7 +98,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
-	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required")
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds
 		return []uint32{3, 5, 7, 11}, nil
@@ -127,7 +127,7 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
-	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required")
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds but failing - parser fails, fallback works
 		return nil, ErrorParseFail("oh, no")

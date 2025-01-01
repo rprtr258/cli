@@ -1005,7 +1005,7 @@ func TestManyDoesntPanic(t *testing.T) {
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("")), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("", false)), func(m []bool) int { return len(m) }).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
@@ -1522,10 +1522,9 @@ func TestParse_some_catch(t *testing.T) {
 	a1 := ParseSomeParser(Map(Argument(Short('a'),
 		"N", parseUint32).Parser(),
 		AU32).
-		Some("A").
-		Catch()).
+		Some("A", true)).
 		Hide()
-	a2 := ParseSomeParser(Map(Argument(Short('a'), "S", parseString).Parser(), AS).Some("A").Catch()).Hide()
+	a2 := ParseSomeParser(Map(Argument(Short('a'), "S", parseString).Parser(), AS).Some("A", true)).Hide()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
@@ -1620,7 +1619,7 @@ func TestSome_env(t *testing.T) {
 	parser := ParseSomeParser(Argument(Short('v').
 		Env("USER1"),
 		"USER", parseString).Parser().
-		Some("a")).
+		Some("a", false)).
 		ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
@@ -1645,7 +1644,7 @@ func TestOption_requires_other_option2(t *testing.T) {
 
 func TestDefault_for_some(t *testing.T) {
 	parser := ParseSomeParser(Positional[uint32]("ROOTS", parseUint32).Parser().
-		Some("msg")).
+		Some("msg", false)).
 		fallback_with(func() ([]uint32, Error) { return []uint32{1, 2, 3}, nil }).Parser().
 		ToOptions()
 
@@ -1664,7 +1663,7 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 func TestFallback_for_some(t *testing.T) {
 	parser := ParseSomeParser(Argument(Short('a'),
 		"ARG", parseUint32).Parser().
-		Some("potatoes")).
+		Some("potatoes", false)).
 		Fallback([]uint32{1, 2, 3}).Parser().ToOptions()
 
 	assertSuccess(t, []uint32{1}, parser, "-a", "1")
