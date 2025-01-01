@@ -21,7 +21,7 @@ func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string)
 
 	_, output := parser.run_inner(newArgs("--help"))
 	usage := strings.TrimPrefix(strings.Split(unwrap_stdout(output), "\n")[0], "Usage: ")
-	require.Equal(t, usage, expected)
+	require.Equal(t, expected, usage)
 }
 
 func TestOptional_group_meta(t *testing.T) {
@@ -52,9 +52,8 @@ func TestMany_arg(t *testing.T) {
 }
 
 func TestSome_arg(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := ParseSomeParser(Argument(Short('a'), "A", parseString).Parser().Some("ARG", false)).ToOptions()
-	assert_usage(t, parser, "-a=A...")
+	assert_usage(t, parser, "(-a=A)...")
 }
 
 func TestMany_switch(t *testing.T) {

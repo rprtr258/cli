@@ -92,23 +92,18 @@ func (self OptionParser[T]) Run() T {
 
 // Execute the [OptionParser] and produce a values for unit tests or manual processing
 //
-// ```rust
-// # use bpaf*;
-// # /*
-// #[test]
-// func positional_argument() {
-// # */
+//	use bpaf*;
 //
-//	parser :=
-//	    positional<String>("FILE")
-//	        .help("File to process")
-//	        .to_options();
+//	func TestPositionalArgument() {
+//		parser := positional[string]("FILE")
+//		        .help("File to process")
+//		        .to_options();
 //
-//	help := parser
-//	    .run_inner(newArgs("--help"])
-//	    .unwrap_err()
-//	    .unwrap_stdout();
-//	expected_help := "\
+//		help := parser
+//		    .run_inner(newArgs("--help"])
+//		    .unwrap_err()
+//		    .unwrap_stdout();
+//		expected_help := `
 //
 // Usage: FILE
 //
@@ -120,14 +115,10 @@ func (self OptionParser[T]) Run() T {
 //
 //	-h, --help  Prints help information
 //
-// ";
+// `
 //
-//	require.Equal(t,expected_help, help);
-//
-// # /*
-// }
-// # */
-// ```
+//		require.Equal(t,expected_help, help);
+//	}
 //
 // See also [rawArgs] and it's `From` impls to produce input and
 // [ParseFailureunwrap_stderr] / [ParseFailureunwrap_stdout] for processing results.
@@ -144,8 +135,8 @@ func (self OptionParser[T]) Run() T {
 // Exact string reperentations may change between versions including minor releases.
 func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	// prepare available short flags and arguments for disambiguation
-	short_flags := []byte(nil)
-	short_args := []byte(nil)
+	var short_flags []byte
+	var short_args []byte
 	collect_shorts(self.inner.meta, &short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)

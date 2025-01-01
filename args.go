@@ -10,34 +10,25 @@ import (
 	"github.com/rprtr258/fun/iter"
 )
 
-// All currently present command line parameters with fun.Valid extra metainfo
+// All currently present command line parameters with some extra metainfo
 //
 // Use it for unit tests and manual parsing. For production use you would want to replace the
 // program name with [set_name](Argsset_name), but for tests passing a slice of strings to
-// [run_inner](crateOptionParserrun_inner) is usually more convenient.
+// run_inner is usually more convenient.
 //
-// The easiest way to create `Args` is by using its `From` instance.
-// ```rust
-// # use bpaf*;
-// parser := short('f')
+// The easiest way to create `Args` is by using `newArgs`.
 //
-//	.Switch()
-//	.to_options();
+//	use bpaf*;
+//	parser := short('f')
+//		.Switch()
+//		.to_options();
 //
-// value := parser
+//	value, _ := parser.run_inner(Argsfrom(&["-f"]))
+//	require.True(t, value);
 //
-//	.run_inner(Argsfrom(&["-f"]))
-//	.unwrap();
-//
-// require.True(t,value);
-//
-// // this also works
-// value := parser.run_inner(newArgs("-f"])
-//
-//	.unwrap();
-//
-// require.True(t,value);
-// ```
+//	// this also works
+//	value, _ := parser.run_inner(newArgs("-f"])
+//	require.True(t, value);
 type Args struct {
 	items []string
 	name  Option[string]
@@ -80,18 +71,12 @@ func (self Args) set_comp(rev uint) Args {
 }
 
 // Add an application name for args created from custom input
-// ```rust
-// # use bpaf*;
-// parser := short('f').Switch().to_options();
-// r := parser
 //
-//	.run_inner(Argsfrom(&["--help"]).set_name("my_app"))
-//	.unwrap_err()
-//	.unwrap_stdout();
-//
-// # drop(r);
-// ```
-func (self *Args) set_name(name string) *Args {
+//	# use bpaf*;
+//	parser := short('f').Switch().to_options();
+//	_, err := parser.run_inner(newArgs("--help").set_name("my_app"))
+//	r := unwrap_stdout(err)
+func (self Args) set_name(name string) Args {
 	self.name = Valid(name)
 	return self
 }
@@ -193,7 +178,7 @@ func disambiguate_short(
 }
 
 type State struct {
-	// list of all available command line arguments, in `Rc` for cheap cloning
+	// list of all available command line arguments
 	items []Arg
 
 	item_state []ItemState
@@ -201,7 +186,7 @@ type State struct {
 	// performance optimization mostly - tracks removed item and gives cheap is_empty and len
 	remaining int
 
-	// Used to render an error message for [parse][crateParserparse]
+	// Used to render an error message for `parse`
 	// contains an index of a currently consumed item if we are parsing a single
 	// item
 	current Option[int]
