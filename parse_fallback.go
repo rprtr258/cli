@@ -92,7 +92,7 @@ func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
 	clone := args.clone()
 	ok, e := self.inner.eval(&clone)
 	if e == nil {
-		stdmemswap(args, &clone)
+		*args, clone = clone, *args
 		return ok, nil
 	} else {
 		args.swap_comps(&clone)

@@ -30,7 +30,7 @@ func this_or_that_picks_first(
 	// completion from different depths should never mix either
 	switch ccc := cmp.Compare(args_a.depth(), args_b.depth()); {
 	case ccc < 0:
-		stdmemswap(args, args_b)
+		*args, *args_b = *args_b, *args
 
 		if comp, ok := args.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
@@ -42,7 +42,7 @@ func this_or_that_picks_first(
 		return false, err
 	case ccc == 0:
 	case ccc > 0:
-		stdmemswap(args, args_a)
+		*args, *args_a = *args_a, *args
 
 		if comp, ok := args.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
@@ -138,12 +138,12 @@ func this_or_that_picks_first(
 			if win, ok := ix.Unpack(); ok {
 				args_a.save_conflicts(*args_b, int(win))
 			}
-			stdmemswap(args, args_a)
+			*args, *args_a = *args_a, *args
 		} else {
 			if win, ok := ix.Unpack(); ok {
 				args_b.save_conflicts(*args_a, int(win))
 			}
-			stdmemswap(args, args_b)
+			*args, *args_b = *args_b, *args
 		}
 	}
 

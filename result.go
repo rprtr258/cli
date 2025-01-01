@@ -24,10 +24,6 @@ func last[T any](xs []T) Option[T] {
 	return get(xs, len(xs)-1)
 }
 
-func stdmemswap[T any](a, b *T) {
-	*a, *b = *b, *a
-}
-
 func strip_prefix(s string, prefix string) Option[string] {
 	x, ok := strings.CutPrefix(s, prefix)
 	return Option[string]{x, ok}

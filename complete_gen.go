@@ -345,7 +345,7 @@ func (self *Complete) drain_comps() []Comp {
 }
 
 func (self *Complete) swap_comps(other *[]Comp) {
-	stdmemswap(other, &self.comps)
+	*other, self.comps = self.comps, *other
 }
 
 // to avoid leaking items with higher depth into items with lower depth

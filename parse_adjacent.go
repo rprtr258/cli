@@ -80,7 +80,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 					this_arg = args.clone()
 					this_arg.set_scope(adj_scope)
 				} else {
-					stdmemswap(args, &this_arg)
+					*args, this_arg = this_arg, *args
 					args.set_scope(original_scope)
 					return res, nil
 				}
@@ -88,7 +88,7 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 				consumed := before - this_arg.len()
 				if consumed > best_consumed {
 					best_consumed = consumed
-					stdmemswap(&best_args, &this_arg)
+					best_args, this_arg = this_arg, best_args
 					best_error = Error(err)
 				}
 				break
@@ -96,6 +96,6 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		}
 	}
 
-	stdmemswap(args, &best_args)
+	*args, best_args = best_args, *args
 	return *new(T), Error(best_error)
 }

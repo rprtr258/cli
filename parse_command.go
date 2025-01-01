@@ -146,7 +146,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 					orig_args.set_scope(narrow_scope)
 					if res, err := self.subparser.run_subparser(&orig_args); err == nil {
 						orig_args.set_scope(orig_scope)
-						stdmemswap(&orig_args, args)
+						orig_args, *args = *args, orig_args
 						return res, nil
 					}
 				}
