@@ -8,9 +8,8 @@ import (
 )
 
 func TestParse_anywhere_positional(t *testing.T) {
-	a := Any("X", func(h string) (string, bool) { return h, h != "--help" }).
-		Help("all the things").
-		Anywhere()
+	a := Any("X", func(h string) (string, bool) { return h, h != "--help" }, true).
+		Help("all the things")
 
 	b := Short('b').Help("batch mode").Switch()
 	parser := Pair(a, b).Parser().ToOptions()
@@ -192,6 +191,7 @@ func TestAnywhere_literal(t *testing.T) {
 	tag := Any(
 		"-mode",
 		func(x string) (struct{}, bool) { return struct{}{}, x == "-mode" },
+		false,
 	)
 	mode := Positional("value", parseUint)
 	a := Many(Pair(tag, mode).Adjacent(), true)

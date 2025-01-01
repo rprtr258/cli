@@ -116,57 +116,56 @@ func (self *Doc) write_item(item Item) {
 	}
 }
 
-func (self *Doc) write_meta(meta Meta, for_usage bool) {
-	var gO func(meta Meta)
-	gO = func(meta Meta) {
-		switch m := meta.(type) {
-		case MetaAnd:
-			for ix, x := range m {
-				if ix != 0 {
-					self.write_str(" ", StyleText)
-				}
-				gO(x)
+func (self *Doc) write_meta_go(meta Meta) {
+	switch m := meta.(type) {
+	case MetaAnd:
+		for ix, x := range m {
+			if ix != 0 {
+				self.write_str(" ", StyleText)
 			}
-		case MetaOr:
-			for ix, x := range m {
-				if ix != 0 {
-					self.write_str(" | ", StyleText)
-				}
-				gO(x)
-			}
-		case MetaOptional:
-			self.write_str("[", StyleText)
-			gO(m.m)
-			self.write_str("]", StyleText)
-		case MetaRequired:
-			self.write_str("(", StyleText)
-			gO(m.m)
-			self.write_str(")", StyleText)
-		case MetaItem:
-			self.write_item(Item(m))
-		case MetaMany:
-			gO(m.m)
-			self.write_str("...", StyleText)
-		case MetaSkip:
-			// self.write_str("no parameters expected", StyleText)
-		case MetaCustomUsage:
-			self.Doc(m.u)
-		case MetaStrict:
-			self.write_str("--", StyleLiteral)
-			self.write_str(" ", StyleText)
-			gO(m.m)
-		case MetaAdjacent:
-			gO(m.m)
-		case MetaSubsection:
-			gO(m.m)
-		case MetaSuffix:
-			gO(m.m)
+			self.write_meta_go(x)
 		}
+	case MetaOr:
+		for ix, x := range m {
+			if ix != 0 {
+				self.write_str(" | ", StyleText)
+			}
+			self.write_meta_go(x)
+		}
+	case MetaOptional:
+		self.write_str("[", StyleText)
+		self.write_meta_go(m.m)
+		self.write_str("]", StyleText)
+	case MetaRequired:
+		self.write_str("(", StyleText)
+		self.write_meta_go(m.m)
+		self.write_str(")", StyleText)
+	case MetaItem:
+		self.write_item(Item(m))
+	case MetaMany:
+		self.write_meta_go(m.m)
+		self.write_str("...", StyleText)
+	case MetaSkip:
+		// self.write_str("no parameters expected", StyleText)
+	case MetaCustomUsage:
+		self.Doc(m.u)
+	case MetaStrict:
+		self.write_str("--", StyleLiteral)
+		self.write_str(" ", StyleText)
+		self.write_meta_go(m.m)
+	case MetaAdjacent:
+		self.write_meta_go(m.m)
+	case MetaSubsection:
+		self.write_meta_go(m.m)
+	case MetaSuffix:
+		self.write_meta_go(m.m)
 	}
+}
 
+func (self *Doc) write_meta(meta Meta, for_usage bool) {
 	meta = normalized(meta, for_usage)
 	self.token(TokenBlockStart(BlockMono))
-	gO(meta)
+	self.write_meta_go(meta)
 	self.token(TokenBlockEnd(BlockMono))
 }
 

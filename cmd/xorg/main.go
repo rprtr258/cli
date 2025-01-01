@@ -25,9 +25,8 @@ func toggleOptions(meta, name, help string) cli.Parser[bool] {
 			} else {
 				return false, false
 			}
-		}).
+		}, true).
 		Help(help).
-		Anywhere().
 		Parser()
 }
 
@@ -42,8 +41,8 @@ var extension cli.Parser[fun.Pair[string, bool]] = cli.
 		default:
 			return false, false
 		}
-	}).
-		Anywhere().Parser(), cli.Positional("EXT", func(s string) (string, error) {
+	}, true).
+		Parser(), cli.Positional("EXT", func(s string) (string, error) {
 		return s, nil
 	}).
 		Help("Extension to enable or disable, see documentation for the full list").Parser()).Adjacent().Parser(),

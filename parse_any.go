@@ -122,7 +122,7 @@ func Any[T any](
 func Literal(val string) Parser[struct{}] {
 	p := Any("", func(s string) (struct{}, bool) {
 		return struct{}{}, s == val
-	}).Metavar(NewDocFromPairs([]fun.Pair[string, Style]{
+	}, false).Metavar(NewDocFromPairs([]fun.Pair[string, Style]{
 		{val, StyleLiteral},
 	}))
 	return Parser[struct{}]{p.eval, MetaItem(p.item())}

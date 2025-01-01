@@ -249,7 +249,7 @@ func TestA_or_b_opt_and_c(t *testing.T) {
 
 func TestAny_in_adjacent(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Any("A", func(s string) (string, bool) { return s, true })
+	b := Any("A", func(s string) (string, bool) { return s, true }, false)
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
 
 	assert_usage(t, parser, "-a A")
