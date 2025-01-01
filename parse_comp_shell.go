@@ -38,7 +38,6 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 	return res, err
 }
 
-// {{{
 // Static shell completion
 //
 // Allows to ask existing shell completion to provide some information such as a file or
@@ -81,7 +80,6 @@ func (self ParseCompShell[T]) eval(args *State) (T, Error) {
 // ```
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.
-// }}}
 func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
 	return ParseCompShell[T]{inner: self, op: op}
 }

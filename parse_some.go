@@ -52,7 +52,6 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-// {{{ some
 // Consume one or more items from a command line and collect them into a [Vec]
 //
 // # Takes a string used as an error message if there are no specified parameters
@@ -71,7 +70,6 @@ func (self ParseSome[T]) eval(args *State) ([]T, Error) {
 // [many](Parsermany) also collects results to a vector but succeeds with
 // no matching values. [collect](Parsercollect) collects results into a [FromIterator]
 // structure
-// }}}
 func (self Parser[T]) Some(message string) ParseSome[T] {
 	return ParseSome[T]{
 		inner:   self,

@@ -295,7 +295,6 @@ type parser[T any] interface {
 	Parser() Parser[T]
 }
 
-// {{{ or_else
 // If first parser fails - try the second one
 //
 // For parser to succeed eiter of the components needs to succeed. If both succeed - `bpaf`
@@ -370,7 +369,6 @@ type parser[T any] interface {
 // Suppose program accepts one of two mutually exclusive switches `-a` and `-b`
 // and both are present error message should point at the second flag
 // Deprecated: instead of a.or_else(b) you should use construct([a, b])
-// }}}
 func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 	return ParseOrElse[T]{
 		this: self,
@@ -378,15 +376,12 @@ func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
 	}
 }
 
-// misc
-// {{{ Hide
 // Ignore this parser during any sort of help generation
 //
 // Best used for fun.Optional parsers or parsers with a defined fallback, usually for implementing
 // backward compatibility or hidden aliases
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Hide.md"))]
-// }}}
 func (self Parser[T]) Hide() Parser[T] {
 	p := ParseHide[T]{inner: self}
 	return Parser[T]{p.eval, MetaSkip{}}
@@ -412,8 +407,6 @@ func (self Parser[T]) with_group_help(f func(Meta) Doc) ParseWithGroupHelp[T] {
 	return ParseWithGroupHelp[T]{inner: self, f: f}
 }
 
-// consume
-// {{{ ToOptions
 // Transform `Parser` into [OptionParser] to get ready to [run](OptionParserrun) it
 //
 // # Derive usage
@@ -429,7 +422,6 @@ func (self Parser[T]) with_group_help(f func(Meta) Doc) ParseWithGroupHelp[T] {
 //
 // # See also
 // There's some methods implemented on [OptionParser] directly to customize the appearance
-// }}}
 func (self Parser[T]) ToOptions() *OptionParser[T] {
 	return &OptionParser[T]{
 		info:  NewInfo(),

@@ -44,7 +44,6 @@ func (self ParseCollect[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-// {{{ collect
 // Transform parser into a collection parser
 //
 // A generic variant of [many](Parsermany), instead of collecting into a vector
@@ -59,7 +58,6 @@ func (self ParseCollect[T]) eval(args *State) ([]T, Error) {
 // `collect` will collect at most one result that does not consume anything from the argument
 // list allowing using it in combination of any parsers with a fallback. After the first one
 // it will keep collecting the results as long as they consume something.
-// }}}
 func (self Parser[T]) collect() ParseCollect[T] {
 	return ParseCollect[T]{
 		inner: self,

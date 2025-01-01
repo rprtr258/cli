@@ -36,7 +36,6 @@ func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
 	return Parser[Option[T]]{self.eval, MetaOptional{self.inner.meta}}
 }
 
-// {{{ fun.Optional
 // Turn a required argument into an fun.Optional one
 //
 // `Optional` converts any missing items into `Invalid()` and passes the remaining parsing
@@ -51,7 +50,6 @@ func (self *ParseOptional[T]) Parser() Parser[Option[T]] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Optional.md"))]
 // TODO: compiler ne mogyet v return Parser[Option[T]] in method
-// }}}
 func Optional[T any](self Parser[T]) *ParseOptional[T] {
 	return &ParseOptional[T]{
 		inner: self,

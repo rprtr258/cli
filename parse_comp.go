@@ -94,7 +94,6 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 // ## More detailed example
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
-// }}}
 func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) ParseComp[T] {
 	return ParseComp[T]{
 		inner: self,

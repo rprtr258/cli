@@ -600,8 +600,6 @@ pub trait Parser<T> {
     #[doc(hidden)]
     fn meta(&self) -> Meta;
 
-    // change shape
-    // {{{ many
     /// Consume zero or more items from a command line and collect them into a [Vec]
     ///
     /// `many` preserves any parsing failures and propagates them outwards, with an extra
@@ -632,7 +630,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ collect
     /// Transform parser into a collection parser
     ///
     /// A generic variant of [many](Parser::many), instead of collecting into a vector
@@ -660,7 +657,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ some
     /// Consume one or more items from a command line and collect them into a [Vec]
     ///
     /// Takes a string used as an error message if there are no specified parameters
@@ -693,7 +689,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ optional
     /// Turn a required argument into an optional one
     ///
     /// `optional` converts any missing items into `None` and passes the remaining parsing
@@ -749,8 +744,6 @@ pub trait Parser<T> {
         ParseLast { inner: self }
     }
 
-    // parse
-    // {{{ parse
     /// Apply a failing transformation to a contained value
     ///
     /// Transformation preserves the present/absent state of the value: to parse an optional value you
@@ -791,7 +784,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ map
     /// Apply a pure transformation to a contained value
     ///
     /// A common case of the [parse](Parser::parse) method, exists mostly for convenience.
@@ -816,7 +808,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ guard
     /// Validate or fail with a message
     ///
     /// If the value doesn't satisfy the constraint - the parser fails with the specified error message.
@@ -841,8 +832,6 @@ pub trait Parser<T> {
     }
 
 
-    // combine
-    // {{{ fallback
     /// Use this value as default if the value isn't present on a command line
     ///
     /// Parser would still fail if the value is present but failure comes from some transformation
@@ -868,7 +857,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ fallback_with
     /// Use value produced by this function as default if the value isn't present
     ///
     /// Would still fail if the value is present but failure comes from some earlier transformation
@@ -897,7 +885,6 @@ pub trait Parser<T> {
     }
 
 
-    // {{{ or_else
     /// If first parser fails - try the second one
     ///
     /// For parser to succeed eiter of the components needs to succeed. If both succeed - `bpaf`
@@ -986,15 +973,11 @@ pub trait Parser<T> {
     }
 
 
-    // misc
-    // {{{ hide
     /// Ignore this parser during any sort of help generation
     ///
     /// Best used for optional parsers or parsers with a defined fallback, usually for implementing
     /// backward compatibility or hidden aliases
-    ///
     #[cfg_attr(not(doctest), doc = include_str!("docs2/hide.md"))]
-    ///
     fn hide(self) -> ParseHide<Self>
     where
         Self: Sized + Parser<T>,

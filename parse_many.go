@@ -44,8 +44,6 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 	return self
 }
 
-// change shape
-// {{{ Many
 // Consume zero or more items from a command line and collect them into a [Vec]
 //
 // `Many` preserves any parsing failures and propagates them outwards, with an extra
@@ -65,7 +63,6 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 // [some](Parsersome) also collects results to a vector but requires at least one
 // element to succeed, [collect](Parsercollect) collects results into a [FromIterator]
 // structure
-// }}}
 // TODO: compiler ne mogyet v return Parser[[]T] in method
 func Many[T any](self Parser[T]) *ParseMany[T] {
 	return &ParseMany[T]{

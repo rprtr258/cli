@@ -56,8 +56,6 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 	return *self
 }
 
-// combine
-// {{{ Fallback
 // Use this value as default if the value isn't present on a command line
 //
 // # Parser would still fail if the value is present but failure comes from some transformation
@@ -70,7 +68,6 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 // not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackdisplay_fallback) and
 // [debug_fallback](ParseFallbackdebug_fallback).
-// }}}
 func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
 	return &ParseFallback[T]{
 		inner:     self,
@@ -148,7 +145,6 @@ func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
 	return self
 }
 
-// {{{ fallback_with
 // Use value produced by this function as default if the value isn't present
 //
 // # Would still fail if the value is present but failure comes from some earlier transformation
@@ -160,7 +156,6 @@ func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
 // By default fallback value will not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackWithdisplay_fallback) and
 // [debug_fallback](ParseFallbackWithdebug_fallback).
-// }}}
 func (self Parser[T]) fallback_with(fallback func() (T, Error)) ParseFallbackWith[T] {
 	return ParseFallbackWith[T]{
 		inner:     self,

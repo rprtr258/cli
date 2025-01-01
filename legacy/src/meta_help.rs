@@ -277,7 +277,6 @@ impl From<&Item> for HiTy {
 }
 
 impl<'a> From<&'a Item> for HelpItem<'a> {
-    // {{{
     fn from(item: &'a Item) -> Self {
         match item {
             Item::Positional { metavar, help } => Self::Positional {
@@ -334,7 +333,7 @@ impl<'a> From<&'a Item> for HelpItem<'a> {
             },
         }
     }
-} // }}}
+}
 
 impl Doc {
     #[inline(never)]
