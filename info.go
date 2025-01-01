@@ -161,7 +161,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	return self.run_subparser(&state)
 }
 
-func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
+func (self OptionParser[T]) run_subparser(state *State) (T, ParseFailure) {
 	// process should work like this:
 	// - inner parser is evaluated, it returns Error
 	// - if error is finalized (ParseFailure) - it is simply propagated outwards,
@@ -170,9 +170,9 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	// - produce --help, --version
 	// - try to improve error message and finalize it otherwise
 
-	if self.info.help_if_no_args && args.len() == 0 {
+	if self.info.help_if_no_args && state.len() == 0 {
 		buffer := render_help(
-			args.path,
+			state.path,
 			self.info,
 			self.inner.meta,
 			self.info.meta(),
@@ -180,16 +180,16 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 		return *new(T), ParseFailureStdout{buffer, false}
 	}
 
-	res, err := self.inner.eval(args)
+	res, err := self.inner.eval(state)
 	if err != nil {
 		if parseFailure, ok := err.(ErrorParseFailure); ok {
 			return *new(T), parseFailure.e
 		}
 	}
-	if comp, ok := args.check_complete(); ok {
+	if comp, ok := state.check_complete(); ok {
 		return *new(T), ParseFailureCompletion(comp)
 	} else if err == nil {
-		if ix, _, ok := args.items_iter()(); ok {
+		if ix, _, ok := state.items_iter()(); ok {
 			err = ErrorUnconsumed(ix)
 		} else {
 			return res, nil
@@ -197,9 +197,9 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	}
 
 	// handle --help and --version messages
-	extra, errInfo := self.info.eval(args)
+	extra, errInfo := self.info.eval(state)
 	if errInfo != nil {
-		return *new(T), render(&err, *args, self.inner.meta)
+		return *new(T), render(&err, *state, self.inner.meta)
 	}
 
 	detailed := false
@@ -207,7 +207,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	if extra.Help {
 		detailed = true
 		buffer = render_help(
-			args.path,
+			state.path,
 			self.info,
 			self.inner.meta,
 			self.info.meta(),
