@@ -387,13 +387,13 @@ func print_message(self ParseFailure, max_width uint) {
 	}
 }
 
-func check_conflicts(args State) (Error, bool) {
+func check_conflicts(args State) Error {
 	loserwinner, ok := args.conflict()
 	if !ok {
-		return nil, false
+		return nil
 	}
 	loser, winner := loserwinner.start(), loserwinner.end()
-	return ErrorConflict{winner, loser}, true
+	return ErrorConflict{winner, loser}
 }
 
 func textual_part(args State, ixxx Option[int]) (string, bool) {
@@ -448,7 +448,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		*self = summarize_missing(e, meta, args)
 	case ErrorUnconsumed:
 		ix := int(e)
-		if conflict, ok := check_conflicts(args); ok {
+		if conflict := check_conflicts(args); conflict != nil {
 			*self = conflict
 		} else if prev_ix, ok := only_once(args, ix); ok {
 			*self = ErrorOnlyOnce{prev_ix, ix}
