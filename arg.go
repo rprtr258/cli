@@ -105,7 +105,7 @@ func (self Arg) String() string {
 // -a  - just a regular short flag: "-a"
 // -abc - assuming there are short flags a, b and c: "-a -b -c", assuming utf8 values AND there's no argument -a
 // -abc - assuming there's no -a -b -c: "-a bc"
-// -abc - assuming both short a b c AND there's argument -a - need to disambiguate  on a context level
+// -abc - assuming both short a b c AND there's argument -a - need to disambiguate on a context level
 //
 // 1. parse argument into ambigous representation that can store both short flags and argument
 // 2. collect short flag/arg when entering the subparsre

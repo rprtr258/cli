@@ -6,7 +6,7 @@ import "github.com/rprtr258/fun"
 type ParseAny[T any] struct {
 	metavar  Doc
 	help     Option[Doc]
-	check    func(string) (T, bool)
+	parse    func(string) (T, bool)
 	anywhere bool
 }
 
@@ -30,19 +30,9 @@ func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 	return self
 }
 
-// Try to apply the parser to each unconsumed element instead of just the front one
-//
-// By default `any` tries to parse just the front unconsumed item behaving similar to
-// [positional] parser, `anywhere` changes it so it applies to every unconsumed item,
-// similar to argument parser.
-func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
-	self.anywhere = true
-	return self
-}
-
 func (self ParseAny[T]) eval(args *State) (T, Error) {
 	for ix, x := range push2(args.items_iter()) {
-		if i, ok := self.check(x.str); ok {
+		if i, ok := self.parse(x.str); ok {
 			args.remove(ix)
 			if x.is_adj {
 				args.remove(ix + 1)
@@ -54,7 +44,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 			break
 		}
 	}
-	return *new(T), ErrorMissing([]MissingItem{MissingItem{
+	return *new(T), ErrorMissing([]MissingItem{{
 		item:     self.item(),
 		position: args.scope.start(),
 		scope:    args.scope,
@@ -97,14 +87,23 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 //
 // # See also
 // [literal] - a specialized version of `any` that tries to parse a fixed literal
-func Any[T any](metavar string, check func(string) (T, bool)) *ParseAny[T] {
+func Any[T any](
+	metavar string,
+	parse func(string) (T, bool),
+	// Try to apply the parser to each unconsumed element instead of just the front one
+	//
+	// By default `any` tries to parse just the front unconsumed item behaving similar to
+	// [positional] parser, `anywhere` changes it so it applies to every unconsumed item,
+	// similar to argument parser.
+	anywhere bool,
+) *ParseAny[T] {
 	return &ParseAny[T]{
 		metavar: NewDocFromPairs([]fun.Pair[string, Style]{
 			{metavar, StyleMetavar},
 		}),
 		help:     Invalid[Doc](),
-		check:    check,
-		anywhere: false,
+		parse:    parse,
+		anywhere: anywhere,
 	}
 }
 
