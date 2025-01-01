@@ -136,7 +136,7 @@ func TestNot_expected_at_all(t *testing.T) {
 
 func TestCannot_be_used_twice(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Short('b').Switch().Parser())
+	b := Many(Short('b').Switch())
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{

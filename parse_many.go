@@ -64,9 +64,9 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 // element to succeed, [collect](Parsercollect) collects results into a [FromIterator]
 // structure
 // TODO: compiler ne mogyet v return Parser[[]T] in method
-func Many[T any](self Parser[T]) *ParseMany[T] {
+func Many[T any, P parser[T]](self P) *ParseMany[T] {
 	return &ParseMany[T]{
-		inner: self,
+		inner: self.Parser(),
 		catch: false,
 	}
 }

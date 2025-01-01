@@ -11,7 +11,7 @@ func TestTest_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Short('b').Switch()
 	var c = Short('c').Switch()
-	var parser = Many(Triple(a.Parser(), b, c).Adjacent().Parser()).Parser().ToOptions()
+	var parser = Many(Triple(a.Parser(), b, c).Adjacent()).Parser().ToOptions()
 
 	type R = triple[struct{}, bool, bool]
 	{
@@ -93,7 +93,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	b := Positional("B", parseUint)
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent().Parser())
+	adj := Many(Triple(a, b, c).Adjacent())
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a", "10"))
@@ -105,7 +105,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	b := Argument(Short('b'), "B", parseUint)
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent().Parser())
+	adj := Many(Triple(a, b, c).Adjacent())
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	t.Skip() // TODO: fix

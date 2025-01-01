@@ -35,7 +35,7 @@ func TestOptional_group_meta(t *testing.T) {
 func TestSensors_many(t *testing.T) {
 	a := Argument(Short('a'), "A", parseString)
 	b := Argument(Short('b'), "B", parseString)
-	parser := Many(Pair(a, b).Parser()).Parser().ToOptions()
+	parser := Many(Pair(a, b)).Parser().ToOptions()
 	assert_usage(t, parser, "[-a=A -b=B]...")
 }
 
@@ -47,7 +47,7 @@ func TestSensors_some(t *testing.T) {
 }
 
 func TestMany_arg(t *testing.T) {
-	parser := Many(Argument(Short('a'), "A", parseString).Parser()).Parser().ToOptions()
+	parser := Many(Argument(Short('a'), "A", parseString)).Parser().ToOptions()
 	assert_usage(t, parser, "[-a=A]...")
 }
 
@@ -59,7 +59,7 @@ func TestSome_arg(t *testing.T) {
 
 func TestMany_switch(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Short('a').Switch().Parser()).Parser().ToOptions()
+	parser := Many(Short('a').Switch()).Parser().ToOptions()
 	assert_usage(t, parser, "[-a]...")
 }
 
@@ -171,7 +171,7 @@ func TestRequired_or_and(t *testing.T) {
 func TestRequired_one_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	parser := Many(Pair(a, b).Parser()).Parser().ToOptions()
+	parser := Many(Pair(a, b)).Parser().ToOptions()
 	assert_usage(t, parser, "[-a -b]...")
 }
 
@@ -179,7 +179,7 @@ func TestOptional_one_many(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	parser := Many(Optional(Pair(a, b).Parser()).Parser()).Parser().ToOptions()
+	parser := Many(Optional(Pair(a, b).Parser())).Parser().ToOptions()
 	assert_usage(t, parser, "[-a -b]...")
 }
 
@@ -193,7 +193,7 @@ func TestRequired_or_many(t *testing.T) {
 	e := Pure(pair(struct{}{}, struct{}{}))
 	f := Pure(pair(struct{}{}, struct{}{}))
 	ef := Choice(e, f)
-	parser := Many(Choice(ab, cd, ef).Parser()).Parser().ToOptions()
+	parser := Many(Choice(ab, cd, ef)).Parser().ToOptions()
 	assert_usage(t, parser, "[-a -b | -c -d]...")
 }
 
@@ -326,7 +326,7 @@ func TestOptional_strict(t *testing.T) {
 func TestMany_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Many(Positional("B", parseUint).strict().Parser())
+	b := Many(Positional("B", parseUint).strict())
 	parser := Pair(a, b).Parser().ToOptions()
 	assert_usage(t, parser, "[-a] -- [B]...")
 }
@@ -350,11 +350,11 @@ func TestQuadruple_strict(t *testing.T) {
 func TestQuadruple_strict_many(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Many(Positional("B", parseUint).strict().Parser())
+	b := Many(Positional("B", parseUint).strict())
 	ab := Pair(a, b)
 
 	d := Short('d').Switch()
-	f := Many(Positional("F", parseUint).strict().Parser())
+	f := Many(Positional("F", parseUint).strict())
 	df := Pair(d, f)
 
 	parser := Choice(ab, df).Parser().ToOptions()

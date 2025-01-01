@@ -33,14 +33,14 @@ func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 	vp := Many(ReqFlag(Short('v').
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
-		struct{}{}).Parser()).Parser()
+		struct{}{})).Parser()
 	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta},
 		func(v []struct{}) int { return len(v) })
 
 	qp := Many(ReqFlag(Short('q').
 		Long("quiet").
 		Help("Decrease output verbosity, can be used several times"),
-		struct{}{}).Parser()).Parser()
+		struct{}{})).Parser()
 	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta},
 		func(v []struct{}) int { return len(v) })
 
@@ -137,7 +137,7 @@ func toggle_flag[T interface{ ~bool }](
 	pa := ReqFlag(a, val_a)
 	pb := ReqFlag(b, val_b)
 	return Map(
-		Many(Pair(pa, pb).Parser()).Parser(),
+		Many(Pair(pa, pb)).Parser(),
 		func(xs []fun.Pair[T, T]) Option[T] {
 			return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V })
 		})

@@ -491,7 +491,7 @@ func TestStatic_complete_test_5(t *testing.T) {
 func TestStatic_complete_test_6(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Optional(Argument(Short('a'), "A", parseString).Parser())
-	b := Many(Argument(Short('b'), "B", parseString).Parser())
+	b := Many(Argument(Short('b'), "B", parseString))
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
@@ -811,7 +811,7 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Positional("D", parseString).Parser()).Parser().ToOptions()
+	parser := Many(Positional("D", parseString)).Parser().ToOptions()
 	_, err := parser.run_inner(newArgs("xxx").set_comp(0))
 	r := unwrap_stdout(err)
 	assert.Equal(t, r, "\tD\t\t\n\n")
@@ -828,7 +828,7 @@ func TestSome_does_not_duplicate_metadata(t *testing.T) {
 func TestOnly_positionals_after_positionals(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	d := Many(Positional("D", parseString).Parser())
+	d := Many(Positional("D", parseString))
 	parser := Pair(a, d).Parser().ToOptions()
 
 	{
@@ -1057,7 +1057,7 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 
 func TestAmbiguity_to_flags(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Short('a').Switch().Parser()).Parser().ToOptions()
+	parser := Many(Short('a').Switch()).Parser().ToOptions()
 
 	_, err := parser.run_inner(newArgs("-aaa").set_comp(0))
 	r := unwrap_stdout(err)
@@ -1124,7 +1124,7 @@ func TestZsh_style_completion_visible(t *testing.T) {
 
 func TestZsh_many_positionals(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Positional("POS", parseString).Parser()).Parser().ToOptions()
+	parser := Many(Positional("POS", parseString)).Parser().ToOptions()
 
 	{
 		_, err := parser.run_inner(newArgs("").set_comp(0))
