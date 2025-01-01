@@ -115,26 +115,32 @@ func verbose_by_slice[T any](
 //
 // # Usage
 //
-//	# use bpaf*;
+//	use bpaf*;
 //	use bpafbatteriestoggle_flag;
 //
-//	#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+//	type Select bool
+//	const (
+//	    SelectNoBanana Select = false
+//	    SelectBanana Select = true
+//	)
 //
-//	enum Select {
-//	    Banana,
-//	    NoBanana,
+//	func pick() Parser[Option[Select]] {
+//	    return toggle_flag(
+//			Long("banana"), SelectBanana,
+//			Long("no-banana"), SelectNoBanana,
+//		)
 //	}
-//
-//	func pick()impl Parser<Option[Select>] {
-//	    toggle_flag(long("banana"), SelectBanana, long("no-banana"), SelectNoBanana)
-//	}
-func toggle_flag[T any](
+func toggle_flag[T interface{ ~bool }](
 	a NamedArg, val_a T,
 	b NamedArg, val_b T,
 ) Parser[Option[T]] {
-	pa := ReqFlag(a, val_a).Parser()
-	pb := ReqFlag(b, val_b).Parser()
-	return Map(Many(Pair(pa, pb).Parser()).Parser(), func(xs []fun.Pair[T, T]) Option[T] { return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V }) })
+	pa := ReqFlag(a, val_a)
+	pb := ReqFlag(b, val_b)
+	return Map(
+		Many(Pair(pa, pb).Parser()).Parser(),
+		func(xs []fun.Pair[T, T]) Option[T] {
+			return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V })
+		})
 }
 
 // Get usage for a parser
