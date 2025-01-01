@@ -67,20 +67,13 @@ type OptionParser[T any] struct {
 // # Usage
 //
 //	// Parses number of repetitions of `-v` on a command line
-//	func verbosity() Parser[int] {
-//	    parser := short('v')
-//	        .req_flag(struct{}{})
-//	        .many()
-//	        .map(len)
-//
-//	    parser
-//	        .to_options()
-//	        .descr("Takes verbosity flag and does nothing else")
-//	}
-//
-//	func main() {
-//	    var verbosity int = verbosity().Run()
-//	}
+//	var verbosity Parser[int] = short('v')
+//		.req_flag(struct{}{})
+//		.many()
+//		.map(len)
+//		.to_options()
+//		.descr("Takes verbosity flag and does nothing else")
+//	var verbosity int = verbosity().Run()
 func (self OptionParser[T]) Run(args []string) T {
 	current_args := Args{
 		items: args[1:],
