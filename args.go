@@ -6,8 +6,6 @@ import (
 	"os"
 	"path/filepath"
 	"unicode/utf8"
-
-	"github.com/rprtr258/fun/iter"
 )
 
 // All currently present command line parameters with some extra metainfo
@@ -183,9 +181,6 @@ type State struct {
 
 	item_state []ItemState
 
-	// performance optimization mostly - tracks removed item and gives cheap is_empty and len
-	remaining int
-
 	// Used to render an error message for `parse`
 	// contains an index of a currently consumed item if we are parsing a single
 	// item
@@ -307,13 +302,10 @@ LOOP:
 	for i := range items {
 		item_state[i] = ItemStateUnparsed
 	}
-	remaining := len(items)
 	if ix, ok := double_dash_marker.Unpack(); ok {
 		item_state[ix] = ItemStateParsed
-		remaining -= 1
 
 		if comp_scanner.revision.Valid && ix == len(items)-1 {
-			remaining += 1
 			item_state[ix] = ItemStateUnparsed
 		}
 	}
@@ -327,12 +319,21 @@ LOOP:
 	return State{
 		items,
 		item_state,
-		remaining,
 		Invalid[int](),
 		path,
 		Option[Complete]{comp, ok},
 		Range{0, len(items)},
 	}, err
+}
+
+func (self *State) remaining() int {
+	res := 0
+	for _, v := range self.item_state {
+		if v.present() {
+			res++
+		}
+	}
+	return res
 }
 
 // creates iterator over remaining elements
@@ -356,7 +357,6 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 func (self *State) remove(index int) {
 	if self.scope.contains(index) && self.item_state[index].present() {
 		self.current = Valid(index)
-		self.remaining -= 1
 		self.item_state[index] = ItemStateParsed
 	}
 }
@@ -401,11 +401,11 @@ func (self *State) save_conflicts(loser State, win int) {
 
 // it is in use when autocomplete is enabled
 func (self State) is_empty() bool {
-	return self.remaining == 0
+	return self.len() == 0
 }
 
 func (self State) len() int {
-	return self.remaining
+	return self.remaining()
 }
 
 // Get an argument from a scope that was not consumed yet
@@ -508,10 +508,6 @@ func (self State) ranges(item Item) ArgRangesIter {
 // Mark everything outside of `range` as removed
 func (self *State) set_scope(scope Range) {
 	self.scope = scope
-	self.remaining = iter.
-		FromMany(self.item_state[self.scope[0]:self.scope[1]]...).
-		Filter(ItemState.present).
-		Count()
 }
 
 // check if bpaf tries to complete last consumed element
