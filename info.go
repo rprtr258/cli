@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rprtr258/fun"
@@ -82,7 +83,17 @@ type OptionParser[T any] struct {
 func (self OptionParser[T]) Run(args []string) T {
 	t, err := self.run_inner(current_args(args...))
 	if err != nil {
-		print_message(err, self.info.max_width)
+		// Prints a message to `stdout` or `stderr` appropriate to the failure.
+		color := Colordefault
+		switch err := err.(type) {
+		case ParseFailureStdout:
+			fmt.Println(err.msg.render_console(err.full, color, self.info.max_width))
+		case ParseFailureCompletion:
+			fmt.Print(string(err))
+		case ParseFailureStderr:
+			fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "Error: ")+Doc(err).render_console(true, color, self.info.max_width))
+		}
+
 		_, ok := err.(ParseFailureStderr)
 		exitCode := fun.IF(ok, 1, 0)
 		os.Exit(exitCode) // TODO: remove

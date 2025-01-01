@@ -3,7 +3,6 @@ package cli
 import (
 	"cmp"
 	"fmt"
-	"os"
 	"slices"
 	"strings"
 
@@ -364,19 +363,6 @@ func unwrap_stdout(self ParseFailure) string {
 		panic(fmt.Sprintf("not an stdout: %#v", self))
 	}
 	panic(fmt.Sprintf("unreachable %T", self))
-}
-
-// Prints a message to `stdout` or `stderr` appropriate to the failure.
-func print_message(self ParseFailure, max_width uint) {
-	color := Colordefault
-	switch self := self.(type) {
-	case ParseFailureStdout:
-		fmt.Println(self.msg.render_console(self.full, color, max_width))
-	case ParseFailureCompletion:
-		fmt.Print(string(self))
-	case ParseFailureStderr:
-		fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "Error: ")+Doc(self).render_console(true, color, max_width))
-	}
 }
 
 func check_conflicts(args State) Error {
