@@ -613,6 +613,11 @@ func (self Info) mk_version_parser() ParseFlag[struct{}] {
 	return ReqFlag(self.version_arg, struct{}{})
 }
 
+type ExtraParams struct {
+	Help    bool
+	Version Doc
+}
+
 // TODO: unused
 func (self Info) Parser() Parser[ExtraParams] {
 	return Parser[ExtraParams]{self.eval, self.meta()}
@@ -621,12 +626,12 @@ func (self Info) Parser() Parser[ExtraParams] {
 func (self Info) eval(args *State) (ExtraParams, Error) {
 	help := self.mk_help_parser()
 	if _, err := help.eval(args); err == nil {
-		return ExtraParamsHelp(), nil
+		return ExtraParams{true, Doc{}}, nil
 	}
 
 	if version, ok := self.version.Unpack(); ok {
 		if _, err := self.mk_version_parser().eval(args); err == nil {
-			return ExtraParamsVersion(version), nil
+			return ExtraParams{false, version}, nil
 		}
 	}
 
@@ -641,17 +646,4 @@ func (self Info) meta() Meta {
 	} else {
 		return help
 	}
-}
-
-type ExtraParams struct {
-	Help    bool
-	Version Doc
-}
-
-func ExtraParamsHelp() ExtraParams {
-	return ExtraParams{true, Doc{}}
-}
-
-func ExtraParamsVersion(v Doc) ExtraParams {
-	return ExtraParams{false, v}
 }
