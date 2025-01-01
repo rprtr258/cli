@@ -202,10 +202,8 @@ func (self OptionParser[T]) run_subparser(state *State) (T, ParseFailure) {
 		return *new(T), render(&err, *state, self.inner.meta)
 	}
 
-	detailed := false
-	buffer := func() Doc {
+	msg := func() Doc {
 		if extra.Help {
-			detailed = true
 			return render_help(
 				state.path,
 				self.info,
@@ -213,15 +211,15 @@ func (self OptionParser[T]) run_subparser(state *State) (T, ParseFailure) {
 				self.info.meta(),
 			)
 		} else {
-			tmp := Doc{}
-			tmp.token(TokenBlockStart(BlockBlock))
-			tmp.Text("Version: ")
-			tmp.Doc(extra.Version)
-			tmp.token(TokenBlockEnd(BlockBlock))
-			return tmp
+			doc := Doc{}
+			doc.token(TokenBlockStart(BlockBlock))
+			doc.Text("Version: ")
+			doc.Doc(extra.Version)
+			doc.token(TokenBlockEnd(BlockBlock))
+			return doc
 		}
 	}()
-	return *new(T), ParseFailureStdout{buffer, detailed}
+	return *new(T), ParseFailureStdout{msg, extra.Help}
 }
 
 // Get first line of description if Available
