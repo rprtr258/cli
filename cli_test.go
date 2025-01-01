@@ -11,21 +11,19 @@ import (
 
 func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], args ...string) {
 	t.Helper()
+
 	actual, err := parser.run_inner(newArgs(args...))
 	require.Nil(t, err)
 	require.Equal(t, expected, actual)
 }
 
-func wtf_shenanigans_1(t *testing.T) {
-	for _, tc := range []struct {
-		i_c    ArgType
-		prefix string
-	}{
-		{ArgTypeShort, "f"},
-		{ArgTypeLong, "foo"},
-		{ArgTypeLong, "口水鸡"},
-	} {
-		i_c, prefix := tc.i_c, tc.prefix
+func TestWtfShenanigans1(t *testing.T) {
+	f := func(
+		i_c ArgType,
+		prefix string,
+	) {
+		t.Helper()
+
 		i_prefix := prefix
 		i_suffix := string([]byte{0x66, 0x6f, 0xD8, 0x6f})
 
@@ -44,43 +42,44 @@ func wtf_shenanigans_1(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, i_prefix, o_prefix)
-		require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
+		require.Equal(t, ArgWord(i_suffix), o_suffix.unwrap())
 	}
+
+	f(ArgTypeShort, "f")
+	f(ArgTypeLong, "foo")
+	f(ArgTypeLong, "口水鸡")
 }
 
-func wtf_shenanigans_2(t *testing.T) {
-	for _, tc := range []struct {
-		i_c    ArgType
-		prefix string
-	}{
-		{ArgTypeShort, "f"},
-		{ArgTypeLong, "foo"},
-		{ArgTypeLong, "口水鸡"},
-	} {
-		i_c, prefix := tc.i_c, tc.prefix
-		i_prefix := prefix
-		i_suffix := "口水鸡"
+func TestWtfShenanigans2(t *testing.T) {
+	f := func(
+		i_c ArgType,
+		flagName string,
+	) {
+		t.Helper()
 
-		os_string := ""
+		value := "口水鸡"
+
+		dashes := ""
 		switch i_c {
 		case ArgTypeShort:
-			os_string += "-"
+			dashes += "-"
 		case ArgTypeLong:
-			os_string += "--"
+			dashes += "--"
 		}
-		os_string += i_prefix
-		os_string += "="
-		os_string += i_suffix
 
-		o_c, o_prefix, o_suffix, ok := split_os_argument(os_string)
+		o_c, o_prefix, o_suffix, ok := split_os_argument(dashes + flagName + "=" + value)
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
-		require.Equal(t, i_prefix, o_prefix)
-		require.Equal(t, ArgArgWord(i_suffix), o_suffix.unwrap())
+		require.Equal(t, flagName, o_prefix)
+		require.Equal(t, ArgWord(value), o_suffix.unwrap())
 	}
+
+	f(ArgTypeShort, "f")
+	f(ArgTypeLong, "foo")
+	f(ArgTypeLong, "口水鸡")
 }
 
-func de_yoda(t *testing.T) {
+func TestDeYoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).Parser().ToOptions()
 	assertSuccess(t, pair(false, false), parser)
 	assertSuccess(t, pair(true, true), parser, "-a", "-b")
