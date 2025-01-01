@@ -130,7 +130,7 @@ func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 	switch x := arg.value.(type) {
 	case shortFlag:
 		res = fun.Contains(x.c, self.short...) && (!adjacent || x.is_adj)
-	case argLong:
+	case longFlag:
 		res = fun.Contains(x.s, self.long...) && (!adjacent || x.is_adj)
 	}
 	return res

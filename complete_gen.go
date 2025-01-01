@@ -493,7 +493,7 @@ func (self State) check_complete() (string, bool) {
 
 	is_named := false
 	switch cur.value.(type) {
-	case shortFlag, argLong:
+	case shortFlag, longFlag:
 		is_named = true
 	}
 
@@ -503,7 +503,7 @@ func (self State) check_complete() (string, bool) {
 		if x.is_adj {
 			prefix = PrefixShort(x.c)
 		}
-	case argLong:
+	case longFlag:
 		if x.is_adj {
 			prefix = PrefixLong(x.s)
 		}

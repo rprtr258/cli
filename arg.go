@@ -7,7 +7,7 @@ type arg interface {
 	clone() arg
 }
 
-// shortFlag `-f`
+// shortFlag e.g. `-f`
 type shortFlag struct {
 	c byte
 	// if following item is also part of this Short
@@ -17,15 +17,15 @@ type shortFlag struct {
 func (shortFlag) isArg()          {}
 func (self shortFlag) clone() arg { return self }
 
-// long flag: `--flag`
-// bool tells if it looks like --key=val or not
-type argLong struct {
-	s      string
+// longFlag e.g. `--flag`
+type longFlag struct {
+	s string
+	// if it looks like --key=val or not
 	is_adj bool
 }
 
-func (argLong) isArg()          {}
-func (self argLong) clone() arg { return self }
+func (longFlag) isArg()          {}
+func (self longFlag) clone() arg { return self }
 
 // "val" part of --key=val -k=val -kval
 type argArgWord struct{}
@@ -37,7 +37,7 @@ func (self argArgWord) clone() arg { return self }
 //
 // Can start with `-` or `--`, doesn't have to be valid utf8
 //
-// `hello`
+// e.g. `hello`
 type argWord struct{}
 
 func (argWord) isArg()          {}
@@ -82,7 +82,7 @@ func ArgShort(str string, c byte, b bool) Arg {
 }
 
 func ArgLong(str string, s string, b bool) Arg {
-	return Arg{str: str, value: argLong{s, b}}
+	return Arg{str: str, value: longFlag{s, b}}
 }
 
 func (self Arg) IsShort() bool {
@@ -91,7 +91,7 @@ func (self Arg) IsShort() bool {
 }
 
 func (self Arg) IsLong() bool {
-	_, ok := self.value.(argLong)
+	_, ok := self.value.(longFlag)
 	return ok
 }
 
@@ -101,20 +101,18 @@ func (self Arg) IsPosWord() bool {
 }
 
 func (self Arg) match_short(val byte) bool {
-	sh, ok := self.value.(shortFlag)
-	return ok && sh.c == val
+	return self.IsShort() && self.value.(shortFlag).c == val
 }
 
 func (self Arg) match_long(val string) bool {
-	sh, ok := self.value.(argLong)
-	return ok && sh.s == val
+	return self.IsLong() && self.value.(longFlag).s == val
 }
 
 func (self Arg) String() string {
 	switch x := self.value.(type) {
 	case shortFlag:
 		return fmt.Sprintf("Short(%s, %c, %v)", self.str, x.c, x.is_adj)
-	case argLong:
+	case longFlag:
 		return fmt.Sprintf("Long(%s, %s, %v)", self.str, x.s, x.is_adj)
 	case argArgWord:
 		return fmt.Sprintf("ArgWord(%s)", self.str)
@@ -146,7 +144,7 @@ func (self Arg) GoString() string {
 	switch x := self.value.(type) {
 	case shortFlag:
 		return fmt.Sprintf("-%c", x.c)
-	case argLong:
+	case longFlag:
 		return fmt.Sprintf("--%s", x.s)
 	default:
 		return self.str

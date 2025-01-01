@@ -50,7 +50,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 		switch x := x.value.(type) {
 		case shortFlag:
 			next = x.is_adj
-		case argLong:
+		case longFlag:
 			next = x.is_adj
 		}
 		if i, ok := self.check(x.str); ok {

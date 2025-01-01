@@ -628,7 +628,7 @@ func (self *State) take_cmd(w string) bool {
 		switch x := a.value.(type) {
 		case shortFlag, argWord:
 			return true
-		case argLong:
+		case longFlag:
 			return !x.is_adj
 		default:
 			return false
