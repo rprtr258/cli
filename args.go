@@ -183,10 +183,8 @@ func (self State) clone() State {
 
 // Check if item at ixth position is still present (was not parsed)
 func (self State) present(ix int) (bool, bool) {
-	if ix >= len(self.item_state) {
-		return false, false
-	}
-	return !self.item_state[ix].parsed(), true
+	inBounds := ix < len(self.item_state)
+	return inBounds && !self.item_state[ix].parsed(), inBounds
 }
 
 func (self State) depth() uint {
