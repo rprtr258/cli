@@ -44,12 +44,12 @@ source ( $tmpline | psub )`)
 // https://github.com/elves/elvish/issues/803
 func dump_elvish_completer(name string) {
 	rev := "1"
-	println(`set edit:completion:arg-completer[` + name + `] = {{ |@args| var args = $args[1..];
+	println(`set edit:completion:arg-completer[` + name + `] = ` + "{{" + ` |@args| var args = $args[1..];
      var @lines = ( ` + name + ` --bpaf-complete-rev=` + rev + ` $@args );
      use str;
-     for line $lines {{
+     for line $lines ` + "{{" + `
          var @arg = (str:split \"\\t\" $line)
-         try {{
+         try ` + "{{" + `
              edit:complex-candidate $arg[0] &display=( printf \"%-19s %s\" $arg[0] $arg[1] )
          }} catch {{
              edit:complex-candidate $line

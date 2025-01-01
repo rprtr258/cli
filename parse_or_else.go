@@ -57,7 +57,7 @@ func this_or_that_picks_first(
 	// otherwise pick based on the left most or successful one
 	e1, a_ok := err_a.Unpack()
 	e2, b_ok := err_b.Unpack()
-	type resT fun.Pair[bool, Option[uint]]
+	type resT fun.Pair[bool, Option[int]]
 	var (
 		res    resT
 		resErr Error
@@ -65,7 +65,7 @@ func this_or_that_picks_first(
 	switch {
 	case !a_ok && !b_ok:
 		if args.len() == args_a.len() && args_a.len() == args_b.len() {
-			res = resT{true, Invalid[uint]()}
+			res = resT{true, Invalid[int]()}
 		} else {
 			a, b := args_a.pick_winner(*args_b)
 			res = resT{a, b}
@@ -74,7 +74,7 @@ func this_or_that_picks_first(
 		resErr = combine_with(e1, e2)
 	// otherwise either a or b are success, true means a is success
 	default:
-		res = resT{!a_ok, Invalid[uint]()}
+		res = resT{!a_ok, Invalid[int]()}
 	}
 
 	{

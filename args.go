@@ -6,6 +6,8 @@ import (
 	"os"
 	"path/filepath"
 	"unicode/utf8"
+
+	"github.com/rprtr258/fun"
 )
 
 // All currently present command line parameters with some extra metainfo
@@ -306,17 +308,14 @@ LOOP:
 		}
 	}
 
-	path := []string{}
-	if name, ok := args.name.Unpack(); ok {
-		path = append(path, name)
-	}
+	name, ok := args.name.Unpack()
 
 	comp, ok := comp_scanner.done()
 	return State{
 		items,
 		item_state,
 		Invalid[int](),
-		path,
+		fun.IF(ok, []string{name}, []string{}),
 		Option[Complete]{comp, ok},
 		Range{0, len(items)},
 	}, err
@@ -347,15 +346,14 @@ func (self *State) remove(index int) {
 	}
 }
 
-func (self State) pick_winner(other State) (bool, Option[uint]) {
-	for ix := 0; ix < len(self.item_state); ix++ {
-		me := self.item_state[ix]
-		other := other.item_state[ix]
+func (self State) pick_winner(other State) (bool, Option[int]) {
+	for i, me := range self.item_state {
+		other := other.item_state[i]
 		if me.parsed() != other.parsed() {
-			return me.parsed(), Valid(uint(ix))
+			return me.parsed(), Valid(i)
 		}
 	}
-	return true, Invalid[uint]()
+	return true, Invalid[int]()
 }
 
 // find first saved conflict
