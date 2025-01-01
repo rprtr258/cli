@@ -165,13 +165,10 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	// process should work like this:
 	// - inner parser is evaluated, it returns Error
 	// - if error is finalized (ParseFailure) - it is simply propagated outwards,
-	//   otherwise we are making a few attempts at improving it after dealing with
-	//   autocomplete/help
+	//   otherwise we are making a few attempts at improving it after dealing with autocomplete/help
 	// - generate autocomplete, if enabled
 	// - produce --help, --version
-	// - Try to improve error message and finalize it otherwise
-	//
-	// outer parser gets value in ParseFailure format
+	// - try to improve error message and finalize it otherwise
 
 	if self.info.help_if_no_args && args.len() == 0 {
 		buffer := render_help(
@@ -179,7 +176,6 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 			self.info,
 			self.inner.meta,
 			self.info.meta(),
-			true,
 		)
 		return *new(T), ParseFailureStdout{buffer, false}
 	}
@@ -217,7 +213,6 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 			self.info,
 			self.inner.meta,
 			self.info.meta(),
-			true,
 		)
 	} else {
 		tmp := Doc{}

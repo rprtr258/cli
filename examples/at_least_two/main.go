@@ -1,7 +1,7 @@
 // How to require presence of at least N values,
 //
 // This program accepts "-f -f -f" or "-fffff" but not "-f"
-package main
+package at_least_two
 
 import (
 	"fmt"

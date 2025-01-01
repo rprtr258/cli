@@ -514,7 +514,6 @@ func render_help(
 	info Info,
 	parser_meta Meta,
 	help_meta Meta,
-	include_env bool,
 ) Doc {
 	positional_invariant_check(parser_meta, false)
 	buf := Doc{}
@@ -548,7 +547,7 @@ func render_help(
 	items.append_meta(parser_meta)
 	items.append_meta(help_meta)
 
-	buf.write_help_item_groups(items, include_env)
+	buf.write_help_item_groups(items, true)
 
 	if footer, ok := info.footer.Unpack(); ok {
 		buf.token(TokenBlockStart(BlockBlock))
