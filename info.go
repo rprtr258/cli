@@ -562,8 +562,6 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 // For derive macro you can specify `FallbackToUsage` in top level annotations
 // for fun.Options and for individual commands if fallback to useage is the desired behavior:
 //
-// ```ignore
-//
 //	enum Commands {
 //	    #[bpaf(command, FallbackToUsage)]
 //	    Action {
@@ -571,23 +569,16 @@ func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
 //	    }
 //	}
 //
-// ```
-//
 // # Or
 //
-// ```ignore
-//
-// #[bpaf(options, FallbackToUsage)]
-//
-//	struct fun.Options {
+//	#[bpaf(options, FallbackToUsage)]
+//	struct options {
 //	    ...
 //	}
 //
-//	fn main() {
-//	    fun.Options := fun.Options().run(); // falls back to usage
+//	func main() {
+//	    options := options().run(); // falls back to usage
 //	}
-//
-// ```
 func (self *OptionParser[T]) FallbackToUsage() *OptionParser[T] {
 	self.info.help_if_no_args = true
 	return self
