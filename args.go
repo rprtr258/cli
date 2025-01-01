@@ -187,8 +187,8 @@ func (self State) present(ix int) (bool, bool) {
 	return inBounds && !self.item_state[ix].parsed(), inBounds
 }
 
-func (self State) depth() uint {
-	return uint(len(self.path))
+func (self State) depth() int {
+	return len(self.path)
 }
 
 func (self State) check_no_pos_ahead() bool {

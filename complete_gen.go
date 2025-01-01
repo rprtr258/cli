@@ -10,7 +10,7 @@ import (
 )
 
 type CompExtra struct {
-	depth uint           // Used by complete_gen to separate commands from each other
+	depth int            // Used by complete_gen to separate commands from each other
 	group Option[string] // Render this fun.Option in a group along with all other items with the same name
 	help  Option[string] // help message attached to a completion item
 }
@@ -306,7 +306,7 @@ func (self *State) push_with_group(group Option[string], comps *[]Comp) {
 	}
 }
 
-func (self *Complete) push_shell(op ShellComp, is_argument bool, depth uint) {
+func (self *Complete) push_shell(op ShellComp, is_argument bool, depth int) {
 	self.comps = append(self.comps, CompShell(
 		CompExtra{
 			depth: depth,
@@ -322,7 +322,7 @@ func (self *Complete) push_value(
 	body string,
 	help Option[string],
 	group Option[string],
-	depth uint,
+	depth int,
 	is_argument bool,
 ) {
 	self.comps = append(self.comps, CompValue(
@@ -349,8 +349,8 @@ func (self *Complete) swap_comps(other *[]Comp) {
 }
 
 // to avoid leaking items with higher depth into items with lower depth
-func (self Comp) depth() uint {
-	var res uint
+func (self Comp) depth() int {
+	var res int
 	self(
 		func(extra CompExtra, _ ShortLong) { res = extra.depth },
 		func(extra CompExtra, _ ShortLong, _ string) { res = extra.depth },
@@ -608,7 +608,7 @@ func (self Complete) complete(
 	is_named bool,
 	prefix Prefix,
 ) ([]ShowComp, []ShellComp) {
-	max_depth := uint(0)
+	max_depth := 0
 	for _, c := range self.comps {
 		max_depth = max(max_depth, c.depth())
 	}
