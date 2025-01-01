@@ -366,14 +366,6 @@ func unwrap_stdout(self ParseFailure) string {
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-// Returns the exit code for the failure
-func exit_code(self ParseFailure) int {
-	if _, ok := self.(ParseFailureStderr); ok {
-		return 1
-	}
-	return 0
-}
-
 // Prints a message to `stdout` or `stderr` appropriate to the failure.
 func print_message(self ParseFailure, max_width uint) {
 	color := Colordefault

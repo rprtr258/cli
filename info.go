@@ -2,6 +2,8 @@ package cli
 
 import (
 	"os"
+
+	"github.com/rprtr258/fun"
 )
 
 // Information about the parser
@@ -63,7 +65,7 @@ type OptionParser[T any] struct {
 // # Usage
 //
 //	// Parses number of repetitions of `-v` on a command line
-//	func verbosity() Parser[uint] {
+//	func verbosity() Parser[int] {
 //	    parser := short('v')
 //	        .req_flag(struct{}{})
 //	        .many()
@@ -75,13 +77,15 @@ type OptionParser[T any] struct {
 //	}
 //
 //	func main() {
-//	    var verbosity uint = verbosity().Run()
+//	    var verbosity int = verbosity().Run()
 //	}
 func (self OptionParser[T]) Run(args []string) T {
 	t, err := self.run_inner(current_args(args...))
 	if err != nil {
 		print_message(err, self.info.max_width)
-		os.Exit(exit_code(err)) // TODO: remove
+		_, ok := err.(ParseFailureStderr)
+		exitCode := fun.IF(ok, 1, 0)
+		os.Exit(exitCode) // TODO: remove
 	}
 	return t
 }
