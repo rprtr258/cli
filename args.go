@@ -117,10 +117,6 @@ var ItemStateParsed = ItemState{kind: ItemStateKindParsed}
 func (self ItemState) parsed() bool {
 	return self.kind == ItemStateKindParsed
 }
-func (self ItemState) present() bool {
-	return self.kind != ItemStateKindParsed
-}
-
 func disambiguate_short(
 	os string,
 	short string,
@@ -214,7 +210,7 @@ func (self State) present(ix int) (bool, bool) {
 	if ix >= len(self.item_state) {
 		return false, false
 	}
-	return self.item_state[ix].present(), true
+	return self.item_state[ix].unparsed(), true
 }
 
 func (self State) depth() uint {
@@ -334,7 +330,7 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 			if !args.scope.contains(cur) || cur >= len(args.item_state) {
 				return 0, Arg{}, false
 			}
-			if args.item_state[cur].present() {
+			if args.item_state[cur].unparsed() {
 				a, b := cur, args.items[cur]
 				cur++
 				return a, b, true
@@ -345,7 +341,7 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 }
 
 func (self *State) remove(index int) {
-	if self.scope.contains(index) && self.item_state[index].present() {
+	if self.scope.contains(index) && self.item_state[index].unparsed() {
 		self.current = Valid(index)
 		self.item_state[index] = ItemStateParsed
 	}
@@ -383,7 +379,7 @@ func (self *State) save_conflicts(loser State, win int) {
 	for i := 0; i < len(self.item_state); i++ {
 		winner := self.item_state[i]
 		loser := loser.item_state[i]
-		if winner.present() && loser.parsed() {
+		if winner.unparsed() && loser.parsed() {
 			self.item_state[i] = ItemStateConflict(win)
 		}
 	}
@@ -392,7 +388,7 @@ func (self *State) save_conflicts(loser State, win int) {
 func (self State) len() int {
 	res := 0
 	for _, v := range self.item_state {
-		if v.present() {
+		if v.unparsed() {
 			res++
 		}
 	}
@@ -401,7 +397,7 @@ func (self State) len() int {
 
 // Get an argument from a scope that was not consumed yet
 func (self State) get(ix int) (Arg, bool) {
-	if self.scope.contains(ix) && self.item_state[ix].present() {
+	if self.scope.contains(ix) && self.item_state[ix].unparsed() {
 		return self.items[ix], true
 	} else {
 		return Arg{}, false
@@ -409,8 +405,6 @@ func (self State) get(ix int) (Arg, bool) {
 }
 
 // Check if parser performs autocompletion
-//
-// used by construct macro
 func (self State) is_comp() bool {
 	return self.comp.Valid
 }
@@ -429,7 +423,7 @@ func (self State) adjacent_scope(original State) (Range, bool) {
 		// once there's a misswitch we have the scope we are looking for:
 		// all the adjacent items consumed in this. It doesn't make sense to remove it if
 		// it matches the original scope though...
-		if this.present() && orig.present() {
+		if this.unparsed() && orig.unparsed() {
 			proposed_scope := Range{start, offset}
 			if self.scope == proposed_scope {
 				return Range{}, false
@@ -445,7 +439,7 @@ func (self State) adjacent_scope(original State) (Range, bool) {
 func (self State) adjacently_available_from(start int) Range {
 	span_size := 0
 	for _, v := range self.item_state[start:] {
-		if v.present() {
+		if v.unparsed() {
 			span_size++
 		}
 	}
