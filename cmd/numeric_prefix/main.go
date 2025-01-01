@@ -39,5 +39,5 @@ var options = func() cli.Parser[Options] {
 }()
 
 func main() {
-	fmt.Println(options.Run())
+	fmt.Println(options.ToOptions().Run())
 }

@@ -17,6 +17,6 @@ func main() {
 	}).Parser().
 		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).Parser(), false)
 
-	r := parser.Parser().Run()
+	r := parser.Parser().ToOptions().Run()
 	fmt.Println(r)
 }

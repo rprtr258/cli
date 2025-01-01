@@ -23,6 +23,6 @@ var compression cli.Parser[uint] = cli.
 	Parser()
 
 func main() {
-	opts := compression.Run()
+	opts := compression.ToOptions().Run()
 	fmt.Println(opts)
 }

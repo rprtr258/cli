@@ -32,7 +32,7 @@ func main() {
 	cmd := cli.Optional(cli.Literal("cmd"), false).Parser().Hide()
 	combined_parser := cli.Map(cli.Pair(cmd, parser).Parser(), func(x fun.Pair[cli.Option[struct{}], Opts]) Opts { return x.V })
 
-	opts := combined_parser.Run()
+	opts := combined_parser.ToOptions().Run()
 
 	fmt.Println(opts)
 }

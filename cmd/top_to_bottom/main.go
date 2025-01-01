@@ -84,6 +84,6 @@ func main() {
 		files_to_process,
 		func(debug bool, verbose uint, speed float64, output PathBuf, nb_cars uint32, files_to_process []PathBuf) Out {
 			return Out{debug, verbose, speed, output, nb_cars, files_to_process}
-		})).Run()
+		})).ToOptions().Run()
 	fmt.Println(opt)
 }

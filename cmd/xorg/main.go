@@ -62,5 +62,5 @@ var options cli.Parser[Options] = cli.Map4(
 )
 
 func main() {
-	fmt.Println(options.Run())
+	fmt.Println(options.ToOptions().Run())
 }

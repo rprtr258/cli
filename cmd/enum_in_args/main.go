@@ -34,7 +34,7 @@ func main() {
 		Short('b').
 		Help("choose between foo, bar or foobar"), "CMD", parseBaz).
 		Parser().
-		Run()
+		ToOptions().Run()
 
 	fmt.Println(opt)
 }

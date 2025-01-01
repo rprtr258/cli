@@ -95,5 +95,5 @@ var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 }()
 
 func main() {
-	fmt.Println(opts.Run())
+	fmt.Println(opts.ToOptions().Run())
 }

@@ -48,7 +48,7 @@ func main() {
 		Fallback(DEFAULT_CONFIG.field2).
 		Parser()
 
-	opts := cli.Map(cli.Pair(field1, field2).Parser(), func(x fun.Pair[uint32, uint64]) Config { return Config{x.K, x.V} }).Run()
+	opts := cli.Map(cli.Pair(field1, field2).Parser(), func(x fun.Pair[uint32, uint64]) Config { return Config{x.K, x.V} }).ToOptions().Run()
 
 	// At this point if you get opts - it should be taken from one of
 	// - the command line argument

@@ -424,19 +424,6 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 	}
 }
 
-// Finalize and run the parser
-//
-// Generally, you'd want to use [Parserto_options] to finalize the parser and [OptionParserrun],
-// but this also works for simple cases:
-//
-//	func main() {
-//	    name := Short('n').Long("name").Argument[tring]("USER").run();
-//	    // do things with name
-//	}
-func (self Parser[T]) Run() T {
-	return self.ToOptions().Run()
-}
-
 // Strip a command name if present at the front when used as a `cargo` command
 //
 // When implementing a cargo subcommand parser needs to be able to skip the first argument which
