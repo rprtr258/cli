@@ -495,9 +495,9 @@ func (self *OptionParser[T]) Usage(usage Doc) *OptionParser[T] {
 // but since it gives you an object of [`OptionParser[T]`](OptionParser)
 // type you can alter it using Combinatoric API:
 func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
-	buf := Doc{}
-	buf.write_meta(self.inner.meta, true)
-	self.info.usage = Valid(f(buf))
+	doc := Doc{}
+	doc.write_meta(self.inner.meta, true)
+	self.info.usage = Valid(f(doc))
 	return self
 }
 

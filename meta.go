@@ -267,10 +267,10 @@ func positional_invariant_check(self Meta, verbose bool) {
 			GO(meta.m, is_pos, v)
 		}
 	}
-	is_pos := false
 	if verbose {
 		fmt.Printf("Checking\n%#v\n", self)
 	}
+	is_pos := false
 	GO(self, &is_pos, verbose)
 }
 
