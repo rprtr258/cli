@@ -630,7 +630,7 @@ pub trait Parser<T> {
             catch: false,
         }
     }
-    // }}}
+
 
     // {{{ collect
     /// Transform parser into a collection parser
@@ -658,7 +658,7 @@ pub trait Parser<T> {
             ctx: PhantomData,
         }
     }
-    // }}}
+
 
     // {{{ some
     /// Consume one or more items from a command line and collect them into a [Vec]
@@ -691,7 +691,7 @@ pub trait Parser<T> {
             catch: false,
         }
     }
-    // }}}
+
 
     // {{{ optional
     /// Turn a required argument into an optional one
@@ -718,7 +718,7 @@ pub trait Parser<T> {
             catch: false,
         }
     }
-    // }}}
+
 
     #[must_use]
     /// Count how many times the inner parser succeeds, and return that number.
@@ -789,7 +789,7 @@ pub trait Parser<T> {
             err: PhantomData,
         }
     }
-    // }}}
+
 
     // {{{ map
     /// Apply a pure transformation to a contained value
@@ -814,7 +814,7 @@ pub trait Parser<T> {
             res: PhantomData,
         }
     }
-    // }}}
+
 
     // {{{ guard
     /// Validate or fail with a message
@@ -839,7 +839,7 @@ pub trait Parser<T> {
             message,
         }
     }
-    // }}}
+
 
     // combine
     // {{{ fallback
@@ -866,7 +866,7 @@ pub trait Parser<T> {
             value_str: String::new(),
         }
     }
-    // }}}
+
 
     // {{{ fallback_with
     /// Use value produced by this function as default if the value isn't present
@@ -895,7 +895,7 @@ pub trait Parser<T> {
             err: PhantomData,
         }
     }
-    // }}}
+
 
     // {{{ or_else
     /// If first parser fails - try the second one
@@ -984,7 +984,7 @@ pub trait Parser<T> {
             that: Box::new(alt),
         }
     }
-    // }}}
+
 
     // misc
     // {{{ hide
@@ -1001,7 +1001,7 @@ pub trait Parser<T> {
     {
         ParseHide { inner: self }
     }
-    // }}}
+
 
     /// Ignore this parser when generating a usage line
     ///
@@ -1036,7 +1036,6 @@ pub trait Parser<T> {
         }
     }
 
-    // {{{ group_help
     /// Attach a help message to a complex parser
     ///
     /// `bpaf` inserts the group help message before the block with all the fields
@@ -1052,7 +1051,7 @@ pub trait Parser<T> {
             message: message.into(),
         }
     }
-    // }}}
+
 
     /// Make a help message for a complex parser from its [MetaInfo]
     ///
@@ -1065,7 +1064,6 @@ pub trait Parser<T> {
         ParseWithGroupHelp { inner: self, f }
     }
 
-    // {{{ comp
     /// Dynamic shell completion
     ///
     /// Allows to generate autocompletion information for the shell. Completer places generated input
@@ -1106,9 +1104,8 @@ pub trait Parser<T> {
             group: None,
         }
     }
-    // }}}
 
-    // {{{
+
     /// Static shell completion
     ///
     /// Allows to ask existing shell completion to provide some information such as a file or
@@ -1158,10 +1155,9 @@ pub trait Parser<T> {
     {
         crate::complete_shell::ParseCompShell { inner: self, op }
     }
-    // }}}
+
 
     // consume
-    // {{{ to_options
     /// Transform `Parser` into [OptionParser] to get ready to [run](OptionParser::run) it
     ///
     ///
@@ -1187,7 +1183,7 @@ pub trait Parser<T> {
             inner: Box::new(self),
         }
     }
-    // }}}
+
 
     /// Finalize and run the parser
     ///

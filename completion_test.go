@@ -79,7 +79,7 @@ func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 
 func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	arg := Argument[uint](Short('b').Help("Option b"), "HELLO", parseUint).Parser()
+	arg := Argument(Short('b').Help("Option b"), "HELLO", parseUint).Parser()
 	pos := Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
 
 	_, err := Choice(arg, pos).
@@ -1046,7 +1046,7 @@ func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
 func TestAmbiguity_no_resolve(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a0 := Short('a').Switch().Parser().Count().Parser()
-	a1 := Argument[int](Short('a'), "AAAAAA", parseInt)
+	a1 := Argument(Short('a'), "AAAAAA", parseInt)
 	parser := Choice(a0, a1).Parser().ToOptions()
 
 	_, err := parser.run_inner(newArgs("-aaa").set_comp(0))

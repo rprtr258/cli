@@ -68,7 +68,6 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 	return res, nil
 }
 
-// {{{ comp
 // Dynamic shell completion
 //
 // Allows to generate autocompletion information for the shell. Completer places generated input

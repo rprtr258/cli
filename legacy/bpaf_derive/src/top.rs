@@ -22,7 +22,6 @@ use crate::{
 #[derive(Debug)]
 /// Top level container
 pub(crate) struct Top {
-    // {{{
     /// Name of a parsed or produced type, possibly with generics
     ty: Ident,
 
@@ -320,13 +319,11 @@ impl ToTokens for Top {
     }
 }
 
-// }}}
 
 /// Describes the actual fields,
 /// can be either a single branch for struct or multiple enum variants
 #[derive(Debug, Clone)]
 pub(crate) enum Body {
-    // {{{
     Single(Branch),
     Alternatives(Ident, Vec<EnumBranch>),
 }
@@ -431,14 +428,12 @@ impl ToTokens for Body {
     }
 }
 
-// }}}
 
 /// Generating code for enum branch needs enum name which is not available from
 /// parsing at that moment so operations are performed in two steps:
 /// 1. parse ParsedEnumBranch
 /// 2. resolve it into EnumBranch (or skip if skip is present)
 pub(crate) struct ParsedEnumBranch {
-    // {{{
     branch: Branch,
     attrs: Vec<Attribute>,
 }
@@ -532,11 +527,9 @@ impl Parse for ParsedEnumBranch {
     }
 }
 
-// }}}
 
 #[derive(Debug, Clone)]
 pub(crate) struct EnumBranch {
-    // {{{
     branch: Branch,
     attrs: Vec<EAttr>,
 }
@@ -548,11 +541,9 @@ impl ToTokens for EnumBranch {
     }
 }
 
-// }}}
 
 #[derive(Debug, Clone)]
 pub struct Branch {
-    // {{{
     pub(crate) enum_name: Option<EnumPrefix>,
     pub(crate) ident: Ident,
     pub(crate) fields: FieldSet,
@@ -675,11 +666,9 @@ impl ToTokens for Branch {
         to_tokens(tokens);
     }
 }
-// }}}
 
 #[derive(Debug, Clone)]
 pub(crate) enum FieldSet {
-    // {{{
     Named(Punctuated<StructField, token::Comma>),
     Unnamed(Punctuated<StructField, token::Comma>),
     Unit(Ident, Vec<StrictName>, Option<Help>),
