@@ -412,7 +412,7 @@ func (self ShowComp) to_string() string {
 
 func (self Arg) and_os_string() Option[string] {
 	switch self.value.(type) {
-	case argShort:
+	case shortFlag:
 		if self.str != "" {
 			return Valid(self.str)
 		}
@@ -493,13 +493,13 @@ func (self State) check_complete() (string, bool) {
 
 	is_named := false
 	switch cur.value.(type) {
-	case argShort, argLong:
+	case shortFlag, argLong:
 		is_named = true
 	}
 
 	prefix := PrefixNA
 	switch x := preceeding.value.(type) {
-	case argShort:
+	case shortFlag:
 		if x.is_adj {
 			prefix = PrefixShort(x.c)
 		}

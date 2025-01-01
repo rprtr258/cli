@@ -48,7 +48,7 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 	for ix, x := range push2(args.items_iter()) {
 		var next bool
 		switch x := x.value.(type) {
-		case argShort:
+		case shortFlag:
 			next = x.is_adj
 		case argLong:
 			next = x.is_adj

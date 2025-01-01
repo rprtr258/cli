@@ -2,17 +2,20 @@ package cli
 
 import "fmt"
 
-type arg interface{ isArg() }
+type arg interface {
+	isArg()
+	clone() arg
+}
 
-// short flag: `-f`
-//
-// bool indicates if following item is also part of this Short
-type argShort struct {
-	c      byte
+// shortFlag `-f`
+type shortFlag struct {
+	c byte
+	// if following item is also part of this Short
 	is_adj bool
 }
 
-func (argShort) isArg() {}
+func (shortFlag) isArg()          {}
+func (self shortFlag) clone() arg { return self }
 
 // long flag: `--flag`
 // bool tells if it looks like --key=val or not
@@ -21,12 +24,14 @@ type argLong struct {
 	is_adj bool
 }
 
-func (argLong) isArg() {}
+func (argLong) isArg()          {}
+func (self argLong) clone() arg { return self }
 
 // "val" part of --key=val -k=val -kval
 type argArgWord struct{}
 
-func (argArgWord) isArg() {}
+func (argArgWord) isArg()          {}
+func (self argArgWord) clone() arg { return self }
 
 // separate word that can be command, positional or a separate argument to a flag
 //
@@ -35,20 +40,29 @@ func (argArgWord) isArg() {}
 // `hello`
 type argWord struct{}
 
-func (argWord) isArg() {}
+func (argWord) isArg()          {}
+func (self argWord) clone() arg { return self }
 
 // separate word that goes after `--`, strictly positional
 //
 // Can start with `-` or `--`, doesn't have to be valid utf8
 type argPosWord struct{}
 
-func (argPosWord) isArg() {}
+func (argPosWord) isArg()          {}
+func (self argPosWord) clone() arg { return self }
 
 // Preprocessed command line argument
 // [string] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
 	str   string
 	value arg
+}
+
+func (self Arg) clone() Arg {
+	return Arg{
+		self.str,
+		self.value.clone(),
+	}
 }
 
 func ArgWord(str string) Arg {
@@ -64,7 +78,7 @@ func ArgPosWord(str string) Arg {
 }
 
 func ArgShort(str string, c byte, b bool) Arg {
-	return Arg{str: str, value: argShort{c, b}}
+	return Arg{str: str, value: shortFlag{c, b}}
 }
 
 func ArgLong(str string, s string, b bool) Arg {
@@ -72,7 +86,7 @@ func ArgLong(str string, s string, b bool) Arg {
 }
 
 func (self Arg) IsShort() bool {
-	_, ok := self.value.(argShort)
+	_, ok := self.value.(shortFlag)
 	return ok
 }
 
@@ -87,7 +101,7 @@ func (self Arg) IsPosWord() bool {
 }
 
 func (self Arg) match_short(val byte) bool {
-	sh, ok := self.value.(argShort)
+	sh, ok := self.value.(shortFlag)
 	return ok && sh.c == val
 }
 
@@ -98,7 +112,7 @@ func (self Arg) match_long(val string) bool {
 
 func (self Arg) String() string {
 	switch x := self.value.(type) {
-	case argShort:
+	case shortFlag:
 		return fmt.Sprintf("Short(%s, %c, %v)", self.str, x.c, x.is_adj)
 	case argLong:
 		return fmt.Sprintf("Long(%s, %s, %v)", self.str, x.s, x.is_adj)
@@ -130,7 +144,7 @@ func (self Arg) String() string {
 // 3. when reaching ambi
 func (self Arg) GoString() string {
 	switch x := self.value.(type) {
-	case argShort:
+	case shortFlag:
 		return fmt.Sprintf("-%c", x.c)
 	case argLong:
 		return fmt.Sprintf("--%s", x.s)

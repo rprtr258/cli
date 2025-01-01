@@ -430,7 +430,7 @@ func only_once(args State, cur int) (int, bool) {
 		okk    bool
 	)
 	switch x := v.value.(type) {
-	case argShort:
+	case shortFlag:
 		offset, okk = position(iter, func(a Arg) bool { return a.match_short(x.c) })
 	case argLong:
 		offset, okk = position(iter, func(a Arg) bool { return a.match_long(x.s) })
@@ -621,7 +621,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 					ty = "flag"
 				} else {
 					switch args.items[ix].value.(type) {
-					case argShort:
+					case shortFlag:
 						ty = "flag"
 					case argLong:
 						ty = "flag"

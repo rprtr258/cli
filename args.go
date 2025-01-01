@@ -201,7 +201,7 @@ type State struct {
 
 func (self State) clone() State {
 	s := self
-	s.items = append([]Arg(nil), self.items...) // TODO: clone arg
+	s.items = fun.Map[Arg]((Arg).clone, self.items...)
 	s.item_state = append([]ItemState(nil), self.item_state...)
 	s.comp.Value.comps = append([]Comp(nil), self.comp.Value.comps...)
 	return s
@@ -626,7 +626,7 @@ func (self *State) take_cmd(w string) bool {
 
 	if func() bool {
 		switch x := a.value.(type) {
-		case argShort, argWord:
+		case shortFlag, argWord:
 			return true
 		case argLong:
 			return !x.is_adj

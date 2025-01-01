@@ -128,7 +128,7 @@ func (self NamedArg) Switch() ParseFlag[bool] {
 func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 	res := false
 	switch x := arg.value.(type) {
-	case argShort:
+	case shortFlag:
 		res = fun.Contains(x.c, self.short...) && (!adjacent || x.is_adj)
 	case argLong:
 		res = fun.Contains(x.s, self.long...) && (!adjacent || x.is_adj)
