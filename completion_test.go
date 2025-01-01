@@ -129,10 +129,10 @@ func TestStatic_complete_test_1(t *testing.T) {
 			run_inner(newArgs("--").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
---avocado\t--avocado\t\tUse avocado
---banana\t--banana\t\tUse banana
---bananananana\t--bananananana\t\tI'm Batman
---calculator\t--calculator=EXPR\t\tcalculator expression\n\n`)
+--avocado	--avocado		Use avocado
+--banana	--banana		Use banana
+--bananananana	--bananananana		I'm Batman
+--calculator	--calculator=EXPR		calculator expression\n\n`)
 	})
 
 	{
@@ -182,8 +182,8 @@ func TestStatic_complete_test_1(t *testing.T) {
 			run_inner(newArgs("--banana").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
---banana\t--banana\t\tUse banana
---bananananana\t--bananananana\t\tI'm Batman\n\n`)
+--banana	--banana		Use banana
+--bananananana	--bananananana		I'm Batman\n\n`)
 	})
 
 	{
@@ -347,9 +347,9 @@ clean  clean 		clean target dir
 			run_inner(newArgs("").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
-check\tcheck\t\tcheck packages
-clean\tclean\t\tclean target dir
-build\tbuild\t\tbuild project\n\n`)
+check	check		check packages
+clean	clean		clean target dir
+build	build		build project\n\n`)
 	})
 
 	{
@@ -374,9 +374,9 @@ func TestStatic_complete_test_3(t *testing.T) {
 		r := unwrap_stdout(err)
 
 		assert.Equal(t, r, `
---potato\t--potato=P\t\tpo
---banana\t--banana=B\t\tba
---durian\t--durian=D\t\t\n\n`)
+--potato	--potato=P		po
+--banana	--banana=B		ba
+--durian	--durian=D		\n\n`)
 	}
 
 	{
@@ -385,9 +385,9 @@ func TestStatic_complete_test_3(t *testing.T) {
 		r := unwrap_stdout(err)
 
 		assert.Equal(t, r, `
---potato\t--potato=P\t\tpo
---banana\t--banana=B\t\tba
---durian\t--durian=D\t\t\n\n`)
+--potato	--potato=P		po
+--banana	--banana=B		ba
+--durian	--durian=D		\n\n`)
 	}
 
 	{
@@ -395,9 +395,9 @@ func TestStatic_complete_test_3(t *testing.T) {
 			run_inner(newArgs("--").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
---potato\t--potato=P\t\tpo
---banana\t--banana=B\t\tba
---durian\t--durian=D\t\t\n\n`)
+--potato	--potato=P		po
+--banana	--banana=B		ba
+--durian	--durian=D		\n\n`)
 	}
 
 	{
@@ -434,8 +434,8 @@ func TestStatic_complete_test_4(t *testing.T) {
 			run_inner(newArgs("").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
--a\t-a=A\t\t
--b\t-b=B\t\t\n\n`)
+-a	-a=A
+-b	-b=B		\n\n`)
 	})
 
 	t.Run("wtf", func(t *testing.T) {
@@ -444,8 +444,8 @@ func TestStatic_complete_test_4(t *testing.T) {
 			run_inner(newArgs("-").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
--a\t-a=A\t\t
--b\t-b=B\t\t\n\n`)
+-a	-a=A
+-b	-b=B		\n\n`)
 	})
 
 	t.Run("wtf", func(t *testing.T) {
@@ -472,9 +472,9 @@ func TestStatic_complete_test_5(t *testing.T) {
 			run_inner(newArgs("-a", "x", "").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, `
--b\t-b=B\t\t
--c\t-c=C\t\t
--d\t-d=D\t\t\n\n`)
+-b	-b=B
+-c	-c=C
+-d	-d=D		\n\n`)
 	})
 
 	{
@@ -496,7 +496,7 @@ func TestStatic_complete_test_5(t *testing.T) {
 		_, err := parser.
 			run_inner(newArgs("").set_comp(0))
 		r := unwrap_stdout(err)
-		assert.Equal(t, r, `-a\t-a=A\t\t
+		assert.Equal(t, r, `-a	-a=A
 -b	-b=B
 -c	-c=C
 -d	-d=D
@@ -1536,7 +1536,6 @@ ctwo\tctwo\t\t\n\n`)
 }
 
 func TestComplete_with_fallback(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := Parse(Argument(Long("name"),
 		"NAME", parseString).
 		Parser().Complete(test_completer_descr).Parser(),
@@ -1550,13 +1549,14 @@ func TestComplete_with_fallback(t *testing.T) {
 	_, err := parser.
 		run_inner(newArgs("--name", "").set_comp(0))
 	r := unwrap_stdout(err)
-	assert.Equal(t, r, `
-\tNAME\t\t
-alpha\talpha\t\talpha
-beta\tbeta\t\tbeta
-banana\tbanana\t\tbanana
-cat\tcat\t\tcat
-durian\tdurian\t\tdurian\n\n`)
+	assert.Equal(t, r, `	NAME`+"\t\t"+`
+alpha	alpha		alpha
+beta	beta		beta
+banana	banana		banana
+cat	cat		cat
+durian	durian		durian
+
+`)
 }
 
 func TestMix_of_options_and_positional_completions(t *testing.T) {
@@ -1576,8 +1576,8 @@ func TestMix_of_options_and_positional_completions(t *testing.T) {
 	r := unwrap_stdout(err)
 
 	assert.Equal(t, r, `
---arg\t--arg=ALPHA\t\tAlhpa argument
-beta\tbeta\t\tbeta description\n\n`)
+--arg	--arg=ALPHA		Alhpa argument
+beta	beta		beta description\n\n`)
 }
 
 func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
@@ -1595,6 +1595,6 @@ func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
 	r := unwrap_stdout(err)
 
 	assert.Equal(t, r, `
---arg\t--arg=ALPHA\t\tAlhpa argument
-\tBETA\t\tBeta argument\n\n`)
+--arg	--arg=ALPHA		Alhpa argument
+	BETA		Beta argument\n\n`)
 }
