@@ -30,20 +30,6 @@ func (self ParseMany[T]) eval(args *State) ([]T, Error) {
 	return res, nil
 }
 
-// Handle parse failures
-//
-// Can be useful to decide to skip parsing of some items on a command line
-// When parser succeeds - `catch` version would return a value as usual
-// if it fails - `catch` would restore all the consumed values and return Invalid().
-//
-// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-// and [ParseSome], behavior should be identical for all of them.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
-func (self *ParseMany[T]) Catch() *ParseMany[T] {
-	self.catch = true
-	return self
-}
-
 // Consume zero or more items from a command line and collect them into a [Vec]
 //
 // `Many` preserves any parsing failures and propagates them outwards, with an extra
@@ -64,9 +50,21 @@ func (self *ParseMany[T]) Catch() *ParseMany[T] {
 // element to succeed, [collect](Parsercollect) collects results into a [FromIterator]
 // structure
 // TODO: compiler ne mogyet v return Parser[[]T] in method
-func Many[T any, P parser[T]](self P) *ParseMany[T] {
+func Many[T any, P parser[T]](
+	self P,
+	// Handle parse failures
+	//
+	// Can be useful to decide to skip parsing of some items on a command line
+	// When parser succeeds - `catch` version would return a value as usual
+	// if it fails - `catch` would restore all the consumed values and return Invalid().
+	//
+	// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
+	// and [ParseSome], behavior should be identical for all of them.
+	// #[cfg_attr(not(doctest), doc = include_str!("docs2/many_catch.md"))]
+	catch bool,
+) *ParseMany[T] {
 	return &ParseMany[T]{
 		inner: self.Parser(),
-		catch: false,
+		catch: catch,
 	}
 }

@@ -281,7 +281,7 @@ func TestMulti_arg_help(t *testing.T) {
 	b := Short('e').Long("extra").Help("extra strange").Switch()
 	c := Positional("NAME", parseString).Help("pos1 help").Parser()
 	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
-	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser()).Parser()
+	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser(), false).Parser()
 	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
 	detailed := Long("detailed").Short('d').Help("detailed").Switch().Parser()
 	parser := Map3(verbose, combo, detailed, func(_ bool, _ Option[fun.Pair[fun.Pair[struct{}, bool], fun.Pair[string, bool]]], _ bool) struct{} {
@@ -422,7 +422,7 @@ func TestEnv_fallback_visible(t *testing.T) {
 	fonts_dir := Optional(Argument(Long("fonts").
 		Env("OIKOS_FONTS").
 		Help("Load fonts from this directory"),
-		"DIR", parseString).Parser())
+		"DIR", parseString).Parser(), false)
 
 	system_fonts := Long("system-fonts").
 		Env("OIKOS_SYSTEM_FONTS").

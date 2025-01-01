@@ -490,8 +490,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 
 func TestStatic_complete_test_6(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	a := Optional(Argument(Short('a'), "A", parseString).Parser())
-	b := Many(Argument(Short('b'), "B", parseString))
+	a := Optional(Argument(Short('a'), "A", parseString).Parser(), false)
+	b := Many(Argument(Short('b'), "B", parseString), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
@@ -811,7 +811,7 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Positional("D", parseString)).Parser().ToOptions()
+	parser := Many(Positional("D", parseString), false).Parser().ToOptions()
 	_, err := parser.run_inner(newArgs("xxx").set_comp(0))
 	r := unwrap_stdout(err)
 	assert.Equal(t, r, "\tD\t\t\n\n")
@@ -828,7 +828,7 @@ func TestSome_does_not_duplicate_metadata(t *testing.T) {
 func TestOnly_positionals_after_positionals(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	d := Many(Positional("D", parseString))
+	d := Many(Positional("D", parseString), false)
 	parser := Pair(a, d).Parser().ToOptions()
 
 	{
@@ -921,7 +921,7 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	}
 	a := Optional(Argument(Long("arg"),
 		"ARG", parseString).
-		Parser().Complete(c_b).Parser())
+		Parser().Complete(c_b).Parser(), false)
 
 	// parser := Pair(a).Parser().ToOptions()
 	parser := a.Parser().ToOptions()
@@ -1057,7 +1057,7 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 
 func TestAmbiguity_to_flags(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Short('a').Switch()).Parser().ToOptions()
+	parser := Many(Short('a').Switch(), false).Parser().ToOptions()
 
 	_, err := parser.run_inner(newArgs("-aaa").set_comp(0))
 	r := unwrap_stdout(err)
@@ -1124,7 +1124,7 @@ func TestZsh_style_completion_visible(t *testing.T) {
 
 func TestZsh_many_positionals(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Many(Positional("POS", parseString)).Parser().ToOptions()
+	parser := Many(Positional("POS", parseString), false).Parser().ToOptions()
 
 	{
 		_, err := parser.run_inner(newArgs("").set_comp(0))

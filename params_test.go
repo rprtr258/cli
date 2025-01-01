@@ -22,7 +22,7 @@ func TestGet_any_simple(t *testing.T) {
 
 func TestGet_any_many(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Any("REST", some).Help("any help"))
+	b := Many(Any("REST", some).Help("any help"), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, []string]
@@ -32,7 +32,7 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	parser := Many(Any("REST", some)).Parser().ToOptions()
+	parser := Many(Any("REST", some), false).Parser().ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
@@ -40,8 +40,8 @@ func TestGet_any_magic(t *testing.T) {
 	parser := Map(Optional(Argument(Short('b'),
 		"anana", parseString).
 		Adjacent().Parser().
-		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser()).
-		Catch().Parser(),
+		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser(), true).
+		Parser(),
 		func(b Option[string]) bool { return b.Valid }).
 		ToOptions()
 

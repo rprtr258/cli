@@ -15,7 +15,7 @@ func main() {
 	parser := cli.Many(cli.Positional("FILE", func(s string) (PathBuf, error) {
 		return PathBuf(s), nil
 	}).Parser().
-		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).Parser())
+		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).Parser(), false)
 
 	r := parser.Parser().Run()
 	fmt.Println(r)

@@ -136,7 +136,7 @@ func TestNot_expected_at_all(t *testing.T) {
 
 func TestCannot_be_used_twice(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Short('b').Switch())
+	b := Many(Short('b').Switch(), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
@@ -219,7 +219,7 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseUint).Parser())
+	a := Optional(Argument(Short('a'), "A", parseUint).Parser(), false)
 	b := Positional("B", parseUint)
 	parser := Pair(a, b).Parser().ToOptions()
 

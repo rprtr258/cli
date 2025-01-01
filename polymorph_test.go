@@ -17,8 +17,8 @@ func poly[T any](name string, parse func(string) (T, error)) Parser[Poly[T]] {
 }
 
 func TestGeneric_argument_field(t *testing.T) {
-	a := Optional(poly("uint", parseUint))
-	b := Optional(poly("uint32", parseUint32))
+	a := Optional(poly("uint", parseUint), false)
+	b := Optional(poly("uint32", parseUint32), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[Option[Poly[uint]], Option[Poly[uint32]]]

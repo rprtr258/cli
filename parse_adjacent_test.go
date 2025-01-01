@@ -35,7 +35,7 @@ func TestAdjacent(t *testing.T) {
 	b := Short('b').Switch()
 	c := Short('c').Switch()
 
-	parser := Many(Map(Pair(a.Parser(), Pair(b, c).Parser()).Adjacent().Parser(), func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} })).Parser().ToOptions()
+	parser := Many(Map(Pair(a.Parser(), Pair(b, c).Parser()).Adjacent().Parser(), func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} }), false).Parser().ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string
@@ -75,7 +75,7 @@ func TestAdjacentPrefix(t *testing.T) {
 		u, err := strconv.ParseUint(s, 10, 32)
 		return uint(u), err
 	})
-	ab := Optional(Pair(a.Parser(), b.Parser()).Adjacent().Parser())
+	ab := Optional(Pair(a.Parser(), b.Parser()).Adjacent().Parser(), false)
 	c := Short('c').Switch()
 	parser := Pair(ab.Parser(), c).Parser().ToOptions()
 

@@ -90,7 +90,7 @@ var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 			address.Parser(),
 		).Adjacent().Parser(), func(x fun.Pair[fun.Pair[fun.Pair[struct{}, string], fun.Pair[string, uint]], uint]) Sensor {
 			return Sensor{x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V}
-		})) // TODO: adjacent must be after Map somehow
+		}), false) // TODO: adjacent must be after Map somehow
 	return cli.Map(sensors.Parser(), func(x []Sensor) Opts { return Opts{x} })
 }()
 

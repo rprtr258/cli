@@ -36,7 +36,7 @@ func main() {
 		"PX", parseUint).Parser()
 
 	rect := cli.Optional(cli.Map(cli.Pair(width, height).Parser(), func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
-		GroupHelp("Rectangle is defined by width and height in meters").Parser()).Parser()
+		GroupHelp("Rectangle is defined by width and height in meters").Parser(), false).Parser()
 
 	verbose := cli.Short('v').
 		Long("verbose").

@@ -29,7 +29,7 @@ func main() {
 	height := cli.Argument(cli.Short('h'), "HEIGHT", parseUint).Parser().Fallback(10)
 	parser := cli.Map(cli.Pair(width.Parser(), height.Parser()).Parser(), func(x fun.Pair[uint, uint]) Opts { return Opts{x.K, x.V} })
 
-	cmd := cli.Optional(cli.Literal("cmd")).Parser().Hide()
+	cmd := cli.Optional(cli.Literal("cmd"), false).Parser().Hide()
 	combined_parser := cli.Map(cli.Pair(cmd, parser).Parser(), func(x fun.Pair[cli.Option[struct{}], Opts]) Opts { return x.V })
 
 	opts := combined_parser.Run()

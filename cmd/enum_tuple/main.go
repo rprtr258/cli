@@ -29,7 +29,7 @@ func main() {
 		Help("some bar command"),
 		"BAR", func(s string) (string, error) {
 			return s, nil
-		}).Parser()).Parser()
+		}).Parser(), false).Parser()
 
 	bar_cmd := cli.Map(bar, func(bar cli.Option[string]) Foo { return Foo{bar} }).
 		ToOptions().

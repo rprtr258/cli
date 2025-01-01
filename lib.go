@@ -460,6 +460,6 @@ func (self Parser[T]) Run() T {
 // 3. And don't show anything to the user in `--help` or completion
 // 4. Parse this word and then everything else as a tuple, return that second item.
 func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
-	skip := Optional(Literal(cmd)).Parser().Hide()
+	skip := Optional(Literal(cmd), false).Parser().Hide()
 	return Map2(skip, parser, func(_ Option[struct{}], x T) T { return x })
 }

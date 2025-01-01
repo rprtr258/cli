@@ -31,7 +31,7 @@ func opts() *cli.OptionParser[Out] {
 	// use `max` inside `map`
 	verbose := cli.Map(cli.Many(cli.ReqFlag(cli.Short('v').
 		Long("verbose").
-		Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).Parser()).Parser(),
+		Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).Parser(), false).Parser(),
 		func(xs []struct{}) uint { return uint(len(xs)) }).
 		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
@@ -77,7 +77,7 @@ func opts() *cli.OptionParser[Out] {
 		Parser().
 		CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
 
-	files_to_process := cli.Many(file_to_proces.Parser())
+	files_to_process := cli.Many(file_to_proces.Parser(), false)
 
 	// packing things in a struct assumes parser for each field is in scope.
 	// TODO: codgen on Out struct

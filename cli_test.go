@@ -626,7 +626,7 @@ func TestGit(t *testing.T) {
 		add := Map3(
 			Short('i').Switch().Parser(),
 			Long("all").Switch().Parser(),
-			Many(Positional("FILE", parseString)).Parser(),
+			Many(Positional("FILE", parseString), false).Parser(),
 			OptAdd)
 		add_inner := add.ToOptions().Descr("add files to the staging area")
 		add_cmd := add_inner.Command("add")
@@ -715,7 +715,7 @@ func TestArg_bench(t *testing.T) {
 	opt_number := Optional(Argument[uint32](Long("opt-number").
 		Help("Sets an optional number"),
 		"opt-number", parseUint32).Parser(),
-	)
+		false)
 
 	width := Argument[uint32](Long("width").
 		Help("Sets width"),
@@ -723,7 +723,7 @@ func TestArg_bench(t *testing.T) {
 		Guard(func(n uint32) bool { return n > 0 }, "Width must be positive").Parser().
 		Fallback(10)
 
-	input := Many(Positional("INPUT", parseString))
+	input := Many(Positional("INPUT", parseString), false)
 
 	parser := Map4(
 		number.Parser(),
@@ -1000,7 +1000,7 @@ Available commands:
 }
 
 func TestManyDoesntPanic(t *testing.T) {
-	parser := Map(Many(Short('a').Switch()).Parser(), func(m []bool) int { return len(m) }).ToOptions()
+	parser := Map(Many(Short('a').Switch(), false).Parser(), func(m []bool) int { return len(m) }).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
@@ -1038,7 +1038,7 @@ func TestCommand_preserves_custom_failure_message(t *testing.T) {
 }
 
 func TestOptional_error_handling(t *testing.T) {
-	p := Optional(Argument(Short('p'), "P", parseUint32).Parser()).Parser().ToOptions()
+	p := Optional(Argument(Short('p'), "P", parseUint32).Parser(), false).Parser().ToOptions()
 
 	assertSuccess(t, Invalid[uint32](), p)
 	assertSuccess(t, Valid[uint32](3), p, "-p", "3")
@@ -1049,7 +1049,7 @@ func TestOptional_error_handling(t *testing.T) {
 }
 
 func TestMany_error_handling(t *testing.T) {
-	p := Many(Argument(Short('p'), "P", parseUint32)).Parser().ToOptions()
+	p := Many(Argument(Short('p'), "P", parseUint32), false).Parser().ToOptions()
 
 	assertSuccess(t, []uint32{}, p)
 	assertSuccess(t, []uint32{3}, p, "-p", "3")
@@ -1335,13 +1335,13 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 func TestCombine_flags_by_order(t *testing.T) {
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('A'), false)
-	parser := Many(Choice(a, b)).Parser().ToOptions()
+	parser := Many(Choice(a, b), false).Parser().ToOptions()
 
 	assertSuccess(t, []bool{true, false, false, false, true}, parser, "-a", "-A", "-A", "-A", "-a")
 }
 
 func TestParse_many_errors_positional(t *testing.T) {
-	p := Many(Positional("N", parseUint32)).Parser().ToOptions()
+	p := Many(Positional("N", parseUint32), false).Parser().ToOptions()
 
 	{
 		_, r := p.run_inner(newArgs("1", "2", "x"))
@@ -1351,7 +1351,7 @@ func TestParse_many_errors_positional(t *testing.T) {
 }
 
 func TestParse_collect_flag(t *testing.T) {
-	p := ParseCollectParser(Argument(Short('p'), "N", parseUint32).Parser().collect()).ToOptions()
+	p := ParseCollectParser(Argument(Short('p'), "N", parseUint32).Parser().collect(false)).ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	{
@@ -1361,7 +1361,7 @@ func TestParse_collect_flag(t *testing.T) {
 }
 
 func TestParse_many_errors_flag(t *testing.T) {
-	p := Many(Argument(Short('p'), "N", parseUint32)).Parser().ToOptions()
+	p := Many(Argument(Short('p'), "N", parseUint32), false).Parser().ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	{
@@ -1401,7 +1401,7 @@ func TestSuggestion_for_equals_1(t *testing.T) {
 }
 
 func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
-	parser := Many(Positional("POS", parseString)).Parser().ToOptions()
+	parser := Many(Positional("POS", parseString), false).Parser().ToOptions()
 
 	assertSuccess(t, []string{}, parser, "--")
 	assertSuccess(t, []string{"--"}, parser, "--", "--")
@@ -1444,12 +1444,11 @@ func TestCatch_works(t *testing.T) {
 	AStr := func(s string) A { return A{false, 0, s} }
 	a_n := Optional(Map(Argument(Short('a'),
 		"A", parseUint).Parser(),
-		ANum)).
-		Catch()
+		ANum), true)
 	a_s := Optional(Map(Argument(Short('a'),
 		"A", parseString).Parser(),
 		AStr).
-		Hide())
+		Hide(), false)
 	parser := Choice(a_n.Parser(), a_s.Parser()).ToOptions()
 
 	assertSuccess(t, Valid(AStr("x1")), parser, "-a", "x1")
@@ -1482,7 +1481,7 @@ func TestSneaky_command(t *testing.T) {
 }
 
 func TestDefault_for_many(t *testing.T) {
-	parser := Map(Many(Positional("ROOTS", parseString)).Parser(),
+	parser := Map(Many(Positional("ROOTS", parseString), false).Parser(),
 		func(items []string) []string {
 			if len(items) == 0 {
 				return []string{"."}
@@ -1502,8 +1501,8 @@ func TestParse_option_catch(t *testing.T) {
 	}
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
-	a1 := Optional(Map(Argument(Short('a'), "N", parseUint32).Parser(), AU32)).Catch()
-	a2 := Optional(Map(Argument(Short('a'), "S", parseString).Parser(), AS)).Catch()
+	a1 := Optional(Map(Argument(Short('a'), "N", parseUint32).Parser(), AU32), true)
+	a2 := Optional(Map(Argument(Short('a'), "S", parseString).Parser(), AS), true)
 	parser := Choice(a1.Parser(), a2.Parser()).ToOptions()
 
 	assertSuccess(t, Valid(AU32(10)), parser, "-a", "10")
@@ -1556,7 +1555,7 @@ func TestStrange_short_option(t *testing.T) {
 }
 
 func TestOptional_bool_states(t *testing.T) {
-	parser := Optional(Short('a').Switch().Parser()).Parser().ToOptions()
+	parser := Optional(Short('a').Switch().Parser(), false).Parser().ToOptions()
 	assertSuccess(t, Valid(true), parser, "-a")
 	assertSuccess(t, Valid(false), parser)
 }
@@ -1591,7 +1590,7 @@ func TestMany_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Many(Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString)).Parser().
+		"USER", parseString), false).Parser().
 		ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
@@ -1627,7 +1626,7 @@ func TestSome_env(t *testing.T) {
 func TestOption_requires_other_option1(t *testing.T) {
 	a := Short('a').Switch()
 	b := Argument(Short('b'), "B", parseString)
-	parser := Optional(Pair(a, b).Parser()).Parser().ToOptions()
+	parser := Optional(Pair(a, b).Parser(), false).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a"))
 	require.Equal(t, unwrap_stderr(r), "expected `-b=B`, pass `--help` for usage information")
@@ -1636,7 +1635,7 @@ func TestOption_requires_other_option1(t *testing.T) {
 func TestOption_requires_other_option2(t *testing.T) {
 	a := Short('a').Switch()
 	b := Argument(Short('b'), "B", parseString)
-	parser := Optional(Pair(b, a).Parser()).Parser().ToOptions()
+	parser := Optional(Pair(b, a).Parser(), false).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a"))
 	require.Equal(t, unwrap_stderr(r), "expected `-b=B`, pass `--help` for usage information")

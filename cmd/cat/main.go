@@ -20,7 +20,7 @@ func run() error {
 		cli.Optional(
 			cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 				Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
-				Parser()).Parser(),
+				Parser(), false).Parser(),
 		func(pathOpt cli.Option[string]) (*os.File, error) {
 			path, ok := pathOpt.Unpack()
 			if !ok {

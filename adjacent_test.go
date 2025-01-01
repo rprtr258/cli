@@ -11,7 +11,7 @@ func TestTest_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Short('b').Switch()
 	var c = Short('c').Switch()
-	var parser = Many(Triple(a.Parser(), b, c).Adjacent()).Parser().ToOptions()
+	var parser = Many(Triple(a.Parser(), b, c).Adjacent(), false).Parser().ToOptions()
 
 	type R = triple[struct{}, bool, bool]
 	{
@@ -43,7 +43,7 @@ func TestTest_adjacent_prefix(t *testing.T) {
 	type R = fun.Pair[Option[P], bool]
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("X", parseUint)
-	var ab = Optional(Pair(a, b).Adjacent().Parser())
+	var ab = Optional(Pair(a, b).Adjacent().Parser(), false)
 	var c = Short('c').Switch()
 	var parser = Pair(ab, c).Parser().ToOptions()
 
@@ -93,7 +93,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	b := Positional("B", parseUint)
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent())
+	adj := Many(Triple(a, b, c).Adjacent(), false)
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a", "10"))
@@ -105,7 +105,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	b := Argument(Short('b'), "B", parseUint)
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent())
+	adj := Many(Triple(a, b, c).Adjacent(), false)
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	t.Skip() // TODO: fix
@@ -117,7 +117,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 func TestAdjacent_is_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("B", parseUint)
-	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V })).Parser().ToOptions()
+	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("-a", "-a", "10", "20"))
 	require.Equal(t, unwrap_stderr(r), "expected `B`, pass `--help` for usage information")
@@ -132,7 +132,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 func TestAdjacent_with_switch(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("B", parseUint)
-	var ab = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }))
+	var ab = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false)
 	var c = Short('c').Switch()
 	var parser = Pair(ab, c).Parser().ToOptions()
 

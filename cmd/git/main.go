@@ -64,7 +64,7 @@ func main() {
 	all2 := cli.Long("all").Switch()
 	files := cli.Many(cli.Positional("FILE", func(s string) (PathBuf, error) {
 		return PathBuf(s), nil
-	}).Parser())
+	}).Parser(), false)
 	add := cli.Map(cli.Pair(cli.Pair(interactive, all2).Parser(), files).Parser(), func(x fun.Pair[fun.Pair[bool, bool], []PathBuf]) Opt { return OptAdd(x.K.K, x.K.V, x.V) }).
 		ToOptions().
 		Descr("add files to the staging area")

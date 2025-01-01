@@ -72,7 +72,7 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := Optional(Pair(a, b).Adjacent().Parser()).Catch()
+	ab := Optional(Pair(a, b).Adjacent().Parser(), true)
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
 
@@ -98,7 +98,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 func TestAnywhere_catch_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := Many(Pair(a, b).Adjacent()).Catch()
+	ab := Many(Pair(a, b).Adjacent(), true)
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
 
@@ -154,7 +154,7 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
-	ab := Optional(Pair(a, b).Adjacent().Parser()).Catch()
+	ab := Optional(Pair(a, b).Adjacent().Parser(), true)
 	c := Short('c').Switch()
 	parser := Pair(ab, c).Parser().ToOptions()
 
@@ -194,7 +194,7 @@ func TestAnywhere_literal(t *testing.T) {
 		func(x string) (struct{}, bool) { return struct{}{}, x == "-mode" },
 	)
 	mode := Positional("value", parseUint)
-	a := Many(Pair(tag, mode).Adjacent()).Catch()
+	a := Many(Pair(tag, mode).Adjacent(), true)
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]P, bool]

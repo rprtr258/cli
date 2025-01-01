@@ -28,7 +28,7 @@ func main() {
 		Parser()
 	files := cli.Many(cli.Positional[PathBuf]("FILE", func(s string) (PathBuf, error) {
 		return PathBuf(s), nil
-	}).Parser())
+	}).Parser(), false)
 	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []PathBuf]) Options { return Options{x.K, x.V} }).Run()
 
 	fmt.Println(opts)

@@ -29,8 +29,7 @@ var options = func() cli.Parser[Options] {
 		u, err := strconv.ParseUint(s, 10, 64)
 		return uint(u), err
 	}).
-		Help("Optional numeric command prefix").Parser()).
-		Catch().
+		Help("Optional numeric command prefix").Parser(), true).
 		Parser()
 	command := cli.Positional("COMMAND", func(s string) (string, error) {
 		return s, nil
