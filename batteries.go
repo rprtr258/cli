@@ -137,10 +137,8 @@ func toggle_flag[T interface{ ~bool }](
 	pa := ReqFlag(a, val_a)
 	pb := ReqFlag(b, val_b)
 	return Map(
-		Many(Pair(pa, pb)).Parser(),
-		func(xs []fun.Pair[T, T]) Option[T] {
-			return OptMap(last(xs), func(p fun.Pair[T, T]) T { return p.V })
-		})
+		Many(Choice(pa, pb)).Parser(),
+		last)
 }
 
 // Get usage for a parser
