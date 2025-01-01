@@ -9,7 +9,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], args ...string) {
+func assertSuccess[T any](
+	t *testing.T,
+	expected T,
+	parser *OptionParser[T],
+	args ...string,
+) {
 	t.Helper()
 
 	actual, err := parser.run_inner(newArgs(args...))
