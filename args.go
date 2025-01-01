@@ -210,7 +210,7 @@ func (self State) present(ix int) (bool, bool) {
 	if ix >= len(self.item_state) {
 		return false, false
 	}
-	return self.item_state[ix].unparsed(), true
+	return !self.item_state[ix].parsed(), true
 }
 
 func (self State) depth() uint {
@@ -330,7 +330,7 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 			if !args.scope.contains(cur) || cur >= len(args.item_state) {
 				return 0, Arg{}, false
 			}
-			if args.item_state[cur].unparsed() {
+			if !args.item_state[cur].parsed() {
 				a, b := cur, args.items[cur]
 				cur++
 				return a, b, true
@@ -341,7 +341,7 @@ func (self *State) items_iter() func() (int, Arg, bool) {
 }
 
 func (self *State) remove(index int) {
-	if self.scope.contains(index) && self.item_state[index].unparsed() {
+	if self.scope.contains(index) && !self.item_state[index].parsed() {
 		self.current = Valid(index)
 		self.item_state[index] = ItemStateParsed
 	}
@@ -379,7 +379,7 @@ func (self *State) save_conflicts(loser State, win int) {
 	for i := 0; i < len(self.item_state); i++ {
 		winner := self.item_state[i]
 		loser := loser.item_state[i]
-		if winner.unparsed() && loser.parsed() {
+		if !winner.parsed() && loser.parsed() {
 			self.item_state[i] = ItemStateConflict(win)
 		}
 	}
@@ -388,7 +388,7 @@ func (self *State) save_conflicts(loser State, win int) {
 func (self State) len() int {
 	res := 0
 	for _, v := range self.item_state {
-		if v.unparsed() {
+		if !v.parsed() {
 			res++
 		}
 	}
@@ -397,7 +397,7 @@ func (self State) len() int {
 
 // Get an argument from a scope that was not consumed yet
 func (self State) get(ix int) (Arg, bool) {
-	if self.scope.contains(ix) && self.item_state[ix].unparsed() {
+	if self.scope.contains(ix) && !self.item_state[ix].parsed() {
 		return self.items[ix], true
 	} else {
 		return Arg{}, false
@@ -423,7 +423,7 @@ func (self State) adjacent_scope(original State) (Range, bool) {
 		// once there's a misswitch we have the scope we are looking for:
 		// all the adjacent items consumed in this. It doesn't make sense to remove it if
 		// it matches the original scope though...
-		if this.unparsed() && orig.unparsed() {
+		if !this.parsed() && !orig.parsed() {
 			proposed_scope := Range{start, offset}
 			if self.scope == proposed_scope {
 				return Range{}, false
@@ -439,7 +439,7 @@ func (self State) adjacent_scope(original State) (Range, bool) {
 func (self State) adjacently_available_from(start int) Range {
 	span_size := 0
 	for _, v := range self.item_state[start:] {
-		if v.unparsed() {
+		if !v.parsed() {
 			span_size++
 		}
 	}
