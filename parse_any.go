@@ -46,16 +46,9 @@ func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 
 func (self ParseAny[T]) eval(args *State) (T, Error) {
 	for ix, x := range push2(args.items_iter()) {
-		var next bool
-		switch x := x.value.(type) {
-		case shortFlag:
-			next = x.is_adj
-		case longFlag:
-			next = x.is_adj
-		}
 		if i, ok := self.check(x.str); ok {
 			args.remove(ix)
-			if next {
+			if x.is_adj {
 				args.remove(ix + 1)
 			}
 

@@ -5,6 +5,8 @@ import (
 	"iter"
 	"slices"
 	"strings"
+
+	"github.com/rprtr258/fun"
 )
 
 type CompExtra struct {
@@ -411,8 +413,8 @@ func (self ShowComp) to_string() string {
 }
 
 func (self Arg) and_os_string() Option[string] {
-	switch self.value.(type) {
-	case shortFlag:
+	switch self.kind {
+	case ArgKindShortFlag:
 		if self.str != "" {
 			return Valid(self.str)
 		}
@@ -491,21 +493,17 @@ func (self State) check_complete() (string, bool) {
 	// default: pos_only,full_lit=false, lit
 	}
 
-	is_named := false
-	switch cur.value.(type) {
-	case shortFlag, longFlag:
-		is_named = true
-	}
+	is_named := fun.Contains(cur.kind, ArgKindShortFlag, ArgKindLongFlag)
 
 	prefix := PrefixNA
-	switch x := preceeding.value.(type) {
-	case shortFlag:
-		if x.is_adj {
-			prefix = PrefixShort(x.c)
+	switch preceeding.kind {
+	case ArgKindShortFlag:
+		if preceeding.is_adj {
+			prefix = PrefixShort(preceeding.c)
 		}
-	case longFlag:
-		if x.is_adj {
-			prefix = PrefixLong(x.s)
+	case ArgKindLongFlag:
+		if preceeding.is_adj {
+			prefix = PrefixLong(preceeding.s)
 		}
 	}
 

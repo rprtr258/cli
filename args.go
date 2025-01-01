@@ -201,7 +201,7 @@ type State struct {
 
 func (self State) clone() State {
 	s := self
-	s.items = fun.Map[Arg]((Arg).clone, self.items...)
+	s.items = append([]Arg(nil), self.items...)
 	s.item_state = append([]ItemState(nil), self.item_state...)
 	s.comp.Value.comps = append([]Comp(nil), self.comp.Value.comps...)
 	return s
@@ -556,14 +556,7 @@ func (self *State) take_arg(
 
 	val_ix := key_ix + 1
 	var val string
-	if ww, ok := self.get(val_ix); ok && func() bool {
-		switch ww.value.(type) {
-		case argArgWord, argWord:
-			return true
-		default:
-			return false
-		}
-	}() {
+	if ww, ok := self.get(val_ix); ok && fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
 		val = ww.str
 	} else {
 		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
@@ -587,12 +580,12 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 	)
 	iter := push2(self.items_iter())
 	for ixix, arg := range iter {
-		switch arg.value.(type) {
-		case argWord:
+		switch arg.kind {
+		case ArgKindWord:
 			ix = ixix
 			strict, ok = false, true
 			w = arg
-		case argPosWord:
+		case ArgKindPosWord:
 			ix = ixix
 			strict, ok = true, true
 			w = arg
@@ -625,11 +618,11 @@ func (self *State) take_cmd(w string) bool {
 	}
 
 	if func() bool {
-		switch x := a.value.(type) {
-		case shortFlag, argWord:
+		switch a.kind {
+		case ArgKindShortFlag, ArgKindWord:
 			return true
-		case longFlag:
-			return !x.is_adj
+		case ArgKindLongFlag:
+			return !a.is_adj
 		default:
 			return false
 		}

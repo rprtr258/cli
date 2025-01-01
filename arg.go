@@ -2,123 +2,93 @@ package cli
 
 import "fmt"
 
-type arg interface {
-	isArg()
-	clone() arg
-}
+type ArgKind uint8
 
-// shortFlag e.g. `-f`
-type shortFlag struct {
-	c byte
-	// if following item is also part of this Short
-	is_adj bool
-}
-
-func (shortFlag) isArg()          {}
-func (self shortFlag) clone() arg { return self }
-
-// longFlag e.g. `--flag`
-type longFlag struct {
-	s string
-	// if it looks like --key=val or not
-	is_adj bool
-}
-
-func (longFlag) isArg()          {}
-func (self longFlag) clone() arg { return self }
-
-// "val" part of --key=val -k=val -kval
-type argArgWord struct{}
-
-func (argArgWord) isArg()          {}
-func (self argArgWord) clone() arg { return self }
-
-// separate word that can be command, positional or a separate argument to a flag
-//
-// Can start with `-` or `--`, doesn't have to be valid utf8
-//
-// e.g. `hello`
-type argWord struct{}
-
-func (argWord) isArg()          {}
-func (self argWord) clone() arg { return self }
-
-// separate word that goes after `--`, strictly positional
-//
-// Can start with `-` or `--`, doesn't have to be valid utf8
-type argPosWord struct{}
-
-func (argPosWord) isArg()          {}
-func (self argPosWord) clone() arg { return self }
+const (
+	// shortFlag e.g. `-f`
+	ArgKindShortFlag ArgKind = iota
+	// longFlag e.g. `--flag`
+	ArgKindLongFlag
+	// "val" part of --key=val -k=val -kval
+	ArgKindArgWord
+	// separate word that can be command, positional or a separate argument to a flag
+	//
+	// Can start with `-` or `--`, doesn't have to be valid utf8
+	//
+	// e.g. `hello`
+	ArgKindWord
+	// separate word that goes after `--`, strictly positional
+	//
+	// Can start with `-` or `--`, doesn't have to be valid utf8
+	ArgKindPosWord
+)
 
 // Preprocessed command line argument
 // [string] in Short/Long correspond to orignal command line item used for errors
 type Arg struct {
-	str   string
-	value arg
-}
-
-func (self Arg) clone() Arg {
-	return Arg{
-		self.str,
-		self.value.clone(),
-	}
+	str  string
+	kind ArgKind
+	// kind is short or long flag
+	// if it looks like --key=val or not
+	// if following item is also part of this Short
+	is_adj bool
+	// kind is short flag
+	c byte
+	// kind is long flag
+	s string
 }
 
 func ArgWord(str string) Arg {
-	return Arg{str: str, value: argWord{}}
+	return Arg{str: str, kind: ArgKindWord}
 }
 
 func ArgArgWord(str string) Arg {
-	return Arg{str: str, value: argArgWord{}}
+	return Arg{str: str, kind: ArgKindArgWord}
 }
 
 func ArgPosWord(str string) Arg {
-	return Arg{str: str, value: argPosWord{}}
+	return Arg{str: str, kind: ArgKindPosWord}
 }
 
 func ArgShort(str string, c byte, b bool) Arg {
-	return Arg{str: str, value: shortFlag{c, b}}
+	return Arg{str: str, kind: ArgKindShortFlag, c: c, is_adj: b}
 }
 
 func ArgLong(str string, s string, b bool) Arg {
-	return Arg{str: str, value: longFlag{s, b}}
+	return Arg{str: str, kind: ArgKindLongFlag, s: s, is_adj: b}
 }
 
 func (self Arg) IsShort() bool {
-	_, ok := self.value.(shortFlag)
-	return ok
+	return self.kind == ArgKindShortFlag
 }
 
 func (self Arg) IsLong() bool {
-	_, ok := self.value.(longFlag)
-	return ok
+	return self.kind == ArgKindLongFlag
 }
 
 func (self Arg) IsPosWord() bool {
-	_, ok := self.value.(argPosWord)
-	return ok
+	return self.kind == ArgKindPosWord
 }
 
 func (self Arg) match_short(val byte) bool {
-	return self.IsShort() && self.value.(shortFlag).c == val
+	return self.IsShort() && self.c == val
 }
 
 func (self Arg) match_long(val string) bool {
-	return self.IsLong() && self.value.(longFlag).s == val
+	return self.IsLong() && self.s == val
 }
 
 func (self Arg) String() string {
-	switch x := self.value.(type) {
-	case shortFlag:
-		return fmt.Sprintf("Short(%s, %c, %v)", self.str, x.c, x.is_adj)
-	case longFlag:
-		return fmt.Sprintf("Long(%s, %s, %v)", self.str, x.s, x.is_adj)
-	case argArgWord:
+	switch self.kind {
+	case ArgKindShortFlag:
+		return fmt.Sprintf("Short(%s, %c, %v)", self.str, self.c, self.is_adj)
+	case ArgKindLongFlag:
+		return fmt.Sprintf("Long(%s, %s, %v)", self.str, self.s, self.is_adj)
+	case ArgKindArgWord:
 		return fmt.Sprintf("ArgWord(%s)", self.str)
-	case argWord:
+	case ArgKindWord:
 		return fmt.Sprintf("Word(%s)", self.str)
-	case argPosWord:
+	case ArgKindPosWord:
 		return fmt.Sprintf("PosWord(%s)", self.str)
 	}
 	panic("unreachable")
@@ -141,11 +111,11 @@ func (self Arg) String() string {
 // 2. collect short flag/arg when entering the subparsre
 // 3. when reaching ambi
 func (self Arg) GoString() string {
-	switch x := self.value.(type) {
-	case shortFlag:
-		return fmt.Sprintf("-%c", x.c)
-	case longFlag:
-		return fmt.Sprintf("--%s", x.s)
+	switch self.kind {
+	case ArgKindShortFlag:
+		return fmt.Sprintf("-%c", self.c)
+	case ArgKindLongFlag:
+		return fmt.Sprintf("--%s", self.s)
 	default:
 		return self.str
 	}

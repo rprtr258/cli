@@ -127,11 +127,11 @@ func (self NamedArg) Switch() ParseFlag[bool] {
 // `-f bar` - no, `-fbar` or `-f=bar` - yes.
 func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
 	res := false
-	switch x := arg.value.(type) {
-	case shortFlag:
-		res = fun.Contains(x.c, self.short...) && (!adjacent || x.is_adj)
-	case longFlag:
-		res = fun.Contains(x.s, self.long...) && (!adjacent || x.is_adj)
+	switch arg.kind {
+	case ArgKindShortFlag:
+		res = fun.Contains(arg.c, self.short...) && (!adjacent || arg.is_adj)
+	case ArgKindLongFlag:
+		res = fun.Contains(arg.s, self.long...) && (!adjacent || arg.is_adj)
 	}
 	return res
 }

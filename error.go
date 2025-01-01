@@ -407,8 +407,8 @@ func textual_part(args State, ixxx Option[int]) (string, bool) {
 		return "", false
 	}
 
-	switch ix.value.(type) {
-	case argArgWord, argWord, argPosWord:
+	switch ix.kind {
+	case ArgKindArgWord, ArgKindWord, ArgKindPosWord:
 		return ix.str, true
 	}
 	return "", false
@@ -429,11 +429,11 @@ func only_once(args State, cur int) (int, bool) {
 		offset int
 		okk    bool
 	)
-	switch x := v.value.(type) {
-	case shortFlag:
-		offset, okk = position(iter, func(a Arg) bool { return a.match_short(x.c) })
-	case longFlag:
-		offset, okk = position(iter, func(a Arg) bool { return a.match_long(x.s) })
+	switch v.kind {
+	case ArgKindShortFlag:
+		offset, okk = position(iter, func(a Arg) bool { return a.match_short(v.c) })
+	case ArgKindLongFlag:
+		offset, okk = position(iter, func(a Arg) bool { return a.match_long(v.s) })
 	}
 	if !okk {
 		return 0, false
@@ -620,16 +620,16 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 				if starts_withb(actual, '-') {
 					ty = "flag"
 				} else {
-					switch args.items[ix].value.(type) {
-					case shortFlag:
+					switch args.items[ix].kind {
+					case ArgKindShortFlag:
 						ty = "flag"
-					case longFlag:
+					case ArgKindLongFlag:
 						ty = "flag"
-					case argArgWord:
+					case ArgKindArgWord:
 						ty = "argument value"
-					case argWord:
+					case ArgKindWord:
 						ty = "command or positional"
-					case argPosWord:
+					case ArgKindPosWord:
 						ty = "command or positional"
 					}
 				}

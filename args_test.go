@@ -184,6 +184,6 @@ func TestAmbiguity_towards_default(t *testing.T) {
 	a := Statefrom([]string{"-abc"})
 	aa, ok := a.peek()
 	require.True(t, ok)
-	_, is_ambig := aa.value.(argWord)
+	is_ambig := aa.kind == ArgKindWord
 	require.True(t, is_ambig)
 }
