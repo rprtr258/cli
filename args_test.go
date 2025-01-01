@@ -29,18 +29,18 @@ func TestLong_arg(t *testing.T) {
 	a := Statefrom([]string{"--speed", "12"})
 	s := unwrapunwrap(a.take_arg(Long("speed"), false, M))
 	require.Equal(t, s, "12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestLong_flag_and_positional(t *testing.T) {
 	a := Statefrom([]string{"--speed", "12"})
 	flag := a.take_flag(Long("speed"))
 	require.True(t, flag)
-	require.NotEqual(t, 0, a.len())
+	require.NotZero(t, a.len())
 	_, _, s, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, s, "12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestMultiple_short_flags(t *testing.T) {
@@ -50,56 +50,56 @@ func TestMultiple_short_flags(t *testing.T) {
 	require.True(t, a.take_flag(Short('v')))
 	require.True(t, a.take_flag(Short('v')))
 	require.True(t, !a.take_flag(Short('v')))
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestLong_arg_with_equality(t *testing.T) {
 	a := Statefrom([]string{"--speed=12"})
 	s := unwrapunwrap(a.take_arg(Long("speed"), false, M))
 	require.Equal(t, s, "12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestLong_arg_with_equality_and_minus(t *testing.T) {
 	a := Statefrom([]string{"--speed=-12"})
 	s := unwrapunwrap(a.take_arg(Long("speed"), true, M))
 	require.Equal(t, s, "-12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestShort_arg_with_equality(t *testing.T) {
 	a := Statefrom([]string{"-s=12"})
 	s := unwrapunwrap(a.take_arg(Short('s'), false, M))
 	require.Equal(t, s, "12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestShort_arg_with_equality_and_minus(t *testing.T) {
 	a := Statefrom([]string{"-s=-12"})
 	s := unwrapunwrap(a.take_arg(Short('s'), false, M))
 	require.Equal(t, s, "-12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestShort_arg_with_equality_and_minus_is_adjacent(t *testing.T) {
 	a := Statefrom([]string{"-s=-12"})
 	s := unwrapunwrap(a.take_arg(Short('s'), true, M))
 	require.Equal(t, s, "-12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestShort_arg_without_equality(t *testing.T) {
 	a := Statefrom([]string{"-s", "12"})
 	s := unwrapunwrap(a.take_arg(Short('s'), false, M))
 	require.Equal(t, s, "12")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestTwo_short_flags(t *testing.T) {
 	a := Statefrom([]string{"-s", "-v"})
 	require.True(t, a.take_flag(Short('s')))
 	require.True(t, a.take_flag(Short('v')))
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestTwo_short_flags2(t *testing.T) {
@@ -108,7 +108,7 @@ func TestTwo_short_flags2(t *testing.T) {
 	require.True(t, !a.take_flag(Short('v')))
 	require.True(t, a.take_flag(Short('s')))
 	require.True(t, !a.take_flag(Short('s')))
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestCommand_with_flags(t *testing.T) {
@@ -116,7 +116,7 @@ func TestCommand_with_flags(t *testing.T) {
 	require.True(t, a.take_cmd("cmd"))
 	s := unwrapunwrap(a.take_arg(Short('s'), false, M))
 	require.Equal(t, s, "v")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestCommand_and_positional(t *testing.T) {
@@ -125,7 +125,7 @@ func TestCommand_and_positional(t *testing.T) {
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "pos")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestPositionals_after_double_dash1(t *testing.T) {
@@ -134,7 +134,7 @@ func TestPositionals_after_double_dash1(t *testing.T) {
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "-x")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestPositionals_after_double_dash2(t *testing.T) {
@@ -143,7 +143,7 @@ func TestPositionals_after_double_dash2(t *testing.T) {
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "-x")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestPositionals_after_double_dash3(t *testing.T) {
@@ -153,7 +153,7 @@ func TestPositionals_after_double_dash3(t *testing.T) {
 	_, _, w, err := a.take_positional_word(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "-x")
-	require.Equal(t, 0, a.len())
+	require.Zero(t, a.len())
 }
 
 func TestAmbiguity_towards_flag(t *testing.T) {
