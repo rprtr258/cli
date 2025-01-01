@@ -450,7 +450,6 @@ func PrefixLong(s string) Prefix {
 }
 
 // Generate completion from collected heads
-//
 // before calling this method we run parser in "complete" mode and collect live heads inside
 // `self.comp`, this part goes over collected heads and generates possible completions from that
 func (self State) check_complete() (string, bool) {
