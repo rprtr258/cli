@@ -140,11 +140,7 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 			args.set_scope(args.adjacently_available_from(args.scope.start() + 1))
 
 			ok, xxx := self.subparser.run_subparser(args)
-			if xxx == nil {
-				args.set_scope(orig_args.scope)
-				return ok, nil
-			} else {
-				err := ErrorParseFailure{xxx}
+			if xxx != nil {
 				orig_scope := args.scope
 				if narrow_scope, ok := args.adjacent_scope(orig_args); ok {
 					orig_args.set_scope(narrow_scope)
@@ -154,8 +150,11 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 						return res, nil
 					}
 				}
-				return *new(T), Error(err)
+				return *new(T), Error(ErrorParseFailure{xxx})
 			}
+
+			args.set_scope(orig_args.scope)
+			return ok, nil
 		} else {
 			v, e := self.subparser.run_subparser(args)
 			if e != nil {
