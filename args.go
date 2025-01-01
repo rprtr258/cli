@@ -326,16 +326,6 @@ LOOP:
 	}, err
 }
 
-func (self *State) remaining() int {
-	res := 0
-	for _, v := range self.item_state {
-		if v.present() {
-			res++
-		}
-	}
-	return res
-}
-
 // creates iterator over remaining elements
 func (self *State) items_iter() func() (int, Arg, bool) {
 	args, cur := self, self.scope[0]
@@ -405,7 +395,13 @@ func (self State) is_empty() bool {
 }
 
 func (self State) len() int {
-	return self.remaining()
+	res := 0
+	for _, v := range self.item_state {
+		if v.present() {
+			res++
+		}
+	}
+	return res
 }
 
 // Get an argument from a scope that was not consumed yet
