@@ -79,6 +79,19 @@ func ShellCompFile(mask Option[string]) ShellComp {
 	}
 }
 
+func ShellCompDir(mask Option[string]) ShellComp {
+	return func(
+		_ func(mask Option[string]),
+		f func(mask Option[string]),
+		_ func(_, _, _, _ string),
+		_ func(),
+	) {
+		if f != nil {
+			f(mask)
+		}
+	}
+}
+
 func render_zsh(
 	items []ShowComp,
 	ops []ShellComp,

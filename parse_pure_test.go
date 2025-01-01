@@ -37,6 +37,15 @@ func parseUint(s string) (uint, error) {
 }
 
 // TODO: move similar funcs to batteries and use
+func parseInt(s string) (int, error) {
+	u, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, errors.New("invalid digit found in string")
+	}
+	return u, nil
+}
+
+// TODO: move similar funcs to batteries and use
 func parseString(s string) (string, error) {
 	return s, nil
 }

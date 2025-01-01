@@ -214,7 +214,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"))
 		require.Nil(t, err)
-		require.Equal(t, r, pair(pair(3, 4), true))
+		require.Equal(t, r, pair(pair(uint(3), uint(4)), true))
 	}
 	{
 		// they are adjacent to each other, but the way it is coded currently - they must be adjacent

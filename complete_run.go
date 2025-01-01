@@ -80,7 +80,7 @@ func (self *ArgScanner) check_next(arg string) bool {
 			matched = false
 		}
 		if matched {
-			os.Exit(0)
+			os.Exit(0) // TODO: remove
 		}
 	}
 	if ver, ok := strings.CutPrefix(arg, "--bpaf-complete-rev="); ok {

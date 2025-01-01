@@ -74,7 +74,7 @@ func newArgs(value ...string) Args {
 // completion stubs adopt this conventions add pass it along. This is needed so completer can
 // tell the difference between `--bar` being completed or an argument to it in the example
 // above.
-func (self *Args) set_comp(rev uint) *Args {
+func (self Args) set_comp(rev uint) Args {
 	self.c_rev = Valid(rev)
 	return self
 }

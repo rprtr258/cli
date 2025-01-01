@@ -30,7 +30,7 @@ func TestNo_argument(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-a", "-42"))
 		require.Nil(t, err)
-		require.Equal(t, r, pair(-42, false))
+		require.Equal(t, pair(int32(-42), false), r)
 	}
 
 	{
@@ -190,7 +190,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 		// try to parse -a as a flag - this works
 		r, err := parser.run_inner(newArgs("-a", "hello"))
 		require.Nil(t, err)
-		require.Equal(t, r, pair(0, struct{}{}))
+		require.Equal(t, pair(uint(0), struct{}{}), r)
 	}
 }
 

@@ -85,7 +85,7 @@ func (self OptionParser[T]) Run() T {
 	t, err := self.run_inner(current_args())
 	if err != nil {
 		print_message(err, self.info.max_width)
-		os.Exit(exit_code(err))
+		os.Exit(exit_code(err)) // TODO: remove
 	}
 	return t
 }
