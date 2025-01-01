@@ -541,18 +541,13 @@ func stris_empty(s string) bool {
 // check if argument can possibly switch the argument passed in and returns a preferrable replacement
 func arg_matches(arg string, name ShortLong) (string, bool) {
 	// "" and "-" switch any flag
-	if arg == "" || arg == "-" {
-		return preferred_name(name), true
-	}
-
-	// separately check for short and long names, fancy strip prefix things is here to avoid
-	// allocations and cloning
-	can_switch := map_or(strip_prefixb(arg, '-').
-		and_then(func(a string) Option[string] { return strip_prefixb(a, name.Short) }),
-		false, stris_empty) ||
+	if arg == "" || arg == "-" ||
+		// separately check for short and long names, fancy strip prefix things is here to avoid allocations and cloning
+		map_or(strip_prefixb(arg, '-').
+			and_then(func(a string) Option[string] { return strip_prefixb(a, name.Short) }),
+			false, stris_empty) ||
 		// and long string too
-		map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) })
-	if can_switch {
+		map_or(strip_prefix(arg, "--"), false, func(s string) bool { return strings.HasPrefix(name.Long, s) }) {
 		return preferred_name(name), true
 	}
 
