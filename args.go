@@ -151,8 +151,7 @@ func disambiguate_short(
 
 type State struct {
 	// list of all available command line arguments
-	items []Arg
-
+	items      []Arg
 	item_state []ItemState
 
 	// Used to render an error message for `parse`
