@@ -20,25 +20,21 @@ func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], arg
 func TestWtfShenanigans1(t *testing.T) {
 	f := func(
 		i_c ArgType,
-		prefix string,
+		i_prefix string,
 	) {
 		t.Helper()
 
-		i_prefix := prefix
 		i_suffix := string([]byte{0x66, 0x6f, 0xD8, 0x6f})
 
-		os_string := ""
+		dashes := ""
 		switch i_c {
 		case ArgTypeShort:
-			os_string += "-"
+			dashes += "-"
 		case ArgTypeLong:
-			os_string += "--"
+			dashes += "--"
 		}
-		os_string += i_prefix
-		os_string += "="
-		os_string += i_suffix
 
-		o_c, o_prefix, o_suffix, ok := split_os_argument(os_string)
+		o_c, o_prefix, o_suffix, ok := split_os_argument(dashes + i_prefix + "=" + i_suffix)
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, i_prefix, o_prefix)
@@ -57,7 +53,7 @@ func TestWtfShenanigans2(t *testing.T) {
 	) {
 		t.Helper()
 
-		value := "口水鸡"
+		const value = "口水鸡"
 
 		dashes := ""
 		switch i_c {
@@ -67,11 +63,11 @@ func TestWtfShenanigans2(t *testing.T) {
 			dashes += "--"
 		}
 
-		o_c, o_prefix, o_suffix, ok := split_os_argument(dashes + flagName + "=" + value)
+		o_c, gotFlagName, gotValue, ok := split_os_argument(dashes + flagName + "=" + value)
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
-		require.Equal(t, flagName, o_prefix)
-		require.Equal(t, ArgWord(value), o_suffix.unwrap())
+		require.Equal(t, flagName, gotFlagName)
+		require.Equal(t, ArgWord(value), gotValue.unwrap())
 	}
 
 	f(ArgTypeShort, "f")
