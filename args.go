@@ -156,8 +156,7 @@ type State struct {
 	item_state []ItemState
 
 	// Used to render an error message for `parse`
-	// contains an index of a currently consumed item if we are parsing a single
-	// item
+	// contains an index of a currently consumed item if we are parsing a single item
 	current Option[int]
 
 	// path to current command, "deeper" parser should win in or_else branches
