@@ -203,23 +203,24 @@ func (self OptionParser[T]) run_subparser(state *State) (T, ParseFailure) {
 	}
 
 	detailed := false
-	var buffer Doc
-	if extra.Help {
-		detailed = true
-		buffer = render_help(
-			state.path,
-			self.info,
-			self.inner.meta,
-			self.info.meta(),
-		)
-	} else {
-		tmp := Doc{}
-		tmp.token(TokenBlockStart(BlockBlock))
-		tmp.Text("Version: ")
-		tmp.Doc(extra.Version)
-		tmp.token(TokenBlockEnd(BlockBlock))
-		buffer = tmp
-	}
+	buffer := func() Doc {
+		if extra.Help {
+			detailed = true
+			return render_help(
+				state.path,
+				self.info,
+				self.inner.meta,
+				self.info.meta(),
+			)
+		} else {
+			tmp := Doc{}
+			tmp.token(TokenBlockStart(BlockBlock))
+			tmp.Text("Version: ")
+			tmp.Doc(extra.Version)
+			tmp.token(TokenBlockEnd(BlockBlock))
+			return tmp
+		}
+	}()
 	return *new(T), ParseFailureStdout{buffer, detailed}
 }
 
