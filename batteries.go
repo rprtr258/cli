@@ -1,12 +1,12 @@
-//! # Batteries included - helpful parsers that use only public API
-//!
-//! `bpaf` comes with a few extra functions that use only public API in their implementation. You
-//! might find them useful either for your code or as an inspiration source
-//!
-//! **To use anything in this module you need to enable `batteries` cargo feature.**
-//!
-//! Examples contain combinatoric usage, for derive usage you should create a parser function and
-//! use `external` annotation.
+// Helpful parsers that use only public API.
+//
+// `bpaf` comes with a few extra functions that use only public API in their implementation. You
+// might find them useful either for your code or as an inspiration source
+//
+// **To use anything in this module you need to enable `batteries` cargo feature.**
+//
+// Examples contain combinatoric usage, for derive usage you should create a parser function and
+// use `external` annotation.
 
 package cli
 
@@ -23,16 +23,13 @@ import (
 //
 // # Usage
 //
-// ```rust
-// # use bpaf*;
-// use bpafbatteries*;
+//	use bpaf*;
+//	use bpafbatteries*;
 //
 //	func verbose()impl Parser[uint] {
 //	    verbose_and_quiet_by_number(2, 0, 5).map(|v| v as uint)
 //	}
-//
-// ```
-func verbose_and_quiet_by_number(offset int, min int, max int) Parser[int] {
+func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 	vp := Many(ReqFlag(Short('v').
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
@@ -117,11 +114,11 @@ func verbose_by_slice[T any](
 // ```
 //
 // # Usage
-// ```rust
-// # use bpaf*;
-// use bpafbatteriestoggle_flag;
 //
-// #[derive(Copy, Clone, Debug, PartialEq, Eq)]
+//	# use bpaf*;
+//	use bpafbatteriestoggle_flag;
+//
+//	#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 //
 //	enum Select {
 //	    Banana,
@@ -131,8 +128,6 @@ func verbose_by_slice[T any](
 //	func pick()impl Parser<Option[Select>] {
 //	    toggle_flag(long("banana"), SelectBanana, long("no-banana"), SelectNoBanana)
 //	}
-//
-// ```
 func toggle_flag[T any](
 	a NamedArg, val_a T,
 	b NamedArg, val_b T,

@@ -9,7 +9,10 @@ func TestToggle_flag(t *testing.T) {
 		FlagY Flag = true
 	)
 
-	parser := toggle_flag(Short('y'), FlagY, Short('n'), FlagN).ToOptions()
+	parser := toggle_flag(
+		Short('y'), FlagY,
+		Short('n'), FlagN,
+	).ToOptions()
 
 	assertSuccess(t, Invalid[Flag](), parser)
 	t.Skip() // TODO: fix
