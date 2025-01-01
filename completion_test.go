@@ -40,9 +40,26 @@ func test_completer_descr(input string) SSOS {
 	items := []string{"alpha", "beta", "banana", "cat", "durian"}
 	return zalupa12(
 		iter.Map(
-			iter.FromMany(items...).Filter(
-				func(item string) bool { return strings.HasPrefix(item, input) }),
+			iter.
+				FromMany(items...).
+				Filter(func(item string) bool { return strings.HasPrefix(item, input) }),
 			func(item string) PSOS { return PSOS{item, Valid(item)} }))
+}
+
+func complete_alpha(input string) SSOS {
+	if strings.HasPrefix("alpha", input) {
+		return zalupa12(iter.FromMany(PSOS{"alpha", Valid("alpha description")}))
+	} else {
+		return zalupa12(iter.FromNothing[PSOS]())
+	}
+}
+
+func complete_beta(input string) SSOS {
+	if strings.HasPrefix("beta", input) {
+		return zalupa12(iter.FromMany(PSOS{"beta", Valid("beta description")}))
+	} else {
+		return zalupa12(iter.FromNothing[PSOS]())
+	}
 }
 
 func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
@@ -914,22 +931,6 @@ func TestOnly_positionals_after_positionals(t *testing.T) {
 			run_inner(newArgs("xxx", "").set_comp(0))
 		r := unwrap_stdout(err)
 		assert.Equal(t, r, "-a\t-a\t\t\n\tD\t\t\n\n")
-	}
-}
-
-func complete_alpha(input string) SSOS {
-	if strings.HasPrefix("alpha", input) {
-		return zalupa12(iter.FromMany(PSOS{"alpha", Valid("alpha description")}))
-	} else {
-		return zalupa12(iter.FromNothing[PSOS]())
-	}
-}
-
-func complete_beta(input string) SSOS {
-	if strings.HasPrefix("beta", input) {
-		return zalupa12(iter.FromMany(PSOS{"beta", Valid("beta description")}))
-	} else {
-		return zalupa12(iter.FromNothing[PSOS]())
 	}
 }
 
