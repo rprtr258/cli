@@ -374,8 +374,7 @@ func (self State) conflict() (Range, bool) {
 }
 
 func (self *State) save_conflicts(loser State, win int) {
-	for i := 0; i < len(self.item_state); i++ {
-		winner := self.item_state[i]
+	for i, winner := range self.item_state {
 		loser := loser.item_state[i]
 		if !winner.parsed() && loser.parsed() {
 			self.item_state[i] = ItemStateConflict(win)
@@ -400,11 +399,6 @@ func (self State) get(ix int) (Arg, bool) {
 	} else {
 		return Arg{}, false
 	}
-}
-
-// Check if parser performs autocompletion
-func (self State) is_comp() bool {
-	return self.comp.Valid
 }
 
 // Narrow down scope of &self to adjacently consumed values compared to original.
