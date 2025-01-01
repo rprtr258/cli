@@ -389,11 +389,6 @@ func (self *State) save_conflicts(loser State, win int) {
 	}
 }
 
-// it is in use when autocomplete is enabled
-func (self State) is_empty() bool {
-	return self.len() == 0
-}
-
 func (self State) len() int {
 	res := 0
 	for _, v := range self.item_state {

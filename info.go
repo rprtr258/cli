@@ -161,7 +161,7 @@ func (self OptionParser[T]) run_subparser(args *State) (T, ParseFailure) {
 	//
 	// outer parser gets value in ParseFailure format
 
-	if self.info.help_if_no_args && args.is_empty() {
+	if self.info.help_if_no_args && args.len() == 0 {
 		buffer := render_help(
 			args.path,
 			self.info,
