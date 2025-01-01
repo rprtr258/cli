@@ -636,7 +636,7 @@ func (self Info) eval(args *State) (ExtraParams, Error) {
 	}
 
 	// error message is not actually used anywhere
-	return *new(ExtraParams), ErrorParseFail("not a version or help")
+	return ExtraParams{}, ErrorParseFail("not a version or help")
 }
 
 func (self Info) meta() Meta {
