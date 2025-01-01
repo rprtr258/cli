@@ -139,17 +139,12 @@ func (self ParseCommand[T]) eval(args *State) (T, Error) {
 			// narrow down the scope to adjacently available elements
 			args.set_scope(args.adjacently_available_from(args.scope.start() + 1))
 
-			ok, xxx := self.
-				subparser.
-				run_subparser(args)
-			var err Error
-			if xxx != nil {
-				err = ErrorParseFailure{xxx}
-			}
-			if err == nil {
+			ok, xxx := self.subparser.run_subparser(args)
+			if xxx == nil {
 				args.set_scope(orig_args.scope)
 				return ok, nil
 			} else {
+				err := ErrorParseFailure{xxx}
 				orig_scope := args.scope
 				if narrow_scope, ok := args.adjacent_scope(orig_args); ok {
 					orig_args.set_scope(narrow_scope)

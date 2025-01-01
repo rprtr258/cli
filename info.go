@@ -151,6 +151,7 @@ func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
 	collect_shorts(self.inner.meta, &short_flags, &short_args)
 	short_flags = append(short_flags, self.info.help_arg.short...)
 	short_flags = append(short_flags, self.info.version_arg.short...)
+
 	// this only handles disambiguation failure in construct
 	state, err := stateconstruct(args, short_flags, short_args)
 	if err != nil && !state.comp.Valid {
