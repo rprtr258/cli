@@ -18,6 +18,7 @@ func map3[A, B, C any](_ A, _ B, _ C) struct{} {
 
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
+
 	_, output := parser.run_inner(newArgs("--help"))
 	usage := strings.TrimPrefix(strings.Split(unwrap_stdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, usage, expected)

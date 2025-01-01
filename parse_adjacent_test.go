@@ -10,6 +10,8 @@ import (
 )
 
 func requireNoParseFailure(t *testing.T, err ParseFailure) {
+	t.Helper()
+
 	if err != nil {
 		switch self := err.(type) {
 		case ParseFailureStdout:

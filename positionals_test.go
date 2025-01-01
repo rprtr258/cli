@@ -81,6 +81,8 @@ Available options:
 }
 
 func usePanic[T any](t *testing.T, f func()) (res T) {
+	t.Helper()
+
 	defer func() {
 		if r := recover(); r != nil {
 			res = r.(T)
