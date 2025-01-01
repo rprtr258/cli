@@ -19,14 +19,12 @@ func (self ParseAny[T]) item() Item {
 }
 
 // Add a help message to [any] parser.
-// See examples in [any]
 func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
 	self.help = Valid(newDocFromString(help))
 	return self
 }
 
 // Replace metavar with a custom value
-// See examples in [any]
 func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 	self.metavar = metavar
 	return self
@@ -37,8 +35,6 @@ func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 // By default `any` tries to parse just the front unconsumed item behaving similar to
 // [positional] parser, `anywhere` changes it so it applies to every unconsumed item,
 // similar to argument parser.
-//
-// See examples in [any]
 func (self *ParseAny[T]) Anywhere() *ParseAny[T] {
 	self.anywhere = true
 	return self
@@ -58,12 +54,11 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 			break
 		}
 	}
-	missing_item := MissingItem{
+	return *new(T), ErrorMissing([]MissingItem{MissingItem{
 		item:     self.item(),
 		position: args.scope.start(),
 		scope:    args.scope,
-	}
-	return *new(T), ErrorMissing([]MissingItem{missing_item})
+	}})
 }
 
 // Parse a single arbitrary item from a command line
