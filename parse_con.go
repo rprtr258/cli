@@ -22,9 +22,9 @@ func (self ParseCon[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-func (self ParseCon[T]) eval(args *State) (T, Error) {
-	res, err := self.inner(self.failfast, args)
-	args.current = Invalid[int]()
+func (self ParseCon[T]) eval(state *State) (T, Error) {
+	res, err := self.inner(self.failfast, state)
+	state.current = Invalid[int]()
 	return res, err
 }
 
@@ -96,19 +96,19 @@ func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	pb := ppb.Parser()
 	meta := MetaAnd{pa.meta, pb.meta}
 	type R = fun.Pair[A, B]
-	inner := func(failfast bool, args *State) (R, Error) {
-		a, erra := pa.eval(args)
+	inner := func(failfast bool, state *State) (R, Error) {
+		a, erra := pa.eval(state)
 		if failfast && erra != nil {
 			return R{}, erra
 		}
-		b, errb := pb.eval(args)
+		b, errb := pb.eval(state)
 		if erra != nil {
 			return R{}, erra
 		}
 		if errb != nil {
 			return R{}, errb
 		}
-		args.current = Invalid[int]()
+		state.current = Invalid[int]()
 		return R{a, b}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}
@@ -124,13 +124,13 @@ func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[
 	pa, pb, pc := ppa.Parser(), ppb.Parser(), ppc.Parser()
 	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
 	type R = triple[A, B, C]
-	inner := func(failfast bool, args *State) (R, Error) {
-		a, erra := pa.eval(args)
+	inner := func(failfast bool, state *State) (R, Error) {
+		a, erra := pa.eval(state)
 		if failfast && erra != nil {
 			return R{}, erra
 		}
-		b, errb := pb.eval(args)
-		c, errc := pc.eval(args)
+		b, errb := pb.eval(state)
+		c, errc := pc.eval(state)
 		if erra != nil {
 			return R{}, erra
 		}
@@ -140,7 +140,7 @@ func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[
 		if errc != nil {
 			return R{}, errc
 		}
-		args.current = Invalid[int]()
+		state.current = Invalid[int]()
 		return R{a, b, c}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}

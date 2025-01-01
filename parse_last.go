@@ -11,25 +11,25 @@ func (self ParseLast[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-func (self ParseLast[T]) eval(args *State) (T, Error) {
+func (self ParseLast[T]) eval(state *State) (T, Error) {
 	last := Invalid[T]()
-	current := args.len()
+	current := state.len()
 	len := uint(math.MaxUint)
 	for {
-		val, err := parse_option(self.inner, &len, args, false)
+		val, err := parse_option(self.inner, &len, state, false)
 		if err != nil || !val.Valid {
 			break
 		}
 		last = val
-		if current == args.len() {
+		if current == state.len() {
 			break
 		}
-		current = args.len()
+		current = state.len()
 	}
 	if last, ok := last.Unpack(); ok {
 		return last, nil
 	} else {
-		return self.inner.eval(args)
+		return self.inner.eval(state)
 	}
 }
 

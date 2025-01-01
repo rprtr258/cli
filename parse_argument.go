@@ -49,47 +49,46 @@ func (self ParseArgument[T]) item() (Item, bool) {
 	}}, true
 }
 
-func (self ParseArgument[T]) take_argument(args *State) (string, Error) {
-	wopt, err := args.take_arg(self.named, self.adjacent, Metavar(self.metavar))
-	if err != nil {
-		args.push_argument(self.named, self.metavar)
-		return "", err
-	} else if w, ok := wopt.Unpack(); ok {
-		if args.touching_last_remove() {
-			args.push_metavar(self.metavar, self.named.help, true)
-		}
-		return w, nil
-	} else {
-		args.push_argument(self.named, self.metavar)
-		if val, ok := find_map(self.named.env, os.LookupEnv); ok {
-			args.current = Invalid[int]()
-			return val, nil
-		}
-
-		if item, ok := self.item(); ok {
-			missing := MissingItem{
-				item:     item,
-				position: args.scope.start(),
-				scope:    args.scope,
+func (self ParseArgument[T]) eval(state *State) (T, Error) {
+	// take argument
+	os, err := func() (string, Error) {
+		wopt, err := state.take_arg(self.named, self.adjacent, Metavar(self.metavar))
+		if err != nil {
+			state.push_argument(self.named, self.metavar)
+			return "", err
+		} else if w, ok := wopt.Unpack(); ok {
+			if state.touching_last_remove() {
+				state.push_metavar(self.metavar, self.named.help, true)
 			}
-			return "", ErrorMissing([]MissingItem{missing})
-		} else if name, ok := First(self.named.env).Unpack(); ok {
-			return "", ErrorNoEnv(name)
+			return w, nil
 		} else {
-			panic("unreachable!()")
-		}
-	}
-}
+			state.push_argument(self.named, self.metavar)
+			if val, ok := find_map(self.named.env, os.LookupEnv); ok {
+				state.current = Invalid[int]()
+				return val, nil
+			}
 
-func (self ParseArgument[T]) eval(args *State) (T, Error) {
-	os, err := self.take_argument(args)
+			if item, ok := self.item(); ok {
+				missing := MissingItem{
+					item:     item,
+					position: state.scope.start(),
+					scope:    state.scope,
+				}
+				return "", ErrorMissing([]MissingItem{missing})
+			} else if name, ok := First(self.named.env).Unpack(); ok {
+				return "", ErrorNoEnv(name)
+			} else {
+				panic("unreachable")
+			}
+		}
+	}()
 	if err != nil {
 		return *new(T), err
 	}
 
 	t, errr := self.p(os)
 	if errr != nil {
-		return *new(T), ErrorParseFailed{args.current, errr.Error()}
+		return *new(T), ErrorParseFailed{state.current, errr.Error()}
 	}
 	return t, nil
 }

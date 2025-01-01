@@ -13,25 +13,25 @@ func (self ParseFlag[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-func (self ParseFlag[T]) eval(args *State) (T, Error) {
-	if args.take_flag(self.named) || func() bool {
+func (self ParseFlag[T]) eval(state *State) (T, Error) {
+	if state.take_flag(self.named) || func() bool {
 		_, ok := find_map(self.named.env, os.LookupEnv)
 		return ok
 	}() {
-		if args.touching_last_remove() {
-			args.push_flag(self.named)
+		if state.touching_last_remove() {
+			state.push_flag(self.named)
 		}
 		return self.present, nil
 	} else {
-		args.push_flag(self.named)
+		state.push_flag(self.named)
 		if ok, okk := self.absent.Unpack(); okk {
 			return ok, nil
 		} else {
 			if item, ok := self.named.flag_item(); ok {
 				missing := MissingItem{
 					item:     item,
-					position: args.scope.start(),
-					scope:    args.scope,
+					position: state.scope.start(),
+					scope:    state.scope,
 				}
 				return *new(T), ErrorMissing([]MissingItem{missing})
 			} else if name, ok := First(self.named.env).Unpack(); ok {

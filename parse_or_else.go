@@ -21,7 +21,7 @@ func (self ParseOrElse[T]) Parser() Parser[T] {
 func this_or_that_picks_first(
 	err_a Option[Error],
 	err_b Option[Error],
-	args *State,
+	state *State,
 	args_a *State,
 	args_b *State,
 	comp_stash *[]Comp,
@@ -30,9 +30,9 @@ func this_or_that_picks_first(
 	// completion from different depths should never mix either
 	switch ccc := cmp.Compare(args_a.depth(), args_b.depth()); {
 	case ccc < 0:
-		*args, *args_b = *args_b, *args
+		*state, *args_b = *args_b, *state
 
-		if comp, ok := args.comp_mut(); ok {
+		if comp, ok := state.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
 		}
 		err, ok := err_b.Unpack()
@@ -42,9 +42,9 @@ func this_or_that_picks_first(
 		return false, err
 	case ccc == 0:
 	case ccc > 0:
-		*args, *args_a = *args_a, *args
+		*state, *args_a = *args_a, *state
 
-		if comp, ok := args.comp_mut(); ok {
+		if comp, ok := state.comp_mut(); ok {
 			comp.extend_comps(*comp_stash)
 		}
 		err, ok := err_a.Unpack()
@@ -64,7 +64,7 @@ func this_or_that_picks_first(
 	)
 	switch {
 	case !a_ok && !b_ok:
-		if args.len() == args_a.len() && args_a.len() == args_b.len() {
+		if state.len() == args_a.len() && args_a.len() == args_b.len() {
 			res = resT{true, Invalid[int]()}
 		} else {
 			a, b := args_a.pick_winner(*args_b)
@@ -138,16 +138,16 @@ func this_or_that_picks_first(
 			if win, ok := ix.Unpack(); ok {
 				args_a.save_conflicts(*args_b, int(win))
 			}
-			*args, *args_a = *args_a, *args
+			*state, *args_a = *args_a, *state
 		} else {
 			if win, ok := ix.Unpack(); ok {
 				args_b.save_conflicts(*args_a, int(win))
 			}
-			*args, *args_b = *args_b, *args
+			*state, *args_b = *args_b, *state
 		}
 	}
 
-	if comp, ok := args.comp_mut(); ok {
+	if comp, ok := state.comp_mut(); ok {
 		comp.extend_comps(*comp_stash)
 	}
 
@@ -157,17 +157,17 @@ func this_or_that_picks_first(
 	return res.K, nil
 }
 
-func (self ParseOrElse[T]) eval(args *State) (T, Error) {
+func (self ParseOrElse[T]) eval(state *State) (T, Error) {
 	var comp_items []Comp
 
-	args.swap_comps_with(&comp_items)
+	state.swap_comps_with(&comp_items)
 
 	// create forks for both branches
 	// if they both fail - fallback to the original arguments
 	// if they both succed - pick the one that consumes left, remember the second one
 	// if one succeeds - pick that, forget the remaining one unless we are doing completion
-	args_a := args.clone()
-	args_b := args.clone()
+	args_a := state.clone()
+	args_b := state.clone()
 
 	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
 	// so that code that does a bunch of comparing logic can be shared across
@@ -198,7 +198,7 @@ func (self ParseOrElse[T]) eval(args *State) (T, Error) {
 	zalupa, err := this_or_that_picks_first(
 		err_a,
 		err_b,
-		args,
+		state,
 		&args_a,
 		&args_b,
 		&comp_items,

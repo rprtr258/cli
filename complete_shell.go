@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/iter"
 )
 
 type Shell string
@@ -289,7 +291,7 @@ func render_fish(
 
 	res := &strings.Builder{}
 	shared := fun.IF(len(ops) == 0, "-f ", "")
-	for item := range filter(rev(items), func(i ShowComp) bool { return i.subst != "" }) {
+	for item := range iter.Values(slices.Backward(items)).Filter(func(i ShowComp) bool { return i.subst != "" }) {
 		fmt.Fprintf(res, "complete -c %v %v", app, shared)
 		if long, ok := strip_prefix(item.subst, "--").Unpack(); ok {
 			fmt.Fprintf(res, "--long-option %v ", long)

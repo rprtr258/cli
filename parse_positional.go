@@ -80,34 +80,34 @@ func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
 	return self
 }
 
-func (self ParsePositional[T]) eval(args *State) (T, Error) {
+func (self ParsePositional[T]) eval(state *State) (T, Error) {
 	metavar := Metavar(self.metavar)
 	help := self.help
 	position := self.position
-	ix, is_strict, word, err := args.take_positional_word(metavar)
+	ix, is_strict, word, err := state.take_positional_word(metavar)
 	if err != nil {
-		if !args.check_no_pos_ahead() {
-			args.push_metavar(string(metavar), help, false)
-			args.set_no_pos_ahead()
+		if !state.check_no_pos_ahead() {
+			state.push_metavar(string(metavar), help, false)
+			state.set_no_pos_ahead()
 		}
 		return *new(T), err
 	}
 
 	if position == PositionStrict && !is_strict {
-		args.push_pos_sep()
+		state.push_pos_sep()
 		return *new(T), ErrorStrictPos{ix, metavar}
 	} else if position == PositionNonStrict && is_strict {
 		return *new(T), ErrorNonStrictPos{ix, metavar}
 	}
 
-	if args.touching_last_remove() && !args.check_no_pos_ahead() {
-		args.push_metavar(string(metavar), help, false)
-		args.set_no_pos_ahead()
+	if state.touching_last_remove() && !state.check_no_pos_ahead() {
+		state.push_metavar(string(metavar), help, false)
+		state.set_no_pos_ahead()
 	}
 
 	t, errr := self.p(word)
 	if errr != nil {
-		return *new(T), ErrorParseFailed{args.current, errr.Error()}
+		return *new(T), ErrorParseFailed{state.current, errr.Error()}
 	}
 	return t, nil
 }

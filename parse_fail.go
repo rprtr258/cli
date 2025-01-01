@@ -9,8 +9,8 @@ func (self ParseFail[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaSkip{}}
 }
 
-func (self ParseFail[T]) eval(args *State) (T, Error) {
-	args.current = Invalid[int]()
+func (self ParseFail[T]) eval(state *State) (T, Error) {
+	state.current = Invalid[int]()
 	return *new(T), ErrorParseFail(self.field1)
 }
 

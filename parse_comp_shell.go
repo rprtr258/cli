@@ -10,22 +10,22 @@ func (self ParseCompShell[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.inner.meta}
 }
 
-func (self ParseCompShell[T]) eval(args *State) (T, Error) {
+func (self ParseCompShell[T]) eval(state *State) (T, Error) {
 	// same as with ParseComp the goal is to replace metavars added by inner parser
 	// with a completion that would call a bash script.
 	// unlike ParseComp we don't care if inner parser succeeds
 
 	// stash old completions
 	comp_items := []Comp{}
-	args.swap_comps_with(&comp_items)
+	state.swap_comps_with(&comp_items)
 
-	res, err := self.inner.eval(args)
+	res, err := self.inner.eval(state)
 
 	// at this point comp_items contains values added by the inner parser
-	args.swap_comps_with(&comp_items)
+	state.swap_comps_with(&comp_items)
 
-	depth := args.depth()
-	if comp, ok := args.comp_mut(); ok {
+	depth := state.depth()
+	if comp, ok := state.comp_mut(); ok {
 		for _, ci := range comp_items {
 			if is_argument, ok := ci.is_metavar(); ok {
 				comp.push_shell(self.op, is_argument, depth)

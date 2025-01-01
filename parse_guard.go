@@ -11,15 +11,15 @@ func (self ParseGuard[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.inner.meta}
 }
 
-func (self ParseGuard[T]) eval(args *State) (T, Error) {
-	t, err := self.inner.eval(args)
+func (self ParseGuard[T]) eval(state *State) (T, Error) {
+	t, err := self.inner.eval(state)
 	if err != nil {
 		return *new(T), err
 	}
 	if self.check(t) {
 		return t, nil
 	} else {
-		return *new(T), ErrorGuardFailed{args.current, self.message}
+		return *new(T), ErrorGuardFailed{state.current, self.message}
 	}
 }
 

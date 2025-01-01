@@ -19,17 +19,17 @@ func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	return self
 }
 
-func (self ParseComp[T]) eval(args *State) (T, Error) {
+func (self ParseComp[T]) eval(state *State) (T, Error) {
 	// stash old
 	comp_items := []Comp(nil)
-	args.swap_comps_with(&comp_items)
+	state.swap_comps_with(&comp_items)
 
-	res, err := self.inner.eval(args)
+	res, err := self.inner.eval(state)
 
 	// restore old, now metavars added by inner parser, if any, are in comp_items
-	args.swap_comps_with(&comp_items)
+	state.swap_comps_with(&comp_items)
 
-	if comp, ok := args.comp_mut(); ok && err != nil {
+	if comp, ok := state.comp_mut(); ok && err != nil {
 		comp.extend_comps(comp_items)
 		return *new(T), err
 	}
@@ -40,8 +40,8 @@ func (self ParseComp[T]) eval(args *State) (T, Error) {
 
 	// completion function generates suggestions based on the parsed inner value, for
 	// that `res` must contain a parsed value
-	depth := args.depth()
-	if comp, ok := args.comp_mut(); ok {
+	depth := state.depth()
+	if comp, ok := state.comp_mut(); ok {
 		for _, ci := range comp_items {
 			if is_arg, ok := ci.is_metavar(); ok {
 				suggestions := self.op(res)

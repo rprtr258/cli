@@ -129,16 +129,6 @@ func rev[T any](xs []T) iter.Seq[T] {
 	return iter.Seq[T](funiter.Values(slices.Backward(xs)))
 }
 
-func filter[T any](it iter.Seq[T], f func(T) bool) iter.Seq[T] {
-	return func(yield func(T) bool) {
-		for x := range it {
-			if f(x) && !yield(x) {
-				break
-			}
-		}
-	}
-}
-
 func filter_map[T, R any](it iter.Seq[T], f func(T) (R, bool)) iter.Seq[R] {
 	return func(yield func(R) bool) {
 		for x := range it {

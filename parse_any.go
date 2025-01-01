@@ -30,12 +30,12 @@ func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 	return self
 }
 
-func (self ParseAny[T]) eval(args *State) (T, Error) {
-	for ix, x := range push2(args.items_iter()) {
+func (self ParseAny[T]) eval(state *State) (T, Error) {
+	for ix, x := range push2(state.items_iter()) {
 		if i, ok := self.parse(x.str); ok {
-			args.remove(ix)
+			state.remove(ix)
 			if x.is_adj {
-				args.remove(ix + 1)
+				state.remove(ix + 1)
 			}
 
 			return i, nil
@@ -46,8 +46,8 @@ func (self ParseAny[T]) eval(args *State) (T, Error) {
 	}
 	return *new(T), ErrorMissing([]MissingItem{{
 		item:     self.item(),
-		position: args.scope.start(),
-		scope:    args.scope,
+		position: state.scope.start(),
+		scope:    state.scope,
 	}})
 }
 

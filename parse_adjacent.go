@@ -8,8 +8,8 @@ func (self ParseAdjacent[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaAdjacent{self.inner.meta}}
 }
 
-func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
-	original_scope := args.scope
+func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
+	original_scope := state.scope
 
 	var first_item Item
 	best_error := func() Error {
@@ -26,10 +26,10 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		}
 		return ErrorMissing([]MissingItem{missing_item})
 	}()
-	best_args := args.clone()
+	best_args := state.clone()
 	best_consumed := 0
 
-	iter := args.ranges(first_item)
+	iter := state.ranges(first_item)
 	for {
 		start_width, ok := iter.next()
 		if !ok {
@@ -76,12 +76,12 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 			res, err := self.inner.eval(&this_arg)
 			if err == nil {
 				// there's a smaller adjacent scope, we must try it before returning.
-				if adj_scope, ok := this_arg.adjacent_scope(*args); ok {
-					this_arg = args.clone()
+				if adj_scope, ok := this_arg.adjacent_scope(*state); ok {
+					this_arg = state.clone()
 					this_arg.set_scope(adj_scope)
 				} else {
-					*args, this_arg = this_arg, *args
-					args.set_scope(original_scope)
+					*state, this_arg = this_arg, *state
+					state.set_scope(original_scope)
 					return res, nil
 				}
 			} else {
@@ -96,6 +96,6 @@ func (self ParseAdjacent[T]) eval(args *State) (T, Error) {
 		}
 	}
 
-	*args, best_args = best_args, *args
+	*state, best_args = best_args, *state
 	return *new(T), Error(best_error)
 }

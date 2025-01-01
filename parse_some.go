@@ -15,11 +15,11 @@ func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
 	return Parser[[]T]{self.eval, MetaMany{MetaRequired{self.inner.meta}}}
 }
 
-func (self ParseSome[T]) eval(args *State) ([]T, Error) {
+func (self ParseSome[T]) eval(state *State) ([]T, Error) {
 	res := []T{}
 	lenn := uint(math.MaxUint)
 	for {
-		val, err := parse_option(self.inner, &lenn, args, self.catch)
+		val, err := parse_option(self.inner, &lenn, state, self.catch)
 		if err != nil {
 			break
 		}

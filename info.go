@@ -614,14 +614,14 @@ func (self Info) Parser() Parser[ExtraParams] {
 	return Parser[ExtraParams]{self.eval, self.meta()}
 }
 
-func (self Info) eval(args *State) (ExtraParams, Error) {
+func (self Info) eval(state *State) (ExtraParams, Error) {
 	help := self.mk_help_parser()
-	if _, err := help.eval(args); err == nil {
+	if _, err := help.eval(state); err == nil {
 		return ExtraParams{true, Doc{}}, nil
 	}
 
 	if version, ok := self.version.Unpack(); ok {
-		if _, err := self.mk_version_parser().eval(args); err == nil {
+		if _, err := self.mk_version_parser().eval(state); err == nil {
 			return ExtraParams{false, version}, nil
 		}
 	}

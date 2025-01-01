@@ -280,8 +280,8 @@ package cli
 //
 // ```
 type Parser[T any] struct {
-	eval func(args *State) (T, Error) // Evaluate inner function
-	meta Meta                         // Included information about the parser
+	eval func(*State) (T, Error) // Evaluate inner function
+	meta Meta                    // Included information about the parser
 }
 
 func (self Parser[T]) Parser() Parser[T] {

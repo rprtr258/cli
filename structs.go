@@ -10,12 +10,12 @@ func (self ParseGroupHelp[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaSubsection{self.inner.meta, self.message}}
 }
 
-func (self ParseGroupHelp[T]) eval(args *State) (T, Error) {
+func (self ParseGroupHelp[T]) eval(state *State) (T, Error) {
 	comp_items := []Comp(nil)
-	args.swap_comps_with(&comp_items)
-	res, err := self.inner.eval(args)
-	args.swap_comps_with(&comp_items)
-	args.push_with_group(self.message.to_completion(), &comp_items)
+	state.swap_comps_with(&comp_items)
+	res, err := self.inner.eval(state)
+	state.swap_comps_with(&comp_items)
+	state.push_with_group(self.message.to_completion(), &comp_items)
 	return res, err
 }
 
@@ -29,8 +29,8 @@ func (self ParseWithGroupHelp[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-func (self ParseWithGroupHelp[T]) eval(args *State) (T, Error) {
-	return self.inner.eval(args)
+func (self ParseWithGroupHelp[T]) eval(state *State) (T, Error) {
+	return self.inner.eval(state)
 }
 
 func (self ParseWithGroupHelp[T]) meta() Meta {
@@ -44,14 +44,14 @@ type ParseHide[T any] struct {
 	inner Parser[T]
 }
 
-func (self ParseHide[T]) eval(args *State) (T, Error) {
+func (self ParseHide[T]) eval(state *State) (T, Error) {
 	var comps []Comp
 
-	args.swap_comps_with(&comps)
+	state.swap_comps_with(&comps)
 
-	res, err := self.inner.eval(args)
+	res, err := self.inner.eval(state)
 
-	args.swap_comps_with(&comps)
+	state.swap_comps_with(&comps)
 	if _, ok := err.(ErrorMissing); err != nil && ok {
 		return *new(T), ErrorMissing(nil)
 	}
@@ -63,11 +63,11 @@ func (self ParseHide[T]) eval(args *State) (T, Error) {
 func parse_option[T any](
 	parser Parser[T],
 	len *uint,
-	args *State,
+	state *State,
 	catch bool,
 ) (Option[T], Error) {
-	orig_args := args.clone()
-	val, err := parser.eval(args)
+	orig_args := state.clone()
+	val, err := parser.eval(state)
 	if err != nil {
 		// this is safe to return Ok(Invalid()) in following scenarios
 		// when inner parser never consumed anything and
@@ -81,11 +81,11 @@ func parse_option[T any](
 		// anything left unconsumed - this won't be lost.
 
 		if _, missing := err.(ErrorMissing); catch ||
-			missing && orig_args.len() == args.len() ||
+			missing && orig_args.len() == state.len() ||
 			!missing && can_catch(Error(err)) {
-			orig_args, *args = *args, orig_args
+			orig_args, *state = *state, orig_args
 			if _, ok := orig_args.comp_mut(); ok {
-				args.swap_comps(&orig_args)
+				state.swap_comps(&orig_args)
 			}
 			return Invalid[T](), nil
 		} else {
@@ -94,7 +94,7 @@ func parse_option[T any](
 	}
 	// we keep including values for as long as we consume values from the argument
 	// list or at least one value
-	if lll := uint(args.len()); lll < *len {
+	if lll := uint(state.len()); lll < *len {
 		*len = lll
 		return Valid(val), nil
 	} else {
@@ -107,12 +107,12 @@ func parse_option[T any](
 // 	style CompleteDecor
 // }
 
-// func (self ParseCompStyle[T]) eval(args *State) (T, Error) {
+// func (self ParseCompStyle[T]) eval(state *State) (T, Error) {
 // 	comp_items := nil
-// 	args.swap_comps_with(&comp_items)
-// 	res := self.inner.eval(args)
-// 	args.swap_comps_with(&comp_items)
-// 	args.extend_with_style(self.style, &comp_items)
+// 	state.swap_comps_with(&comp_items)
+// 	res := self.inner.eval(state)
+// 	state.swap_comps_with(&comp_items)
+// 	state.extend_with_style(self.style, &comp_items)
 // 	return res
 // }
 

@@ -9,9 +9,9 @@ type ParseOptional[T any] struct {
 	catch bool
 }
 
-func (self ParseOptional[T]) eval(args *State) (Option[T], Error) {
+func (self ParseOptional[T]) eval(state *State) (Option[T], Error) {
 	len := uint(math.MaxUint)
-	return parse_option(self.inner, &len, args, self.catch)
+	return parse_option(self.inner, &len, state, self.catch)
 }
 
 func (self *ParseOptional[T]) Parser() Parser[Option[T]] {

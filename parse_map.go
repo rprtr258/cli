@@ -8,8 +8,8 @@ type ParseMap[T, R any] struct {
 	fn    func(T) R
 }
 
-func (self ParseMap[T, R]) eval(args *State) (R, Error) {
-	t, e := self.inner.eval(args)
+func (self ParseMap[T, R]) eval(state *State) (R, Error) {
+	t, e := self.inner.eval(state)
 	if e != nil {
 		return *new(R), e
 	}

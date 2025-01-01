@@ -10,15 +10,15 @@ func (self ParseWith[T, R]) Parser() Parser[R] {
 	return Parser[R]{self.eval, self.inner.meta}
 }
 
-func (self ParseWith[T, R]) eval(args *State) (R, Error) {
-	t, err := self.inner.eval(args)
+func (self ParseWith[T, R]) eval(state *State) (R, Error) {
+	t, err := self.inner.eval(state)
 	if err != nil {
 		return *new(R), err
 	}
 
 	r, errr := self.parse_fn(t)
 	if errr != nil {
-		return *new(R), ErrorParseFailed{args.current, errr.Error()}
+		return *new(R), ErrorParseFailed{state.current, errr.Error()}
 	}
 
 	return r, nil

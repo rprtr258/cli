@@ -114,61 +114,61 @@ func (self ParseCommand[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaItem(self.item())}
 }
 
-func (self ParseCommand[T]) eval(args *State) (T, Error) {
+func (self ParseCommand[T]) eval(state *State) (T, Error) {
 	// used to avoid allocations for short names
 	tmp := ""
-	if fun.Any(func(long string) bool { return args.take_cmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
+	if fun.Any(func(long string) bool { return state.take_cmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
 		tmp = string([]byte{s})
-		return args.take_cmd(tmp)
+		return state.take_cmd(tmp)
 	}, self.shorts...) {
-		if args.touching_last_remove() {
+		if state.touching_last_remove() {
 			// in completion mode prefer to autocomplete the command name vs going inside the parser
-			args.clear_comps()
-			args.push_command(self.longs[0], First(self.shorts), self.help)
+			state.clear_comps()
+			state.push_command(self.longs[0], First(self.shorts), self.help)
 			return *new(T), ErrorMissing(nil)
 		}
 
-		if cur, ok := args.current.Unpack(); ok {
-			args.set_scope(Range{cur, args.scope.end()})
+		if cur, ok := state.current.Unpack(); ok {
+			state.set_scope(Range{cur, state.scope.end()})
 		}
 
-		args.path = append(args.path, self.longs[0])
+		state.path = append(state.path, self.longs[0])
 		if self.adjacent {
-			orig_args := args.clone()
+			orig_args := state.clone()
 
 			// narrow down the scope to adjacently available elements
-			args.set_scope(args.adjacently_available_from(args.scope.start() + 1))
+			state.set_scope(state.adjacently_available_from(state.scope.start() + 1))
 
-			ok, xxx := self.subparser.run_subparser(args)
+			ok, xxx := self.subparser.run_subparser(state)
 			if xxx != nil {
-				orig_scope := args.scope
-				if narrow_scope, ok := args.adjacent_scope(orig_args); ok {
+				orig_scope := state.scope
+				if narrow_scope, ok := state.adjacent_scope(orig_args); ok {
 					orig_args.set_scope(narrow_scope)
 					if res, err := self.subparser.run_subparser(&orig_args); err == nil {
 						orig_args.set_scope(orig_scope)
-						orig_args, *args = *args, orig_args
+						orig_args, *state = *state, orig_args
 						return res, nil
 					}
 				}
 				return *new(T), Error(ErrorParseFailure{xxx})
 			}
 
-			args.set_scope(orig_args.scope)
+			state.set_scope(orig_args.scope)
 			return ok, nil
 		} else {
-			v, e := self.subparser.run_subparser(args)
+			v, e := self.subparser.run_subparser(state)
 			if e != nil {
 				return *new(T), ErrorParseFailure{e}
 			}
 			return v, nil
 		}
 	} else {
-		args.push_command(self.longs[0], First(self.shorts), self.help)
+		state.push_command(self.longs[0], First(self.shorts), self.help)
 
 		missing := MissingItem{
 			item:     self.item(),
-			position: args.scope.start(),
-			scope:    args.scope,
+			position: state.scope.start(),
+			scope:    state.scope,
 		}
 		return *new(T), ErrorMissing([]MissingItem{missing})
 	}

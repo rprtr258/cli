@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/rprtr258/fun"
+	funiter "github.com/rprtr258/fun/iter"
 )
 
 type CompExtra struct {
@@ -459,7 +460,7 @@ func (self State) check_complete() (string, bool) {
 	}
 
 	next, cancel := iter.Pull2(func(yield func(Arg, string) bool) {
-		for s := range rev(self.items) {
+		for _, s := range slices.Backward(self.items) {
 			if s.str != "" && !yield(s, s.str) {
 				break
 			}
@@ -608,8 +609,9 @@ func (self Complete) complete(
 	items := []ShowComp{}
 	shell := []ShellComp{}
 F:
-	for item := range filter(slices.Values(self.comps),
-		func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
+	for item := range funiter.
+		FromMany(self.comps...).
+		Filter(func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
 		switch {
 		case only_values == item.only_value():
 		case only_values:

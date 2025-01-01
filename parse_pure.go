@@ -9,8 +9,8 @@ func (self parsePure[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, MetaSkip{}}
 }
 
-func (self parsePure[T]) eval(args *State) (T, Error) {
-	args.current = Invalid[int]()
+func (self parsePure[T]) eval(state *State) (T, Error) {
+	state.current = Invalid[int]()
 	return self.inner, nil
 }
 

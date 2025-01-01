@@ -11,12 +11,12 @@ func (self ParseCount[T]) Parser() Parser[int] {
 	return Parser[int]{self.eval, MetaMany{MetaOptional{self.inner.meta}}}
 }
 
-func (self ParseCount[T]) eval(args *State) (int, Error) {
+func (self ParseCount[T]) eval(state *State) (int, Error) {
 	res := 0
-	current := args.len()
+	current := state.len()
 	len := uint(math.MaxUint)
 	for {
-		vv, err := parse_option(self.inner, &len, args, false)
+		vv, err := parse_option(self.inner, &len, state, false)
 		if err != nil {
 			return 0, err
 		}
@@ -24,10 +24,10 @@ func (self ParseCount[T]) eval(args *State) (int, Error) {
 			break
 		}
 		res += 1
-		if current == args.len() {
+		if current == state.len() {
 			break
 		}
-		current = args.len()
+		current = state.len()
 	}
 	return res, nil
 }

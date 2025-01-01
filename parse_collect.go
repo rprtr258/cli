@@ -13,11 +13,11 @@ func ParseCollectParser[T any](self ParseCollect[T]) Parser[[]T] {
 	return Parser[[]T]{self.eval, MetaMany{MetaRequired{self.inner.meta}}}
 }
 
-func (self ParseCollect[T]) eval(args *State) ([]T, Error) {
+func (self ParseCollect[T]) eval(state *State) ([]T, Error) {
 	len := uint(math.MaxUint)
 	res := []T{}
 	for {
-		xx, err := parse_option(self.inner, &len, args, self.catch)
+		xx, err := parse_option(self.inner, &len, state, self.catch)
 		if err != nil {
 			return nil, err
 		}

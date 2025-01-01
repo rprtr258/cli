@@ -13,18 +13,18 @@ func (self ParseFallback[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-func (self ParseFallback[T]) eval(args *State) (T, Error) {
-	clone := args.clone()
+func (self ParseFallback[T]) eval(state *State) (T, Error) {
+	clone := state.clone()
 	ok, e := self.inner.eval(&clone)
 	if e != nil {
-		args.swap_comps(&clone)
+		state.swap_comps(&clone)
 		if can_catch(Error(e)) {
 			return self.value, nil
 		} else {
 			return *new(T), Error(e)
 		}
 	}
-	*args = clone
+	*state = clone
 	return ok, nil
 }
 
@@ -88,14 +88,14 @@ func (self ParseFallbackWith[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
-func (self ParseFallbackWith[T]) eval(args *State) (T, Error) {
-	clone := args.clone()
+func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
+	clone := state.clone()
 	ok, e := self.inner.eval(&clone)
 	if e == nil {
-		*args, clone = clone, *args
+		*state, clone = clone, *state
 		return ok, nil
 	} else {
-		args.swap_comps(&clone)
+		state.swap_comps(&clone)
 		if can_catch(Error(e)) {
 			ok, e := self.fallback()
 			if e != nil {
