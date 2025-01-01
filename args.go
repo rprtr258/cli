@@ -3,7 +3,6 @@ package cli
 import (
 	"bytes"
 	"math"
-	"os"
 	"path/filepath"
 	"unicode/utf8"
 
@@ -81,10 +80,10 @@ func (self Args) set_name(name string) Args {
 }
 
 // Get a list of command line arguments from OS
-func current_args() Args {
-	name := os.Args[0]
+func current_args(args []string) Args {
+	name := args[0]
 	return Args{
-		items: os.Args[1:],
+		items: args[1:],
 		name:  Valid(filepath.Base(name)),
 		c_rev: Invalid[uint](),
 	}
