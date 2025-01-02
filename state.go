@@ -423,22 +423,12 @@ func (self *State) takePositional(metavar Metavar) (int, bool, string, Error) {
 
 // take a static string argument from the first present argument
 func (self *State) take_cmd(w string) bool {
-	next := self.items_iter()
-	ix, a, ok := next()
+	ix, a, ok := self.items_iter()()
 	if !ok || a.str != w {
 		goto INVALID
 	}
 
-	if func() bool {
-		switch a.kind {
-		case ArgKindShortFlag, ArgKindWord:
-			return true
-		case ArgKindLongFlag:
-			return !a.is_adj
-		default:
-			return false
-		}
-	}() {
+	if fun.Contains(a.kind, ArgKindShortFlag, ArgKindWord) || a.kind == ArgKindLongFlag && !a.is_adj {
 		self.remove(ix)
 		self.currentIdx = Valid(ix)
 		return true
