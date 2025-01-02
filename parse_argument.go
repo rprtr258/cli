@@ -57,15 +57,14 @@ func (self parseArgument[T]) item() (Item, bool) {
 func (self parseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	valueStr, err := func() (string, Error) {
-		if valueStrOpt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
+		valueStrOpt, err := state.take_arg(self.named, self.adjacent, self.metavar)
+		if err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
-		} else if valueStr, ok := valueStrOpt.Unpack(); ok {
-			if state.touching_last_remove() {
-				state.push_metavar(self.metavar, self.named.help, true)
-			}
-			return valueStr, nil
-		} else {
+		}
+
+		valueStr, ok := valueStrOpt.Unpack()
+		if !ok {
 			state.push_argument(self.named, self.metavar)
 			if val, ok := find_map(self.named.env, os.LookupEnv); ok {
 				state.currentIdx = Invalid[int]()
@@ -84,6 +83,11 @@ func (self parseArgument[T]) eval(state *State) (T, Error) {
 			}
 			panic("unreachable")
 		}
+
+		if state.touching_last_remove() {
+			state.push_metavar(self.metavar, self.named.help, true)
+		}
+		return valueStr, nil
 	}()
 	if err != nil {
 		return *new(T), err
