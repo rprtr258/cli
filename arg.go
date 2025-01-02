@@ -30,7 +30,7 @@ type Arg struct {
 	// kind is short or long flag
 	// if it looks like --key=val or not
 	// if following item is also part of this Short
-	is_adj bool
+	isAdjacent bool
 	// kind is short flag
 	c byte
 	// kind is long flag
@@ -50,11 +50,11 @@ func ArgPositional(str string) Arg {
 }
 
 func ArgShort(str string, c byte, b bool) Arg {
-	return Arg{str: str, kind: ArgKindShortFlag, c: c, is_adj: b}
+	return Arg{str: str, kind: ArgKindShortFlag, c: c, isAdjacent: b}
 }
 
 func ArgLong(str string, s string, b bool) Arg {
-	return Arg{str: str, kind: ArgKindLongFlag, s: s, is_adj: b}
+	return Arg{str: str, kind: ArgKindLongFlag, s: s, isAdjacent: b}
 }
 
 func (self Arg) IsShort() bool {
@@ -80,9 +80,9 @@ func (self Arg) match_long(val string) bool {
 func (self Arg) String() string {
 	switch self.kind {
 	case ArgKindShortFlag:
-		return fmt.Sprintf("Short(%s, %c, %v)", self.str, self.c, self.is_adj)
+		return fmt.Sprintf("Short(%s, %c, %v)", self.str, self.c, self.isAdjacent)
 	case ArgKindLongFlag:
-		return fmt.Sprintf("Long(%s, %s, %v)", self.str, self.s, self.is_adj)
+		return fmt.Sprintf("Long(%s, %s, %v)", self.str, self.s, self.isAdjacent)
 	case ArgKindFlagValue:
 		return fmt.Sprintf("ArgWord(%s)", self.str)
 	case ArgKindWord:

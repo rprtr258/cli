@@ -489,11 +489,11 @@ func (self State) check_complete() (string, bool) {
 	prefix := PrefixNA
 	switch preceeding.kind {
 	case ArgKindShortFlag:
-		if preceeding.is_adj {
+		if preceeding.isAdjacent {
 			prefix = PrefixShort(preceeding.c)
 		}
 	case ArgKindLongFlag:
-		if preceeding.is_adj {
+		if preceeding.isAdjacent {
 			prefix = PrefixLong(preceeding.s)
 		}
 	}

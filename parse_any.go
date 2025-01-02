@@ -34,7 +34,7 @@ func (self ParseAny[T]) eval(state *State) (T, Error) {
 	for ix, x := range push2(state.items_iter()) {
 		if i, ok := self.parse(x.str); ok {
 			state.remove(ix)
-			if x.is_adj {
+			if x.isAdjacent {
 				state.remove(ix + 1)
 			}
 

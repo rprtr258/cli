@@ -126,7 +126,7 @@ func (self NamedArg) Switch() ParseFlag[bool] {
 // `adjacent` requires for the argument to be present in the same word as the flag:
 // `-f bar` - no, `-fbar` or `-f=bar` - yes.
 func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
-	return (!adjacent || arg.is_adj) &&
+	return (!adjacent || arg.isAdjacent) &&
 		(arg.kind == ArgKindShortFlag && fun.Contains(arg.c, self.short...) ||
 			arg.kind == ArgKindLongFlag && fun.Contains(arg.s, self.long...))
 }
