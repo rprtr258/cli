@@ -359,12 +359,12 @@ func (self *State) takeFlag(
 	metavar Metavar,
 ) (Option[string], Error) {
 	var (
-		key_ix int
-		ok     bool
+		idx int
+		ok  bool
 	)
 	for i, arg := range push2(self.items_iter()) {
 		if named.matches_arg(arg, adjacent) {
-			key_ix, ok = i, true
+			idx, ok = i, true
 			break
 		}
 	}
@@ -372,15 +372,14 @@ func (self *State) takeFlag(
 		return Invalid[string](), nil
 	}
 
-	val_ix := key_ix + 1
-	ww, ok := self.get(val_ix)
+	ww, ok := self.get(idx + 1)
 	if !ok || !fun.Contains(ww.kind, ArgKindFlagValue, ArgKindWord) {
-		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
+		return Option[string]{}, ErrorNoArgument{idx, metavar}
 	}
 
-	self.currentIdx = Valid(val_ix)
-	self.remove(key_ix)
-	self.remove(val_ix)
+	self.currentIdx = Valid(idx + 1)
+	self.remove(idx)
+	self.remove(idx + 1)
 	return Valid(ww.str), nil
 }
 
