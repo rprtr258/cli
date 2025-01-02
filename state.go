@@ -267,19 +267,13 @@ func (self State) adjacently_available_from(start int) Range {
 	return Range{start, start + span_size}
 }
 
-type argRangesIter struct {
-	args  State
-	width int
-	cur   int
-}
-
 type argRangesIterItem struct {
 	startOffset         int
 	widthOfTheFirstItem int
 	state               State
 }
 
-func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
+func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 	width := 0
 	switch item.v.(type) {
 	case ItemFlag:
@@ -288,25 +282,28 @@ func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
 		width = 2
 	}
 
-	self := &argRangesIter{self, width, 0}
+	type argRangesIter struct {
+		cur int
+	}
+	it := &argRangesIter{0}
 	return func() (argRangesIterItem, bool) {
 		for {
-			cur := self.cur
-			if cur > self.args.scope.end() {
+			cur := it.cur
+			if cur > args.scope.end() {
 				return argRangesIterItem{}, false
 			}
-			self.cur += 1
-			if v, ok := self.args.present(cur); ok && !v {
+			it.cur += 1
+			if v, ok := args.present(cur); ok && !v {
 				continue
 			}
-			if cur+self.width > len(self.args.items) {
+			if cur+width > len(args.items) {
 				return argRangesIterItem{}, false
 			}
 			// It should be possible to optimize this code a bit
 			// by checking if first item can possibly
-			args := self.args.clone()
-			args.scope = Range{cur, len(self.args.items)}
-			return argRangesIterItem{cur, self.width, args}, true
+			args := args.clone()
+			args.scope = Range{cur, len(args.items)}
+			return argRangesIterItem{cur, width, args}, true
 		}
 	}
 }
