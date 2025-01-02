@@ -285,11 +285,12 @@ func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 	itcur := 0
 	return func() (argRangesIterItem, bool) {
 		for {
-			cur := itcur
-			if cur > args.scope.end() {
+			if itcur > args.scope.end() {
 				return argRangesIterItem{}, false
 			}
-			itcur += 1
+
+			cur := itcur
+			itcur++
 			if v, ok := args.present(cur); ok && !v {
 				continue
 			}
