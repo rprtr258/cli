@@ -393,14 +393,14 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 		ok     bool
 	)
 	iter := push2(self.items_iter())
-	for ixix, arg := range iter {
+	for i, arg := range iter {
 		switch arg.kind {
 		case ArgKindWord:
-			ix = ixix
+			ix = i
 			strict, ok = false, true
 			w = arg
 		case ArgKindPositional:
-			ix = ixix
+			ix = i
 			strict, ok = true, true
 			w = arg
 		}
@@ -413,13 +413,11 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 		self.remove(ix)
 		return ix, strict, w.str, nil
 	} else {
-		scope := self.scope
-		missing := MissingItem{
+		return 0, false, "", ErrorMissing([]MissingItem{{
 			item:     Item{Invalid[Doc](), ItemPositional{metavar}},
-			position: scope.start(),
-			scope:    scope,
-		}
-		return 0, false, "", ErrorMissing([]MissingItem{missing})
+			position: self.scope.start(),
+			scope:    self.scope,
+		}})
 	}
 }
 
