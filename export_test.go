@@ -10,6 +10,12 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func (self State) peek() (Arg, bool) {
+	next := self.items_iter()
+	_, a, ok := next()
+	return a, ok
+}
+
 func (parser *OptionParser[T]) RunInner(args Args) (T, ParseFailure) {
 	return parser.run(args)
 }
