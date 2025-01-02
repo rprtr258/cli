@@ -24,7 +24,7 @@ func (self ParseCon[T]) Parser() Parser[T] {
 
 func (self ParseCon[T]) eval(state *State) (T, Error) {
 	res, err := self.inner(self.failfast, state)
-	state.current = Invalid[int]()
+	state.currentIdx = Invalid[int]()
 	return res, err
 }
 
@@ -108,7 +108,7 @@ func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 		if errb != nil {
 			return R{}, errb
 		}
-		state.current = Invalid[int]()
+		state.currentIdx = Invalid[int]()
 		return R{a, b}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}
@@ -140,7 +140,7 @@ func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[
 		if errc != nil {
 			return R{}, errc
 		}
-		state.current = Invalid[int]()
+		state.currentIdx = Invalid[int]()
 		return R{a, b, c}, nil
 	}
 	return &ParseCon[R]{inner, meta, false}

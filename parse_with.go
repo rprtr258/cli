@@ -18,7 +18,7 @@ func (self ParseWith[T, R]) eval(state *State) (R, Error) {
 
 	r, errr := self.parse_fn(t)
 	if errr != nil {
-		return *new(R), ErrorParseFailed{state.current, errr.Error()}
+		return *new(R), ErrorParseFailed{state.currentIdx, errr.Error()}
 	}
 
 	return r, nil

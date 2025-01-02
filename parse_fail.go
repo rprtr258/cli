@@ -10,7 +10,7 @@ func (self ParseFail[T]) Parser() Parser[T] {
 }
 
 func (self ParseFail[T]) eval(state *State) (T, Error) {
-	state.current = Invalid[int]()
+	state.currentIdx = Invalid[int]()
 	return *new(T), ErrorParseFail(self.field1)
 }
 

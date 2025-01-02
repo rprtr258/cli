@@ -107,7 +107,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 
 	t, errr := self.p(word)
 	if errr != nil {
-		return *new(T), ErrorParseFailed{state.current, errr.Error()}
+		return *new(T), ErrorParseFailed{state.currentIdx, errr.Error()}
 	}
 	return t, nil
 }

@@ -10,7 +10,7 @@ func (self parsePure[T]) Parser() Parser[T] {
 }
 
 func (self parsePure[T]) eval(state *State) (T, Error) {
-	state.current = Invalid[int]()
+	state.currentIdx = Invalid[int]()
 	return self.inner, nil
 }
 

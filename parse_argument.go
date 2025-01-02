@@ -63,7 +63,7 @@ func (self ParseArgument[T]) eval(state *State) (T, Error) {
 		} else {
 			state.push_argument(self.named, self.metavar)
 			if val, ok := find_map(self.named.env, os.LookupEnv); ok {
-				state.current = Invalid[int]()
+				state.currentIdx = Invalid[int]()
 				return val, nil
 			}
 
@@ -86,7 +86,7 @@ func (self ParseArgument[T]) eval(state *State) (T, Error) {
 
 	t, errr := self.parse(valueStr)
 	if errr != nil {
-		return *new(T), ErrorParseFailed{state.current, errr.Error()}
+		return *new(T), ErrorParseFailed{state.currentIdx, errr.Error()}
 	}
 	return t, nil
 }

@@ -156,7 +156,7 @@ type State struct {
 
 	// Used to render an error message for `parse`
 	// contains an index of a currently consumed item if we are parsing a single item
-	current Option[int]
+	currentIdx Option[int]
 
 	// path to current command, "deeper" parser should win in or_else branches
 	path []string
@@ -313,7 +313,7 @@ func (self State) items_iter() func() (int, Arg, bool) {
 
 func (self *State) remove(index int) {
 	if self.scope.contains(index) && !self.item_state[index].parsed() {
-		self.current = Valid(index)
+		self.currentIdx = Valid(index)
 		self.item_state[index] = ItemStateParsed
 	}
 }
@@ -456,7 +456,7 @@ func (self State) ranges(item Item) ArgRangesIter {
 
 // check if bpaf tries to complete last consumed element
 func (self State) touching_last_remove() bool {
-	return self.comp.Valid && len(self.items)-1 == self.current.OrDefault(math.MaxInt)
+	return self.comp.Valid && len(self.items)-1 == self.currentIdx.OrDefault(math.MaxInt)
 }
 
 func (self *State) comp_mut() (*Complete, bool) {
@@ -528,7 +528,7 @@ func (self *State) take_arg(
 	} else {
 		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
 	}
-	self.current = Valid(val_ix)
+	self.currentIdx = Valid(val_ix)
 	self.remove(key_ix)
 	self.remove(val_ix)
 	return Valid(val), nil
@@ -562,7 +562,7 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 		}
 	}
 	if ok {
-		self.current = Valid(ix)
+		self.currentIdx = Valid(ix)
 		self.remove(ix)
 		return ix, strict, w.str, nil
 	} else {
@@ -595,12 +595,12 @@ func (self *State) take_cmd(w string) bool {
 		}
 	}() {
 		self.remove(ix)
-		self.current = Valid(ix)
+		self.currentIdx = Valid(ix)
 		return true
 	}
 
 INVALID:
-	self.current = Invalid[int]()
+	self.currentIdx = Invalid[int]()
 	return false
 }
 

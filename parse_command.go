@@ -128,7 +128,7 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 			return *new(T), ErrorMissing(nil)
 		}
 
-		if cur, ok := state.current.Unpack(); ok {
+		if cur, ok := state.currentIdx.Unpack(); ok {
 			state.scope = Range{cur, state.scope.end()}
 		}
 
