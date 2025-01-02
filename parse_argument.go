@@ -5,9 +5,9 @@ import "os"
 // Parser for a named argument, created with [NamedArgargument].
 type ParseArgument[T any] struct {
 	named    NamedArg
-	metavar  string
+	metavar  Metavar
 	adjacent bool
-	p        func(string) (T, error)
+	parse    func(string) (T, error)
 }
 
 func (self ParseArgument[T]) Parser() Parser[T] {
@@ -52,7 +52,7 @@ func (self ParseArgument[T]) item() (Item, bool) {
 func (self ParseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	os, err := func() (string, Error) {
-		wopt, err := state.take_arg(self.named, self.adjacent, Metavar(self.metavar))
+		wopt, err := state.take_arg(self.named, self.adjacent, self.metavar)
 		if err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
@@ -86,7 +86,7 @@ func (self ParseArgument[T]) eval(state *State) (T, Error) {
 		return *new(T), err
 	}
 
-	t, errr := self.p(os)
+	t, errr := self.parse(os)
 	if errr != nil {
 		return *new(T), ErrorParseFailed{state.current, errr.Error()}
 	}
@@ -119,11 +119,11 @@ func (self ParseArgument[T]) meta() Meta {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Argument.md"))]
 //
 // You can further restrict it using [adjacent](ParseArgumentadjacent)
-func Argument[T any](self NamedArg, metavar string, p func(string) (T, error)) *ParseArgument[T] {
+func Argument[T any](self NamedArg, metavar Metavar, p func(string) (T, error)) *ParseArgument[T] {
 	return &ParseArgument[T]{
 		named:    self,
 		metavar:  metavar,
 		adjacent: false,
-		p:        p,
+		parse:    p,
 	}
 }

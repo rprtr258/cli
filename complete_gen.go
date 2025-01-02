@@ -25,7 +25,7 @@ type Comp func(
 	Argument func(
 		extra CompExtra,
 		name ShortLong,
-		metavar string,
+		metavar Metavar,
 	),
 
 	Command func(
@@ -45,7 +45,7 @@ type Comp func(
 
 	Metavariable func(
 		extra CompExtra,
-		meta string,
+		metavar Metavar,
 		// AKA not positional
 		is_argument bool,
 	),
@@ -61,10 +61,10 @@ type Comp func(
 func CompFlag(extra CompExtra, name ShortLong) Comp {
 	return func(
 		Flag func(extra CompExtra, name ShortLong),
-		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, ShortLong, Metavar),
 		_ func(CompExtra, string, Option[byte]),
 		_ func(CompExtra, string, bool),
-		_ func(CompExtra, string, bool),
+		_ func(CompExtra, Metavar, bool),
 		_ func(CompExtra, ShellComp, bool),
 	) {
 		if Flag != nil {
@@ -73,13 +73,13 @@ func CompFlag(extra CompExtra, name ShortLong) Comp {
 	}
 }
 
-func CompArgument(extra CompExtra, name ShortLong, metavar string) Comp {
+func CompArgument(extra CompExtra, name ShortLong, metavar Metavar) Comp {
 	return func(
 		_ func(CompExtra, ShortLong),
-		Argument func(extra CompExtra, name ShortLong, metavar string),
+		Argument func(extra CompExtra, name ShortLong, metavar Metavar),
 		_ func(CompExtra, string, Option[byte]),
 		_ func(CompExtra, string, bool),
-		_ func(CompExtra, string, bool),
+		_ func(CompExtra, Metavar, bool),
 		_ func(CompExtra, ShellComp, bool),
 	) {
 		if Argument != nil {
@@ -91,10 +91,10 @@ func CompArgument(extra CompExtra, name ShortLong, metavar string) Comp {
 func CompCommand(a CompExtra, b string, c Option[byte]) Comp {
 	return func(
 		_ func(CompExtra, ShortLong),
-		_ func(extra CompExtra, name ShortLong, metavar string),
+		_ func(extra CompExtra, name ShortLong, metavar Metavar),
 		f func(CompExtra, string, Option[byte]),
 		_ func(CompExtra, string, bool),
-		_ func(CompExtra, string, bool),
+		_ func(CompExtra, Metavar, bool),
 		_ func(CompExtra, ShellComp, bool),
 	) {
 		if f != nil {
@@ -110,10 +110,10 @@ func CompValue(
 ) Comp {
 	return func(
 		_ func(CompExtra, ShortLong),
-		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, ShortLong, Metavar),
 		_ func(CompExtra, string, Option[byte]),
 		Value func(extra CompExtra, body string, is_argument bool),
-		_ func(CompExtra, string, bool),
+		_ func(CompExtra, Metavar, bool),
 		_ func(CompExtra, ShellComp, bool),
 	) {
 		if Value != nil {
@@ -124,19 +124,19 @@ func CompValue(
 
 func CompMetavariable(
 	a CompExtra,
-	b string,
+	metavar Metavar,
 	c bool,
 ) Comp {
 	return func(
 		_ func(CompExtra, ShortLong),
-		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, ShortLong, Metavar),
 		_ func(CompExtra, string, Option[byte]),
 		_ func(extra CompExtra, body string, is_argument bool),
-		f func(CompExtra, string, bool),
+		f func(CompExtra, Metavar, bool),
 		_ func(CompExtra, ShellComp, bool),
 	) {
 		if f != nil {
-			f(a, b, c)
+			f(a, metavar, c)
 		}
 	}
 }
@@ -148,10 +148,10 @@ func CompShell(
 ) Comp {
 	return func(
 		_ func(CompExtra, ShortLong),
-		_ func(CompExtra, ShortLong, string),
+		_ func(CompExtra, ShortLong, Metavar),
 		_ func(CompExtra, string, Option[byte]),
 		_ func(extra CompExtra, body string, is_argument bool),
-		_ func(CompExtra, string, bool),
+		_ func(CompExtra, Metavar, bool),
 		f func(CompExtra, ShellComp, bool),
 	) {
 		if f != nil {
@@ -212,7 +212,7 @@ func (self *State) push_flag(named NamedArg) {
 }
 
 // Add a new completion hint for an argument, if needed
-func (self *State) push_argument(named NamedArg, metavar string) {
+func (self *State) push_argument(named NamedArg, metavar Metavar) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
 		if name, ok := ShortLongtry_from(named); ok {
@@ -234,7 +234,7 @@ func (self *State) push_argument(named NamedArg, metavar string) {
 // `is_argument` is set to true when we are trying to parse the value and false if
 // when meta
 func (self *State) push_metavar(
-	meta string,
+	meta Metavar,
 	help Option[Doc],
 	is_argument bool,
 ) {
@@ -341,10 +341,6 @@ func (self *Complete) extend_comps(comps []Comp) {
 	self.comps = append(self.comps, comps...)
 }
 
-func (self *Complete) drain_comps() []Comp {
-	return self.comps
-}
-
 func (self *Complete) swap_comps(other *[]Comp) {
 	*other, self.comps = self.comps, *other
 }
@@ -354,10 +350,10 @@ func (self Comp) depth() int {
 	var res int
 	self(
 		func(extra CompExtra, _ ShortLong) { res = extra.depth },
-		func(extra CompExtra, _ ShortLong, _ string) { res = extra.depth },
+		func(extra CompExtra, _ ShortLong, _ Metavar) { res = extra.depth },
 		func(extra CompExtra, _ string, _ Option[byte]) { res = extra.depth },
 		func(extra CompExtra, _ string, _ bool) { res = extra.depth },
-		func(extra CompExtra, _ string, _ bool) { res = extra.depth },
+		func(extra CompExtra, _ Metavar, _ bool) { res = extra.depth },
 		func(extra CompExtra, _ ShellComp, _ bool) { res = extra.depth },
 	)
 	return res
@@ -368,7 +364,7 @@ func (self Comp) depth() int {
 // value indicates if it's an argument or a positional meta
 func (self Comp) is_metavar() (bool, bool) {
 	var res, ok bool
-	self(nil, nil, nil, nil, func(_ CompExtra, _ string, is_argument bool) { res, ok = is_argument, true }, nil)
+	self(nil, nil, nil, nil, func(_ CompExtra, _ Metavar, is_argument bool) { res, ok = is_argument, true }, nil)
 	return res, ok
 }
 
@@ -376,10 +372,10 @@ func (self *Comp) set_group(group string) {
 	var extraa CompExtra
 	(*self)(
 		func(extra CompExtra, _ ShortLong) { extraa = extra },
-		func(extra CompExtra, _ ShortLong, _ string) { extraa = extra },
+		func(extra CompExtra, _ ShortLong, _ Metavar) { extraa = extra },
 		func(extra CompExtra, _ string, _ Option[byte]) { extraa = extra },
 		func(extra CompExtra, _ string, _ bool) { extraa = extra },
-		func(extra CompExtra, _ string, _ bool) { extraa = extra },
+		func(extra CompExtra, _ Metavar, _ bool) { extraa = extra },
 		func(extra CompExtra, _ ShellComp, _ bool) { extraa = extra },
 	)
 	if !extraa.group.Valid {
@@ -575,7 +571,7 @@ func (self Comp) only_value() bool {
 		nil,
 		nil,
 		func(_ CompExtra, _ string, is_argument bool) { res = is_argument },
-		func(_ CompExtra, _ string, is_argument bool) { res = is_argument },
+		func(_ CompExtra, _ Metavar, is_argument bool) { res = is_argument },
 		func(_ CompExtra, _ ShellComp, is_argument bool) { res = is_argument },
 	)
 	return res
@@ -588,7 +584,7 @@ func (self Comp) is_pos() bool {
 		nil,
 		nil,
 		func(_ CompExtra, _ string, is_argument bool) { res = !is_argument },
-		func(_ CompExtra, _ string, is_argument bool) { res = true },
+		func(_ CompExtra, _ Metavar, is_argument bool) { res = true },
 		func(_ CompExtra, _ ShellComp, is_argument bool) { res = true },
 	)
 	return res
@@ -634,7 +630,7 @@ F:
 			func(
 				extra CompExtra,
 				name ShortLong,
-				metavar string,
+				metavar Metavar,
 			) {
 				if long, ok := arg_matches(arg, name); ok {
 					items = append(items, ShowComp{
@@ -678,13 +674,13 @@ F:
 			},
 			func(
 				extra CompExtra,
-				meta string,
+				meta Metavar,
 				is_argument bool,
 			) {
 				if is_argument || pos_only || !starts_withb(arg, '-') {
 					items = append(items, ShowComp{
 						subst:  "",
-						pretty: meta,
+						pretty: string(meta),
 						extra:  extra,
 					})
 				}

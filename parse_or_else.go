@@ -124,10 +124,10 @@ func this_or_that_picks_first(
 		b, ok2 := args_b.comp_mut()
 		if ok1 && ok2 {
 			if keep_a {
-				*comp_stash = append(*comp_stash, a.drain_comps()...)
+				*comp_stash = append(*comp_stash, a.comps...)
 			}
 			if keep_b {
-				*comp_stash = append(*comp_stash, b.drain_comps()...)
+				*comp_stash = append(*comp_stash, b.comps...)
 			}
 		}
 	}

@@ -87,7 +87,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 	ix, is_strict, word, err := state.take_positional_word(metavar)
 	if err != nil {
 		if !state.check_no_pos_ahead() {
-			state.push_metavar(string(metavar), help, false)
+			state.push_metavar(metavar, help, false)
 			state.set_no_pos_ahead()
 		}
 		return *new(T), err
@@ -101,7 +101,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 	}
 
 	if state.touching_last_remove() && !state.check_no_pos_ahead() {
-		state.push_metavar(string(metavar), help, false)
+		state.push_metavar(metavar, help, false)
 		state.set_no_pos_ahead()
 	}
 
