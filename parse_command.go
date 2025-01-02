@@ -164,13 +164,11 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 		}
 	} else {
 		state.push_command(self.longs[0], First(self.shorts), self.help)
-
-		missing := MissingItem{
+		return *new(T), ErrorMissing([]MissingItem{{
 			item:     self.item(),
 			position: state.scope.start(),
 			scope:    state.scope,
-		}
-		return *new(T), ErrorMissing([]MissingItem{missing})
+		}})
 	}
 }
 
