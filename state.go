@@ -279,28 +279,7 @@ type argRangesIterItem struct {
 	state               State
 }
 
-func (self *argRangesIter) next() (argRangesIterItem, bool) {
-	for {
-		cur := self.cur
-		if cur > self.args.scope.end() {
-			return argRangesIterItem{}, false
-		}
-		self.cur += 1
-		if v, ok := self.args.present(cur); ok && !v {
-			continue
-		}
-		if cur+self.width > len(self.args.items) {
-			return argRangesIterItem{}, false
-		}
-		// It should be possible to optimize this code a bit
-		// by checking if first item can possibly
-		args := self.args.clone()
-		args.scope = Range{cur, len(self.args.items)}
-		return argRangesIterItem{cur, self.width, args}, true
-	}
-}
-
-func (self State) ranges(item Item) argRangesIter {
+func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
 	width := 0
 	switch item.v.(type) {
 	case ItemFlag:
@@ -309,7 +288,27 @@ func (self State) ranges(item Item) argRangesIter {
 		width = 2
 	}
 
-	return argRangesIter{self, width, 0}
+	self := &argRangesIter{self, width, 0}
+	return func() (argRangesIterItem, bool) {
+		for {
+			cur := self.cur
+			if cur > self.args.scope.end() {
+				return argRangesIterItem{}, false
+			}
+			self.cur += 1
+			if v, ok := self.args.present(cur); ok && !v {
+				continue
+			}
+			if cur+self.width > len(self.args.items) {
+				return argRangesIterItem{}, false
+			}
+			// It should be possible to optimize this code a bit
+			// by checking if first item can possibly
+			args := self.args.clone()
+			args.scope = Range{cur, len(self.args.items)}
+			return argRangesIterItem{cur, self.width, args}, true
+		}
+	}
 }
 
 // check if bpaf tries to complete last consumed element

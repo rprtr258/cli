@@ -29,9 +29,9 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 	best_args := state.clone()
 	best_consumed := 0
 
-	iter := state.ranges(first_item)
+	next := state.ranges(first_item)
 	for {
-		start_width, ok := iter.next()
+		start_width, ok := next()
 		if !ok {
 			break
 		}
