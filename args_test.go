@@ -113,7 +113,7 @@ func TestTwo_short_flags2(t *testing.T) {
 
 func TestCommand_with_flags(t *testing.T) {
 	a := Statefrom([]string{"cmd", "-s", "v"})
-	require.True(t, a.take_cmd("cmd"))
+	require.True(t, a.takeCmd("cmd"))
 	s := unwrapunwrap(a.takeFlag(Short('s'), false, M))
 	require.Equal(t, s, "v")
 	require.Zero(t, a.len())
@@ -121,7 +121,7 @@ func TestCommand_with_flags(t *testing.T) {
 
 func TestCommand_and_positional(t *testing.T) {
 	a := Statefrom([]string{"cmd", "pos"})
-	require.True(t, a.take_cmd("cmd"))
+	require.True(t, a.takeCmd("cmd"))
 	_, _, w, err := a.takePositional(M)
 	require.Nil(t, err)
 	require.Equal(t, w, "pos")

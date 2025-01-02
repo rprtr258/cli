@@ -117,9 +117,9 @@ func (self ParseCommand[T]) Parser() Parser[T] {
 func (self ParseCommand[T]) eval(state *State) (T, Error) {
 	// used to avoid allocations for short names
 	tmp := ""
-	if fun.Any(func(long string) bool { return state.take_cmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
+	if fun.Any(func(long string) bool { return state.takeCmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
 		tmp = string([]byte{s})
-		return state.take_cmd(tmp)
+		return state.takeCmd(tmp)
 	}, self.shorts...) {
 		if state.touching_last_remove() {
 			// in completion mode prefer to autocomplete the command name vs going inside the parser
