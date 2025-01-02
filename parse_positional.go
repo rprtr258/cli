@@ -13,7 +13,7 @@ const (
 // You can add extra information to positional parsers with [help](Selfhelp),
 // [strict](Selfstrict), or [non_strict](Selfnon_strict) on this struct.
 type ParsePositional[T any] struct {
-	metavar  string
+	metavar  Metavar
 	help     Option[Doc]
 	position Position
 	p        func(string) (T, error)
@@ -81,13 +81,11 @@ func (self *ParsePositional[T]) NonStrict() *ParsePositional[T] {
 }
 
 func (self ParsePositional[T]) eval(state *State) (T, Error) {
-	metavar := Metavar(self.metavar)
-	help := self.help
 	position := self.position
-	ix, is_strict, word, err := state.takePositional(metavar)
+	ix, is_strict, word, err := state.takePositional(self.metavar)
 	if err != nil {
 		if !state.check_no_pos_ahead() {
-			state.push_metavar(metavar, help, false)
+			state.push_metavar(self.metavar, self.help, false)
 			state.set_no_pos_ahead()
 		}
 		return *new(T), err
@@ -95,13 +93,13 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 
 	if position == PositionStrict && !is_strict {
 		state.push_pos_sep()
-		return *new(T), ErrorStrictPos{ix, metavar}
+		return *new(T), ErrorStrictPos{ix, self.metavar}
 	} else if position == PositionNonStrict && is_strict {
-		return *new(T), ErrorNonStrictPos{ix, metavar}
+		return *new(T), ErrorNonStrictPos{ix, self.metavar}
 	}
 
 	if state.touching_last_remove() && !state.check_no_pos_ahead() {
-		state.push_metavar(metavar, help, false)
+		state.push_metavar(self.metavar, self.help, false)
 		state.set_no_pos_ahead()
 	}
 
@@ -151,7 +149,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 // further restrict the parser to accept Positional items only on the right side of `--` using
 // [strict](ParsePositionalstrict).
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Positional.md"))]
-func Positional[T any](metavar string, parse func(string) (T, error)) *ParsePositional[T] {
+func Positional[T any](metavar Metavar, parse func(string) (T, error)) *ParsePositional[T] {
 	return &ParsePositional[T]{
 		metavar:  metavar,
 		help:     Invalid[Doc](),
