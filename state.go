@@ -351,7 +351,7 @@ func (self *State) take_flag(named NamedArg) bool {
 
 // get a short or long arguments
 //
-// Returns Ok(Invalid()) if flag isn't present
+// Returns Invalid() if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
 func (self *State) take_arg(
 	named NamedArg,
@@ -362,15 +362,13 @@ func (self *State) take_arg(
 		key_ix int
 		ok     bool
 	)
-	iter := push2(self.items_iter())
-	for i, arg := range iter {
+	for i, arg := range push2(self.items_iter()) {
 		if named.matches_arg(arg, adjacent) {
 			key_ix = i
 			ok = true
 			break
 		}
 	}
-
 	if !ok {
 		return Invalid[string](), nil
 	}
