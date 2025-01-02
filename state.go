@@ -379,35 +379,20 @@ func (self *State) takeFlag(
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
 func (self *State) takePositional(metavar Metavar) (int, bool, string, Error) {
-	var (
-		ix     int
-		strict bool
-		w      Arg
-		ok     bool
-	)
 	iter := push2(self.items_iter())
 	for i, arg := range iter {
-		switch arg.kind {
-		case ArgKindWord, ArgKindPositional:
-			ix = i
-			strict, ok = arg.kind == ArgKindPositional, true
-			w = arg
-		}
-		if ok {
-			break
+		if fun.Contains(arg.kind, ArgKindWord, ArgKindPositional) {
+			strict := arg.kind == ArgKindPositional
+			self.currentIdx = Valid(i)
+			self.remove(i)
+			return i, strict, arg.str, nil
 		}
 	}
-	if !ok {
-		return 0, false, "", ErrorMissing([]MissingItem{{
-			item:     Item{Invalid[Doc](), ItemPositional{metavar}},
-			position: self.scope.start(),
-			scope:    self.scope,
-		}})
-	}
-
-	self.currentIdx = Valid(ix)
-	self.remove(ix)
-	return ix, strict, w.str, nil
+	return 0, false, "", ErrorMissing([]MissingItem{{
+		item:     Item{Invalid[Doc](), ItemPositional{metavar}},
+		position: self.scope.start(),
+		scope:    self.scope,
+	}})
 }
 
 // take a static string argument from the first present argument
@@ -418,8 +403,8 @@ func (self *State) take_cmd(w string) bool {
 	}
 
 	if fun.Contains(a.kind, ArgKindShortFlag, ArgKindWord) || a.kind == ArgKindLongFlag && !a.is_adj {
-		self.remove(ix)
 		self.currentIdx = Valid(ix)
+		self.remove(ix)
 		return true
 	}
 
