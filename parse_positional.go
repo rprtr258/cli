@@ -81,8 +81,7 @@ func (self *ParsePositional[T]) NonStrict() *ParsePositional[T] {
 }
 
 func (self ParsePositional[T]) eval(state *State) (T, Error) {
-	position := self.position
-	ix, is_strict, word, err := state.takePositional(self.metavar)
+	pos, isStrict, word, err := state.takePositional(self.metavar)
 	if err != nil {
 		if !state.check_no_pos_ahead() {
 			state.push_metavar(self.metavar, self.help, false)
@@ -91,11 +90,11 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 		return *new(T), err
 	}
 
-	if position == PositionStrict && !is_strict {
+	if self.position == PositionStrict && !isStrict {
 		state.push_pos_sep()
-		return *new(T), ErrorStrictPos{ix, self.metavar}
-	} else if position == PositionNonStrict && is_strict {
-		return *new(T), ErrorNonStrictPos{ix, self.metavar}
+		return *new(T), ErrorStrictPos{pos, self.metavar}
+	} else if self.position == PositionNonStrict && isStrict {
+		return *new(T), ErrorNonStrictPos{pos, self.metavar}
 	}
 
 	if state.touching_last_remove() && !state.check_no_pos_ahead() {
