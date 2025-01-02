@@ -11,7 +11,12 @@ type parseArgument[T any] struct {
 }
 
 func (self parseArgument[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta()}
+	meta := Meta(MetaSkip{})
+	if item, ok := self.item(); ok {
+		meta = MetaItem(item)
+	}
+
+	return Parser[T]{self.eval, meta}
 }
 
 // Add a help message to an `argument`
@@ -89,14 +94,6 @@ func (self parseArgument[T]) eval(state *State) (T, Error) {
 		return *new(T), ErrorParseFailed{state.currentIdx, errr.Error()}
 	}
 	return t, nil
-}
-
-func (self parseArgument[T]) meta() Meta {
-	if item, ok := self.item(); ok {
-		return MetaItem(item)
-	} else {
-		return MetaSkip{}
-	}
 }
 
 // Argument
