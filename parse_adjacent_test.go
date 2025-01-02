@@ -44,7 +44,7 @@ func TestAdjacent(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.run_inner(newArgs(tc.args...))
+			r, err := parser.run_inner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -96,7 +96,7 @@ func TestAdjacentPrefix(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.run_inner(newArgs(tc.args...))
+			r, err := parser.run_inner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})

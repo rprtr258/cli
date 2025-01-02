@@ -46,7 +46,7 @@ func TestGet_any_magic(t *testing.T) {
 		ToOptions()
 
 	// -b anana - isn't a -banana
-	_, r := parser.run_inner(newArgs("-b", "anana"))
+	_, r := parser.run_inner(NewArgs("-b", "anana"))
 	require.Equal(t, unwrap_stderr(r), "`-b` is not expected in this context")
 
 	// close enough :)

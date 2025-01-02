@@ -78,7 +78,7 @@ func (self OptionParser[T]) Run(args []string) T {
 	current_args := Args{
 		items: args[1:],
 		name:  Valid(filepath.Base(args[0])),
-		c_rev: Invalid[uint](),
+		comp:  Invalid[uint](),
 	}
 
 	t, err := self.run_inner(current_args)

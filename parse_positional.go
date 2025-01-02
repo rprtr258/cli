@@ -45,7 +45,7 @@ func (self *ParsePositional[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, meta}
 }
 
-// Changes positional parser to be a "strict" positional
+// Changes positional parser to be a "Strict" positional
 //
 // Usually positional items can appear anywhere on a command line:
 // ```console
@@ -62,10 +62,10 @@ func (self *ParsePositional[T]) Parser() Parser[T] {
 //
 // here `cargo` takes a `--help` as a positional item and passes it to the example
 //
-// `bpaf` allows to require user to pass `--` for positional items with `strict` annotation.
+// `bpaf` allows to require user to pass `--` for positional items with `Strict` annotation.
 // `bpaf` would display such positional elements differently in usage line as well.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional_strict.md"))]
-func (self *ParsePositional[T]) strict() *ParsePositional[T] {
+func (self *ParsePositional[T]) Strict() *ParsePositional[T] {
 	self.position = PositionStrict
 	return self
 }
@@ -75,7 +75,7 @@ func (self *ParsePositional[T]) strict() *ParsePositional[T] {
 // Ensures the parser always rejects "strict" positions to the right of the separator, `--`.
 // Essentially the inverse operation to [ParsePositionalstrict], which can be used to ensure
 // adjacent strict and nonstrict args never conflict with eachother.
-func (self *ParsePositional[T]) non_strict() *ParsePositional[T] {
+func (self *ParsePositional[T]) NonStrict() *ParsePositional[T] {
 	self.position = PositionNonStrict
 	return self
 }

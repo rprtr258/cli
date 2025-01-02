@@ -14,7 +14,7 @@ func map3[A, B, C any](_ A, _ B, _ C) struct{} {
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
 
-	_, output := parser.run_inner(newArgs("--help"))
+	_, output := parser.run_inner(NewArgs("--help"))
 	usage := strings.TrimPrefix(strings.Split(unwrap_stdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, expected, usage)
 }
@@ -195,7 +195,7 @@ func TestNo_actual_arguments_also_works(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Pure(true).Parser().ToOptions()
 
-	_, r := parser.run_inner(newArgs("--help"))
+	_, r := parser.run_inner(NewArgs("--help"))
 	require.Equal(t,
 		unwrap_stdout(r),
 		"Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n",
@@ -305,22 +305,22 @@ func TestCustom_usage(t *testing.T) {
 func TestDouble_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Positional("B", ParseUint).strict()
-	c := Positional("C", ParseUint).strict()
+	b := Positional("B", ParseUint).Strict()
+	c := Positional("C", ParseUint).Strict()
 	parser := Map3(a, b, c, map3).Parser().ToOptions()
 	assert_usage(t, parser, "[-a] -- B C")
 }
 
 func TestOptional_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Optional(Positional("A", ParseUint).strict().Parser(), false).Parser().ToOptions()
+	parser := Optional(Positional("A", ParseUint).Strict().Parser(), false).Parser().ToOptions()
 	assert_usage(t, parser, "-- [A]")
 }
 
 func TestMany_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Many(Positional("B", ParseUint).strict(), false)
+	b := Many(Positional("B", ParseUint).Strict(), false)
 	parser := Pair(a, b).Parser().ToOptions()
 	assert_usage(t, parser, "[-a] -- [B]...")
 }
@@ -328,13 +328,13 @@ func TestMany_strict(t *testing.T) {
 func TestQuadruple_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Positional("B", ParseUint).strict()
-	c := Positional("C", ParseUint).strict()
+	b := Positional("B", ParseUint).Strict()
+	c := Positional("C", ParseUint).Strict()
 	abc := Map3(a, b, c, map3)
 
 	d := Short('d').Switch()
-	e := Positional("E", ParseUint).strict()
-	f := Positional("F", ParseUint).strict()
+	e := Positional("E", ParseUint).Strict()
+	f := Positional("F", ParseUint).Strict()
 	def := Map3(d, e, f, map3)
 
 	parser := Choice(abc, def).Parser().ToOptions()
@@ -344,11 +344,11 @@ func TestQuadruple_strict(t *testing.T) {
 func TestQuadruple_strict_many(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
-	b := Many(Positional("B", ParseUint).strict(), false)
+	b := Many(Positional("B", ParseUint).Strict(), false)
 	ab := Pair(a, b)
 
 	d := Short('d').Switch()
-	f := Many(Positional("F", ParseUint).strict(), false)
+	f := Many(Positional("F", ParseUint).Strict(), false)
 	df := Pair(d, f)
 
 	parser := Choice(ab, df).Parser().ToOptions()

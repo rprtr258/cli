@@ -183,16 +183,6 @@ func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
 	}
 }
 
-func zalupa12[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		for v := range seq {
-			if !yield(v.K, v.V) {
-				return
-			}
-		}
-	}
-}
-
 func Len[T any](xs []T) int {
 	return len(xs)
 }

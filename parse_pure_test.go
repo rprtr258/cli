@@ -28,7 +28,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := opts.run_inner(newArgs(tc.args...))
+			r, err := opts.run_inner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -40,7 +40,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	b := PureWith(func() (uint32, Error) { return 0, ErrorParseFail("some-err") })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
-	_, err := opts.run_inner(newArgs())
+	_, err := opts.run_inner(NewArgs())
 	require.Equal(t, "some-err", unwrap_stderr(err))
 }
 
@@ -66,7 +66,7 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.run_inner(newArgs(tc.args...))
+			r, err := seeds.run_inner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -96,7 +96,7 @@ func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.run_inner(newArgs(tc.args...))
+			r, err := seeds.run_inner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})

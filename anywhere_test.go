@@ -14,7 +14,7 @@ func TestParse_anywhere_positional(t *testing.T) {
 	b := Short('b').Help("batch mode").Switch()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, r := parser.run_inner(newArgs("--help"))
+	_, r := parser.run_inner(NewArgs("--help"))
 
 	const expected = `Usage: X [-b]
 
@@ -39,31 +39,31 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 	// Usage: -a <x> [-c],
 
 	{
-		_, r := parser.run_inner(newArgs("3", "-a"))
+		_, r := parser.run_inner(NewArgs("3", "-a"))
 		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a"))
+		_, r := parser.run_inner(NewArgs("-a"))
 		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a", "221b"))
+		_, r := parser.run_inner(NewArgs("-a", "221b"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-c", "-a"))
+		_, r := parser.run_inner(NewArgs("-c", "-a"))
 		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-c", "-a", "221b"))
+		_, r := parser.run_inner(NewArgs("-c", "-a", "221b"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a", "-c"))
+		_, r := parser.run_inner(NewArgs("-a", "-c"))
 		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a", "221b", "-c"))
+		_, r := parser.run_inner(NewArgs("-a", "221b", "-c"))
 		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 }
@@ -78,17 +78,17 @@ func TestAnywhere_catch_optional(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Option[P], bool]
 	{
-		r, err := parser.run_inner(newArgs("-a", "10"))
+		r, err := parser.run_inner(NewArgs("-a", "10"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{Valid(P{struct{}{}, 10}), false})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-a"))
+		r, err := parser.run_inner(NewArgs("-a"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{Invalid[P](), true})
 	}
 	{
-		r, err := parser.run_inner(newArgs())
+		r, err := parser.run_inner(NewArgs())
 		require.Nil(t, err)
 		require.Equal(t, r, R{Invalid[P](), false})
 	}
@@ -104,17 +104,17 @@ func TestAnywhere_catch_many(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]fun.Pair[struct{}, uint], bool]
 	{
-		r, err := parser.run_inner(newArgs("-a"))
+		r, err := parser.run_inner(NewArgs("-a"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{}, true})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-a", "10"))
+		r, err := parser.run_inner(NewArgs("-a", "10"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{{struct{}{}, 10}}, false})
 	}
 	{
-		r, err := parser.run_inner(newArgs())
+		r, err := parser.run_inner(NewArgs())
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{}, false})
 	}
@@ -130,18 +130,18 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 
 	type R = fun.Pair[P, bool]
 	{
-		r, err := parser.run_inner(newArgs("-a", "12"))
+		r, err := parser.run_inner(NewArgs("-a", "12"))
 		require.Nil(t, err)
 		require.Equal(t, R{P{struct{}{}, 12}, false}, r)
 	}
 	{
 		t.Skip() // TODO: fix
-		r, err := parser.run_inner(newArgs("-a"))
+		r, err := parser.run_inner(NewArgs("-a"))
 		require.Nil(t, err)
 		require.Equal(t, R{P{struct{}{}, 10}, true}, r)
 	}
 	{
-		r, err := parser.run_inner(newArgs())
+		r, err := parser.run_inner(NewArgs())
 		require.Nil(t, err)
 		require.Equal(t, R{P{struct{}{}, 10}, false}, r)
 	}
@@ -158,31 +158,31 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 	parser := Pair(ab, c).Parser().ToOptions()
 
 	{
-		_, r := parser.run_inner(newArgs("-a", "221b"))
+		_, r := parser.run_inner(NewArgs("-a", "221b"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("3", "-a"))
+		_, r := parser.run_inner(NewArgs("3", "-a"))
 		require.Equal(t, unwrap_stderr(r), "`3` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a"))
+		_, r := parser.run_inner(NewArgs("-a"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-c", "-a"))
+		_, r := parser.run_inner(NewArgs("-c", "-a"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-c", "-a", "221b"))
+		_, r := parser.run_inner(NewArgs("-c", "-a", "221b"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a", "-c"))
+		_, r := parser.run_inner(NewArgs("-a", "-c"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 	{
-		_, r := parser.run_inner(newArgs("-a", "221b", "-c"))
+		_, r := parser.run_inner(NewArgs("-a", "221b", "-c"))
 		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
 	}
 }
@@ -202,17 +202,17 @@ func TestAnywhere_literal(t *testing.T) {
 
 	{
 		t.Skip() // TODO: fix
-		r, err := parser.run_inner(newArgs("-b", "-mode", "12"))
+		r, err := parser.run_inner(NewArgs("-b", "-mode", "12"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{{struct{}{}, 12}}, true})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-mode", "12", "-b"))
+		r, err := parser.run_inner(NewArgs("-mode", "12", "-b"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{{struct{}{}, 12}}, true})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-mode", "12"))
+		r, err := parser.run_inner(NewArgs("-mode", "12"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{{struct{}{}, 12}}, false})
 	}

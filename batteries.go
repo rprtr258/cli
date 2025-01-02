@@ -157,7 +157,7 @@ func toggle_flag[T interface{ ~bool }](
 //
 // ```
 func get_usage[T any](parser OptionParser[fmt.Formatter]) string {
-	x, e := parser.run_inner(newArgs("--help"))
+	x, e := parser.run_inner(NewArgs("--help"))
 	if e == nil {
 		panic(x)
 	}

@@ -18,10 +18,6 @@ func (o Option[T]) Unwrap() T {
 	return o.unwrap()
 }
 
-func NewArgs(args ...string) Args {
-	return newArgs(args...)
-}
-
 func SplitOsArgument(input string) (ArgType, string, Option[Arg], bool) {
 	return split_os_argument(input)
 }
@@ -113,7 +109,7 @@ func AssertSuccess[T any](
 ) {
 	t.Helper()
 
-	actual, err := parser.RunInner(newArgs(args...))
+	actual, err := parser.RunInner(NewArgs(args...))
 	require.Nil(t, err)
 	require.Equal(t, expected, actual)
 }

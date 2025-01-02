@@ -23,17 +23,17 @@ func TestGeneric_argument_field(t *testing.T) {
 
 	type R = fun.Pair[Option[Poly[uint]], Option[Poly[uint32]]]
 	{
-		r, err := parser.run_inner(newArgs("--uint", "12"))
+		r, err := parser.run_inner(NewArgs("--uint", "12"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()})
 	}
 	{
-		r, err := parser.run_inner(newArgs("--uint32", "12"))
+		r, err := parser.run_inner(NewArgs("--uint32", "12"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})})
 	}
 	{
-		r, err := parser.run_inner(newArgs("--uint32", "12", "--uint", "24"))
+		r, err := parser.run_inner(NewArgs("--uint32", "12", "--uint", "24"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})})
 	}

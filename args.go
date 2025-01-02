@@ -30,14 +30,14 @@ import (
 type Args struct {
 	items []string
 	name  Option[string]
-	c_rev Option[uint]
+	comp  Option[uint]
 }
 
-func newArgs(value ...string) Args {
+func NewArgs(args ...string) Args {
 	return Args{
-		items: value,
+		items: args,
 		name:  Invalid[string](),
-		c_rev: Invalid[uint](),
+		comp:  Invalid[uint](),
 	}
 }
 
@@ -45,25 +45,20 @@ func newArgs(value ...string) Args {
 //
 // # Use revision 0 if you want to test completion mechanism
 //
-// ```rust
-// parser := short('f').Switch().to_options();
-// // ask bpaf to produce more input from "-", for
-// // suggesting new items use "" at the end
-// r := parser.run_inner(Argsfrom(&["-"])
-//
-//	.set_comp(0))
-//	.unwrap_err()
-//	.unwrap_stdout();
-//
-// require.Equal(t,r, "-f");
-// ```
+//	parser := short('f').Switch().to_options();
+//	// ask bpaf to produce more input from "-", for
+//	// suggesting new items use "" at the end
+//	r := parser.run_inner(Argsfrom(&["-"])
+//		.SetComp(0))
+//		.unwrap_err()
+//		.unwrap_stdout();
+//	require.Equal(t,r, "-f");
 //
 // Note to self: shell passes "" as a parameter in situations like foo `--bar TAB`, bpaf
 // completion stubs adopt this conventions add pass it along. This is needed so completer can
-// tell the difference between `--bar` being completed or an argument to it in the example
-// above.
-func (self Args) set_comp(rev uint) Args {
-	self.c_rev = Valid(rev)
+// tell the difference between `--bar` being completed or an argument to it in the example above.
+func (self Args) SetComp(rev uint) Args {
+	self.comp = Valid(rev)
 	return self
 }
 
@@ -212,7 +207,7 @@ func stateconstruct(
 	double_dash_marker := Invalid[int]()
 
 	comp_scanner := ArgScanner{
-		revision: args.c_rev,
+		revision: args.comp,
 		name:     args.name,
 	}
 

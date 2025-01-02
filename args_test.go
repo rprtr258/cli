@@ -10,7 +10,7 @@ import (
 var M = Metavar("M")
 
 func Statefrom(value []string) State {
-	args := newArgs(value...)
+	args := NewArgs(value...)
 	res, err := stateconstruct(args, nil, nil)
 	if err != nil {
 		panic(fmt.Sprintf("Couldn't construct state: %#v/%#v", err, res))
@@ -44,7 +44,7 @@ func TestLong_flag_and_positional(t *testing.T) {
 }
 
 func TestMultiple_short_flags(t *testing.T) {
-	args := newArgs("-vvv")
+	args := NewArgs("-vvv")
 	a, _ := stateconstruct(args, []byte{'v'}, []byte{})
 	require.True(t, a.take_flag(Short('v')))
 	require.True(t, a.take_flag(Short('v')))
@@ -157,7 +157,7 @@ func TestPositionals_after_double_dash3(t *testing.T) {
 }
 
 func TestAmbiguity_towards_flag(t *testing.T) {
-	args := newArgs("-abc")
+	args := NewArgs("-abc")
 	a, _ := stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{})
 
 	require.True(t, a.take_flag(Short('a')))
@@ -166,7 +166,7 @@ func TestAmbiguity_towards_flag(t *testing.T) {
 }
 
 func TestAmbiguity_towards_argument(t *testing.T) {
-	args := newArgs("-abc")
+	args := NewArgs("-abc")
 	a, _ := stateconstruct(args, []byte{}, []byte{'a'})
 
 	r := unwrapunwrap(a.take_arg(Short('a'), false, M))
@@ -174,7 +174,7 @@ func TestAmbiguity_towards_argument(t *testing.T) {
 }
 
 func TestAmbiguity_towards_error(t *testing.T) {
-	args := newArgs("-abc")
+	args := NewArgs("-abc")
 	_, err := stateconstruct(args, []byte{'a', 'b', 'c'}, []byte{'a'})
 	require.NotNil(t, err)
 }
