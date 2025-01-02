@@ -267,40 +267,40 @@ func (self State) adjacently_available_from(start int) Range {
 	return Range{start, start + span_size}
 }
 
-type ArgRangesIter struct {
+type argRangesIter struct {
 	args  State
 	width int
 	cur   int
 }
 
-type ArgRangesIterItem struct {
+type argRangesIterItem struct {
 	startOffset         int
 	widthOfTheFirstItem int
 	state               State
 }
 
-func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
+func (self *argRangesIter) next() (argRangesIterItem, bool) {
 	for {
 		cur := self.cur
 		if cur > self.args.scope.end() {
-			return ArgRangesIterItem{}, false
+			return argRangesIterItem{}, false
 		}
 		self.cur += 1
 		if v, ok := self.args.present(cur); ok && !v {
 			continue
 		}
 		if cur+self.width > len(self.args.items) {
-			return ArgRangesIterItem{}, false
+			return argRangesIterItem{}, false
 		}
 		// It should be possible to optimize this code a bit
 		// by checking if first item can possibly
 		args := self.args.clone()
 		args.scope = Range{cur, len(self.args.items)}
-		return ArgRangesIterItem{cur, self.width, args}, true
+		return argRangesIterItem{cur, self.width, args}, true
 	}
 }
 
-func (self State) ranges(item Item) ArgRangesIter {
+func (self State) ranges(item Item) argRangesIter {
 	width := 0
 	switch item.v.(type) {
 	case ItemFlag:
@@ -308,7 +308,8 @@ func (self State) ranges(item Item) ArgRangesIter {
 	case ItemArgument:
 		width = 2
 	}
-	return ArgRangesIter{self, width, 0}
+
+	return argRangesIter{self, width, 0}
 }
 
 // check if bpaf tries to complete last consumed element
