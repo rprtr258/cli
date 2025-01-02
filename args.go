@@ -473,8 +473,8 @@ func (self *State) swap_comps(other *State) {
 }
 
 func (self State) swap_comps_with(comps *[]Comp) {
-	if comp, ok := self.comp_mut(); ok {
-		comp.swap_comps(comps)
+	if self.comp.Valid {
+		self.comp.Value.swap_comps(comps)
 	}
 }
 
