@@ -51,7 +51,7 @@ func (self ParseArgument[T]) item() (Item, bool) {
 
 func (self ParseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
-	os, err := func() (string, Error) {
+	valueStr, err := func() (string, Error) {
 		if wopt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
@@ -76,16 +76,15 @@ func (self ParseArgument[T]) eval(state *State) (T, Error) {
 				return "", ErrorMissing([]MissingItem{missing})
 			} else if name, ok := First(self.named.env).Unpack(); ok {
 				return "", ErrorNoEnv(name)
-			} else {
-				panic("unreachable")
 			}
+			panic("unreachable")
 		}
 	}()
 	if err != nil {
 		return *new(T), err
 	}
 
-	t, errr := self.parse(os)
+	t, errr := self.parse(valueStr)
 	if errr != nil {
 		return *new(T), ErrorParseFailed{state.current, errr.Error()}
 	}
