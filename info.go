@@ -501,29 +501,6 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 	return self
 }
 
-// Check the invariants `bpaf` relies on for normal operations
-//
-// Takes a parameter whether to check for cosmetic invariants or not
-// (max help width exceeding 120 symbols, etc), currently not in use
-//
-// Best used as part of your test suite:
-// ```rust
-// #[test]
-// func check_options() {
-// # fun.Options := || short('p').Switch().to_options();
-//
-//	    fun.Options().check_invariants(false)
-//	}
-//
-// ```
-//
-// # Panics
-//
-// `check_invariants` indicates problems with panic
-func (self OptionParser[T]) check_invariants(bool) {
-	positional_invariant_check(self.inner.meta, true)
-}
-
 // Customize parser for `--help`
 //
 // By default `bpaf` displays help when program is called with either `--help` or `-h`, you
