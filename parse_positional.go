@@ -84,7 +84,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 	metavar := Metavar(self.metavar)
 	help := self.help
 	position := self.position
-	ix, is_strict, word, err := state.take_positional_word(metavar)
+	ix, is_strict, word, err := state.takePositional(metavar)
 	if err != nil {
 		if !state.check_no_pos_ahead() {
 			state.push_metavar(metavar, help, false)

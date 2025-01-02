@@ -385,7 +385,7 @@ func (self *State) takeFlag(
 //
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
-func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Error) {
+func (self *State) takePositional(metavar Metavar) (int, bool, string, Error) {
 	var (
 		ix     int
 		strict bool
@@ -408,17 +408,17 @@ func (self *State) take_positional_word(metavar Metavar) (int, bool, string, Err
 			break
 		}
 	}
-	if ok {
-		self.currentIdx = Valid(ix)
-		self.remove(ix)
-		return ix, strict, w.str, nil
-	} else {
+	if !ok {
 		return 0, false, "", ErrorMissing([]MissingItem{{
 			item:     Item{Invalid[Doc](), ItemPositional{metavar}},
 			position: self.scope.start(),
 			scope:    self.scope,
 		}})
 	}
+
+	self.currentIdx = Valid(ix)
+	self.remove(ix)
+	return ix, strict, w.str, nil
 }
 
 // take a static string argument from the first present argument
