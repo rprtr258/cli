@@ -114,16 +114,16 @@ func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	return &ParseCon[R]{inner, meta, false}
 }
 
-type triple[A, B, C any] struct {
+type Truple[A, B, C any] struct {
 	A A
 	B B
 	C C
 }
 
-func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[triple[A, B, C]] {
+func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[Truple[A, B, C]] {
 	pa, pb, pc := ppa.Parser(), ppb.Parser(), ppc.Parser()
 	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
-	type R = triple[A, B, C]
+	type R = Truple[A, B, C]
 	inner := func(failfast bool, state *State) (R, Error) {
 		a, erra := pa.eval(state)
 		if failfast && erra != nil {

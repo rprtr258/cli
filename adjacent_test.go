@@ -1,38 +1,40 @@
-package cli
+package cli_test
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func TestTest_adjacent(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Short('b').Switch()
-	var c = Short('c').Switch()
-	var parser = Many(Triple(a.Parser(), b, c).Adjacent(), false).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Short('b').Switch()
+	c := Short('c').Switch()
+	parser := Many(Triple(a.Parser(), b, c).Adjacent(), false).Parser().ToOptions()
 
-	type R = triple[struct{}, bool, bool]
+	type R = Truple[struct{}, bool, bool]
 	{
-		r, err := parser.run_inner(newArgs("-a", "-c", "-a", "-b", "-a", "-b", "-c"))
+		r, err := parser.RunInner(newArgs("-a", "-c", "-a", "-b", "-a", "-b", "-c"))
 		require.Nil(t, err)
 		// adjacent groups here argument
 		// -a [-b] -c  | -a -b [-c] | -a -b -c
 		require.Equal(t, r, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-a"))
+		r, err := parser.RunInner(newArgs("-a"))
 		require.Nil(t, err)
 		require.Equal(t, r, []R{{struct{}{}, false, false}})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-a", "-c"))
+		r, err := parser.RunInner(newArgs("-a", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, []R{{struct{}{}, false, true}})
 	}
 	{
-		r, err := parser.run_inner(newArgs())
+		r, err := parser.RunInner(newArgs())
 		require.Nil(t, err)
 		require.Equal(t, r, []R{})
 	}
@@ -41,11 +43,11 @@ func TestTest_adjacent(t *testing.T) {
 func TestTest_adjacent_prefix(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Option[P], bool]
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("X", ParseUint)
-	var ab = Optional(Pair(a, b).Adjacent().Parser(), false)
-	var c = Short('c').Switch()
-	var parser = Pair(ab, c).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("X", ParseUint)
+	ab := Optional(Pair(a, b).Adjacent().Parser(), false)
+	c := Short('c').Switch()
+	parser := Pair(ab, c).Parser().ToOptions()
 
 	AssertSuccess(t, R{Invalid[P](), true}, parser, "-c")
 	AssertSuccess(t, R{Valid(P{struct{}{}, 1}), false}, parser, "-a", "1")
@@ -61,7 +63,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.run_inner(newArgs("-a", "10"))
+	_, r := parser.RunInner(newArgs("-a", "10"))
 	require.Equal(t, unwrap_stderr(r), "expected `C`, pass `--help` for usage information")
 }
 
@@ -71,7 +73,7 @@ func TestAdjacent_error_message_arg_single0(t *testing.T) {
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
 
 	t.Skip() // TODO: fix
-	_, r := parser.run_inner(newArgs("-a", "10"))
+	_, r := parser.RunInner(newArgs("-a", "10"))
 	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
 }
 
@@ -84,7 +86,7 @@ func TestAdjacent_error_message_arg_single(t *testing.T) {
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	t.Skip() // TODO: fix
-	_, r := parser.run_inner(newArgs("-a", "10"))
+	_, r := parser.RunInner(newArgs("-a", "10"))
 	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
 }
 
@@ -96,7 +98,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	adj := Many(Triple(a, b, c).Adjacent(), false)
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.run_inner(newArgs("-a", "10"))
+	_, r := parser.RunInner(newArgs("-a", "10"))
 	require.Equal(t, unwrap_stderr(r), "expected `C`, pass `--help` for usage information")
 }
 
@@ -109,7 +111,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	t.Skip() // TODO: fix
-	_, r := parser.run_inner(newArgs("-a", "10"))
+	_, r := parser.RunInner(newArgs("-a", "10"))
 	// this should ask for -b or -c and complain on 10...
 	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
 }
@@ -119,11 +121,11 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 	var b = Positional("B", ParseUint)
 	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false).Parser().ToOptions()
 
-	_, r := parser.run_inner(newArgs("-a", "-a", "10", "20"))
+	_, r := parser.RunInner(newArgs("-a", "-a", "10", "20"))
 	require.Equal(t, unwrap_stderr(r), "expected `B`, pass `--help` for usage information")
 
 	{
-		r, err := parser.run_inner(newArgs("-a", "10", "-a", "20"))
+		r, err := parser.RunInner(newArgs("-a", "10", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, []uint{10, 20})
 	}
@@ -138,17 +140,17 @@ func TestAdjacent_with_switch(t *testing.T) {
 
 	type R = fun.Pair[[]uint, bool]
 	{
-		r, err := parser.run_inner(newArgs("-a", "10", "-c"))
+		r, err := parser.RunInner(newArgs("-a", "10", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10}, true})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-a", "10", "-c", "-a", "20"))
+		r, err := parser.RunInner(newArgs("-a", "10", "-c", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10, 20}, true})
 	}
 	{
-		r, err := parser.run_inner(newArgs("-c", "-a", "10", "-a", "20"))
+		r, err := parser.RunInner(newArgs("-c", "-a", "10", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10, 20}, true})
 	}
@@ -159,7 +161,7 @@ func TestAdjacent_limits_commands(t *testing.T) {
 	var s = Short('s').Switch()
 	var parser = Pair(s, x).Parser().ToOptions()
 
-	r, err := parser.run_inner(newArgs("a", "-s"))
+	r, err := parser.RunInner(newArgs("a", "-s"))
 	require.Nil(t, err)
 	require.Equal(t, r, PPair(true, struct{}{}))
 }
@@ -184,12 +186,12 @@ func TestCommands_and_adjacent(t *testing.T) {
 	var parser = Pair(switch_, cmds).Parser().ToOptions()
 
 	{
-		r, err := parser.run_inner(newArgs("sleep", "--time", "12", "-s"))
+		r, err := parser.RunInner(newArgs("sleep", "--time", "12", "-s"))
 		require.Nil(t, err)
 		require.Equal(t, r, PPair(true, "12"))
 	}
 
-	_, r := parser.run_inner(newArgs("--help"))
+	_, r := parser.RunInner(newArgs("--help"))
 	// TODO - this is ugly
 	const expected = `Usage: [-s] COMMAND ...
 
@@ -212,7 +214,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	parser := Pair(point, c).Parser().ToOptions()
 
 	{
-		r, err := parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"))
+		r, err := parser.RunInner(newArgs("-x", "3", "-y", "4", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, PPair(PPair(3, 4), true))
 	}
@@ -222,12 +224,12 @@ func TestTwo_adjacent_args(t *testing.T) {
 		// Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
 		// TODO: get back
-		// r, err := parser.run_inner(newArgs("-y", "3", "-x", "4", "-c"))
+		// r, err := parser.RunInner(newArgs("-y", "3", "-x", "4", "-c"))
 		// require.Nil(t, err)
 		// require.Equal(t, r, pair(pair(4, 3), true))
 	}
 	{
-		_, r := parser.run_inner(newArgs("-y", "3", "-c", "-x", "4"))
+		_, r := parser.RunInner(newArgs("-y", "3", "-c", "-x", "4"))
 		require.Equal(t, unwrap_stderr(r), "expected `-y=Y`, pass `--help` for usage information")
 	}
 }
