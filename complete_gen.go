@@ -341,10 +341,6 @@ func (self *Complete) extend_comps(comps []Comp) {
 	self.comps = append(self.comps, comps...)
 }
 
-func (self *Complete) swap_comps(other *[]Comp) {
-	*other, self.comps = self.comps, *other
-}
-
 // to avoid leaking items with higher depth into items with lower depth
 func (self Comp) depth() int {
 	var res int

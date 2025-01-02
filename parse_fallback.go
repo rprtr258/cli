@@ -17,7 +17,7 @@ func (self ParseFallback[T]) eval(state *State) (T, Error) {
 	clone := state.clone()
 	ok, e := self.inner.eval(&clone)
 	if e != nil {
-		state.swap_comps(&clone)
+		*state, clone = clone, *state
 		if can_catch(Error(e)) {
 			return self.value, nil
 		} else {
@@ -95,7 +95,7 @@ func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
 		*state, clone = clone, *state
 		return ok, nil
 	} else {
-		state.swap_comps(&clone)
+		*state, clone = clone, *state
 		if can_catch(Error(e)) {
 			ok, e := self.fallback()
 			if e != nil {

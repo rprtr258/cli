@@ -312,13 +312,9 @@ func (self *State) comp_mut() (*Complete, bool) {
 	return &self.comp.Value, self.comp.Valid
 }
 
-func (self *State) swap_comps(other *State) {
-	*self, *other = *other, *self
-}
-
 func (self State) swap_comps_with(comps *[]Comp) {
 	if self.comp.Valid {
-		self.comp.Value.swap_comps(comps)
+		*comps, self.comp.Value.comps = self.comp.Value.comps, *comps
 	}
 }
 

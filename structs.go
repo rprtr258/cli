@@ -66,7 +66,7 @@ func parse_option[T any](
 	state *State,
 	catch bool,
 ) (Option[T], Error) {
-	orig_args := state.clone()
+	stateOrig := state.clone()
 	val, err := parser.eval(state)
 	if err != nil {
 		// this is safe to return Ok(Invalid()) in following scenarios
@@ -81,11 +81,11 @@ func parse_option[T any](
 		// anything left unconsumed - this won't be lost.
 
 		if _, missing := err.(ErrorMissing); catch ||
-			missing && orig_args.len() == state.len() ||
+			missing && stateOrig.len() == state.len() ||
 			!missing && can_catch(Error(err)) {
-			orig_args, *state = *state, orig_args
-			if orig_args.comp.Valid {
-				state.swap_comps(&orig_args)
+			stateOrig, *state = *state, stateOrig
+			if stateOrig.comp.Valid {
+				*state, stateOrig = stateOrig, *state
 			}
 			return Invalid[T](), nil
 		} else {
