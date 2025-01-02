@@ -28,6 +28,10 @@ func pair[T, R any](a T, b R) fun.Pair[T, R] {
 	return cli.PPair(a, b)
 }
 
+func map3[A, B, C any](a A, b B, c C) struct{} {
+	return cli.MMap3(a, b, c)
+}
+
 func requireNoParseFailure(t *testing.T, err cli.ParseFailure) {
 	cli.RequireNoParseFailure(t, err)
 }

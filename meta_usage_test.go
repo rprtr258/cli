@@ -7,10 +7,6 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func map3[A, B, C any](_ A, _ B, _ C) struct{} {
-	return struct{}{}
-}
-
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
 
@@ -307,7 +303,7 @@ func TestDouble_strict(t *testing.T) {
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict()
 	c := Positional("C", ParseUint).Strict()
-	parser := Map3(a, b, c, map3).Parser().ToOptions()
+	parser := Map3(a, b, c, MMap3).Parser().ToOptions()
 	assert_usage(t, parser, "[-a] -- B C")
 }
 
@@ -330,12 +326,12 @@ func TestQuadruple_strict(t *testing.T) {
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict()
 	c := Positional("C", ParseUint).Strict()
-	abc := Map3(a, b, c, map3)
+	abc := Map3(a, b, c, MMap3)
 
 	d := Short('d').Switch()
 	e := Positional("E", ParseUint).Strict()
 	f := Positional("F", ParseUint).Strict()
-	def := Map3(d, e, f, map3)
+	def := Map3(d, e, f, MMap3)
 
 	parser := Choice(abc, def).Parser().ToOptions()
 	assert_usage(t, parser, "([-a] -- B C | [-d] -- E F)")

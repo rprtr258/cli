@@ -25,12 +25,12 @@ const (
 
 // Manual page section
 type Section struct {
-	kind SectionKind
-	s    string
+	Kind SectionKind
+	Text string
 }
 
 func (self Section) String() string {
-	switch self.kind {
+	switch self.Kind {
 	case SectionGeneral:
 		return "1"
 	case SectionSystemCall:
@@ -48,13 +48,13 @@ func (self Section) String() string {
 	case SectionSysadmin:
 		return "8"
 	case SectionCustom:
-		return self.s
+		return self.Text
 	}
 	panic("unreachable")
 }
 
 // Render command line documentation for the app into a manpage
-func (self OptionParser[T]) render_manpage(
+func (self OptionParser[T]) RenderManpage(
 	app string,
 	section Section,
 	last_update_date Option[string],

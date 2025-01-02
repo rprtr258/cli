@@ -1,10 +1,12 @@
-package cli
+package cli_test
 
 import (
 	"os"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func write_updated(t *testing.T, new_val string, path string) {
@@ -35,9 +37,9 @@ func TestSimple(t *testing.T) {
 		Descr("I am a program and I do things").
 		Header("Sometimes they even work.").
 		Footer("Beware `-d`, dragons be here")
-	roff := options.render_manpage(
+	roff := options.RenderManpage(
 		"simple",
-		Section{kind: SectionGeneral},
+		Section{Kind: SectionGeneral},
 		Valid("Aug 2022"),
 		Valid(os.Getenv("CARGO_PKG_AUTHORS")),
 		Valid("asdf"),
@@ -82,9 +84,9 @@ func TestNested(t *testing.T) {
 		Descr("I am a program and I do things 3").
 		Header("Sometimes they even work. 3").
 		Footer("Beware `-d`, dragons be here 3").
-		render_manpage(
+		RenderManpage(
 			"simple",
-			Section{kind: SectionGeneral},
+			Section{Kind: SectionGeneral},
 			Valid("Aug 2022"),
 			Valid(os.Getenv("CARGO_PKG_AUTHORS")),
 			Valid("asdf"),
@@ -111,9 +113,9 @@ func TestVery_nested(t *testing.T) {
 		Descr("lvl 1 description").
 		Command("lvl1").
 		Parser().ToOptions()
-	roff := options.render_manpage(
+	roff := options.RenderManpage(
 		"simple",
-		Section{kind: SectionGeneral},
+		Section{Kind: SectionGeneral},
 		Valid("Aug 2022"),
 		Valid(os.Getenv("CARGO_PKG_AUTHORS")),
 		Valid("asdf"),
