@@ -126,14 +126,9 @@ func (self NamedArg) Switch() ParseFlag[bool] {
 // `adjacent` requires for the argument to be present in the same word as the flag:
 // `-f bar` - no, `-fbar` or `-f=bar` - yes.
 func (self NamedArg) matches_arg(arg Arg, adjacent bool) bool {
-	res := false
-	switch arg.kind {
-	case ArgKindShortFlag:
-		res = fun.Contains(arg.c, self.short...) && (!adjacent || arg.is_adj)
-	case ArgKindLongFlag:
-		res = fun.Contains(arg.s, self.long...) && (!adjacent || arg.is_adj)
-	}
-	return res
+	return (!adjacent || arg.is_adj) &&
+		(arg.kind == ArgKindShortFlag && fun.Contains(arg.c, self.short...) ||
+			arg.kind == ArgKindLongFlag && fun.Contains(arg.s, self.long...))
 }
 
 // Parse a [flag](NamedArgflag)/[switch](NamedArgswitch)/[argument](NamedArgargument) that has a Short name
