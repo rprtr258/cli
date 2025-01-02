@@ -4,6 +4,7 @@ import (
 	"math"
 
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/iter"
 )
 
 type State struct {
@@ -169,10 +170,12 @@ func (self State) items_iter() func() (int, Arg, bool) {
 }
 
 func (self *State) remove(index int) {
-	if self.scope.contains(index) && !self.item_state[index].parsed() {
-		self.currentIdx = Valid(index)
-		self.item_state[index] = ItemStateParsed
+	if !self.scope.contains(index) || self.item_state[index].parsed() {
+		return
 	}
+
+	self.currentIdx = Valid(index)
+	self.item_state[index] = ItemStateParsed
 }
 
 func (self State) pick_winner(other State) (bool, Option[int]) {
@@ -358,27 +361,22 @@ func (self *State) take_arg(
 	adjacent bool,
 	metavar Metavar,
 ) (Option[string], Error) {
-	var (
-		key_ix int
-		ok     bool
-	)
-	for i, arg := range push2(self.items_iter()) {
-		if named.matches_arg(arg, adjacent) {
-			key_ix = i
-			ok = true
-			break
-		}
-	}
+	key_ixArg, ok := iter.Find(iter.MapFrom2(push2(self.items_iter()), func(i int, arg Arg) fun.Pair[int, Arg] {
+		return fun.Pair[int, Arg]{i, arg}
+	}), func(iarg fun.Pair[int, Arg]) bool {
+		return named.matches_arg(iarg.V, adjacent)
+	})
 	if !ok {
 		return Invalid[string](), nil
 	}
 
+	key_ix := key_ixArg.K
 	val_ix := key_ix + 1
 	var val string
-	if ww, ok := self.get(val_ix); ok && fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
-		val = ww.str
-	} else {
+	if ww, ok := self.get(val_ix); !ok || !fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
 		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
+	} else {
+		val = ww.str
 	}
 	self.currentIdx = Valid(val_ix)
 	self.remove(key_ix)
