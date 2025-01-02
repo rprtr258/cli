@@ -52,14 +52,14 @@ func (self ParseArgument[T]) item() (Item, bool) {
 func (self ParseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	valueStr, err := func() (string, Error) {
-		if wopt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
+		if valueStrOpt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
-		} else if w, ok := wopt.Unpack(); ok {
+		} else if valueStr, ok := valueStrOpt.Unpack(); ok {
 			if state.touching_last_remove() {
 				state.push_metavar(self.metavar, self.named.help, true)
 			}
-			return w, nil
+			return valueStr, nil
 		} else {
 			state.push_argument(self.named, self.metavar)
 			if val, ok := find_map(self.named.env, os.LookupEnv); ok {
