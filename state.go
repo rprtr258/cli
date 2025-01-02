@@ -4,7 +4,6 @@ import (
 	"math"
 
 	"github.com/rprtr258/fun"
-	"github.com/rprtr258/fun/iter"
 )
 
 type State struct {
@@ -359,16 +358,20 @@ func (self *State) takeFlag(
 	adjacent bool,
 	metavar Metavar,
 ) (Option[string], Error) {
-	key_ixArg, ok := iter.Find(iter.MapFrom2(push2(self.items_iter()), func(i int, arg Arg) fun.Pair[int, Arg] {
-		return fun.Pair[int, Arg]{i, arg}
-	}), func(iarg fun.Pair[int, Arg]) bool {
-		return named.matches_arg(iarg.V, adjacent)
-	})
+	var (
+		key_ix int
+		ok     bool
+	)
+	for i, arg := range push2(self.items_iter()) {
+		if named.matches_arg(arg, adjacent) {
+			key_ix, ok = i, true
+			break
+		}
+	}
 	if !ok {
 		return Invalid[string](), nil
 	}
 
-	key_ix := key_ixArg.K
 	val_ix := key_ix + 1
 	ww, ok := self.get(val_ix)
 	if !ok || !fun.Contains(ww.kind, ArgKindFlagValue, ArgKindWord) {
