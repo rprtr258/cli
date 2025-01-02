@@ -155,10 +155,7 @@ LOOP:
 func (self State) items_iter() func() (int, Arg, bool) {
 	i := self.scope[0]
 	return func() (int, Arg, bool) {
-		for {
-			if !self.scope.contains(i) || i >= len(self.item_state) {
-				return 0, Arg{}, false
-			}
+		for self.scope.contains(i) && i < len(self.item_state) {
 			if !self.item_state[i].parsed() {
 				a, b := i, self.items[i]
 				i++
@@ -166,6 +163,7 @@ func (self State) items_iter() func() (int, Arg, bool) {
 			}
 			i++
 		}
+		return 0, Arg{}, false
 	}
 }
 
