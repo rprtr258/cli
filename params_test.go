@@ -1,10 +1,12 @@
-package cli
+package cli_test
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func some(s string) (string, bool) { return s, true }
@@ -46,7 +48,7 @@ func TestGet_any_magic(t *testing.T) {
 		ToOptions()
 
 	// -b anana - isn't a -banana
-	_, r := parser.run_inner(NewArgs("-b", "anana"))
+	_, r := parser.RunInner(NewArgs("-b", "anana"))
 	require.Equal(t, unwrap_stderr(r), "`-b` is not expected in this context")
 
 	// close enough :)

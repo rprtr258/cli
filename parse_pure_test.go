@@ -1,9 +1,11 @@
-package cli
+package cli_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
@@ -28,7 +30,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := opts.run_inner(NewArgs(tc.args...))
+			r, err := opts.RunInner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -40,7 +42,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	b := PureWith(func() (uint32, Error) { return 0, ErrorParseFail("some-err") })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
-	_, err := opts.run_inner(NewArgs())
+	_, err := opts.RunInner(NewArgs())
 	require.Equal(t, "some-err", unwrap_stderr(err))
 }
 
@@ -66,7 +68,7 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.run_inner(NewArgs(tc.args...))
+			r, err := seeds.RunInner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -96,7 +98,7 @@ func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.run_inner(NewArgs(tc.args...))
+			r, err := seeds.RunInner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
