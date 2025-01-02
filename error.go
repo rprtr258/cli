@@ -66,16 +66,16 @@ func (ErrorNonStrictPos) isError() {}
 
 // Parser provided by user failed to parse a value
 type ErrorParseFailed struct {
-	a Option[int]
-	s string
+	pos Option[int]
+	msg string
 }
 
 func (ErrorParseFailed) isError() {}
 
 // Parser provided by user failed to validate a value
 type ErrorGuardFailed struct {
-	a Option[int]
-	s string
+	pos Option[int]
+	msg string
 }
 
 func (ErrorGuardFailed) isError() {}
@@ -153,9 +153,9 @@ func errorToString(self Error) string {
 	case ErrorNonStrictPos:
 		return fmt.Sprintf("NonStrictPos(%#v, %#v)", self.a, self.metavar)
 	case ErrorParseFailed:
-		return fmt.Sprintf("ParseFailed(%#v, %#v)", self.a, self.s)
+		return fmt.Sprintf("ParseFailed(%#v, %#v)", self.pos, self.msg)
 	case ErrorGuardFailed:
-		return fmt.Sprintf("GuardFailed(%#v, %#v)", self.a, self.s)
+		return fmt.Sprintf("GuardFailed(%#v, %#v)", self.pos, self.msg)
 	case ErrorNoArgument:
 		return fmt.Sprintf("NoArgument(%#v, %#v)", self.ix, self.metavar)
 	case ErrorUnconsumed:
@@ -484,21 +484,19 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		doc.Literal("--")
 		doc.token(TokenBlockEnd(BlockTermRef))
 	case ErrorParseFailed:
-		mix, s := e.a, e.s
 		// Error: couldn't parse FIELD: <FromStr message>
 		doc.Text("couldn't parse")
-		if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
+		if field, ok := textual_part(args, e.pos); ok {
 			doc.Text(" ")
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.Invalid(field)
 			doc.token(TokenBlockEnd(BlockTermRef))
 		}
 		doc.Text(": ")
-		doc.Text(s)
+		doc.Text(e.msg)
 	case ErrorGuardFailed:
-		mix, s := e.a, e.s
 		// Error: ( FIELD:  | check failed: ) <message from guard>
-		if field, ok := textual_part(args, Option[int]{int(mix.Value), mix.Valid}); ok {
+		if field, ok := textual_part(args, e.pos); ok {
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.Invalid(field)
 			doc.token(TokenBlockEnd(BlockTermRef))
@@ -506,7 +504,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		} else {
 			doc.Text("check failed: ")
 		}
-		doc.Text(s)
+		doc.Text(e.msg)
 	case ErrorNoArgument:
 		x, mv := e.ix, e.metavar
 		// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
