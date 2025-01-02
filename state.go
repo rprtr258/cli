@@ -282,17 +282,14 @@ func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 		width = 2
 	}
 
-	type argRangesIter struct {
-		cur int
-	}
-	it := &argRangesIter{0}
+	itcur := 0
 	return func() (argRangesIterItem, bool) {
 		for {
-			cur := it.cur
+			cur := itcur
 			if cur > args.scope.end() {
 				return argRangesIterItem{}, false
 			}
-			it.cur += 1
+			itcur += 1
 			if v, ok := args.present(cur); ok && !v {
 				continue
 			}
