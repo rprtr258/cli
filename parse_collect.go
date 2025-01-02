@@ -44,7 +44,7 @@ func (self ParseCollect[T]) eval(state *State) ([]T, Error) {
 // `collect` will collect at most one result that does not consume anything from the argument
 // list allowing using it in combination of any parsers with a fallback. After the first one
 // it will keep collecting the results as long as they consume something.
-func (self Parser[T]) collect(
+func (self Parser[T]) Collect(
 	// Handle parse failures
 	//
 	// Can be useful to decide to skip parsing of some items on a command line

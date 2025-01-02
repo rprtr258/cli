@@ -20,7 +20,7 @@ func (self ParseAny[T]) item() Item {
 
 // Add a help message to [any] parser.
 func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
-	self.help = Valid(newDocFromString(help))
+	self.help = Valid(NewDoc(help))
 	return self
 }
 

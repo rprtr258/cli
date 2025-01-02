@@ -33,7 +33,7 @@ func (self ParseFallback[T]) meta() Meta {
 	if self.value_str == "" {
 		return m
 	} else {
-		buf := newDocFromString(self.value_str)
+		buf := NewDoc(self.value_str)
 		return MetaSuffix{m, buf}
 	}
 }
@@ -113,7 +113,7 @@ func (self ParseFallbackWith[T]) meta() Meta {
 	if self.value_str == "" {
 		return m
 	} else {
-		buf := newDocFromString(self.value_str)
+		buf := NewDoc(self.value_str)
 		return MetaSuffix{m, buf}
 	}
 }
@@ -156,7 +156,7 @@ func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
 // By default fallback value will not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackWithdisplay_fallback) and
 // [debug_fallback](ParseFallbackWithdebug_fallback).
-func (self Parser[T]) fallback_with(fallback func() (T, Error)) ParseFallbackWith[T] {
+func (self Parser[T]) FallbackWith(fallback func() (T, Error)) ParseFallbackWith[T] {
 	return ParseFallbackWith[T]{
 		inner:     self,
 		fallback:  fallback,

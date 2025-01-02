@@ -105,7 +105,7 @@ func (self NamedArg) Env(variable string) NamedArg {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch_help.md"))]
 func (self NamedArg) Help(help string) NamedArg {
-	self.help = Valid(newDocFromString(help))
+	self.help = Valid(NewDoc(help))
 	return self
 }
 

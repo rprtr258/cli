@@ -67,14 +67,14 @@ type ParseCommand[T any] struct {
 //
 // ```
 func (self *ParseCommand[P]) Help(help string) *ParseCommand[P] {
-	self.help = Valid(newDocFromString(help))
+	self.help = Valid(NewDoc(help))
 	return self
 }
 
 // Add a custom short alias for a command
 //
 // Behavior is similar to [short](NamedArgshort), only first short name is visible.
-func (self *ParseCommand[P]) short(short byte) *ParseCommand[P] {
+func (self *ParseCommand[P]) Short(short byte) *ParseCommand[P] {
 	self.shorts = append(self.shorts, short)
 	return self
 }
@@ -83,7 +83,7 @@ func (self *ParseCommand[P]) short(short byte) *ParseCommand[P] {
 //
 // Behavior is similar to [long](NamedArglong), but since you had to specify the first long
 // name when making the command - this one becomes a hidden alias.
-func (self *ParseCommand[P]) long(long string) *ParseCommand[P] {
+func (self *ParseCommand[P]) Long(long string) *ParseCommand[P] {
 	self.longs = append(self.longs, long)
 	return self
 }

@@ -364,7 +364,7 @@ type parser[T any] interface {
 // Suppose program accepts one of two mutually exclusive switches `-a` and `-b`
 // and both are present error message should point at the second flag
 // Deprecated: instead of a.or_else(b) you should use construct([a, b])
-func (self Parser[T]) or_else(alt Parser[T]) ParseOrElse[T] {
+func (self Parser[T]) OrElse(alt Parser[T]) ParseOrElse[T] {
 	return ParseOrElse[T]{
 		this: self,
 		that: alt,
@@ -391,7 +391,7 @@ func (self Parser[T]) Hide() Parser[T] {
 func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 	return ParseGroupHelp[T]{
 		inner:   self,
-		message: newDocFromString(message),
+		message: NewDoc(message),
 	}
 }
 
@@ -422,21 +422,4 @@ func (self Parser[T]) ToOptions() *OptionParser[T] {
 		info:  NewInfo(),
 		inner: self,
 	}
-}
-
-// Strip a command name if present at the front when used as a `cargo` command
-//
-// When implementing a cargo subcommand parser needs to be able to skip the first argument which
-// is always the same as the executable name without `cargo-` prefix. For example if executable name is
-// `cargo-cmd` so first argument would be `cmd`. `cargo_helper` helps to support both invocations:
-// with name present when used via cargo and without it when used locally.
-//
-// You can read the code of this function as this approximate sequence of statements:
-// 1. Try to parse a string literal that corresponds to a command name
-// 2. It's okay if it's missing
-// 3. And don't show anything to the user in `--help` or completion
-// 4. Parse this word and then everything else as a tuple, return that second item.
-func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
-	skip := Optional(Literal(cmd), false).Parser().Hide()
-	return Map2(skip, parser, func(_ Option[struct{}], x T) T { return x })
 }

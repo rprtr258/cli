@@ -31,7 +31,7 @@ Available options:
 
 func TestParse_anywhere_no_catch(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("X", parseUint)
+	b := Positional("X", ParseUint)
 	ab := Pair(a, b).Adjacent()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).Parser().ToOptions()
@@ -70,7 +70,7 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Optional(Pair(a, b).Adjacent().Parser(), true)
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
@@ -96,7 +96,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 
 func TestAnywhere_catch_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Many(Pair(a, b).Adjacent(), true)
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
@@ -123,7 +123,7 @@ func TestAnywhere_catch_many(t *testing.T) {
 func TestAnywhere_catch_fallback(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().Parser().Fallback(P{struct{}{}, 10})
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
@@ -149,7 +149,7 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 
 func TestParse_anywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
@@ -193,7 +193,7 @@ func TestAnywhere_literal(t *testing.T) {
 		func(x string) (struct{}, bool) { return struct{}{}, x == "-mode" },
 		false,
 	)
-	mode := Positional("value", parseUint)
+	mode := Positional("value", ParseUint)
 	a := Many(Pair(tag, mode).Adjacent(), true)
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]

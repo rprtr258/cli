@@ -4,26 +4,9 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/kr/pretty"
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
 )
-
-func requireNoParseFailure(t *testing.T, err ParseFailure) {
-	t.Helper()
-
-	if err != nil {
-		switch self := err.(type) {
-		case ParseFailureStdout:
-			t.Log("Unexpected ParseFailureStdout:", pretty.Sprint(self.msg), self.full)
-		case ParseFailureCompletion:
-			t.Log("Unexpected ParseFailureCompletion:", string(self))
-		case ParseFailureStderr:
-			t.Log("Unexpected ParseFailureStderr:", pretty.Sprint(Doc(self)))
-		}
-		t.FailNow()
-	}
-}
 
 func TestAdjacent(t *testing.T) {
 	type cmd struct {
@@ -62,7 +45,7 @@ func TestAdjacent(t *testing.T) {
 	} {
 		t.Run(name, func(t *testing.T) {
 			r, err := parser.run_inner(newArgs(tc.args...))
-			requireNoParseFailure(t, err)
+			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
 	}
@@ -93,28 +76,28 @@ func TestAdjacentPrefix(t *testing.T) {
 		"-a 1": {
 			args: []string{"-a", "1"},
 			expected: cmd{
-				Valid(pair[struct{}, uint](struct{}{}, 1)),
+				Valid(PPair[struct{}, uint](struct{}{}, 1)),
 				false,
 			},
 		},
 		"-c -a 1": {
 			args: []string{"-c", "-a", "1"},
 			expected: cmd{
-				Valid(pair[struct{}, uint](struct{}{}, 1)),
+				Valid(PPair[struct{}, uint](struct{}{}, 1)),
 				true,
 			},
 		},
 		"-a 1 -c": {
 			args: []string{"-a", "1", "-c"},
 			expected: cmd{
-				Valid(pair[struct{}, uint](struct{}{}, 1)),
+				Valid(PPair[struct{}, uint](struct{}{}, 1)),
 				true,
 			},
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
 			r, err := parser.run_inner(newArgs(tc.args...))
-			requireNoParseFailure(t, err)
+			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
 	}

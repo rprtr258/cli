@@ -9,7 +9,7 @@ import (
 )
 
 func TestHelp_after_switch(t *testing.T) {
-	parser := Short('a').Switch().help(newDocFromString("this is help")).Parser().ToOptions()
+	parser := Short('a').Switch().help(NewDoc("this is help")).Parser().ToOptions()
 	_, r := parser.run_inner(newArgs("--help"))
 	const expected = "Usage: [-a]\n\nAvailable options:\n    -a          this is help\n    -h, --help  Prints help information\n"
 	require.Equal(t, expected, unwrap_stdout(r))
@@ -17,7 +17,7 @@ func TestHelp_after_switch(t *testing.T) {
 
 func TestFallback_to_usage(t *testing.T) {
 	a := Argument(Short('a'),
-		"A", parseUint).
+		"A", ParseUint).
 		Parser().ToOptions().
 		FallbackToUsage()
 
@@ -28,7 +28,7 @@ func TestFallback_to_usage(t *testing.T) {
 
 func TestFallback_to_usage_nested(t *testing.T) {
 	a := Argument(Short('a'),
-		"A", parseUint).
+		"A", ParseUint).
 		Parser().ToOptions().
 		FallbackToUsage().
 		Command("cmd").
@@ -40,8 +40,8 @@ func TestFallback_to_usage_nested(t *testing.T) {
 }
 
 func TestFancy_meta(t *testing.T) {
-	a := Argument(Long("trailing-comma"), "all|es5|none", parseString)
-	b := Argument(Long("stdin-file-path"), "PATH", parseString)
+	a := Argument(Long("trailing-comma"), "all|es5|none", ParseString)
+	b := Argument(Long("stdin-file-path"), "PATH", ParseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	_, r := parser.run_inner(newArgs("--help"))
@@ -59,13 +59,13 @@ Available options:
 func TestDecorations(t *testing.T) {
 	p := Argument(Short('p').
 		Long("parser").
-		Env("BPAF_VARIABLE"), "ARG", parseString).
+		Env("BPAF_VARIABLE"), "ARG", ParseString).
 		Parser().ToOptions().
 		Descr("descr\n descr").
 		Header("header\n header").
 		Footer("footer\n footer").
-		version("version").
-		Usage(newDocFromString("custom usage"))
+		Version("version").
+		Usage(NewDoc("custom usage"))
 
 	_, r := p.run_inner(newArgs("--help"))
 
@@ -93,7 +93,7 @@ func TestVery_long_switch(t *testing.T) {
 	a := Argument(Short('p').
 		Long("ppppppppppppppppppppppppppppppppppppp").
 		Help("this is help for megapotato"),
-		"MEGAPOTATO", parseUint)
+		"MEGAPOTATO", ParseUint)
 	b := Short('b').Long("batman").Help("help for batman").Switch()
 	p := Pair(a, b).Parser().ToOptions()
 
@@ -158,8 +158,8 @@ Available options:
 func TestDuplicate_pos_items_same_help(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	c1 := Positional("C", parseString).Help("C")
-	c2 := Positional("C", parseString).Help("C")
+	c1 := Positional("C", ParseString).Help("C")
+	c2 := Positional("C", ParseString).Help("C")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
@@ -183,8 +183,8 @@ Available options:
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	c1 := Positional("C", parseString).Help("C1")
-	c2 := Positional("C", parseString).Help("C2")
+	c1 := Positional("C", ParseString).Help("C1")
+	c2 := Positional("C", ParseString).Help("C2")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
@@ -279,8 +279,8 @@ Available options:
 func TestMulti_arg_help(t *testing.T) {
 	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{}).Parser()
 	b := Short('e').Long("extra").Help("extra strange").Switch()
-	c := Positional("NAME", parseString).Help("pos1 help").Parser()
-	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
+	c := Positional("NAME", ParseString).Help("pos1 help").Parser()
+	d := Positional("STATE", ParseBool).Help("pos2 help").Parser()
 	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser(), false).Parser()
 	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
 	detailed := Long("detailed").Short('d').Help("detailed").Switch().Parser()
@@ -308,8 +308,8 @@ Available options:
 }
 
 func TestMulti_pos_help(t *testing.T) {
-	a := Positional("NAME", parseString).Help("name help")
-	b := Positional("VAL", parseString).Help("val help")
+	a := Positional("NAME", ParseString).Help("name help")
+	b := Positional("VAL", ParseString).Help("val help")
 	combo := Pair(a, b).Adjacent()
 	verbose := Short('v').Long("verbose").Switch()
 	parser := Pair(verbose, combo).Parser().ToOptions()
@@ -332,7 +332,7 @@ Available options:
 func TestFallback_display_simple_arg(t *testing.T) {
 	parser := Argument(Long("a").
 		Help("help for a"),
-		"NUM", parseUint).
+		"NUM", ParseUint).
 		Parser().Fallback(42).
 		DisplayFallback().
 		Parser().ToOptions()
@@ -350,7 +350,7 @@ Available options:
 }
 
 func TestFallback_display_simple_pos(t *testing.T) {
-	parser := Positional("NUM", parseUint).
+	parser := Positional("NUM", ParseUint).
 		Help("help for pos").
 		Parser().Fallback(42).
 		DisplayFallback().
@@ -378,8 +378,8 @@ func (self Pair2) String() string {
 }
 
 func TestFallback_display_tuple(t *testing.T) {
-	a := Argument(Long("a").Help("help for a"), "NUM", parseUint)
-	b := Argument(Long("b").Help("help for b"), "NUM", parseUint)
+	a := Argument(Long("a").Help("help for a"), "NUM", ParseUint)
+	b := Argument(Long("b").Help("help for b"), "NUM", ParseUint)
 	parser := Map(Pair(a, b).Parser(), func(ab fun.Pair[uint, uint]) Pair2 { return Pair2{uint32(ab.K), uint32(ab.V)} }).
 		Parser().Fallback(Pair2{42, 333}).
 		DisplayFallback().
@@ -401,7 +401,7 @@ Available options:
 
 func TestFallback_display_no_help(t *testing.T) {
 	parser := Argument(Long("a"),
-		"NUM", parseUint).
+		"NUM", ParseUint).
 		Parser().Fallback(42).
 		DisplayFallback().
 		Parser().ToOptions()
@@ -422,7 +422,7 @@ func TestEnv_fallback_visible(t *testing.T) {
 	fonts_dir := Optional(Argument(Long("fonts").
 		Env("OIKOS_FONTS").
 		Help("Load fonts from this directory"),
-		"DIR", parseString).Parser(), false)
+		"DIR", ParseString).Parser(), false)
 
 	system_fonts := Long("system-fonts").
 		Env("OIKOS_SYSTEM_FONTS").
@@ -496,7 +496,7 @@ Available options:
 	{
 		r, err := parser.run_inner(newArgs("-a", "-c"))
 		require.Nil(t, err)
-		require.Equal(t, r, pair(pair(true, false), true))
+		require.Equal(t, r, PPair(PPair(true, false), true))
 	}
 }
 
@@ -588,7 +588,7 @@ Available options:
 	}
 
 	{
-		parser := Short('a').Switch().Parser().ToOptions().version("1")
+		parser := Short('a').Switch().Parser().ToOptions().Version("1")
 
 		{
 			_, r := parser.run_inner(newArgs("--help"))

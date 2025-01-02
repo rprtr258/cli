@@ -241,7 +241,7 @@ func (d Doc) to_completion() Option[string] {
 	return Valid(strings.TrimRight(s, " "))
 }
 
-func newDocFromString(s string) Doc {
+func NewDoc(s string) Doc {
 	var res Doc
 	res.write_str(s, StyleText)
 	return res

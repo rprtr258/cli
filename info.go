@@ -271,8 +271,8 @@ func (self OptionParser[T]) short_descr() Option[Doc] {
 // $ app --version
 // Version: 0.5.0
 // ```
-func (self *OptionParser[T]) version(version string) *OptionParser[T] {
-	self.info.version = Valid(newDocFromString(version))
+func (self *OptionParser[T]) Version(version string) *OptionParser[T] {
+	self.info.version = Valid(NewDoc(version))
 	return self
 }
 
@@ -340,7 +340,7 @@ func (self *OptionParser[T]) version(version string) *OptionParser[T] {
 // This is a footer
 // ```
 func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
-	self.info.descr = Valid(newDocFromString(descr))
+	self.info.descr = Valid(NewDoc(descr))
 	return self
 }
 
@@ -407,7 +407,7 @@ func (self *OptionParser[T]) Descr(descr string) *OptionParser[T] {
 // This is a footer
 // ```
 func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
-	self.info.header = Valid(newDocFromString(header))
+	self.info.header = Valid(NewDoc(header))
 	return self
 }
 
@@ -474,7 +474,7 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 // This is a Footer
 // ```
 func (self *OptionParser[T]) Footer(footer string) *OptionParser[T] {
-	self.info.footer = Valid(newDocFromString(footer))
+	self.info.footer = Valid(NewDoc(footer))
 	return self
 }
 

@@ -32,7 +32,7 @@ type ParsePositional[T any] struct {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
 func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
-	self.help = Valid(newDocFromString(help))
+	self.help = Valid(NewDoc(help))
 	return self
 }
 
