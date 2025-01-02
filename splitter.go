@@ -13,10 +13,6 @@ const (
 	CodeRest
 )
 
-func (c Code) IsNo() bool    { return c == CodeNo }
-func (c Code) IsFirst() bool { return c == CodeFirst }
-func (c Code) IsRest() bool  { return c == CodeRest }
-
 // Raw(string, uint) | Paragraph | LineBreak
 type Chunk struct {
 	s string
@@ -62,11 +58,11 @@ func split(input string) iter.Seq[Chunk] {
 			return Chunk{}, false
 		}
 
-		if !self.code.IsNo() {
-			if self.code.IsRest() && strings.HasPrefix(self.input, "```") {
+		if self.code != CodeNo {
+			if self.code == CodeRest && strings.HasPrefix(self.input, "```") {
 				self.code = CodeNo
 			}
-			if self.code.IsFirst() {
+			if self.code == CodeFirst {
 				self.code = CodeRest
 			}
 
@@ -75,7 +71,7 @@ func split(input string) iter.Seq[Chunk] {
 			var code string
 			if code, rest, ok := strings.Cut(self.input, "\n"); ok {
 				tail := tail[len(code):]
-				if strings.HasPrefix(tail, "\n\n") && self.code.IsNo() {
+				if strings.HasPrefix(tail, "\n\n") && self.code == CodeNo {
 					self.input = tail
 				} else {
 					self.input = rest
