@@ -506,19 +506,18 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		}
 		doc.Text(e.msg)
 	case ErrorNoArgument:
-		x, mv := e.ix, e.metavar
 		// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
 		// Error: --foo requires an argument FOO
-		a, ok := args.get(x + 1)
+		a, ok := args.get(e.ix + 1)
 		if ok && (a.IsShort() || a.IsLong()) {
-			arg := &args.items[x]
+			arg := &args.items[e.ix]
 
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.write(arg.GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" requires an argument ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.metavar(mv)
+			doc.metavar(e.metavar)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(", got a flag ")
 			doc.token(TokenBlockStart(BlockTermRef))
@@ -534,11 +533,11 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		} else {
 			// "Some" part of this branch is actually unreachable
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(args.items[x].GoString(), StyleLiteral)
+			doc.write(args.items[e.ix].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" requires an argument ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.metavar(mv)
+			doc.metavar(e.metavar)
 			doc.token(TokenBlockEnd(BlockTermRef))
 		}
 	case ErrorUnconsumed:
