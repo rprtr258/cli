@@ -205,8 +205,8 @@ Available commands:
 }
 
 func TestTwo_adjacent_args(t *testing.T) {
-	x := Argument(Short('x'), "X", parseUint)
-	y := Argument(Short('y'), "Y", parseUint)
+	x := Argument(Short('x'), "X", parseInt)
+	y := Argument(Short('y'), "Y", parseInt)
 	c := Short('c').Switch()
 	point := Pair(x, y).Adjacent()
 	parser := Pair(point, c).Parser().ToOptions()
@@ -214,15 +214,17 @@ func TestTwo_adjacent_args(t *testing.T) {
 	{
 		r, err := parser.run_inner(newArgs("-x", "3", "-y", "4", "-c"))
 		require.Nil(t, err)
-		require.Equal(t, r, pair(pair(uint(3), uint(4)), true))
+		require.Equal(t, r, pair(pair(3, 4), true))
 	}
 	{
 		// they are adjacent to each other, but the way it is coded currently - they must be adjacent
 		// to the first element.
 		// Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
-		// r,err:= parser.run_inner(newArgs("-y", "3", "-x", "4", "-c")).unwrap();
-		// require.Equal(t, r, ((4, 3), true));
+		// TODO: get back
+		// r, err := parser.run_inner(newArgs("-y", "3", "-x", "4", "-c"))
+		// require.Nil(t, err)
+		// require.Equal(t, r, pair(pair(4, 3), true))
 	}
 	{
 		_, r := parser.run_inner(newArgs("-y", "3", "-c", "-x", "4"))
