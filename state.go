@@ -395,13 +395,9 @@ func (self *State) takePositional(metavar Metavar) (int, bool, string, Error) {
 	iter := push2(self.items_iter())
 	for i, arg := range iter {
 		switch arg.kind {
-		case ArgKindWord:
+		case ArgKindWord, ArgKindPositional:
 			ix = i
-			strict, ok = false, true
-			w = arg
-		case ArgKindPositional:
-			ix = i
-			strict, ok = true, true
+			strict, ok = arg.kind == ArgKindPositional, true
 			w = arg
 		}
 		if ok {
