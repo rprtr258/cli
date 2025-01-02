@@ -372,16 +372,15 @@ func (self *State) take_arg(
 
 	key_ix := key_ixArg.K
 	val_ix := key_ix + 1
-	var val string
-	if ww, ok := self.get(val_ix); !ok || !fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
+	ww, ok := self.get(val_ix)
+	if !ok || !fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
 		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
-	} else {
-		val = ww.str
 	}
+
 	self.currentIdx = Valid(val_ix)
 	self.remove(key_ix)
 	self.remove(val_ix)
-	return Valid(val), nil
+	return Valid(ww.str), nil
 }
 
 // gets first positional argument present
