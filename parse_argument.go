@@ -52,8 +52,7 @@ func (self ParseArgument[T]) item() (Item, bool) {
 func (self ParseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	os, err := func() (string, Error) {
-		wopt, err := state.take_arg(self.named, self.adjacent, self.metavar)
-		if err != nil {
+		if wopt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
 		} else if w, ok := wopt.Unpack(); ok {
