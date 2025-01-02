@@ -331,7 +331,7 @@ func (self State) swap_comps_with(comps *[]Comp) {
 // Get a short or long flag: `-f` / `--flag`
 //
 // Returns false if value isn't present
-func (self *State) take_flag(named NamedArg) bool {
+func (self *State) takeBoolFlag(named NamedArg) bool {
 	var (
 		ix int
 		ok bool
@@ -354,7 +354,7 @@ func (self *State) take_flag(named NamedArg) bool {
 //
 // Returns Invalid() if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
-func (self *State) take_arg(
+func (self *State) takeFlag(
 	named NamedArg,
 	adjacent bool,
 	metavar Metavar,

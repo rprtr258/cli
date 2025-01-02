@@ -14,7 +14,7 @@ func (self ParseFlag[T]) Parser() Parser[T] {
 }
 
 func (self ParseFlag[T]) eval(state *State) (T, Error) {
-	if state.take_flag(self.named) || func() bool {
+	if state.takeBoolFlag(self.named) || func() bool {
 		_, ok := find_map(self.named.env, os.LookupEnv)
 		return ok
 	}() {

@@ -57,7 +57,7 @@ func (self parseArgument[T]) item() (Item, bool) {
 func (self parseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	valueStr, err := func() (string, Error) {
-		valueStrOpt, err := state.take_arg(self.named, self.adjacent, self.metavar)
+		valueStrOpt, err := state.takeFlag(self.named, self.adjacent, self.metavar)
 		if err != nil {
 			state.push_argument(self.named, self.metavar)
 			return "", err
