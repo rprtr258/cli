@@ -39,7 +39,7 @@ func (self OptionParser[T]) Run(args []string) T {
 		comp:  Invalid[uint](),
 	}
 
-	t, err := self.run_inner(current_args)
+	t, err := self.run(current_args)
 	if err != nil {
 		// Prints a message to `stdout` or `stderr` appropriate to the failure.
 		color := Colordefault
@@ -69,7 +69,7 @@ func (self OptionParser[T]) Run(args []string) T {
 //		        .to_options();
 //
 //		help := parser
-//		    .run_inner(newArgs("--help"])
+//		    .run(newArgs("--help"])
 //		    .unwrap_err()
 //		    .unwrap_stdout();
 //		expected_help := `
@@ -94,7 +94,7 @@ func (self OptionParser[T]) Run(args []string) T {
 //
 // # Errors
 //
-// If parser can't produce desired result `run_inner` returns [ParseFailure]
+// If parser can't produce desired result `run` returns [ParseFailure]
 // which represents runtime behavior: one branch to print something to stdout and exit with
 // success and the other branch to print something to stderr and exit with failure.
 //
@@ -102,7 +102,7 @@ func (self OptionParser[T]) Run(args []string) T {
 // [parse](Parserparse), stdout/stderr isn't actually captured.
 //
 // Exact string reperentations may change between versions including minor releases.
-func (self OptionParser[T]) run_inner(args Args) (T, ParseFailure) {
+func (self OptionParser[T]) run(args Args) (T, ParseFailure) {
 	// prepare available short flags and arguments for disambiguation
 	var short_flags []byte
 	var short_args []byte

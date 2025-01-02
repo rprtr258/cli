@@ -11,7 +11,7 @@ import (
 )
 
 func (parser *OptionParser[T]) RunInner(args Args) (T, ParseFailure) {
-	return parser.run_inner(args)
+	return parser.run(args)
 }
 
 // Check the invariants `bpaf` relies on for normal operations
