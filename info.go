@@ -530,7 +530,7 @@ func (self OptionParser[T]) check_invariants(bool) {
 // can customize those names and description in the help message
 //
 // Note, `--help` is something user expects to work
-func (self *OptionParser[T]) help_parser(parser NamedArg) *OptionParser[T] {
+func (self *OptionParser[T]) HelpParser(parser NamedArg) *OptionParser[T] {
 	self.info.help_arg = parser
 	return self
 }
@@ -541,7 +541,7 @@ func (self *OptionParser[T]) help_parser(parser NamedArg) *OptionParser[T] {
 // or `-V` (and version is available), you can customize those names and description in the help message
 //
 // Note, `--version` is something user expects to work
-func (self *OptionParser[T]) version_parser(parser NamedArg) *OptionParser[T] {
+func (self *OptionParser[T]) VersionParser(parser NamedArg) *OptionParser[T] {
 	self.info.version_arg = parser
 	return self
 }

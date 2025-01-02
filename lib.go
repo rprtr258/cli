@@ -397,8 +397,8 @@ func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
 
 // Make a help message for a complex parser from its [Meta]
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/with_group_help.md"))]
-func (self Parser[T]) with_group_help(f func(Meta) Doc) ParseWithGroupHelp[T] {
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/WithGroupHelp.md"))]
+func (self Parser[T]) WithGroupHelp(f func(Meta) Doc) ParseWithGroupHelp[T] {
 	return ParseWithGroupHelp[T]{inner: self, f: f}
 }
 
