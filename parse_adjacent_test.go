@@ -1,4 +1,4 @@
-package cli
+package cli_test
 
 import (
 	"strconv"
@@ -6,6 +6,8 @@ import (
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func TestAdjacent(t *testing.T) {
@@ -44,7 +46,7 @@ func TestAdjacent(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.run_inner(NewArgs(tc.args...))
+			r, err := parser.RunInner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -96,7 +98,7 @@ func TestAdjacentPrefix(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.run_inner(NewArgs(tc.args...))
+			r, err := parser.RunInner(NewArgs(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -111,7 +113,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let adj = construct(a, b, c).adjacent();
 //     let parser = construct(adj, d).to_options();
 
-//     let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
+//     let r = parser.RunInner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
 //     require.Equal(r, "expected `C`, pass `--help` for usage information");
 // }
 
@@ -123,7 +125,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let adj = construct(a, b, c).adjacent();
 //     let parser = construct(adj, d).to_options();
 
-//     let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
+//     let r = parser.RunInner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
 //     require.Equal(
 //         r,
 //         "expected `-b=B`, got `10`. Pass `--help` for usage information"
@@ -138,7 +140,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let adj = construct(a, b, c).adjacent().many();
 //     let parser = construct(adj, d).to_options();
 
-//     let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
+//     let r = parser.RunInner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
 //     require.Equal(r, "expected `C`, pass `--help` for usage information");
 // }
 
@@ -150,7 +152,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let adj = construct(a, b, c).adjacent().many();
 //     let parser = construct(adj, d).to_options();
 
-//     let r = parser.run_inner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
+//     let r = parser.RunInner(newArgs("-a", "10")).unwrap_err().unwrap_stderr();
 //     // this should ask for -b or -c and complain on 10...
 //     require.Equal(
 //         r,
@@ -164,12 +166,12 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let parser = construct(a, b).adjacent().map(|t| t.1).many().to_options();
 
 //     let r = parser
-//         .run_inner(newArgs("-a", "-a", "10", "20"])
+//         .RunInner(newArgs("-a", "-a", "10", "20"])
 //         .unwrap_err()
 //         .unwrap_stderr();
 //     require.Equal(r, "expected `B`, pass `--help` for usage information");
 
-//     let r = parser.run_inner(newArgs("-a", "10", "-a", "20")).unwrap();
+//     let r = parser.RunInner(newArgs("-a", "10", "-a", "20")).unwrap();
 //     require.Equal(r, [10, 20]);
 // }
 
@@ -180,13 +182,13 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let c = short('c').Switch();
 //     let parser = construct(ab, c).to_options();
 
-//     let r = parser.run_inner(newArgs("-a", "10", "-c")).unwrap();
+//     let r = parser.RunInner(newArgs("-a", "10", "-c")).unwrap();
 //     require.Equal(r, (vec[10], true));
 
-//     let r = parser.run_inner(newArgs("-a", "10", "-c", "-a", "20")).unwrap();
+//     let r = parser.RunInner(newArgs("-a", "10", "-c", "-a", "20")).unwrap();
 //     require.Equal(r, (vec[10, 20], true));
 
-//     let r = parser.run_inner(newArgs("-c", "-a", "10", "-a", "20")).unwrap();
+//     let r = parser.RunInner(newArgs("-c", "-a", "10", "-a", "20")).unwrap();
 //     require.Equal(r, (vec[10, 20], true));
 // }
 
@@ -195,7 +197,7 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let s = short('s').Switch();
 //     let parser = construct(s, x).to_options();
 
-//     let r = parser.run_inner(newArgs("a", "-s")).unwrap();
+//     let r = parser.RunInner(newArgs("a", "-s")).unwrap();
 //     require.Equal(r, (true, ()));
 // }
 
@@ -218,10 +220,10 @@ func TestAdjacentPrefix(t *testing.T) {
 
 //     let parser = construct(switch, cmds).to_options();
 
-//     let r = parser.run_inner(newArgs("sleep", "--time", "12", "-s")).unwrap();
+//     let r = parser.RunInner(newArgs("sleep", "--time", "12", "-s")).unwrap();
 //     require.Equal(r, (true, "12".to_owned()));
 
-//     let r = parser.run_inner(newArgs("--help")).unwrap_err().unwrap_stdout();
+//     let r = parser.RunInner(newArgs("--help")).unwrap_err().unwrap_stdout();
 
 //     // TODO - this is ugly
 //     let expected = "\
@@ -246,18 +248,18 @@ func TestAdjacentPrefix(t *testing.T) {
 //     let point = construct(x, y).adjacent();
 //     let parser = construct(point, c).to_options();
 
-//     let r = parser.run_inner(newArgs("-x", "3", "-y", "4", "-c")).unwrap();
+//     let r = parser.RunInner(newArgs("-x", "3", "-y", "4", "-c")).unwrap();
 //     require.Equal(r, ((3, 4), true));
 
 //     // they are adjacent to each other, but the way it is coded currently - they must be adjacent
 //     // to the first element.
 //     // Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
-//     // let r = parser.run_inner(newArgs("-y", "3", "-x", "4", "-c")).unwrap();
+//     // let r = parser.RunInner(newArgs("-y", "3", "-x", "4", "-c")).unwrap();
 //     // require.Equal(r, ((4, 3), true));
 
 //     let r = parser
-//         .run_inner(newArgs("-y", "3", "-c", "-x", "4"])
+//         .RunInner(newArgs("-y", "3", "-c", "-x", "4"])
 //         .unwrap_err()
 //         .unwrap_stderr();
 //     require.Equal(r, "expected `-y=Y`, pass `--help` for usage information");

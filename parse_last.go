@@ -37,10 +37,10 @@ func (self ParseLast[T]) meta() Meta {
 	return MetaMany{MetaRequired{self.inner.meta}}
 }
 
-// Apply the inner parser as many times as it succeeds, return the last value
+// Apply the inner parser as many times as it succeeds, return the Last value
 //
 // You can use this to allow users to pick contradicting fun.Options
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/last.md"))]
-func (self Parser[T]) last() ParseLast[T] {
+// #[cfg_attr(not(doctest), doc = include_str!("docs2/Last.md"))]
+func (self Parser[T]) Last() ParseLast[T] {
 	return ParseLast[T]{inner: self}
 }

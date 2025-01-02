@@ -1,10 +1,12 @@
-package cli
+package cli_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func TestPositional_with_help(t *testing.T) {
@@ -12,7 +14,7 @@ func TestPositional_with_help(t *testing.T) {
 	api := Positional("API_KEY", ParseString).Help("api key to use")
 	parser := Pair(user, api).Parser().ToOptions()
 
-	_, err := parser.run_inner(NewArgs("--help"))
+	_, err := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: USER API_KEY
 
 Available positional items:
@@ -29,7 +31,7 @@ func TestHelp_for_positional(t *testing.T) {
 	c := Positional("C", ParseString).Help("help for\nc")
 	d := Positional("DDD", ParseString).Help("help for\nddd")
 	parser := Pair(c, d).Parser().ToOptions()
-	_, err := parser.run_inner(NewArgs("--help"))
+	_, err := parser.RunInner(NewArgs("--help"))
 
 	const expected_help = `Usage: C DDD
 
@@ -46,7 +48,7 @@ Available options:
 func TestDash_is_positional(t *testing.T) {
 	a := Positional("FILE", ParseString)
 	parser := a.Parser().ToOptions()
-	res, err := parser.run_inner(NewArgs("-"))
+	res, err := parser.RunInner(NewArgs("-"))
 	require.Nil(t, err)
 	require.Equal(t, "-", res)
 }
@@ -56,7 +58,7 @@ func TestHelpful_error_message(t *testing.T) {
 		Parser().Some("you need to specify at least one FOO", false)).
 		ToOptions()
 
-	_, err := parser.run_inner(NewArgs())
+	_, err := parser.RunInner(NewArgs())
 	require.Equal(t, "you need to specify at least one FOO", unwrap_stderr(err))
 }
 
@@ -66,7 +68,7 @@ func TestPositional_argument(t *testing.T) {
 		Parser().GroupHelp("File to process")
 	parser := p.Parser().ToOptions()
 
-	_, err := parser.run_inner(NewArgs("--help"))
+	_, err := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: FILE
 
@@ -100,7 +102,7 @@ func TestPositional_help_complain_1(t *testing.T) {
 		b := Short('b').Switch()
 		parser := Pair(a, b).Parser().ToOptions()
 
-		_, err := parser.run_inner(NewArgs("--help"))
+		_, err := parser.RunInner(NewArgs("--help"))
 		unwrap_stderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
@@ -114,7 +116,7 @@ func TestPositional_help_complain_2(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).Parser().ToOptions()
 
-		_, err := parser.run_inner(NewArgs("--help"))
+		_, err := parser.RunInner(NewArgs("--help"))
 		unwrap_stderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
@@ -128,7 +130,7 @@ func TestPositional_help_complain_3(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).Parser().ToOptions()
 
-		_, err := parser.run_inner(NewArgs("--help"))
+		_, err := parser.RunInner(NewArgs("--help"))
 		unwrap_stderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
@@ -139,7 +141,7 @@ func TestPositional_help_complain_4(t *testing.T) {
 	b := Argument(Short('b'), "B", ParseString)
 	parser := Choice(b, a).Parser().ToOptions()
 
-	_, err := parser.run_inner(NewArgs("--help"))
+	_, err := parser.RunInner(NewArgs("--help"))
 	unwrap_stdout(err)
 }
 
@@ -147,7 +149,7 @@ func TestStrictly_positional(t *testing.T) {
 	parser := Positional("A", ParseString).Strict().Parser().ToOptions()
 
 	{
-		_, r := parser.run_inner(NewArgs("--help"))
+		_, r := parser.RunInner(NewArgs("--help"))
 		require.Equal(t,
 			"Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n",
 			unwrap_stdout(r),
@@ -155,23 +157,23 @@ func TestStrictly_positional(t *testing.T) {
 	}
 
 	{
-		_, r := parser.run_inner(NewArgs("a"))
+		_, r := parser.RunInner(NewArgs("a"))
 		require.Equal(t, "expected `A` to be on the right side of `--`", unwrap_stderr(r))
 	}
 
 	{
-		r, err := parser.run_inner(NewArgs("--", "a"))
+		r, err := parser.RunInner(NewArgs("--", "a"))
 		require.Nil(t, err)
 		require.Equal(t, "a", r)
 	}
 
 	{
-		_, r := parser.run_inner(NewArgs("a", "--"))
+		_, r := parser.RunInner(NewArgs("a", "--"))
 		require.Equal(t, "expected `A` to be on the right side of `--`", unwrap_stderr(r))
 	}
 
 	{
-		_, r := parser.run_inner(NewArgs("--"))
+		_, r := parser.RunInner(NewArgs("--"))
 		require.Equal(t, "expected `A`, pass `--help` for usage information", unwrap_stderr(r))
 	}
 }
@@ -180,18 +182,18 @@ func TestNon_strictly_positional(t *testing.T) {
 	parser := Positional("A", ParseString).NonStrict().Parser().ToOptions()
 
 	{
-		r, err := parser.run_inner(NewArgs("a"))
+		r, err := parser.RunInner(NewArgs("a"))
 		require.Nil(t, err)
 		require.Equal(t, r, "a")
 	}
 
 	{
-		_, r := parser.run_inner(NewArgs("--", "a"))
+		_, r := parser.RunInner(NewArgs("--", "a"))
 		require.Equal(t, "expected `A` to be on the left side of `--`", unwrap_stderr(r))
 	}
 
 	{
-		_, r := parser.run_inner(NewArgs("--"))
+		_, r := parser.RunInner(NewArgs("--"))
 		require.Equal(t, "expected `A`, pass `--help` for usage information", unwrap_stderr(r))
 	}
 }

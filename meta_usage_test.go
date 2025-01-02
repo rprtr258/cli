@@ -1,16 +1,18 @@
-package cli
+package cli_test
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
 
-	_, output := parser.run_inner(NewArgs("--help"))
+	_, output := parser.RunInner(NewArgs("--help"))
 	usage := strings.TrimPrefix(strings.Split(unwrap_stdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, expected, usage)
 }
@@ -191,7 +193,7 @@ func TestNo_actual_arguments_also_works(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Pure(true).Parser().ToOptions()
 
-	_, r := parser.run_inner(NewArgs("--help"))
+	_, r := parser.RunInner(NewArgs("--help"))
 	require.Equal(t,
 		unwrap_stdout(r),
 		"Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n",
@@ -262,7 +264,7 @@ func TestOptional_last_of_many(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('b'), false)
-	ab := Choice(a, b).last().Parser().Fallback(false)
+	ab := Choice(a, b).Last().Parser().Fallback(false)
 	parser := ab.Parser().ToOptions()
 
 	assert_usage(t, parser, "[-a | -b]...")
