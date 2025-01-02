@@ -10,7 +10,7 @@ const (
 	// --flag
 	ArgKindLongFlag
 	// "val" part of --key=val -k=val -kval
-	ArgKindArgWord
+	ArgKindFlagValue
 	// separate word that can be command, positional or a separate argument to a flag
 	//
 	// Can start with `-` or `--`, doesn't have to be valid utf8
@@ -41,8 +41,8 @@ func ArgWord(str string) Arg {
 	return Arg{str: str, kind: ArgKindWord}
 }
 
-func ArgArgWord(str string) Arg {
-	return Arg{str: str, kind: ArgKindArgWord}
+func ArgFlagValue(str string) Arg {
+	return Arg{str: str, kind: ArgKindFlagValue}
 }
 
 func ArgPositional(str string) Arg {
@@ -83,7 +83,7 @@ func (self Arg) String() string {
 		return fmt.Sprintf("Short(%s, %c, %v)", self.str, self.c, self.is_adj)
 	case ArgKindLongFlag:
 		return fmt.Sprintf("Long(%s, %s, %v)", self.str, self.s, self.is_adj)
-	case ArgKindArgWord:
+	case ArgKindFlagValue:
 		return fmt.Sprintf("ArgWord(%s)", self.str)
 	case ArgKindWord:
 		return fmt.Sprintf("Word(%s)", self.str)

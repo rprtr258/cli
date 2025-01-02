@@ -371,7 +371,7 @@ func (self *State) takeFlag(
 	key_ix := key_ixArg.K
 	val_ix := key_ix + 1
 	ww, ok := self.get(val_ix)
-	if !ok || !fun.Contains(ww.kind, ArgKindArgWord, ArgKindWord) {
+	if !ok || !fun.Contains(ww.kind, ArgKindFlagValue, ArgKindWord) {
 		return Option[string]{}, ErrorNoArgument{key_ix, metavar}
 	}
 

@@ -386,7 +386,7 @@ func textual_part(args State, ixxx Option[int]) (string, bool) {
 	}
 
 	switch ix.kind {
-	case ArgKindArgWord, ArgKindWord, ArgKindPositional:
+	case ArgKindFlagValue, ArgKindWord, ArgKindPositional:
 		return ix.str, true
 	}
 	return "", false
@@ -600,7 +600,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 						ty = "flag"
 					case ArgKindLongFlag:
 						ty = "flag"
-					case ArgKindArgWord:
+					case ArgKindFlagValue:
 						ty = "argument value"
 					case ArgKindWord:
 						ty = "command or positional"
