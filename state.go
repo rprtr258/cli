@@ -284,11 +284,7 @@ func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 
 	itcur := 0
 	return func() (argRangesIterItem, bool) {
-		for {
-			if itcur > args.scope.end() {
-				return argRangesIterItem{}, false
-			}
-
+		for itcur <= args.scope.end() {
 			cur := itcur
 			itcur++
 			if v, ok := args.present(cur); ok && !v {
@@ -303,6 +299,7 @@ func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 			args.scope = Range{cur, len(args.items)}
 			return argRangesIterItem{cur, width, args}, true
 		}
+		return argRangesIterItem{}, false
 	}
 }
 
