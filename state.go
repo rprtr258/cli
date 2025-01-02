@@ -223,11 +223,11 @@ func (self State) len() int {
 
 // Get an argument from a scope that was not consumed yet
 func (self State) get(ix int) (Arg, bool) {
-	if self.scope.contains(ix) && !self.item_state[ix].parsed() {
-		return self.items[ix], true
-	} else {
+	if !self.scope.contains(ix) || self.item_state[ix].parsed() {
 		return Arg{}, false
 	}
+
+	return self.items[ix], true
 }
 
 // Narrow down scope of &self to adjacently consumed values compared to original.
