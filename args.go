@@ -197,7 +197,7 @@ func (self *State) set_no_pos_ahead() {
 	}
 }
 
-func stateconstruct(
+func newState(
 	args Args,
 	short_flags []byte,
 	short_args []byte,

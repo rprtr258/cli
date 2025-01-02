@@ -3,21 +3,21 @@ package cli
 import "os"
 
 // Parser for a named argument, created with [NamedArgargument].
-type ParseArgument[T any] struct {
+type parseArgument[T any] struct {
 	named    NamedArg
 	metavar  Metavar
 	adjacent bool
 	parse    func(string) (T, error)
 }
 
-func (self ParseArgument[T]) Parser() Parser[T] {
+func (self parseArgument[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta()}
 }
 
 // Add a help message to an `argument`
 //
 // See [NamedArghelp]
-func (self *ParseArgument[T]) help(help Doc) *ParseArgument[T] {
+func (self *parseArgument[T]) help(help Doc) *parseArgument[T] {
 	self.named.help = Valid(help)
 	return self
 }
@@ -31,12 +31,12 @@ func (self *ParseArgument[T]) help(help Doc) *ParseArgument[T] {
 // # Should allow to parse some of the more unusual things
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_argument.md"))]
-func (self *ParseArgument[T]) Adjacent() *ParseArgument[T] {
+func (self *parseArgument[T]) Adjacent() *parseArgument[T] {
 	self.adjacent = true
 	return self
 }
 
-func (self ParseArgument[T]) item() (Item, bool) {
+func (self parseArgument[T]) item() (Item, bool) {
 	name, ok := ShortLongtry_from(self.named)
 	if !ok {
 		return Item{}, false
@@ -49,7 +49,7 @@ func (self ParseArgument[T]) item() (Item, bool) {
 	}}, true
 }
 
-func (self ParseArgument[T]) eval(state *State) (T, Error) {
+func (self parseArgument[T]) eval(state *State) (T, Error) {
 	// take argument
 	valueStr, err := func() (string, Error) {
 		if valueStrOpt, err := state.take_arg(self.named, self.adjacent, self.metavar); err != nil {
@@ -91,7 +91,7 @@ func (self ParseArgument[T]) eval(state *State) (T, Error) {
 	return t, nil
 }
 
-func (self ParseArgument[T]) meta() Meta {
+func (self parseArgument[T]) meta() Meta {
 	if item, ok := self.item(); ok {
 		return MetaItem(item)
 	} else {
@@ -117,8 +117,8 @@ func (self ParseArgument[T]) meta() Meta {
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Argument.md"))]
 //
 // You can further restrict it using [adjacent](ParseArgumentadjacent)
-func Argument[T any](self NamedArg, metavar Metavar, p func(string) (T, error)) *ParseArgument[T] {
-	return &ParseArgument[T]{
+func Argument[T any](self NamedArg, metavar Metavar, p func(string) (T, error)) *parseArgument[T] {
+	return &parseArgument[T]{
 		named:    self,
 		metavar:  metavar,
 		adjacent: false,
