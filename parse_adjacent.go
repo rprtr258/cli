@@ -46,7 +46,7 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 		// consider examples "42 -n" and "-n 42"
 		// without multi step approach first command line also parses into 42
 		scratch := this_arg.clone()
-		scratch.set_scope(Range{start, start + width})
+		scratch.scope = Range{start, start + width}
 		before := scratch.len()
 
 		// nothing to consume, might as well skip this segment right now
@@ -63,13 +63,13 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 			continue
 		}
 
-		this_arg.set_scope(Range{start, original_scope.end()})
+		this_arg.scope = Range{start, original_scope.end()}
 		before = this_arg.len()
 
 		// values consumed by adjacent must be actually adjacent - if a scope contains
 		// already parsed values inside we need to trim it
 		if original_scope.end()-start > before {
-			this_arg.set_scope(this_arg.adjacently_available_from(start))
+			this_arg.scope = this_arg.adjacently_available_from(start)
 		}
 
 		for {
@@ -78,10 +78,10 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 				// there's a smaller adjacent scope, we must try it before returning.
 				if adj_scope, ok := this_arg.adjacent_scope(*state); ok {
 					this_arg = state.clone()
-					this_arg.set_scope(adj_scope)
+					this_arg.scope = adj_scope
 				} else {
 					*state, this_arg = this_arg, *state
-					state.set_scope(original_scope)
+					state.scope = original_scope
 					return res, nil
 				}
 			} else {

@@ -84,7 +84,7 @@ func parse_option[T any](
 			missing && orig_args.len() == state.len() ||
 			!missing && can_catch(Error(err)) {
 			orig_args, *state = *state, orig_args
-			if _, ok := orig_args.comp_mut(); ok {
+			if orig_args.comp.Valid {
 				state.swap_comps(&orig_args)
 			}
 			return Invalid[T](), nil

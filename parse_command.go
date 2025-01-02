@@ -129,7 +129,7 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 		}
 
 		if cur, ok := state.current.Unpack(); ok {
-			state.set_scope(Range{cur, state.scope.end()})
+			state.scope = Range{cur, state.scope.end()}
 		}
 
 		state.path = append(state.path, self.longs[0])
@@ -137,15 +137,15 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 			orig_args := state.clone()
 
 			// narrow down the scope to adjacently available elements
-			state.set_scope(state.adjacently_available_from(state.scope.start() + 1))
+			state.scope = state.adjacently_available_from(state.scope.start() + 1)
 
 			ok, xxx := self.subparser.run_subparser(state)
 			if xxx != nil {
 				orig_scope := state.scope
 				if narrow_scope, ok := state.adjacent_scope(orig_args); ok {
-					orig_args.set_scope(narrow_scope)
+					orig_args.scope = narrow_scope
 					if res, err := self.subparser.run_subparser(&orig_args); err == nil {
-						orig_args.set_scope(orig_scope)
+						orig_args.scope = orig_scope
 						orig_args, *state = *state, orig_args
 						return res, nil
 					}
@@ -153,7 +153,7 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 				return *new(T), Error(ErrorParseFailure{xxx})
 			}
 
-			state.set_scope(orig_args.scope)
+			state.scope = orig_args.scope
 			return ok, nil
 		} else {
 			v, e := self.subparser.run_subparser(state)

@@ -438,7 +438,7 @@ func (self *ArgRangesIter) next() (ArgRangesIterItem, bool) {
 		// It should be possible to optimize this code a bit
 		// by checking if first item can possibly
 		args := self.args.clone()
-		args.set_scope(Range{cur, len(self.args.items)})
+		args.scope = Range{cur, len(self.args.items)}
 		return ArgRangesIterItem{cur, self.width, args}, true
 	}
 }
@@ -452,11 +452,6 @@ func (self State) ranges(item Item) ArgRangesIter {
 		width = 2
 	}
 	return ArgRangesIter{self, width, 0}
-}
-
-// Mark everything outside of `range` as removed
-func (self *State) set_scope(scope Range) {
-	self.scope = scope
 }
 
 // check if bpaf tries to complete last consumed element

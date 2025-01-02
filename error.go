@@ -782,7 +782,7 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 
 	best_scope[0] = max(best_scope.start(), best_item.position)
 	args = args.clone()
-	args.set_scope(best_scope)
+	args.scope = best_scope
 	next := args.items_iter()
 	if _, _, ok := next(); ok {
 		if ix, sugg, ok := suggest(args, inner); ok {
