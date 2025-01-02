@@ -132,11 +132,11 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 }
 
 func TestAdjacent_with_switch(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("B", ParseUint)
-	var ab = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false)
-	var c = Short('c').Switch()
-	var parser = Pair(ab, c).Parser().ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("B", ParseUint)
+	ab := Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false)
+	c := Short('c').Switch()
+	parser := Pair(ab, c).Parser().ToOptions()
 
 	type R = fun.Pair[[]uint, bool]
 	{
@@ -157,9 +157,9 @@ func TestAdjacent_with_switch(t *testing.T) {
 }
 
 func TestAdjacent_limits_commands(t *testing.T) {
-	var x = Pure(struct{}{}).Parser().ToOptions().Command("a").Adjacent()
-	var s = Short('s').Switch()
-	var parser = Pair(s, x).Parser().ToOptions()
+	x := Pure(struct{}{}).Parser().ToOptions().Command("a").Adjacent()
+	s := Short('s').Switch()
+	parser := Pair(s, x).Parser().ToOptions()
 
 	r, err := parser.RunInner(newArgs("a", "-s"))
 	require.Nil(t, err)
