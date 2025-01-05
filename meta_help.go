@@ -291,7 +291,7 @@ func (self *HelpItems) append_meta(meta Meta) {
 			*self = append(*self, HelpItemFromItem(Item(meta)))
 		case MetaSubsection:
 			m := meta.m
-			help := meta.u
+			help := meta.doc
 			if ty, ok := peek_front_ty(m); ok {
 				if no_ss {
 					GO(m, true)
@@ -303,7 +303,7 @@ func (self *HelpItems) append_meta(meta Meta) {
 			}
 		case MetaSuffix:
 			m := meta.m
-			help := meta.u
+			help := meta.doc
 			if ty, ok := peek_front_ty(m); ok {
 				GO(m, no_ss)
 				*self = append(*self, HelpItemDecorSuffix{help, ty})

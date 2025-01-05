@@ -148,7 +148,7 @@ func (self *Doc) write_meta_go(meta Meta) {
 	case MetaSkip:
 		// self.write_str("no parameters expected", StyleText)
 	case MetaCustomUsage:
-		self.Doc(m.u)
+		self.Doc(m.doc)
 	case MetaStrict:
 		self.write_str("--", StyleLiteral)
 		self.write_str(" ", StyleText)

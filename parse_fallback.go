@@ -29,13 +29,11 @@ func (self ParseFallback[T]) eval(state *State) (T, Error) {
 }
 
 func (self ParseFallback[T]) meta() Meta {
-	m := MetaOptional{self.inner.meta}
-	if self.value_str == "" {
-		return m
-	} else {
-		buf := NewDoc(self.value_str)
-		return MetaSuffix{m, buf}
+	m := Meta(MetaOptional{self.inner.meta})
+	if self.value_str != "" {
+		m = MetaSuffix{m, NewDoc(self.value_str)}
 	}
+	return m
 }
 
 // Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay)
@@ -109,13 +107,11 @@ func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
 }
 
 func (self ParseFallbackWith[T]) meta() Meta {
-	m := MetaOptional{self.inner.meta}
-	if self.value_str == "" {
-		return m
-	} else {
-		buf := NewDoc(self.value_str)
-		return MetaSuffix{m, buf}
+	m := Meta(MetaOptional{self.inner.meta})
+	if self.value_str != "" {
+		m = MetaSuffix{m, NewDoc(self.value_str)}
 	}
+	return m
 }
 
 // Show [fallback_with](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)

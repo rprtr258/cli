@@ -1,19 +1,5 @@
 package cli
 
-// Parser that fails without consuming any input, created with [Fail].
-type ParseFail[T any] struct {
-	field1 string
-}
-
-func (self ParseFail[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, MetaSkip{}}
-}
-
-func (self ParseFail[T]) eval(state *State) (T, Error) {
-	state.currentIdx = Invalid[int]()
-	return *new(T), ErrorParseFail(self.field1)
-}
-
 // Fail with a fixed error message
 //
 // This parser produces `T` of any type but instead of producing it when asked - it fails
@@ -28,14 +14,16 @@ func (self ParseFail[T]) eval(state *State) (T, Error) {
 //	}
 //
 // # Example
-// ```console
-// $ app
-// // exits with "You must accept the license agreement with --agree before proceeding"
-// $ app --agree
-// // succeeds
-// ```
-func Fail[T any](msg string) ParseFail[T] {
-	return ParseFail[T]{
-		field1: msg,
+//
+//	$ app
+//	// exits with "You must accept the license agreement with --agree before proceeding"
+//	$ app --agree
+//	// succeeds
+func Fail[T any](msg string) Parser[T] {
+	eval := func(state *State) (T, Error) {
+		state.currentIdx = Invalid[int]()
+		return *new(T), ErrorParseFail(msg)
 	}
+	meta := MetaSkip{}
+	return Parser[T]{eval, meta}
 }

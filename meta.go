@@ -71,24 +71,24 @@ func (self MetaMany) clone() Meta {
 //
 // whole set of arguments go into the same section as the first one
 type MetaSubsection struct {
-	m Meta
-	u Doc
+	m   Meta
+	doc Doc
 }
 
 func (MetaSubsection) isMeta() {}
 func (self MetaSubsection) clone() Meta {
-	return MetaSubsection{self.m.clone(), self.u.clone()}
+	return MetaSubsection{self.m.clone(), self.doc.clone()}
 }
 
 // Buffer is rendered after
 type MetaSuffix struct {
-	m Meta
-	u Doc
+	m   Meta
+	doc Doc
 }
 
 func (MetaSuffix) isMeta() {}
 func (self MetaSuffix) clone() Meta {
-	return MetaSuffix{self.m.clone(), self.u.clone()}
+	return MetaSuffix{self.m.clone(), self.doc.clone()}
 }
 
 // This item is not rendered in the help message
@@ -101,13 +101,13 @@ func (MetaSkip) clone() Meta {
 
 // TODO make it Option[Doc]
 type MetaCustomUsage struct {
-	m Meta
-	u Doc
+	m   Meta
+	doc Doc
 }
 
 func (MetaCustomUsage) isMeta() {}
 func (self MetaCustomUsage) clone() Meta {
-	return MetaCustomUsage{self.m.clone(), self.u.clone()}
+	return MetaCustomUsage{self.m.clone(), self.doc.clone()}
 }
 
 // this meta must be prefixed with -- in unsage group
@@ -142,13 +142,13 @@ func cloneMeta(m Meta) Meta {
 	case MetaMany:
 		return MetaMany{cloneMeta(m.m)}
 	case MetaSubsection:
-		return MetaSubsection{cloneMeta(m.m), cloneDoc(m.u)}
+		return MetaSubsection{cloneMeta(m.m), cloneDoc(m.doc)}
 	case MetaSuffix:
-		return MetaSuffix{cloneMeta(m.m), cloneDoc(m.u)}
+		return MetaSuffix{cloneMeta(m.m), cloneDoc(m.doc)}
 	case MetaSkip:
 		return MetaSkip{}
 	case MetaCustomUsage:
-		return MetaCustomUsage{cloneMeta(m.m), cloneDoc(m.u)}
+		return MetaCustomUsage{cloneMeta(m.m), cloneDoc(m.doc)}
 	case MetaStrict:
 		return MetaStrict{cloneMeta(m.m)}
 	}
@@ -427,7 +427,7 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 		// strip CustomUsage if we are not in usage so writer can simply render it
 		if for_usage {
 			*self = m
-		} else if m.u.is_empty() {
+		} else if m.doc.is_empty() {
 			*self = MetaSkip{}
 		}
 	case MetaStrict:
