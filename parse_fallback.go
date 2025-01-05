@@ -42,14 +42,6 @@ func (self ParseFallback[T]) DisplayFallback() ParseFallback[T] {
 	return self
 }
 
-// Show [fallback](Parserfallback) value in `--help` using [Debug](stdfmtDebug) representation
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
-func (self ParseFallback[T]) DebugFallback() ParseFallback[T] {
-	self.value_str = fmt.Sprintf("[default: %#v]", self.value)
-	return self
-}
-
 // Use this value as default if the value isn't present on a command line
 //
 // # Parser would still fail if the value is present but failure comes from some transformation
@@ -112,20 +104,6 @@ func (self ParseFallbackWith[T]) Parser() Parser[T] {
 func (self ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 	if val, err := self.fallback(); err == nil {
 		self.value_str = fmt.Sprintf("[default: %v]", val)
-	}
-	return self
-}
-
-// Show [fallback_with](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
-// representation
-//
-// # If fallback function fails - no value will show up
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback.md"))]
-func (self ParseFallbackWith[T]) debug_fallback() ParseFallbackWith[T] {
-	val, err := self.fallback()
-	if err == nil {
-		self.value_str = fmt.Sprintf("[default: %#v]", val)
 	}
 	return self
 }
