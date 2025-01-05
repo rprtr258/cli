@@ -466,7 +466,6 @@ Available options:
 }
 
 func TestWith_group_help(t *testing.T) {
-	t.Skip() // TODO: fix
 	a := Short('a').Help("option a").Switch()
 	b := Short('b').Help("option b").Switch()
 	c := Short('c').Help("option c").Switch()
@@ -483,7 +482,7 @@ func TestWith_group_help(t *testing.T) {
 		_, r := parser.RunInner(NewArgs("--help"))
 		const expected = `Usage: [-a] [-b] [-c]
 
-Uses either of those [-a] [-b]
+Uses either of those
     -a          option a
     -b          option b
 
