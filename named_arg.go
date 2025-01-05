@@ -120,7 +120,7 @@ func (self NamedArg) Help(help string) NamedArg {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
 func (self NamedArg) Switch() ParseFlag[bool] {
-	return build_flag_parser(true, Valid(false), self)
+	return ParseFlag[bool]{true, Valid(false), self}
 }
 
 // `adjacent` requires for the argument to be present in the same word as the flag:

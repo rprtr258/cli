@@ -26,19 +26,19 @@ func (self ParseFlag[T]) eval(state *State) (T, Error) {
 		state.push_flag(self.named)
 		if ok, okk := self.absent.Unpack(); okk {
 			return ok, nil
-		} else {
-			if item, ok := self.named.flag_item(); ok {
-				missing := MissingItem{
-					item:     item,
-					position: state.scope.start(),
-					scope:    state.scope,
-				}
-				return *new(T), ErrorMissing([]MissingItem{missing})
-			} else if name, ok := First(self.named.env).Unpack(); ok {
-				return *new(T), ErrorNoEnv(name)
-			} else {
-				panic(`todo!("no key!")`)
+		}
+
+		if item, ok := self.named.flag_item(); ok {
+			missing := MissingItem{
+				item:     item,
+				position: state.scope.start(),
+				scope:    state.scope,
 			}
+			return *new(T), ErrorMissing([]MissingItem{missing})
+		} else if len(self.named.env) > 0 {
+			return *new(T), ErrorNoEnv(self.named.env[0])
+		} else {
+			panic(`todo!("no key!")`)
 		}
 	}
 }
@@ -59,21 +59,13 @@ func (self ParseFlag[T]) Help(help Doc) ParseFlag[T] {
 	return self
 }
 
-func build_flag_parser[T any](present T, absent Option[T], named NamedArg) ParseFlag[T] {
-	return ParseFlag[T]{
-		present,
-		absent,
-		named,
-	}
-}
-
 // Flag with custom present/absent values
 //
 // More generic version of [switch](NamedArgswitch) that can use arbitrary type instead of
 // [bool].
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Flag.md"))]
-func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
-	return build_flag_parser(present, Valid(absent), self)
+func Flag[T any](self NamedArg, present, absent T) ParseFlag[T] {
+	return ParseFlag[T]{present, Valid(absent), self}
 }
 
 // Required flag with custom value
@@ -87,5 +79,5 @@ func Flag[T any](self NamedArg, present T, absent T) ParseFlag[T] {
 // fields as `ReqFlag`.
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/ReqFlag.md"))]
 func ReqFlag[T any](self NamedArg, present T) ParseFlag[T] {
-	return build_flag_parser(present, Invalid[T](), self)
+	return ParseFlag[T]{present, Invalid[T](), self}
 }

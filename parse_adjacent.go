@@ -35,7 +35,10 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 		if !ok {
 			break
 		}
-		start, width, this_arg := start_width.startOffset, start_width.widthOfTheFirstItem, start_width.state
+
+		start := start_width.startOffset
+		width := start_width.widthOfTheFirstItem
+		this_arg := start_width.state
 
 		// since we only want to parse things to the right of the first item we perform
 		// parsing in two passes:

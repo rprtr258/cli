@@ -748,7 +748,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 }
 
 // go over all the missing items, pick the left most scope
-func summarize_missing(items []MissingItem, inner Meta, args State) Error {
+func summarize_missing(items []MissingItem, inner Meta, state State) Error {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(
 		slices.Values(items),
@@ -778,15 +778,15 @@ func summarize_missing(items []MissingItem, inner Meta, args State) Error {
 	}))
 
 	best_scope[0] = max(best_scope.start(), best_item.position)
-	args = args.clone()
-	args.scope = best_scope
-	if _, _, ok := args.items_iter()(); ok {
-		if ix, sugg, ok := suggest(args, inner); ok {
-			return ErrorSuggestion{ix, sugg}
+	state = state.clone()
+	state.scope = best_scope
+	if ix, _, ok := state.items_iter()(); ok {
+		if iy, sugg, ok := suggest(state, inner); ok {
+			return ErrorSuggestion{iy, sugg}
 		} else {
 			return ErrorExpected{expected, Valid(ix)}
 		}
-	} else {
-		return ErrorExpected{expected, Invalid[int]()}
 	}
+
+	return ErrorExpected{expected, Invalid[int]()}
 }
