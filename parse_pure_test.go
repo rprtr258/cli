@@ -11,7 +11,7 @@ import (
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	// ~ this is a bit artifactial (it's better to use fallback_with instead actually),
 	// but this example demonstrates the concept
-	a := Argument(Short('t'), "N", ParseUint32)
+	a := Argument(Short('t'), "N", parseUint32)
 	b := PureWith(func() (uint32, Error) { return 42, nil })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
@@ -38,7 +38,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithErr(t *testing.T) {
-	a := Argument(Short('t'), "N", ParseUint32)
+	a := Argument(Short('t'), "N", parseUint32)
 	b := PureWith(func() (uint32, Error) { return 0, ErrorParseFail("some-err") })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
@@ -47,7 +47,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
-	user_seeds := Positional("SEED", ParseUint32).Parser().Some("at least one required", false)
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds
 		return []uint32{3, 5, 7, 11}, nil
@@ -76,7 +76,7 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
-	user_seeds := Positional("SEED", ParseUint32).Parser().Some("at least one required", false)
+	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds but failing - parser fails, fallback works
 		return nil, ErrorParseFail("oh, no")

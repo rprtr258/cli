@@ -40,7 +40,7 @@ func TestGet_any_many2(t *testing.T) {
 
 func TestGet_any_magic(t *testing.T) {
 	parser := Map(Optional(Argument(Short('b'),
-		"anana", ParseString).
+		"anana", parseString).
 		Adjacent().Parser().
 		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser(), true).
 		Parser(),
@@ -58,15 +58,15 @@ func TestGet_any_magic(t *testing.T) {
 }
 
 func TestFrom_str_works_with_parse(t *testing.T) {
-	parser := Parse(Positional("A", ParseString).Parser(),
-		ParseUint).Parser().
+	parser := Parse(Positional("A", parseString).Parser(),
+		parseUint).Parser().
 		ToOptions()
 	AssertSuccess(t, uint(42), parser, "42")
 }
 
 func TestSquashed_short_names(t *testing.T) {
 	a := Short('a').Switch()
-	b := Argument(Short('b'), "B", ParseString)
+	b := Argument(Short('b'), "B", parseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]

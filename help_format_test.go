@@ -19,7 +19,7 @@ func TestHelp_after_switch(t *testing.T) {
 
 func TestFallback_to_usage(t *testing.T) {
 	a := Argument(Short('a'),
-		"A", ParseUint).
+		"A", parseUint).
 		Parser().ToOptions().
 		FallbackToUsage()
 
@@ -30,7 +30,7 @@ func TestFallback_to_usage(t *testing.T) {
 
 func TestFallback_to_usage_nested(t *testing.T) {
 	a := Argument(Short('a'),
-		"A", ParseUint).
+		"A", parseUint).
 		Parser().ToOptions().
 		FallbackToUsage().
 		Command("cmd").
@@ -42,8 +42,8 @@ func TestFallback_to_usage_nested(t *testing.T) {
 }
 
 func TestFancy_meta(t *testing.T) {
-	a := Argument(Long("trailing-comma"), "all|es5|none", ParseString)
-	b := Argument(Long("stdin-file-path"), "PATH", ParseString)
+	a := Argument(Long("trailing-comma"), "all|es5|none", parseString)
+	b := Argument(Long("stdin-file-path"), "PATH", parseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	_, r := parser.RunInner(NewArgs("--help"))
@@ -61,7 +61,7 @@ Available options:
 func TestDecorations(t *testing.T) {
 	p := Argument(Short('p').
 		Long("parser").
-		Env("BPAF_VARIABLE"), "ARG", ParseString).
+		Env("BPAF_VARIABLE"), "ARG", parseString).
 		Parser().ToOptions().
 		Descr("descr\n descr").
 		Header("header\n header").
@@ -95,7 +95,7 @@ func TestVery_long_switch(t *testing.T) {
 	a := Argument(Short('p').
 		Long("ppppppppppppppppppppppppppppppppppppp").
 		Help("this is help for megapotato"),
-		"MEGAPOTATO", ParseUint)
+		"MEGAPOTATO", parseUint)
 	b := Short('b').Long("batman").Help("help for batman").Switch()
 	p := Pair(a, b).Parser().ToOptions()
 
@@ -160,8 +160,8 @@ Available options:
 func TestDuplicate_pos_items_same_help(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	c1 := Positional("C", ParseString).Help("C")
-	c2 := Positional("C", ParseString).Help("C")
+	c1 := Positional("C", parseString).Help("C")
+	c2 := Positional("C", parseString).Help("C")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
@@ -185,8 +185,8 @@ Available options:
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	c1 := Positional("C", ParseString).Help("C1")
-	c2 := Positional("C", ParseString).Help("C2")
+	c1 := Positional("C", parseString).Help("C1")
+	c2 := Positional("C", parseString).Help("C2")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
@@ -281,7 +281,7 @@ Available options:
 func TestMulti_arg_help(t *testing.T) {
 	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{}).Parser()
 	b := Short('e').Long("extra").Help("extra strange").Switch()
-	c := Positional("NAME", ParseString).Help("pos1 help").Parser()
+	c := Positional("NAME", parseString).Help("pos1 help").Parser()
 	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
 	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser(), false).Parser()
 	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
@@ -310,8 +310,8 @@ Available options:
 }
 
 func TestMulti_pos_help(t *testing.T) {
-	a := Positional("NAME", ParseString).Help("name help")
-	b := Positional("VAL", ParseString).Help("val help")
+	a := Positional("NAME", parseString).Help("name help")
+	b := Positional("VAL", parseString).Help("val help")
 	combo := Pair(a, b).Adjacent()
 	verbose := Short('v').Long("verbose").Switch()
 	parser := Pair(verbose, combo).Parser().ToOptions()
@@ -334,7 +334,7 @@ Available options:
 func TestFallback_display_simple_arg(t *testing.T) {
 	parser := Argument(Long("a").
 		Help("help for a"),
-		"NUM", ParseUint).
+		"NUM", parseUint).
 		Parser().Fallback(42).
 		DisplayFallback().
 		Parser().ToOptions()
@@ -352,7 +352,7 @@ Available options:
 }
 
 func TestFallback_display_simple_pos(t *testing.T) {
-	parser := Positional("NUM", ParseUint).
+	parser := Positional("NUM", parseUint).
 		Help("help for pos").
 		Parser().Fallback(42).
 		DisplayFallback().
@@ -380,8 +380,8 @@ func (self Pair2) String() string {
 }
 
 func TestFallback_display_tuple(t *testing.T) {
-	a := Argument(Long("a").Help("help for a"), "NUM", ParseUint)
-	b := Argument(Long("b").Help("help for b"), "NUM", ParseUint)
+	a := Argument(Long("a").Help("help for a"), "NUM", parseUint)
+	b := Argument(Long("b").Help("help for b"), "NUM", parseUint)
 	parser := Map(Pair(a, b).Parser(), func(ab fun.Pair[uint, uint]) Pair2 { return Pair2{uint32(ab.K), uint32(ab.V)} }).
 		Parser().Fallback(Pair2{42, 333}).
 		DisplayFallback().
@@ -403,7 +403,7 @@ Available options:
 
 func TestFallback_display_no_help(t *testing.T) {
 	parser := Argument(Long("a"),
-		"NUM", ParseUint).
+		"NUM", parseUint).
 		Parser().Fallback(42).
 		DisplayFallback().
 		Parser().ToOptions()
@@ -424,7 +424,7 @@ func TestEnv_fallback_visible(t *testing.T) {
 	fonts_dir := Optional(Argument(Long("fonts").
 		Env("OIKOS_FONTS").
 		Help("Load fonts from this directory"),
-		"DIR", ParseString).Parser(), false)
+		"DIR", parseString).Parser(), false)
 
 	system_fonts := Long("system-fonts").
 		Env("OIKOS_SYSTEM_FONTS").

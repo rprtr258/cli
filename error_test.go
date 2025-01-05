@@ -26,7 +26,7 @@ func TestThis_or_that_odd(t *testing.T) {
 }
 
 func TestNo_argument(t *testing.T) {
-	a := Argument(Short('a'), "N", ParseInt32)
+	a := Argument(Short('a'), "N", parseInt32)
 	b := Short('2').Switch()
 	parser := Pair(a, b).Parser().ToOptions()
 
@@ -52,7 +52,7 @@ func TestNo_argument(t *testing.T) {
 
 func TestCannot_be_used_partial_arg(t *testing.T) {
 	a := ReqFlag[uint](Short('a'), 10)
-	b := Argument(Short('b'), "ARG", ParseUint)
+	b := Argument(Short('b'), "ARG", parseUint)
 	parser := Choice(a, b).ToOptions()
 
 	{
@@ -106,7 +106,7 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 
 func TestGuard_message(t *testing.T) {
 	parser := Argument(Short('a'),
-		"N", ParseUint32).
+		"N", parseUint32).
 		Parser().Guard(func(n uint32) bool { return n <= 10 }, "too high").
 		Parser().ToOptions()
 
@@ -115,7 +115,7 @@ func TestGuard_message(t *testing.T) {
 }
 
 func TestStrict_positional_argument(t *testing.T) {
-	a := Argument(Short('a'), "N", ParseUint)
+	a := Argument(Short('a'), "N", parseUint)
 	parser := a.Parser().ToOptions()
 
 	_, r := parser.RunInner(NewArgs("-a", "--", "10"))
@@ -170,7 +170,7 @@ func TestShould_not_split_adjacent_options(t *testing.T) {
 
 func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	a1 := ReqFlag[uint](Short('a'), 0)
-	a2 := Argument(Short('a'), "x", ParseUint)
+	a2 := Argument(Short('a'), "x", parseUint)
 	a := Choice(a2, a1)
 	c := Pure(struct{}{}).Parser().ToOptions().Command("hello")
 	parser := Pair(a, c).Parser().ToOptions()
@@ -198,7 +198,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 }
 
 func TestAdjacent_option_complains_to(t *testing.T) {
-	parser := Argument(Short('a'), "A", ParseUint).Parser().ToOptions()
+	parser := Argument(Short('a'), "A", parseUint).Parser().ToOptions()
 
 	_, r := parser.RunInner(NewArgs("-ayam"))
 	// TODO - this should point to the whole "-ayam" thing
@@ -207,7 +207,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
 	a := Short('a').Switch()
-	b := ParseSomeParser(Positional("B", ParseUint).Parser().Some("Want B", false))
+	b := ParseSomeParser(Positional("B", parseUint).Parser().Some("Want B", false))
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
@@ -222,8 +222,8 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", ParseUint).Parser(), false)
-	b := Positional("B", ParseUint)
+	a := Optional(Argument(Short('a'), "A", parseUint).Parser(), false)
+	b := Positional("B", parseUint)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
@@ -263,7 +263,7 @@ func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
 
 func TestGuard_on_fallback(t *testing.T) {
 	parser := Argument(Short('a'),
-		"A", ParseUint).
+		"A", parseUint).
 		Parser().Fallback(10).
 		Parser().Guard(func(a uint) bool { return a < 10 }, "too big").
 		Parser().ToOptions()
@@ -272,8 +272,8 @@ func TestGuard_on_fallback(t *testing.T) {
 }
 
 func TestTwo_required_fields_first_missing(t *testing.T) {
-	a := Argument(Long("a"), "A", ParseUint32)
-	b := Argument(Long("b"), "B", ParseUint32)
+	a := Argument(Long("a"), "A", parseUint32)
+	b := Argument(Long("b"), "B", parseUint32)
 	parser := Pair(a, b).Parser().ToOptions()
 	_, r := parser.RunInner(NewArgs("--b", "1"))
 	require.Equal(t, UnwrapStderr(r), "expected `--a=A`, pass `--help` for usage information")

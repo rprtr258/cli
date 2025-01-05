@@ -10,8 +10,8 @@ import (
 )
 
 func TestPositional_with_help(t *testing.T) {
-	user := Positional("USER", ParseString).Help("github user\nin two lines")
-	api := Positional("API_KEY", ParseString).Help("api key to use")
+	user := Positional("USER", parseString).Help("github user\nin two lines")
+	api := Positional("API_KEY", parseString).Help("api key to use")
 	parser := Pair(user, api).Parser().ToOptions()
 
 	_, err := parser.RunInner(NewArgs("--help"))
@@ -28,8 +28,8 @@ Available options:
 }
 
 func TestHelp_for_positional(t *testing.T) {
-	c := Positional("C", ParseString).Help("help for\nc")
-	d := Positional("DDD", ParseString).Help("help for\nddd")
+	c := Positional("C", parseString).Help("help for\nc")
+	d := Positional("DDD", parseString).Help("help for\nddd")
 	parser := Pair(c, d).Parser().ToOptions()
 	_, err := parser.RunInner(NewArgs("--help"))
 
@@ -46,7 +46,7 @@ Available options:
 }
 
 func TestDash_is_positional(t *testing.T) {
-	a := Positional("FILE", ParseString)
+	a := Positional("FILE", parseString)
 	parser := a.Parser().ToOptions()
 	res, err := parser.RunInner(NewArgs("-"))
 	require.Nil(t, err)
@@ -54,7 +54,7 @@ func TestDash_is_positional(t *testing.T) {
 }
 
 func TestHelpful_error_message(t *testing.T) {
-	parser := ParseSomeParser(Positional("FOO", ParseString).
+	parser := ParseSomeParser(Positional("FOO", parseString).
 		Parser().Some("you need to specify at least one FOO", false)).
 		ToOptions()
 
@@ -63,7 +63,7 @@ func TestHelpful_error_message(t *testing.T) {
 }
 
 func TestPositional_argument(t *testing.T) {
-	p := Positional("FILE", ParseString).
+	p := Positional("FILE", parseString).
 		Help("file name").
 		Parser().GroupHelp("File to process")
 	parser := p.Parser().ToOptions()
@@ -98,7 +98,7 @@ func usePanic[T any](t *testing.T, f func()) (res T) {
 
 func TestPositional_help_complain_1(t *testing.T) {
 	v := usePanic[string](t, func() {
-		a := Positional("a", ParseString)
+		a := Positional("a", parseString)
 		b := Short('b').Switch()
 		parser := Pair(a, b).Parser().ToOptions()
 
@@ -110,7 +110,7 @@ func TestPositional_help_complain_1(t *testing.T) {
 
 func TestPositional_help_complain_2(t *testing.T) {
 	v := usePanic[string](t, func() {
-		a := Positional("a", ParseString)
+		a := Positional("a", parseString)
 		b := Short('b').Switch()
 		ba := Pair(b, a)
 		c := Short('c').Switch()
@@ -124,8 +124,8 @@ func TestPositional_help_complain_2(t *testing.T) {
 
 func TestPositional_help_complain_3(t *testing.T) {
 	v := usePanic[string](t, func() {
-		a := Positional("a", ParseString)
-		b := Argument(Short('b'), "B", ParseString)
+		a := Positional("a", parseString)
+		b := Argument(Short('b'), "B", parseString)
 		ba := Choice(b, a)
 		c := Short('c').Switch()
 		parser := Pair(ba, c).Parser().ToOptions()
@@ -137,8 +137,8 @@ func TestPositional_help_complain_3(t *testing.T) {
 }
 
 func TestPositional_help_complain_4(t *testing.T) {
-	a := Positional("a", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Positional("a", parseString)
+	b := Argument(Short('b'), "B", parseString)
 	parser := Choice(b, a).Parser().ToOptions()
 
 	_, err := parser.RunInner(NewArgs("--help"))
@@ -146,7 +146,7 @@ func TestPositional_help_complain_4(t *testing.T) {
 }
 
 func TestStrictly_positional(t *testing.T) {
-	parser := Positional("A", ParseString).Strict().Parser().ToOptions()
+	parser := Positional("A", parseString).Strict().Parser().ToOptions()
 
 	{
 		_, r := parser.RunInner(NewArgs("--help"))
@@ -179,7 +179,7 @@ func TestStrictly_positional(t *testing.T) {
 }
 
 func TestNon_strictly_positional(t *testing.T) {
-	parser := Positional("A", ParseString).NonStrict().Parser().ToOptions()
+	parser := Positional("A", parseString).NonStrict().Parser().ToOptions()
 
 	{
 		r, err := parser.RunInner(NewArgs("a"))
