@@ -365,15 +365,6 @@ func unwrap_stdout(self ParseFailure) string {
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-func check_conflicts(args State) Error {
-	loserwinner, ok := args.conflict()
-	if !ok {
-		return nil
-	}
-	loser, winner := loserwinner.start(), loserwinner.end()
-	return ErrorConflict{winner, loser}
-}
-
 func textual_part(args State, ixxx Option[int]) (string, bool) {
 	ixx, ok := ixxx.Unpack()
 	if !ok {
@@ -419,18 +410,20 @@ func only_once(args State, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func render(self *Error, args State, meta Meta) ParseFailure {
+func render(self *Error, state State, meta Meta) ParseFailure {
 	// try to come up with a better error message for a few cases
 	switch e := (*self).(type) {
 	case ErrorMissing:
-		*self = summarize_missing(e, meta, args)
+		*self = summarize_missing(e, meta, state)
 	case ErrorUnconsumed:
 		ix := int(e)
-		if conflict := check_conflicts(args); conflict != nil {
-			*self = conflict
-		} else if prev_ix, ok := only_once(args, ix); ok {
+
+		if loserwinner, ok := state.conflict(); ok {
+			loser, winner := loserwinner.start(), loserwinner.end()
+			*self = ErrorConflict{winner, loser}
+		} else if prev_ix, ok := only_once(state, ix); ok {
 			*self = ErrorOnlyOnce{prev_ix, ix}
-		} else if ix, suggestion, ok := suggest(args, meta); ok {
+		} else if ix, suggestion, ok := suggest(state, meta); ok {
 			*self = ErrorSuggestion{ix, suggestion}
 		}
 	}
@@ -486,7 +479,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 	case ErrorParseFailed:
 		// Error: couldn't parse FIELD: <FromStr message>
 		doc.Text("couldn't parse")
-		if field, ok := textual_part(args, e.pos); ok {
+		if field, ok := textual_part(state, e.pos); ok {
 			doc.Text(" ")
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.Invalid(field)
@@ -496,7 +489,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		doc.Text(e.msg)
 	case ErrorGuardFailed:
 		// Error: ( FIELD:  | check failed: ) <message from guard>
-		if field, ok := textual_part(args, e.pos); ok {
+		if field, ok := textual_part(state, e.pos); ok {
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.Invalid(field)
 			doc.token(TokenBlockEnd(BlockTermRef))
@@ -508,9 +501,9 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 	case ErrorNoArgument:
 		// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
 		// Error: --foo requires an argument FOO
-		a, ok := args.get(e.ix + 1)
+		a, ok := state.get(e.ix + 1)
 		if ok && (a.IsShort() || a.IsLong()) {
-			arg := &args.items[e.ix]
+			arg := &state.items[e.ix]
 
 			doc.token(TokenBlockStart(BlockTermRef))
 			doc.write(arg.GoString(), StyleLiteral)
@@ -533,7 +526,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		} else {
 			// "Some" part of this branch is actually unreachable
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(args.items[e.ix].GoString(), StyleLiteral)
+			doc.write(state.items[e.ix].GoString(), StyleLiteral)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(" requires an argument ")
 			doc.token(TokenBlockStart(BlockTermRef))
@@ -544,7 +537,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		ix := int(e)
 		// Error: --foo is not expected in this context
 		doc.token(TokenBlockStart(BlockTermRef))
-		doc.write(args.items[ix].GoString(), StyleInvalid)
+		doc.write(state.items[ix].GoString(), StyleInvalid)
 		doc.token(TokenBlockEnd(BlockTermRef))
 		doc.Text(" is not expected in this context")
 	case ErrorAmbiguity:
@@ -554,9 +547,9 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		first := name[0]
 		second := name[1]
 		rest := name[1:]
-		s := args.items[ix].str
+		s := state.items[ix].str
 
-		if name, ok := First(args.path).Unpack(); ok {
+		if name, ok := First(state.path).Unpack(); ok {
 			doc.Literal(name)
 			doc.Text(" supports ")
 		} else {
@@ -588,14 +581,14 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 	case ErrorSuggestion:
 		ix, suggestion := e.ix, e.suggestion
 		// Error: No such (flag|argument|command), did you mean  ...
-		actual := args.items[ix].GoString()
+		actual := state.items[ix].GoString()
 		suggestion(
 			func(v Variant) {
 				var ty string
 				if starts_withb(actual, '-') {
 					ty = "flag"
 				} else {
-					switch args.items[ix].kind {
+					switch state.items[ix].kind {
 					case ArgKindShortFlag:
 						ty = "flag"
 					case ArgKindLongFlag:
@@ -686,11 +679,11 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		winner, loser := e.winner, e.loser
 		// Error: --intel cannot be used at the same time as --att
 		doc.token(TokenBlockStart(BlockTermRef))
-		doc.write(args.items[loser].GoString(), StyleLiteral)
+		doc.write(state.items[loser].GoString(), StyleLiteral)
 		doc.token(TokenBlockEnd(BlockTermRef))
 		doc.Text(" cannot be used at the same time as ")
 		doc.token(TokenBlockStart(BlockTermRef))
-		doc.write(args.items[winner].GoString(), StyleLiteral)
+		doc.write(state.items[winner].GoString(), StyleLiteral)
 		doc.token(TokenBlockEnd(BlockTermRef))
 	case ErrorExpected:
 		exp, actual := e.expected, e.actual
@@ -725,7 +718,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		if actual, ok := actual.Unpack(); ok {
 			doc.Text(", got ")
 			doc.token(TokenBlockStart(BlockTermRef))
-			doc.write(args.items[actual].GoString(), StyleInvalid)
+			doc.write(state.items[actual].GoString(), StyleInvalid)
 			doc.token(TokenBlockEnd(BlockTermRef))
 			doc.Text(". Pass ")
 		} else {
@@ -740,7 +733,7 @@ func render(self *Error, args State, meta Meta) ParseFailure {
 		// Error: argument FOO cannot be used multiple times in this context
 		doc.Text("argument ")
 		doc.token(TokenBlockStart(BlockTermRef))
-		doc.write(args.items[loser].GoString(), StyleLiteral)
+		doc.write(state.items[loser].GoString(), StyleLiteral)
 		doc.token(TokenBlockEnd(BlockTermRef))
 		doc.Text(" cannot be used multiple times in this context")
 	}
