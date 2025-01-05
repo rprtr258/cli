@@ -204,8 +204,8 @@ Available commands:
 }
 
 func TestTwo_adjacent_args(t *testing.T) {
-	x := Argument(Short('x'), "X", ParseInt)
-	y := Argument(Short('y'), "Y", ParseInt)
+	x := Argument(Short('x'), "X", parseInt)
+	y := Argument(Short('y'), "Y", parseInt)
 	c := Short('c').Switch()
 	point := Pair(x, y).Adjacent()
 	parser := Pair(point, c).Parser().ToOptions()

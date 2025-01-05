@@ -282,7 +282,7 @@ func TestMulti_arg_help(t *testing.T) {
 	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{}).Parser()
 	b := Short('e').Long("extra").Help("extra strange").Switch()
 	c := Positional("NAME", ParseString).Help("pos1 help").Parser()
-	d := Positional("STATE", ParseBool).Help("pos2 help").Parser()
+	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
 	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser(), false).Parser()
 	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
 	detailed := Long("detailed").Short('d').Help("detailed").Switch().Parser()

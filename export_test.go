@@ -108,26 +108,8 @@ func ParseUint(s string) (uint, error) {
 }
 
 // TODO: move similar funcs to batteries and use
-func ParseInt(s string) (int, error) {
-	u, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, errors.New("invalid digit found in string")
-	}
-	return u, nil
-}
-
-// TODO: move similar funcs to batteries and use
 func ParseString(s string) (string, error) {
 	return s, nil
-}
-
-// TODO: move similar funcs to batteries and use
-func ParseBool(s string) (bool, error) {
-	b, err := strconv.ParseBool(s)
-	if err != nil {
-		return false, err
-	}
-	return b, nil
 }
 
 func AssertSuccess[T any](

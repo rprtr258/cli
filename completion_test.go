@@ -1059,7 +1059,7 @@ func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
 func TestAmbiguity_no_resolve(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a0 := Short('a').Switch().Parser().Count().Parser()
-	a1 := Argument(Short('a'), "AAAAAA", ParseInt)
+	a1 := Argument(Short('a'), "AAAAAA", parseInt)
 	parser := Choice(a0, a1).Parser().ToOptions()
 
 	_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))

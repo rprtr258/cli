@@ -1,6 +1,8 @@
 package cli_test
 
 import (
+	"errors"
+	"strconv"
 	"testing"
 
 	"github.com/rprtr258/cli"
@@ -8,6 +10,24 @@ import (
 
 func map3[A, B, C any](A, B, C) struct{} {
 	return struct{}{}
+}
+
+// TODO: move similar funcs to batteries and use
+func parseInt(s string) (int, error) {
+	u, err := strconv.Atoi(s)
+	if err != nil {
+		return 0, errors.New("invalid digit found in string")
+	}
+	return u, nil
+}
+
+// TODO: move similar funcs to batteries and use
+func parseBool(s string) (bool, error) {
+	b, err := strconv.ParseBool(s)
+	if err != nil {
+		return false, err
+	}
+	return b, nil
 }
 
 // Strip a command name if present at the front when used as a `cargo` command
