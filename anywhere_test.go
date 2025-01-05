@@ -202,7 +202,6 @@ func TestAnywhere_literal(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		t.Skip() // TODO: fix
 		r, err := parser.RunInner(NewArgs("-b", "-mode", "12"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]P{{struct{}{}, 12}}, true})

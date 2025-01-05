@@ -276,7 +276,7 @@ type argRangesIterItem struct {
 func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
 	width := 0
 	switch item.v.(type) {
-	case ItemFlag:
+	case ItemAny, ItemPositional, ItemCommand, ItemFlag:
 		width = 1
 	case ItemArgument:
 		width = 2

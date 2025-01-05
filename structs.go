@@ -83,9 +83,8 @@ func parse_option[T any](
 		if _, missing := err.(ErrorMissing); catch ||
 			missing && stateOrig.len() == state.len() ||
 			!missing && can_catch(Error(err)) {
-			stateOrig, *state = *state, stateOrig
-			if stateOrig.comp.Valid {
-				*state, stateOrig = stateOrig, *state
+			if !stateOrig.comp.Valid {
+				*state = stateOrig
 			}
 			return Invalid[T](), nil
 		} else {
