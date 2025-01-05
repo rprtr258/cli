@@ -6,28 +6,8 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func map3[A, B, C any](_ A, _ B, _ C) struct{} {
+func map3[A, B, C any](A, B, C) struct{} {
 	return struct{}{}
-}
-
-func requireNoParseFailure(t *testing.T, err cli.ParseFailure) {
-	cli.RequireNoParseFailure(t, err)
-}
-
-func parseInt32(s string) (int32, error) {
-	return cli.ParseInt32(s)
-}
-
-func parseUint32(s string) (uint32, error) {
-	return cli.ParseUint32(s)
-}
-
-func parseUint(s string) (uint, error) {
-	return cli.ParseUint(s)
-}
-
-func parseString(s string) (string, error) {
-	return cli.ParseString(s)
 }
 
 // Strip a command name if present at the front when used as a `cargo` command
