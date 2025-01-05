@@ -1,6 +1,10 @@
 package cli
 
-import "errors"
+import (
+	"errors"
+
+	"github.com/rprtr258/fun"
+)
 
 type parser[T any] struct {
 	parse func(*state) (T, error)
@@ -31,22 +35,6 @@ func Positional[T any](name string, parse func(string) (T, error)) parser[T] {
 			}
 
 			return parse(arg)
-		},
-	}
-}
-
-func FlagBoolShort(c byte) parser[bool] {
-	return parser[bool]{
-		parse: func(s *state) (bool, error) {
-			return s.popFlagBool("-" + string(c)), nil
-		},
-	}
-}
-
-func FlagBoolLong(long string) parser[bool] {
-	return parser[bool]{
-		parse: func(s *state) (bool, error) {
-			return s.popFlagBool("--" + long), nil
 		},
 	}
 }
@@ -95,12 +83,48 @@ func regFlagLong(long string) parser[bool] {
 	}
 }
 
+func opt(x fun.Option[bool]) bool { return x.Value && x.Valid }
+
+func FlagBoolShort(c byte) parser[bool] {
+	return Map(Optional(regFlagShort(c)), opt)
+}
+
+func FlagBoolLong(long string) parser[bool] {
+	return Map(Optional(regFlagLong(long)), opt)
+}
+
 func FlagBoolShortLong(c byte, long string) parser[bool] {
 	return OneOf(
 		regFlagShort(c),
 		regFlagLong(long),
 		Pure(false),
 	)
+}
+
+func Optional[T any](p parser[T]) parser[fun.Option[T]] {
+	return parser[fun.Option[T]]{
+		parse: func(s *state) (fun.Option[T], error) {
+			scratch := s.clone()
+			if val, err := p.parse(&scratch); err != nil {
+				return fun.Invalid[T](), nil
+			} else {
+				*s = scratch
+				return fun.Valid(val), nil
+			}
+		},
+	}
+}
+
+func Map[T, R any](p parser[T], f func(T) R) parser[R] {
+	return parser[R]{
+		parse: func(s *state) (R, error) {
+			x, err := p.parse(s)
+			if err != nil {
+				return *new(R), err
+			}
+			return f(x), nil
+		},
+	}
 }
 
 func FlagShort[T any](c byte, name string, parse func(string) (T, error)) parser[T] {
