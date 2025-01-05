@@ -71,8 +71,8 @@ func SuggestionNested(name string, variant Variant) Suggestion {
 }
 
 // Looks for potential typos
-func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) {
-	next := args.items_iter()
+func suggest_zalupa(state State, meta Meta, return_ func(int, Suggestion, bool)) {
+	next := state.items_iter()
 	ix, arg, ok := next()
 	if !ok {
 		return_(0, nil, false)
@@ -197,7 +197,7 @@ func suggest_zalupa(args State, meta Meta, return_ func(int, Suggestion, bool)) 
 
 }
 
-func suggest(args State, meta Meta) (a int, b Suggestion, c bool) {
+func suggest(state State, meta Meta) (a int, b Suggestion, c bool) {
 	type zalupa struct{}
 	defer func() {
 		if r := recover(); r != nil {
@@ -208,7 +208,7 @@ func suggest(args State, meta Meta) (a int, b Suggestion, c bool) {
 		}
 	}()
 
-	suggest_zalupa(args, meta, func(aa int, bb Suggestion, cc bool) {
+	suggest_zalupa(state, meta, func(aa int, bb Suggestion, cc bool) {
 		a, b, c = aa, bb, cc
 		panic(zalupa{})
 	})

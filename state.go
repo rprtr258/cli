@@ -273,7 +273,7 @@ type argRangesIterItem struct {
 	state               State
 }
 
-func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
+func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
 	width := 0
 	switch item.v.(type) {
 	case ItemFlag:
@@ -284,18 +284,18 @@ func (args State) ranges(item Item) func() (argRangesIterItem, bool) {
 
 	itcur := 0
 	return func() (argRangesIterItem, bool) {
-		for itcur <= args.scope.end() {
+		for itcur <= self.scope.end() {
 			cur := itcur
 			itcur++
-			if v, ok := args.present(cur); ok && !v {
+			if v, ok := self.present(cur); ok && !v {
 				continue
 			}
-			if cur+width > len(args.items) {
+			if cur+width > len(self.items) {
 				return argRangesIterItem{}, false
 			}
 			// It should be possible to optimize this code a bit
 			// by checking if first item can possibly
-			args := args.clone()
+			args := self.clone()
 			args.scope = Range{cur, len(args.items)}
 			return argRangesIterItem{cur, width, args}, true
 		}

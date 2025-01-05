@@ -124,13 +124,13 @@ func TestAnywhere_catch_many(t *testing.T) {
 
 func TestAnywhere_catch_fallback(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
+	type R = fun.Pair[P, bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().Parser().Fallback(P{struct{}{}, 10})
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
 
-	type R = fun.Pair[P, bool]
 	{
 		r, err := parser.RunInner(NewArgs("-a", "12"))
 		require.Nil(t, err)

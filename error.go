@@ -365,13 +365,13 @@ func unwrap_stdout(self ParseFailure) string {
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-func textual_part(args State, ixxx Option[int]) (string, bool) {
+func textual_part(state State, ixxx Option[int]) (string, bool) {
 	ixx, ok := ixxx.Unpack()
 	if !ok {
 		return "", false
 	}
 
-	ix, ok := get(args.items, ixx).Unpack()
+	ix, ok := get(state.items, ixx).Unpack()
 	if !ok {
 		return "", false
 	}
@@ -383,13 +383,13 @@ func textual_part(args State, ixxx Option[int]) (string, bool) {
 	return "", false
 }
 
-func only_once(args State, cur int) (int, bool) {
+func only_once(state State, cur int) (int, bool) {
 	if cur == 0 {
 		return 0, false
 	}
 
-	iter := rev(args.items[:cur])
-	v, ok := get(args.items, cur).Unpack()
+	iter := rev(state.items[:cur])
+	v, ok := get(state.items, cur).Unpack()
 	if !ok {
 		return 0, false
 	}
