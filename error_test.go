@@ -175,12 +175,12 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	c := Pure(struct{}{}).Parser().ToOptions().Command("hello")
 	parser := Pair(a, c).Parser().ToOptions()
 
-	t.Run("TODO: fix", func(t *testing.T) {
+	{
 		r, err := parser.RunInner(NewArgs("-a=hello"))
 		// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
 		require.Nil(t, err)
 		require.Equal(t, fun.Pair[uint, struct{}]{0, struct{}{}}, r)
-	})
+	}
 
 	{
 		_, r := parser.RunInner(NewArgs("-ahello"))

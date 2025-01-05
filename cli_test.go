@@ -28,7 +28,7 @@ func TestWtfShenanigans1(t *testing.T) {
 			dashes += "--"
 		}
 
-		o_c, o_prefix, o_suffix, ok := split_os_argument(dashes + i_prefix + "=" + i_suffix)
+		o_c, o_prefix, o_suffix, ok := SplitOsArgument(dashes + i_prefix + "=" + i_suffix)
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, i_prefix, o_prefix)
@@ -57,7 +57,7 @@ func TestWtfShenanigans2(t *testing.T) {
 			dashes += "--"
 		}
 
-		o_c, gotFlagName, gotValue, ok := split_os_argument(dashes + flagName + "=" + value)
+		o_c, gotFlagName, gotValue, ok := SplitOsArgument(dashes + flagName + "=" + value)
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, flagName, gotFlagName)
