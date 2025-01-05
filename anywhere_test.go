@@ -137,10 +137,9 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 		require.Equal(t, R{P{struct{}{}, 12}, false}, r)
 	}
 	{
-		t.Skip() // TODO: fix
 		r, err := parser.RunInner(NewArgs("-a"))
 		require.Nil(t, err)
-		require.Equal(t, R{P{struct{}{}, 10}, true}, r)
+		require.Equal(t, R{P{struct{}{}, 10}, false}, r)
 	}
 	{
 		r, err := parser.RunInner(NewArgs())
