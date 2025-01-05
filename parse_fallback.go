@@ -2,15 +2,19 @@ package cli
 
 import "fmt"
 
+func fallbackMeta(innerMeta Meta, value_str string) Meta {
+	m := Meta(MetaOptional{innerMeta})
+	if value_str != "" {
+		m = MetaSuffix{m, NewDoc(value_str)}
+	}
+	return m
+}
+
 // Parser that substitutes missing value but not parse failure, created with [fallback](Parserfallback).
 type ParseFallback[T any] struct {
 	inner     Parser[T]
 	value     T
 	value_str string
-}
-
-func (self ParseFallback[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta()}
 }
 
 func (self ParseFallback[T]) eval(state *State) (T, Error) {
@@ -28,30 +32,25 @@ func (self ParseFallback[T]) eval(state *State) (T, Error) {
 	return ok, nil
 }
 
-func (self ParseFallback[T]) meta() Meta {
-	m := Meta(MetaOptional{self.inner.meta})
-	if self.value_str != "" {
-		m = MetaSuffix{m, NewDoc(self.value_str)}
-	}
-	return m
+func (self ParseFallback[T]) Parser() Parser[T] {
+	meta := fallbackMeta(self.inner.meta, self.value_str)
+	return Parser[T]{self.eval, meta}
 }
 
-// Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay)
-// representation
+// Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay) representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-func (self *ParseFallback[T]) DisplayFallback() ParseFallback[T] {
+func (self ParseFallback[T]) DisplayFallback() ParseFallback[T] {
 	self.value_str = fmt.Sprintf("[default: %v]", self.value)
-	return *self
+	return self
 }
 
-// Show [fallback](Parserfallback) value in `--help` using [Debug](stdfmtDebug)
-// representation
+// Show [fallback](Parserfallback) value in `--help` using [Debug](stdfmtDebug) representation
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback_with.md"))]
-func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
+func (self ParseFallback[T]) DebugFallback() ParseFallback[T] {
 	self.value_str = fmt.Sprintf("[default: %#v]", self.value)
-	return *self
+	return self
 }
 
 // Use this value as default if the value isn't present on a command line
@@ -66,8 +65,8 @@ func (self *ParseFallback[T]) DebugFallback() ParseFallback[T] {
 // not be shown in the `--help` output, you can change that by using
 // [display_fallback](ParseFallbackdisplay_fallback) and
 // [debug_fallback](ParseFallbackdebug_fallback).
-func (self Parser[T]) Fallback(value T) *ParseFallback[T] {
-	return &ParseFallback[T]{
+func (self Parser[T]) Fallback(value T) ParseFallback[T] {
+	return ParseFallback[T]{
 		inner:     self,
 		value:     value,
 		value_str: "",
@@ -80,10 +79,6 @@ type ParseFallbackWith[T any] struct {
 	inner     Parser[T]
 	fallback  func() (T, Error)
 	value_str string
-}
-
-func (self ParseFallbackWith[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta()}
 }
 
 func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
@@ -106,12 +101,9 @@ func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
 	}
 }
 
-func (self ParseFallbackWith[T]) meta() Meta {
-	m := Meta(MetaOptional{self.inner.meta})
-	if self.value_str != "" {
-		m = MetaSuffix{m, NewDoc(self.value_str)}
-	}
-	return m
+func (self ParseFallbackWith[T]) Parser() Parser[T] {
+	meta := fallbackMeta(self.inner.meta, self.value_str)
+	return Parser[T]{self.eval, meta}
 }
 
 // Show [fallback_with](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
@@ -120,11 +112,11 @@ func (self ParseFallbackWith[T]) meta() Meta {
 // # If fallback function fails - no value will show up
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
+func (self ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 	if val, err := self.fallback(); err == nil {
 		self.value_str = fmt.Sprintf("[default: %v]", val)
 	}
-	return *self
+	return self
 }
 
 // Show [fallback_with](Parserfallback_with) value in `--help` using [Debug](stdfmtDebug)
@@ -133,7 +125,7 @@ func (self *ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
 // # If fallback function fails - no value will show up
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/deb_fallback.md"))]
-func (self *ParseFallbackWith[T]) debug_fallback() *ParseFallbackWith[T] {
+func (self ParseFallbackWith[T]) debug_fallback() ParseFallbackWith[T] {
 	val, err := self.fallback()
 	if err == nil {
 		self.value_str = fmt.Sprintf("[default: %#v]", val)
