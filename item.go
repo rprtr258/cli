@@ -138,7 +138,7 @@ func (self Item) is_pos() bool {
 	return false
 }
 
-// Normalize name inside [ShortLong] into either short or long
+// normalize name inside [ShortLong] into either short or long
 func (self *Item) normalize(short bool) {
 	switch v := self.v.(type) {
 	case ItemFlag:

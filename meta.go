@@ -387,8 +387,8 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 		}
 	case MetaOptional:
 		normalize(&m.m, for_usage, norm)
+		// *self = m
 		switch mm := m.m.(type) {
-		// TODO: mutate issue
 		case MetaOptional:
 			*self = mm.m
 		case MetaRequired:
@@ -414,6 +414,7 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 		}
 	case MetaMany:
 		normalize(&m.m, for_usage, norm)
+		*self = m
 		if IsSkip(m.m) {
 			*self = MetaSkip{}
 		}

@@ -50,9 +50,8 @@ func TestSome_arg(t *testing.T) {
 }
 
 func TestMany_switch(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := Many(Short('a').Switch(), false).Parser().ToOptions()
-	assert_usage(t, parser, "[-a]...")
+	assert_usage(t, parser, "-a...")
 }
 
 func TestSome_switch(t *testing.T) {
@@ -186,7 +185,7 @@ func TestRequired_or_many(t *testing.T) {
 	f := Pure(PPair(struct{}{}, struct{}{}))
 	ef := Choice(e, f)
 	parser := Many(Choice(ab, cd, ef), false).Parser().ToOptions()
-	assert_usage(t, parser, "[-a -b | -c -d]...")
+	assert_usage(t, parser, "-a -b | -c -d...")
 }
 
 func TestNo_actual_arguments_also_works(t *testing.T) {
