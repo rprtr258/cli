@@ -3,30 +3,8 @@ package cli_test
 import (
 	"testing"
 
-	"github.com/rprtr258/fun"
-
 	"github.com/rprtr258/cli"
 )
-
-func newArgs(args ...string) cli.Args {
-	return cli.NewArgs(args...)
-}
-
-func split_os_argument(input string) (cli.ArgType, string, cli.Option[cli.Arg], bool) {
-	return cli.SplitOsArgument(input)
-}
-
-func unwrap_stdout(err cli.ParseFailure) string {
-	return cli.UnwrapStdout(err)
-}
-
-func unwrap_stderr(err cli.ParseFailure) string {
-	return cli.UnwrapStderr(err)
-}
-
-func pair[T, R any](a T, b R) fun.Pair[T, R] {
-	return cli.PPair(a, b)
-}
 
 func map3[A, B, C any](a A, b B, c C) struct{} {
 	return cli.MMap3(a, b, c)

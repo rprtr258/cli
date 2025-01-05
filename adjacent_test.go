@@ -17,24 +17,24 @@ func TestTest_adjacent(t *testing.T) {
 
 	type R = Truple[struct{}, bool, bool]
 	{
-		r, err := parser.RunInner(newArgs("-a", "-c", "-a", "-b", "-a", "-b", "-c"))
+		r, err := parser.RunInner(NewArgs("-a", "-c", "-a", "-b", "-a", "-b", "-c"))
 		require.Nil(t, err)
 		// adjacent groups here argument
 		// -a [-b] -c  | -a -b [-c] | -a -b -c
 		require.Equal(t, r, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}})
 	}
 	{
-		r, err := parser.RunInner(newArgs("-a"))
+		r, err := parser.RunInner(NewArgs("-a"))
 		require.Nil(t, err)
 		require.Equal(t, r, []R{{struct{}{}, false, false}})
 	}
 	{
-		r, err := parser.RunInner(newArgs("-a", "-c"))
+		r, err := parser.RunInner(NewArgs("-a", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, []R{{struct{}{}, false, true}})
 	}
 	{
-		r, err := parser.RunInner(newArgs())
+		r, err := parser.RunInner(NewArgs())
 		require.Nil(t, err)
 		require.Equal(t, r, []R{})
 	}
@@ -63,8 +63,8 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "10"))
-	require.Equal(t, unwrap_stderr(r), "expected `C`, pass `--help` for usage information")
+	_, r := parser.RunInner(NewArgs("-a", "10"))
+	require.Equal(t, UnwrapStderr(r), "expected `C`, pass `--help` for usage information")
 }
 
 func TestAdjacent_error_message_arg_single0(t *testing.T) {
@@ -72,8 +72,8 @@ func TestAdjacent_error_message_arg_single0(t *testing.T) {
 	b := Argument(Short('b'), "B", ParseUint)
 	parser := Pair(a, b).Adjacent().Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "10"))
-	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
+	_, r := parser.RunInner(NewArgs("-a", "10"))
+	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", UnwrapStderr(r))
 }
 
 func TestAdjacent_error_message_arg_single(t *testing.T) {
@@ -84,8 +84,8 @@ func TestAdjacent_error_message_arg_single(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "10"))
-	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
+	_, r := parser.RunInner(NewArgs("-a", "10"))
+	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", UnwrapStderr(r))
 }
 
 func TestAdjacent_error_message_pos_many(t *testing.T) {
@@ -96,8 +96,8 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	adj := Many(Triple(a, b, c).Adjacent(), false)
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "10"))
-	require.Equal(t, unwrap_stderr(r), "expected `C`, pass `--help` for usage information")
+	_, r := parser.RunInner(NewArgs("-a", "10"))
+	require.Equal(t, UnwrapStderr(r), "expected `C`, pass `--help` for usage information")
 }
 
 func TestAdjacent_error_message_arg_many(t *testing.T) {
@@ -108,9 +108,9 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	adj := Many(Triple(a, b, c).Adjacent(), false)
 	parser := Pair(adj, d).Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "10"))
+	_, r := parser.RunInner(NewArgs("-a", "10"))
 	// this should ask for -b or -c and complain on 10...
-	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", unwrap_stderr(r))
+	require.Equal(t, "expected `-b=B`, got `10`. Pass `--help` for usage information", UnwrapStderr(r))
 }
 
 func TestAdjacent_is_adjacent(t *testing.T) {
@@ -118,11 +118,11 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 	var b = Positional("B", ParseUint)
 	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false).Parser().ToOptions()
 
-	_, r := parser.RunInner(newArgs("-a", "-a", "10", "20"))
-	require.Equal(t, unwrap_stderr(r), "expected `B`, pass `--help` for usage information")
+	_, r := parser.RunInner(NewArgs("-a", "-a", "10", "20"))
+	require.Equal(t, UnwrapStderr(r), "expected `B`, pass `--help` for usage information")
 
 	{
-		r, err := parser.RunInner(newArgs("-a", "10", "-a", "20"))
+		r, err := parser.RunInner(NewArgs("-a", "10", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, []uint{10, 20})
 	}
@@ -137,17 +137,17 @@ func TestAdjacent_with_switch(t *testing.T) {
 
 	type R = fun.Pair[[]uint, bool]
 	{
-		r, err := parser.RunInner(newArgs("-a", "10", "-c"))
+		r, err := parser.RunInner(NewArgs("-a", "10", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10}, true})
 	}
 	{
-		r, err := parser.RunInner(newArgs("-a", "10", "-c", "-a", "20"))
+		r, err := parser.RunInner(NewArgs("-a", "10", "-c", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10, 20}, true})
 	}
 	{
-		r, err := parser.RunInner(newArgs("-c", "-a", "10", "-a", "20"))
+		r, err := parser.RunInner(NewArgs("-c", "-a", "10", "-a", "20"))
 		require.Nil(t, err)
 		require.Equal(t, r, R{[]uint{10, 20}, true})
 	}
@@ -158,7 +158,7 @@ func TestAdjacent_limits_commands(t *testing.T) {
 	s := Short('s').Switch()
 	parser := Pair(s, x).Parser().ToOptions()
 
-	r, err := parser.RunInner(newArgs("a", "-s"))
+	r, err := parser.RunInner(NewArgs("a", "-s"))
 	require.Nil(t, err)
 	require.Equal(t, r, PPair(true, struct{}{}))
 }
@@ -183,12 +183,12 @@ func TestCommands_and_adjacent(t *testing.T) {
 	var parser = Pair(switch_, cmds).Parser().ToOptions()
 
 	{
-		r, err := parser.RunInner(newArgs("sleep", "--time", "12", "-s"))
+		r, err := parser.RunInner(NewArgs("sleep", "--time", "12", "-s"))
 		require.Nil(t, err)
 		require.Equal(t, r, PPair(true, "12"))
 	}
 
-	_, r := parser.RunInner(newArgs("--help"))
+	_, r := parser.RunInner(NewArgs("--help"))
 	// TODO - this is ugly
 	const expected = `Usage: [-s] COMMAND ...
 
@@ -200,7 +200,7 @@ Available commands:
     eat         eat something
     sleep       sleep for a bit
 `
-	require.Equal(t, unwrap_stdout(r), expected)
+	require.Equal(t, UnwrapStdout(r), expected)
 }
 
 func TestTwo_adjacent_args(t *testing.T) {
@@ -211,7 +211,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	parser := Pair(point, c).Parser().ToOptions()
 
 	{
-		r, err := parser.RunInner(newArgs("-x", "3", "-y", "4", "-c"))
+		r, err := parser.RunInner(NewArgs("-x", "3", "-y", "4", "-c"))
 		require.Nil(t, err)
 		require.Equal(t, r, PPair(PPair(3, 4), true))
 	}
@@ -221,12 +221,12 @@ func TestTwo_adjacent_args(t *testing.T) {
 		// Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
 		// TODO: get back
-		// r, err := parser.RunInner(newArgs("-y", "3", "-x", "4", "-c"))
+		// r, err := parser.RunInner(NewArgs("-y", "3", "-x", "4", "-c"))
 		// require.Nil(t, err)
 		// require.Equal(t, r, pair(pair(4, 3), true))
 	}
 	{
-		_, r := parser.RunInner(newArgs("-y", "3", "-c", "-x", "4"))
-		require.Equal(t, unwrap_stderr(r), "expected `-y=Y`, pass `--help` for usage information")
+		_, r := parser.RunInner(NewArgs("-y", "3", "-c", "-x", "4"))
+		require.Equal(t, UnwrapStderr(r), "expected `-y=Y`, pass `--help` for usage information")
 	}
 }

@@ -14,7 +14,7 @@ func TestHelp_after_switch(t *testing.T) {
 	parser := Short('a').Switch().Help(NewDoc("this is help")).Parser().ToOptions()
 	_, r := parser.RunInner(NewArgs("--help"))
 	const expected = "Usage: [-a]\n\nAvailable options:\n    -a          this is help\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFallback_to_usage(t *testing.T) {
@@ -25,7 +25,7 @@ func TestFallback_to_usage(t *testing.T) {
 
 	_, r := a.RunInner(NewArgs())
 	const expected = "Usage: -a=A\n\nAvailable options:\n    -a=A\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFallback_to_usage_nested(t *testing.T) {
@@ -38,7 +38,7 @@ func TestFallback_to_usage_nested(t *testing.T) {
 
 	_, r := a.RunInner(NewArgs("cmd"))
 	const expected = "Usage: cmd -a=A\n\nAvailable options:\n    -a=A\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFancy_meta(t *testing.T) {
@@ -55,7 +55,7 @@ Available options:
     --stdin-file-path=PATH
     -h, --help              Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestDecorations(t *testing.T) {
@@ -88,7 +88,7 @@ footer
 footer
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestVery_long_switch(t *testing.T) {
@@ -107,7 +107,7 @@ Available options:
     -b, --batman  help for batman
     -h, --help    Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestDuplicate_items_same_help(t *testing.T) {
@@ -130,7 +130,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestDuplicate_items_dif_help(t *testing.T) {
@@ -154,7 +154,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestDuplicate_pos_items_same_help(t *testing.T) {
@@ -179,7 +179,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
@@ -205,7 +205,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 // TODO: fix
@@ -228,7 +228,7 @@ Available options:
 // 		Parser().ToOptions().
 // 		RunInner(newArgs("--help")).
 // 		unwrap_err().
-// 		unwrap_stdout()
+// 		UnwrapStdout()
 
 // 	const expected=`// Usage: (--intel | --att)
 
@@ -271,7 +271,7 @@ Available options:
 //     -h, --help  Prints help information
 // `
 
-//     r := parser.RunInner(newArgs("--help")).unwrap_err().unwrap_stdout();
+//     r := parser.RunInner(newArgs("--help")).unwrap_err().UnwrapStdout();
 //     require.Equal(t, expected, r);
 
 //     // this shouldn't crash
@@ -306,7 +306,7 @@ Available options:
     -h, --help      Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestMulti_pos_help(t *testing.T) {
@@ -328,7 +328,7 @@ Available options:
     -v, --verbose
     -h, --help     Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFallback_display_simple_arg(t *testing.T) {
@@ -348,7 +348,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFallback_display_simple_pos(t *testing.T) {
@@ -370,7 +370,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 type Pair2 fun.Pair[uint32, uint32]
@@ -398,7 +398,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestFallback_display_no_help(t *testing.T) {
@@ -417,7 +417,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestEnv_fallback_visible(t *testing.T) {
@@ -443,7 +443,7 @@ Available options:
                     [env:OIKOS_SYSTEM_FONTS: not set]
     -h, --help      Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestNested_group_help(t *testing.T) {
@@ -462,7 +462,7 @@ outer
 Available options:
     -h, --help  Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestWith_group_help(t *testing.T) {
@@ -492,7 +492,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-		require.Equal(t, expected, unwrap_stdout(r))
+		require.Equal(t, expected, UnwrapStdout(r))
 	}
 
 	{
@@ -510,13 +510,13 @@ func TestCustom_help_and_version(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("--help"))
-		require.Equal(t, unwrap_stderr(r), "`--help` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`--help` is not expected in this context")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("--halp"))
 		const expected = "Usage: [-a]\n\nAvailable options:\n    -a\n    -H, --halp  halps you\n"
-		require.Equal(t, expected, unwrap_stdout(r))
+		require.Equal(t, expected, UnwrapStdout(r))
 	}
 }
 
@@ -534,7 +534,7 @@ Available options:
     -a, --123456789012345  A
     -h, --help             Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestVarious_name_lengths_at(t *testing.T) {
@@ -551,7 +551,7 @@ Available options:
     -a, --1234567890123456  A
     -h, --help              Prints help information
 `
-	require.Equal(t, expected, unwrap_stdout(r))
+	require.Equal(t, expected, UnwrapStdout(r))
 }
 
 func TestVarious_name_lengths_over1(t *testing.T) {
@@ -569,7 +569,7 @@ Available options:
     -a, --12345678901234567  A
     -h, --help               Prints help information
 `
-		require.Equal(t, expected, unwrap_stdout(r))
+		require.Equal(t, expected, UnwrapStdout(r))
 	}
 
 	{
@@ -586,7 +586,7 @@ Available options:
     -a, --1234567890123456789  A
     -h, --help  Prints help information
 `
-		require.Equal(t, expected, unwrap_stdout(r))
+		require.Equal(t, expected, UnwrapStdout(r))
 	}
 
 	{
@@ -594,12 +594,12 @@ Available options:
 
 		{
 			_, r := parser.RunInner(NewArgs("--help"))
-			require.Equal(t, unwrap_stdout(r), "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
+			require.Equal(t, UnwrapStdout(r), "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
 		}
 
 		{
 			_, r := parser.RunInner(NewArgs("--version"))
-			require.Equal(t, unwrap_stdout(r), "Version: 1\n")
+			require.Equal(t, UnwrapStdout(r), "Version: 1\n")
 		}
 	}
 }

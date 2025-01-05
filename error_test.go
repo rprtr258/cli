@@ -22,7 +22,7 @@ func TestThis_or_that_odd(t *testing.T) {
 
 	_, res := parser.RunInner(NewArgs("-a", "-b", "-c"))
 
-	require.Equal(t, unwrap_stderr(res), "`-c` cannot be used at the same time as `-b`")
+	require.Equal(t, UnwrapStderr(res), "`-c` cannot be used at the same time as `-b`")
 }
 
 func TestNo_argument(t *testing.T) {
@@ -46,7 +46,7 @@ func TestNo_argument(t *testing.T) {
 		_, r := parser.RunInner(NewArgs("-a", "-2"))
 		// can we restore this?
 		// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
-		require.Equal(t, unwrap_stderr(r), "`-a` requires an argument `N`")
+		require.Equal(t, UnwrapStderr(r), "`-a` requires an argument `N`")
 	}
 }
 
@@ -58,12 +58,12 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 	{
 		// TODO - error message can be improved...
 		_, res := parser.RunInner(NewArgs("-b", "-a"))
-		require.Equal(t, unwrap_stderr(res), "`-b` is not expected in this context")
+		require.Equal(t, UnwrapStderr(res), "`-b` is not expected in this context")
 	}
 
 	{
 		_, res := parser.RunInner(NewArgs("-a", "-b"))
-		require.Equal(t, unwrap_stderr(res), "`-b` is not expected in this context")
+		require.Equal(t, UnwrapStderr(res), "`-b` is not expected in this context")
 	}
 }
 
@@ -79,13 +79,13 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 //     res := foo().
 //         RunInner(newArgs("--alpha", "--beta"]).
 //         unwrap_err().
-//         unwrap_stderr();
+//         UnwrapStderr();
 //     require.Equal(t, res, "`--beta` cannot be used at the same time as `--alpha`");
 
 //     res := foo().
 //         RunInner(newArgs("--alpha", "--gamma"]).
 //         unwrap_err().
-//         unwrap_stderr();
+//         UnwrapStderr();
 //     require.Equal(t,
 //         res,
 //         "`--gamma` cannot be used at the same time as `--alpha`"
@@ -94,13 +94,13 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 //     res := foo().
 //         RunInner(newArgs("--beta", "--gamma"]).
 //         unwrap_err().
-//         unwrap_stderr();
+//         UnwrapStderr();
 //     require.Equal(t, res, "`--gamma` cannot be used at the same time as `--beta`");
 
 //     res := foo().
 //         RunInner(newArgs("--alpha", "--beta", "--gamma"]).
 //         unwrap_err().
-//         unwrap_stderr();
+//         UnwrapStderr();
 //     require.Equal(t, res, "`--beta` cannot be used at the same time as `--alpha`");
 // }
 
@@ -111,7 +111,7 @@ func TestGuard_message(t *testing.T) {
 		Parser().ToOptions()
 
 	_, res := parser.RunInner(NewArgs("-a", "30"))
-	require.Equal(t, unwrap_stderr(res), "`30`: too high")
+	require.Equal(t, UnwrapStderr(res), "`30`: too high")
 }
 
 func TestStrict_positional_argument(t *testing.T) {
@@ -119,7 +119,7 @@ func TestStrict_positional_argument(t *testing.T) {
 	parser := a.Parser().ToOptions()
 
 	_, r := parser.RunInner(NewArgs("-a", "--", "10"))
-	require.Equal(t, unwrap_stderr(r), "`-a` requires an argument `N`")
+	require.Equal(t, UnwrapStderr(r), "`-a` requires an argument `N`")
 }
 
 func TestNot_expected_at_all(t *testing.T) {
@@ -128,12 +128,12 @@ func TestNot_expected_at_all(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("--megapotato"))
-		require.Equal(t, unwrap_stderr(r), "`--megapotato` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`--megapotato` is not expected in this context")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("megapotato"))
-		require.Equal(t, unwrap_stderr(r), "`megapotato` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`megapotato` is not expected in this context")
 	}
 }
 
@@ -144,17 +144,17 @@ func TestCannot_be_used_twice(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("-a", "-b", "-a"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", unwrap_stderr(r))
+		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("-a", "-a"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", unwrap_stderr(r))
+		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("-abba"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", unwrap_stderr(r))
+		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
 	}
 }
 
@@ -165,7 +165,7 @@ func TestShould_not_split_adjacent_options(t *testing.T) {
 	_, r := parser.RunInner(NewArgs("-ahello"))
 	// can probably suggest splitting here too: `-a` `hello`
 	const expected = "no such flag: `-ahello`, did you mean `hello`?"
-	require.Equal(t, unwrap_stderr(r), expected)
+	require.Equal(t, UnwrapStderr(r), expected)
 }
 
 func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
@@ -185,7 +185,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	{
 		_, r := parser.RunInner(NewArgs("-ahello"))
 		const expected = "app supports `-a` as both an option and an option-argument, try to split `-ahello` into individual\noptions (-a -h ..) or use `-a=hello` syntax to disambiguate"
-		require.Equal(t, expected, unwrap_stderr(r))
+		require.Equal(t, expected, UnwrapStderr(r))
 	}
 
 	{
@@ -202,7 +202,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 
 	_, r := parser.RunInner(NewArgs("-ayam"))
 	// TODO - this should point to the whole "-ayam" thing
-	require.Equal(t, unwrap_stderr(r), "couldn't parse `yam`: invalid digit found in string")
+	require.Equal(t, UnwrapStderr(r), "couldn't parse `yam`: invalid digit found in string")
 }
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
@@ -212,12 +212,12 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("-c", "12"))
-		require.Equal(t, unwrap_stderr(r), "`-c` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("12", "-c"))
-		require.Equal(t, unwrap_stderr(r), "`-c` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
 	}
 }
 
@@ -228,22 +228,22 @@ func TestPos_with_invalid_arg(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("-c", "12"))
-		require.Equal(t, unwrap_stderr(r), "`-c` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("12", "-c"))
-		require.Equal(t, unwrap_stderr(r), "`-c` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("-c", "t"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `t`: invalid digit found in string")
+		require.Equal(t, UnwrapStderr(r), "couldn't parse `t`: invalid digit found in string")
 	}
 
 	{
 		_, r := parser.RunInner(NewArgs("t", "-c"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `t`: invalid digit found in string")
+		require.Equal(t, UnwrapStderr(r), "couldn't parse `t`: invalid digit found in string")
 	}
 }
 
@@ -251,14 +251,14 @@ func TestStrictly_positional_help(t *testing.T) {
 	parser := Long("hhhh").Switch().Parser().ToOptions()
 
 	_, r := parser.RunInner(NewArgs("--", "--help"))
-	require.Equal(t, unwrap_stderr(r), "`--help` is not expected in this context")
+	require.Equal(t, UnwrapStderr(r), "`--help` is not expected in this context")
 }
 
 func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
 	parser := ReqFlag(Short('a'), struct{}{}).Parser().Hide().ToOptions()
 
 	_, r := parser.RunInner(NewArgs())
-	require.Equal(t, unwrap_stderr(r), "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+	require.Equal(t, UnwrapStderr(r), "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 }
 
 func TestGuard_on_fallback(t *testing.T) {
@@ -268,7 +268,7 @@ func TestGuard_on_fallback(t *testing.T) {
 		Parser().Guard(func(a uint) bool { return a < 10 }, "too big").
 		Parser().ToOptions()
 	_, r := parser.RunInner(NewArgs())
-	require.Equal(t, unwrap_stderr(r), "check failed: too big")
+	require.Equal(t, UnwrapStderr(r), "check failed: too big")
 }
 
 func TestTwo_required_fields_first_missing(t *testing.T) {
@@ -276,7 +276,7 @@ func TestTwo_required_fields_first_missing(t *testing.T) {
 	b := Argument(Long("b"), "B", ParseUint32)
 	parser := Pair(a, b).Parser().ToOptions()
 	_, r := parser.RunInner(NewArgs("--b", "1"))
-	require.Equal(t, unwrap_stderr(r), "expected `--a=A`, pass `--help` for usage information")
+	require.Equal(t, UnwrapStderr(r), "expected `--a=A`, pass `--help` for usage information")
 }
 
 func TestUsed_only_once_is_more_important_error(t *testing.T) {
@@ -288,7 +288,7 @@ func TestUsed_only_once_is_more_important_error(t *testing.T) {
 	{
 		_, err := opts.RunInner(NewArgs("--filter", "--filter"))
 		require.Equal(t,
-			unwrap_stderr(err),
+			UnwrapStderr(err),
 			"argument `--filter` cannot be used multiple times in this context",
 		)
 	}
@@ -296,7 +296,7 @@ func TestUsed_only_once_is_more_important_error(t *testing.T) {
 	{
 		_, err := opts.RunInner(NewArgs("--sort", "--sort"))
 		require.Equal(t,
-			unwrap_stderr(err),
+			UnwrapStderr(err),
 			"argument `--sort` cannot be used multiple times in this context",
 		)
 	}

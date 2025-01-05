@@ -13,7 +13,7 @@ func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string)
 	t.Helper()
 
 	_, output := parser.RunInner(NewArgs("--help"))
-	usage := strings.TrimPrefix(strings.Split(unwrap_stdout(output), "\n")[0], "Usage: ")
+	usage := strings.TrimPrefix(strings.Split(UnwrapStdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, expected, usage)
 }
 
@@ -195,7 +195,7 @@ func TestNo_actual_arguments_also_works(t *testing.T) {
 
 	_, r := parser.RunInner(NewArgs("--help"))
 	require.Equal(t,
-		unwrap_stdout(r),
+		UnwrapStdout(r),
 		"Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n",
 	)
 }

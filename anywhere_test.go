@@ -26,7 +26,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, unwrap_stdout(r), expected)
+	require.Equal(t, UnwrapStdout(r), expected)
 	// this should be allowed because "anywhere" prevents anything inside from being positional
 	parser.CheckInvariants(true)
 }
@@ -42,31 +42,31 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("3", "-a"))
-		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+		require.Equal(t, UnwrapStderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a"))
-		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+		require.Equal(t, UnwrapStderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a", "221b"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+		require.Equal(t, UnwrapStderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-c", "-a"))
-		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+		require.Equal(t, UnwrapStderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-c", "-a", "221b"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+		require.Equal(t, UnwrapStderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a", "-c"))
-		require.Equal(t, unwrap_stderr(r), "expected `X`, pass `--help` for usage information")
+		require.Equal(t, UnwrapStderr(r), "expected `X`, pass `--help` for usage information")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a", "221b", "-c"))
-		require.Equal(t, unwrap_stderr(r), "couldn't parse `221b`: invalid digit found in string")
+		require.Equal(t, UnwrapStderr(r), "couldn't parse `221b`: invalid digit found in string")
 	}
 }
 
@@ -160,31 +160,31 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 
 	{
 		_, r := parser.RunInner(NewArgs("-a", "221b"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("3", "-a"))
-		require.Equal(t, unwrap_stderr(r), "`3` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`3` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-c", "-a"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-c", "-a", "221b"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a", "-c"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 	{
 		_, r := parser.RunInner(NewArgs("-a", "221b", "-c"))
-		require.Equal(t, unwrap_stderr(r), "`-a` is not expected in this context")
+		require.Equal(t, UnwrapStderr(r), "`-a` is not expected in this context")
 	}
 }
 

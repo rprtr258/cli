@@ -43,7 +43,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
 	_, err := opts.RunInner(NewArgs())
-	require.Equal(t, "some-err", unwrap_stderr(err))
+	require.Equal(t, "some-err", UnwrapStderr(err))
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {

@@ -85,8 +85,8 @@ func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 
 	_, err := Choice(arg, pos).
 		Parser().ToOptions().
-		RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+		RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, "-b\t-b\t\tOption b\n\nFile { mask: None }\n", r)
 }
 
@@ -97,8 +97,8 @@ func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
 
 	_, err := Choice(arg, pos).
 		ToOptions().
-		RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+		RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n")
 }
 
@@ -109,8 +109,8 @@ func TestMixing_shell_and_positional_3_flag_and_pos(t *testing.T) {
 
 	_, err := Pair(arg, pos).
 		Parser().ToOptions().
-		RunInner(newArgs("").SetComp(0))
-	r1 := unwrap_stdout(err)
+		RunInner(NewArgs("").SetComp(0))
+	r1 := UnwrapStdout(err)
 	assert.Equal(t, r1, "-b\t-b\t\tOption b\n\nFile { mask: None }\n")
 }
 
@@ -121,8 +121,8 @@ func TestMixing_shell_and_positional_4_arg_and_pos(t *testing.T) {
 
 	_, err := Pair(arg, pos).
 		Parser().ToOptions().
-		RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+		RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n")
 }
 
@@ -138,8 +138,8 @@ func TestStatic_complete_test_1(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 --avocado	--avocado		Use avocado
 --banana	--banana		Use banana
@@ -148,8 +148,8 @@ func TestStatic_complete_test_1(t *testing.T) {
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("-b").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-b").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--banana")
 	}
 
@@ -157,44 +157,44 @@ func TestStatic_complete_test_1(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("-vvvv").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-vvvv").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-vvvv\n")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("-v").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-v").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-v\n")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("--b").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--b").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, `--banana      --banana          Use banana
 --bananananana --bananananana    I'm Batman\n\n`, r)
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("--a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--avocado")
 	}
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("--banana").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--banana").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 --banana	--banana		Use banana
 --bananananana	--bananananana		I'm Batman\n\n`)
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("--bananan").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--bananan").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--bananananana")
 	}
 }
@@ -206,20 +206,20 @@ func TestLong_and_short_arguments(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("-p").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-p").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--potato")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-p", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-p", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tPOTATO\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-p", "x").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-p", "x").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tPOTATO\t\t\n\n")
 	}
 }
@@ -239,21 +239,21 @@ func TestShort_command_alias(t *testing.T) {
 	parser := Choice(a, b).ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cmd_a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("cmd_a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("cmd_a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cmd_a")
 	}
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("b", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("b", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--potato")
 	})
 }
@@ -262,14 +262,14 @@ func TestSingle_command_completes_to_full(t *testing.T) {
 	parser := Short('a').Switch().Parser().ToOptions().Command("cmd").Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("c").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("c").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cmd")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("cmd").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("cmd").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cmd")
 	}
 }
@@ -299,8 +299,8 @@ func TestStatic_complete_test_2(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("c").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("c").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, `check  check		check packages
 clean  clean 		clean target dir
 
@@ -309,34 +309,34 @@ clean  clean 		clean target dir
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("check", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("check", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--potato")
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("check").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("check").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "check")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("C", "--p").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("C", "--p").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--potato")
 	}
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("x").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("x").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "x\n")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 check	check		check packages
 clean	clean		clean target dir
@@ -344,8 +344,8 @@ build	build		build project\n\n`)
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("ch").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("ch").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "check")
 	}
 }
@@ -359,8 +359,8 @@ func TestStatic_complete_test_3(t *testing.T) {
 	parser := Pair(ab, c).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, r, `
 --potato	--potato=P		po
@@ -369,8 +369,8 @@ func TestStatic_complete_test_3(t *testing.T) {
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, r, `
 --potato	--potato=P		po
@@ -379,8 +379,8 @@ func TestStatic_complete_test_3(t *testing.T) {
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 --potato	--potato=P		po
 --banana	--banana=B		ba
@@ -388,8 +388,8 @@ func TestStatic_complete_test_3(t *testing.T) {
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--d").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--d").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--durian")
 	}
 }
@@ -400,22 +400,22 @@ func TestStatic_complete_test_4(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tA\t\t\n\n")
 	}
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("-a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a	-a=A
 -b	-b=B		\n\n`)
@@ -423,8 +423,8 @@ func TestStatic_complete_test_4(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a	-a=A
 -b	-b=B		\n\n`)
@@ -432,8 +432,8 @@ func TestStatic_complete_test_4(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	})
 }
@@ -449,8 +449,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("-a", "x", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "x", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -b	-b=B
 -c	-c=C
@@ -458,21 +458,21 @@ func TestStatic_complete_test_5(t *testing.T) {
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tA\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `-a	-a=A
 -b	-b=B
 -c	-c=C
@@ -482,8 +482,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 	})
 
 	{
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, `-a	-a=A`+"\t\t"+`
 -b	-b=B`+"\t\t"+`
@@ -495,8 +495,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 
 	t.Run("wtf", func(t *testing.T) {
 		t.SkipNow() // TODO: fix
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	})
 }
@@ -508,50 +508,50 @@ func TestStatic_complete_test_6(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("-b", "x", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-b", "x", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a=A\t\t
 -b\t-b=B\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tA\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a=A\t\t
 -b\t-b=B\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "x", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "x", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-b")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a=A\t\t
 -b\t-b=B\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-b", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-b", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tB\t\t\n\n")
 	}
 }
@@ -563,22 +563,22 @@ func TestStatic_complete_test_7(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a\t\tswitch
 \tFILE\t\tFile to use\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "x").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "x").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
 	}
 }
@@ -593,26 +593,26 @@ func TestStatic_complete_test_8(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "nom")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("nom", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("nom", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--durian")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("nom", "-a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("nom", "-a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--durian")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("nom", "-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("nom", "-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\n")
 	}
 }
@@ -624,14 +624,14 @@ func TestJust_positional(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
 	}
 }
@@ -644,8 +644,8 @@ func TestDynamic_complete_test_1(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "b").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "b").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, r, `
 \tARG\t\t
@@ -654,26 +654,26 @@ banana\tbanana\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "be").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "be").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "beta")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "beta").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "beta").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "beta")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 \tARG\t\t
 alpha\talpha\t\t
@@ -688,8 +688,8 @@ func TestDynamic_complete_test_2(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Argument(Short('a'), "ARG", ParseString).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("-a", "b").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("-a", "b").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "\tARG\t\t\n\n")
 }
 
@@ -704,8 +704,8 @@ func TestDynamic_complete_test_3(t *testing.T) {
 		Parser().Complete(test_completer)
 	parser := Pair(Pair(a, b), Pair(bb, c)).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("--calculator", "").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("--calculator", "").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `
 \tEXPR\t\tcalculator expression
 alpha\talpha\t\t
@@ -723,8 +723,8 @@ func TestDynamic_complete_test_4(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("--name", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--name", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 \tNAME\t\t
 alpha\talpha\t\talpha
@@ -735,8 +735,8 @@ durian\tdurian\t\tdurian\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--name", "a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--name", "a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 }
@@ -747,8 +747,8 @@ func TestStatic_with_hide(t *testing.T) {
 	b := Short('b').Switch().Parser().Hide()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "-a")
 }
 
@@ -758,8 +758,8 @@ func TestStatic_with_fallback_and_hide(t *testing.T) {
 	b := Short('b').Switch().Parser().Hide()
 	parser := Pair(a, b).Parser().Fallback(fun.Pair[bool, bool]{false, false}).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "-a")
 }
 
@@ -777,8 +777,8 @@ func TestCsample_mystery(t *testing.T) {
 		Descr("Dynamic autocomplete example").
 		Footer("footer")
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `
 --avocado\t--avocado\t\tUse avocado
 --banana\t--banana\t\tUse banana
@@ -795,20 +795,20 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 	parser := Pair(Pair(a, b), Pair(c, d)).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -b\t-b\t\t
 -c\t-c\t\t
@@ -816,8 +816,8 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tD\t\t\n\n")
 	}
 }
@@ -825,16 +825,16 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Many(Positional("D", ParseString), false).Parser().ToOptions()
-	_, err := parser.RunInner(newArgs("xxx").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "\tD\t\t\n\n")
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := ParseSomeParser(Positional("D", ParseString).Parser().Some("", false)).ToOptions()
-	_, err := parser.RunInner(newArgs("xxx").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "\tD\t\t\n\n")
 }
 
@@ -845,28 +845,28 @@ func TestOnly_positionals_after_positionals(t *testing.T) {
 	parser := Pair(a, d).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a\t\t
 \tD\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tD\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx", "yyy").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx", "yyy").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tD\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a\t-a\t\t\n\tD\t\t\n\n")
 	}
 }
@@ -878,38 +878,38 @@ func TestPositionals_complete_in_order(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("x").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("x").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tA\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "beta")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx", "b").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx", "b").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "beta")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("xxx", "yyy").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("xxx", "yyy").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tB\t\t\n\n")
 	}
 }
@@ -920,8 +920,8 @@ func TestShould_be_able_to_suggest_positional_along_with_non_positionals_flags(t
 	b := Positional("B", ParseString).Parser().Complete(complete_beta)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `
 -a\t-a=A\t\t
 beta\tbeta\t\tbeta description\n\n`)
@@ -940,14 +940,14 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	parser := a.Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--arg")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--arg", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--arg", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--")
 	}
 }
@@ -959,16 +959,16 @@ func TestNon_strict_and_double_dash(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -a\t-a\t\t
 \tB\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\n")
 	}
 }
@@ -980,8 +980,8 @@ func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, r, `
 -a\t-a\t\t
@@ -989,8 +989,8 @@ func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 
 		assert.Equal(t, r, `
 -a\t-a\t\t
@@ -998,14 +998,14 @@ func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tB\t\t\n\n")
 	}
 }
@@ -1020,29 +1020,29 @@ func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
 
 	{
 		// with no input the right behavior is to suggest all the switches
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a\t-a\t\t\n-b\t-b\t\t\n-c\t-c\t\t\n\n")
 	}
 
 	{
 		// with a single item present separately we should suggest the remaining two
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-b\t-b\t\t\n-c\t-c\t\t\n\n")
 	}
 
 	{
 		// trying to complete a pair of flags should dump current state
-		_, err := parser.RunInner(newArgs("-ab").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-ab").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-ab\n")
 	}
 
 	{
 		// with a single valid item we should suggest it
-		_, err := parser.RunInner(newArgs("-ab", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-ab", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-c")
 	}
 
@@ -1062,8 +1062,8 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 	a1 := Argument(Short('a'), "AAAAAA", ParseInt)
 	parser := Choice(a0, a1).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("-aaa").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
+	r := UnwrapStdout(err)
 
 	assert.Equal(t, r, "-aaa\n")
 }
@@ -1072,8 +1072,8 @@ func TestAmbiguity_to_flags(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Many(Short('a').Switch(), false).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("-aaa").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "-aaa\n")
 }
 
@@ -1081,20 +1081,20 @@ func TestShort_argument_variants(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Argument(Short('a'), "META", ParseString).Parser().ToOptions()
 	{
-		_, err := parser.RunInner(newArgs("-a=aa").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a=aa").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tMETA\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "aa").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "aa").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tMETA\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-aaa").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tMETA\t\t\n\n")
 	}
 }
@@ -1107,14 +1107,14 @@ func TestLong_argument_variants(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("--alpha=beta").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--alpha=beta").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--alpha=beta")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--alpha", "Regina").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--alpha", "Regina").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tMETA\t\t\n\n")
 	}
 }
@@ -1128,8 +1128,8 @@ func TestZsh_style_completion_visible(t *testing.T) {
 	b := Argument(Short('b'), "BANANA", ParseString)
 	parser := Pair(a, b).Parser().GroupHelp("items").Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `
 --argument\t--argument=ARG\titems\tthis is an argument
 -b\t-b=BANANA\titems\t\n\n`)
@@ -1140,14 +1140,14 @@ func TestZsh_many_positionals(t *testing.T) {
 	parser := Many(Positional("POS", ParseString), false).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tPOS\t\t\n\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("p").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("p").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tPOS\t\t\n\n")
 	}
 }
@@ -1158,8 +1158,8 @@ func TestZsh_help_single_line_only(t *testing.T) {
 	b := Short('b').Help("hello from switch").Switch()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `
 -a\t-a=X\t\thello world
 -b\t-b\t\thello from switch\n\n`)
@@ -1171,8 +1171,8 @@ func TestShell_help_single_line_only(t *testing.T) {
 	b := Argument(Short('b').Help("hello 2\n\nworld"), "Y", ParseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 
 	assert.Equal(t, r, `
 -a\t-a=X\t\thello 1
@@ -1214,9 +1214,9 @@ func TestShell_help_single_line_only(t *testing.T) {
 //     parser := opts();
 
 //     r := parser.
-//         RunInner(newArgs("").SetComp(0)).
+//         RunInner(NewArgs("").SetComp(0)).
 //         unwrap_err().
-//         unwrap_stdout();
+//         UnwrapStdout();
 //     assert.Equal(t, r, `
 // --release\t--release\t== Cargo options\toptimize
 // --target\t--target=ARG\t== Cargo options\tpick target
@@ -1235,20 +1235,20 @@ func TestZsh_complete_info(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 \tX\t\t
 hello\thello\t\tword
@@ -1264,14 +1264,14 @@ func TestPair_of_positionals(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("alpha", "a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("alpha", "a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "auto")
 	}
 }
@@ -1284,38 +1284,38 @@ func TestDouble_dash_as_positional(t *testing.T) {
 		Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("--", "a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "alpha")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--\n")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("x").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("x").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tP\t\tHelp\n\n")
 	}
 }
@@ -1329,28 +1329,28 @@ func TestStrict_positional_completion(t *testing.T) {
 	parser := Pair(a, p).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("--").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 --arg\t--arg\t\t
 --hello\t--hello\t\t\n\n`)
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--a").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--a").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--arg")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--hello")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("--", "--h").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("--", "--h").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "--hello")
 	}
 }
@@ -1360,14 +1360,14 @@ func TestAvoid_inserting_metavars(t *testing.T) {
 	parser := Argument(Short('a'), "A", ParseString).Parser().ToOptions()
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "-a")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "\tA\t\t\n\n")
 	}
 }
@@ -1379,8 +1379,8 @@ func TestShell_dir_completion(t *testing.T) {
 		Parser().CompleteShell(ShellCompDir(Invalid[string]())).
 		Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("-a", "").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, "\nDir { mask: None }\n")
 }
 
@@ -1395,21 +1395,21 @@ func TestGenerate_unparseable_items(t *testing.T) {
 
 	{
 		// passing -e restricts branch with cmd_two
-		_, err := parser.RunInner(newArgs("-e", "").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-e", "").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cone")
 	}
 
 	{
 		// passing -e restricts branch with cmd_two
-		_, err := parser.RunInner(newArgs("-e", "c").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("-e", "c").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, "cone")
 	}
 
 	{
-		_, err := parser.RunInner(newArgs("").SetComp(0))
-		r := unwrap_stdout(err)
+		_, err := parser.RunInner(NewArgs("").SetComp(0))
+		r := UnwrapStdout(err)
 		assert.Equal(t, r, `
 -e\t-e\t\t
 cone\tcone\t\t
@@ -1428,8 +1428,8 @@ func TestComplete_with_fallback(t *testing.T) {
 		Parser().Fallback(10).
 		Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("--name", "").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("--name", "").SetComp(0))
+	r := UnwrapStdout(err)
 	assert.Equal(t, r, `	NAME`+"\t\t"+`
 alpha	alpha		alpha
 beta	beta		beta
@@ -1452,8 +1452,8 @@ func TestMix_of_options_and_positional_completions(t *testing.T) {
 		Parser().Complete(complete_beta)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 
 	assert.Equal(t, r, `
 --arg	--arg=ALPHA		Alhpa argument
@@ -1470,8 +1470,8 @@ func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
 
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(newArgs("").SetComp(0))
-	r := unwrap_stdout(err)
+	_, err := parser.RunInner(NewArgs("").SetComp(0))
+	r := UnwrapStdout(err)
 
 	assert.Equal(t, r, `
 --arg	--arg=ALPHA		Alhpa argument

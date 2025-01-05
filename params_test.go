@@ -49,7 +49,7 @@ func TestGet_any_magic(t *testing.T) {
 
 	// -b anana - isn't a -banana
 	_, r := parser.RunInner(NewArgs("-b", "anana"))
-	require.Equal(t, unwrap_stderr(r), "`-b` is not expected in this context")
+	require.Equal(t, UnwrapStderr(r), "`-b` is not expected in this context")
 
 	// close enough :)
 	AssertSuccess(t, true, parser, "-b=anana")
