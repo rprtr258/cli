@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	. "github.com/rprtr258/cli"
+	"github.com/rprtr258/fun"
 )
 
 func TestThis_or_that_odd(t *testing.T) {
@@ -175,10 +176,10 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	parser := Pair(a, c).Parser().ToOptions()
 
 	t.Run("TODO: fix", func(t *testing.T) {
-		t.Skip() // TODO: fix
-		_, r := parser.RunInner(NewArgs("-a=hello"))
-		const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
-		require.Equal(t, unwrap_stderr(r), expected)
+		r, err := parser.RunInner(NewArgs("-a=hello"))
+		// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
+		require.Nil(t, err)
+		require.Equal(t, fun.Pair[uint, struct{}]{0, struct{}{}}, r)
 	})
 
 	{
