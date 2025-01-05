@@ -73,31 +73,34 @@ func OneOf[T any](parsers ...parser[T]) parser[T] {
 	}
 }
 
-func FlagBoolShortLong(c byte, long string) parser[bool] {
+func regFlagShort(c byte) parser[bool] {
 	return parser[bool]{
 		parse: func(s *state) (bool, error) {
-			errs := []error{}
-			{
-				scratch := s.clone()
-				if x, err := FlagBoolShort(c).parse(&scratch); err == nil && x {
-					*s = scratch
-					return x, nil
-				} else {
-					errs = append(errs, err)
-				}
+			if ok := s.popFlagBool("-" + string(c)); !ok {
+				return false, errors.New("expected `-" + string(c) + "=true`, got `-" + string(c) + "`. Pass `--help` for usage information")
 			}
-			{
-				scratch := s.clone()
-				if x, err := FlagBoolLong(long).parse(&scratch); err == nil && x {
-					*s = scratch
-					return x, nil
-				} else {
-					errs = append(errs, err)
-				}
-			}
-			return false, nil
+			return true, nil
 		},
 	}
+}
+
+func regFlagLong(long string) parser[bool] {
+	return parser[bool]{
+		parse: func(s *state) (bool, error) {
+			if ok := s.popFlagBool("--" + long); !ok {
+				return false, errors.New("expected `--" + long + "=true`, got `--" + long + "`. Pass `--help` for usage information")
+			}
+			return true, nil
+		},
+	}
+}
+
+func FlagBoolShortLong(c byte, long string) parser[bool] {
+	return OneOf(
+		regFlagShort(c),
+		regFlagLong(long),
+		Pure(false),
+	)
 }
 
 func FlagShort[T any](c byte, name string, parse func(string) (T, error)) parser[T] {
