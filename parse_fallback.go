@@ -20,15 +20,14 @@ type ParseFallback[T any] struct {
 func (self ParseFallback[T]) eval(state *State) (T, Error) {
 	clone := state.clone()
 	ok, e := self.inner.eval(&clone)
+	*state = clone
 	if e != nil {
-		*state = clone
 		if can_catch(Error(e)) {
 			return self.value, nil
 		} else {
 			return *new(T), Error(e)
 		}
 	}
-	*state = clone
 	return ok, nil
 }
 
