@@ -6,8 +6,8 @@ import (
 	"github.com/rprtr258/cli"
 )
 
-func map3[A, B, C any](a A, b B, c C) struct{} {
-	return cli.MMap3(a, b, c)
+func map3[A, B, C any](_ A, _ B, _ C) struct{} {
+	return struct{}{}
 }
 
 func requireNoParseFailure(t *testing.T, err cli.ParseFailure) {

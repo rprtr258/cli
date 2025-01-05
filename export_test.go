@@ -63,10 +63,6 @@ func PPair[T, R any](a T, b R) fun.Pair[T, R] {
 	return fun.Pair[T, R]{a, b}
 }
 
-func MMap3[A, B, C any](_ A, _ B, _ C) struct{} {
-	return struct{}{}
-}
-
 func RequireNoParseFailure(t *testing.T, err ParseFailure) {
 	t.Helper()
 
