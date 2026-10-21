@@ -1,10 +1,10 @@
 module github.com/rprtr258/cli
 
-go 1.21
+go 1.27.0
 
 require (
 	github.com/davecgh/go-spew v1.1.1
-	github.com/rprtr258/fun v0.0.12
+	github.com/rprtr258/fun v0.2.1
 	github.com/samber/lo v1.39.0
 	github.com/stretchr/testify v1.8.4
 	golang.org/x/sys v0.15.0

@@ -225,7 +225,7 @@ func (c *completion) print(w io.Writer, items []Completion) {
 	}, items...)
 
 	for _, v := range items {
-		fmt.Fprintf(w, v.Item)
+		fmt.Fprint(w, v.Item)
 		// TODO: problems with colored description
 		// TODO: description get into completion wtf
 		if v.Description != "" {

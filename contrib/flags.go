@@ -825,12 +825,13 @@ func (c *Command) scanSubcommandHandler(parentg *Group) func(reflect.Value, *ref
 
 func (c *Command) eachFlag(yield func(*Command, *Group, *Flag)) {
 	c.eachCommand(func(c *Command) bool {
-		return c.Group.eachGroup(func(g *Group) bool {
+		c.Group.eachGroup(func(g *Group) bool {
 			for _, option := range g.flags {
 				yield(c, g, option)
 			}
 			return true
 		})
+		return true
 	})
 }
 
@@ -888,13 +889,13 @@ func makeLookupTable(c *Command) lookup {
 	opts := iter.FlatMap(
 		iter.FlatMap(iter.
 			Seq[*Command](
-			func(yield func(*Command) bool) bool {
+			func(yield func(*Command) bool) {
 				for i := len(parents) - 1; i >= 0; i-- {
 					if !yield(parents[i]) {
-						return false
+						return
 					}
 				}
-				return yield(c)
+				yield(c)
 			}),
 			func(c *Command) iter.Seq[*Group] {
 				return c.Group.eachGroup
@@ -1024,10 +1025,19 @@ func (g *Group) showInHelp() bool {
 	}, g.flags...)
 }
 
-func (g *Group) eachGroup(yield func(*Group) bool) bool {
-	return yield(g) && fun.All(func(gg *Group) bool {
-		return gg.eachGroup(yield)
-	}, g.subgroups...)
+func (g *Group) eachGroup(yield func(*Group) bool) {
+	stopped := false
+	var rec func(*Group)
+	rec = func(g *Group) {
+		if stopped || !yield(g) {
+			stopped = true
+			return
+		}
+		for _, sg := range g.subgroups {
+			rec(sg)
+		}
+	}
+	rec(g)
 }
 
 func isStringFalsy(s string) bool {
@@ -1865,7 +1875,7 @@ func (p *Parser) Run(args ...string) ([]string, error) {
 					}
 					return "`" + arg.Name + desc + "`", true
 				}).
-				ToSlice()
+				Slice()
 			if len(reqnames) != 0 {
 				s.err = &Error{
 					Kind: ErrRequired,
@@ -1975,7 +1985,7 @@ func (p *Parser) parseOption(s *parseState, name string, option *Flag, canarg bo
 			arg = s.pop()
 
 			if validationErr := option.isValidValue(arg); validationErr != nil {
-				return newErrorf(ErrExpectedArgument, validationErr.Error())
+				return newErrorf(ErrExpectedArgument, "%s", validationErr.Error())
 			} else if p.Options&PassDoubleDash != 0 && arg == "--" {
 				return newErrorf(ErrExpectedArgument, "expected argument for flag `%s', but got double dash `--'", option)
 			}
