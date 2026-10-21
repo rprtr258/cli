@@ -10,119 +10,120 @@ import (
 	"github.com/rprtr258/fun/set"
 )
 
+// Metavar is a placeholder for a value shown in help output, e.g. "FILE" or "N".
 type Metavar string
 
-type HelpItem interface{ isHelpItem() }
-type HelpItemDecorSuffix struct {
+type helpItem interface{ isHelpItem() }
+type helpItemDecorSuffix struct {
 	help Doc
-	ty   HiTy
+	ty   hiTy
 }
 
-func (HelpItemDecorSuffix) isHelpItem() {}
+func (helpItemDecorSuffix) isHelpItem() {}
 
-type HelpItemGroupStart struct {
+type helpItemGroupStart struct {
 	help Doc
-	ty   HiTy
+	ty   hiTy
 }
 
-func (HelpItemGroupStart) isHelpItem() {}
+func (helpItemGroupStart) isHelpItem() {}
 
-type HelpItemGroupEnd struct{ ty HiTy }
+type helpItemGroupEnd struct{ ty hiTy }
 
-func (HelpItemGroupEnd) isHelpItem() {}
+func (helpItemGroupEnd) isHelpItem() {}
 
-type HelpItemAny struct {
+type helpItemAny struct {
 	metavar  Doc
 	anywhere bool
-	help     Option[Doc]
+	help     Opt[Doc]
 }
 
-func (HelpItemAny) isHelpItem() {}
+func (helpItemAny) isHelpItem() {}
 
-type HelpItemPositional struct {
+type helpItemPositional struct {
 	metavar Metavar
-	help    Option[Doc]
+	help    Opt[Doc]
 }
 
-func (HelpItemPositional) isHelpItem() {}
+func (helpItemPositional) isHelpItem() {}
 
-type HelpItemCommand struct {
+type helpItemCommand struct {
 	name  string
-	short Option[byte]
-	help  Option[Doc]
-	meta  Meta
-	info  Info
+	short Opt[byte]
+	help  Opt[Doc]
+	meta  meta
+	info  info
 }
 
-func (HelpItemCommand) isHelpItem() {}
+func (helpItemCommand) isHelpItem() {}
 
-type HelpItemFlag struct {
-	name ShortLong
-	env  Option[string]
-	help Option[Doc]
+type helpItemFlag struct {
+	name shortLong
+	env  Opt[string]
+	help Opt[Doc]
 }
 
-func (HelpItemFlag) isHelpItem() {}
+func (helpItemFlag) isHelpItem() {}
 
-type HelpItemArgument struct {
-	name    ShortLong
+type helpItemArgument struct {
+	name    shortLong
 	metavar Metavar
-	env     Option[string]
-	help    Option[Doc]
+	env     Opt[string]
+	help    Opt[Doc]
 }
 
-func (HelpItemArgument) isHelpItem() {}
+func (helpItemArgument) isHelpItem() {}
 
-type HelpItemAnywhereStart struct {
-	inner Meta
-	ty    HiTy
+type helpItemAnywhereStart struct {
+	inner meta
+	ty    hiTy
 }
 
-func (HelpItemAnywhereStart) isHelpItem() {}
+func (helpItemAnywhereStart) isHelpItem() {}
 
-type HelpItemAnywhereStop struct{ ty HiTy }
+type helpItemAnywhereStop struct{ ty hiTy }
 
-func (HelpItemAnywhereStop) isHelpItem() {}
+func (helpItemAnywhereStop) isHelpItem() {}
 
-func has_help(self HelpItem) bool {
+func has_help(self helpItem) bool {
 	switch self := self.(type) {
-	case HelpItemDecorSuffix, HelpItemGroupStart:
+	case helpItemDecorSuffix, helpItemGroupStart:
 		return true
-	case HelpItemAny:
+	case helpItemAny:
 		return self.help.Valid
-	case HelpItemPositional:
+	case helpItemPositional:
 		return self.help.Valid
-	case HelpItemCommand:
+	case helpItemCommand:
 		return self.help.Valid
-	case HelpItemFlag:
+	case helpItemFlag:
 		return self.help.Valid
-	case HelpItemArgument:
+	case helpItemArgument:
 		return self.help.Valid
 	}
 	panic("unreachable")
 }
 
-func ty(self HelpItem) HiTy {
+func ty(self helpItem) hiTy {
 	switch self := self.(type) {
-	case HelpItemDecorSuffix:
+	case helpItemDecorSuffix:
 		return self.ty
-	case HelpItemGroupStart:
+	case helpItemGroupStart:
 		return self.ty
-	case HelpItemGroupEnd:
+	case helpItemGroupEnd:
 		return self.ty
-	case HelpItemAny:
-		return fun.IF(self.anywhere, HiTyFlag, HiTyPositional)
-	case HelpItemPositional:
-		return HiTyPositional
-	case HelpItemCommand:
-		return HiTyCommand
-	case HelpItemFlag:
-		return HiTyFlag
-	case HelpItemArgument:
-		return HiTyFlag
-	case HelpItemAnywhereStart:
+	case helpItemAny:
+		return fun.IF(self.anywhere, hiTyFlag, hiTyPositional)
+	case helpItemPositional:
+		return hiTyPositional
+	case helpItemCommand:
+		return hiTyCommand
+	case helpItemFlag:
+		return hiTyFlag
+	case helpItemArgument:
+		return hiTyFlag
+	case helpItemAnywhereStart:
 		return self.ty
-	case HelpItemAnywhereStop:
+	case helpItemAnywhereStop:
 		return self.ty
 	}
 	panic("unreachable")
@@ -131,45 +132,45 @@ func ty(self HelpItem) HiTy {
 // A collection of all the help items separated into flags, positionals and commands
 //
 // Items are stored as references and can be trivially copied
-type HelpItems []HelpItem
+type helpItems []helpItem
 
-func HelpItemsdefault() HelpItems {
-	return []HelpItem{}
+func helpItemsDefault() helpItems {
+	return []helpItem{}
 }
 
-type HiTy uint8
+type hiTy uint8
 
 const (
-	HiTyFlag HiTy = iota
-	HiTyCommand
-	HiTyPositional
+	hiTyFlag hiTy = iota
+	hiTyCommand
+	hiTyPositional
 )
 
-// No | Decor(HiTy) | Anywhere(HiTy)
-type ItemBlock struct {
+// No | Decor(hiTy) | Anywhere(hiTy)
+type itemBlock struct {
 	present bool
 	isDecor bool // anywhere otherwise
-	ty      HiTy
+	ty      hiTy
 }
 
-var ItemBlockNo = ItemBlock{}
+var itemBlockNo = itemBlock{}
 
-func ItemBlockDecor(ty HiTy) ItemBlock {
-	return ItemBlock{true, true, ty}
+func itemBlockDecor(ty hiTy) itemBlock {
+	return itemBlock{true, true, ty}
 }
 
-func ItemBlockAnywhere(ty HiTy) ItemBlock {
-	return ItemBlock{true, false, ty}
+func itemBlockAnywhere(ty hiTy) itemBlock {
+	return itemBlock{true, false, ty}
 }
 
-type HelpItemsIter struct {
-	items  []HelpItem
-	target HiTy
+type helpItemsIter struct {
+	items  []helpItem
+	target hiTy
 	cur    int
-	block  ItemBlock
+	block  itemBlock
 }
 
-func (self *HelpItemsIter) next() (HelpItem, bool) {
+func (self *helpItemsIter) next() (helpItem, bool) {
 	for {
 		if self.cur >= len(self.items) {
 			return nil, false
@@ -179,7 +180,7 @@ func (self *HelpItemsIter) next() (HelpItem, bool) {
 
 		var keep bool
 		switch it := item.(type) {
-		case HelpItemDecorSuffix, HelpItemAny, HelpItemPositional, HelpItemCommand, HelpItemFlag, HelpItemArgument:
+		case helpItemDecorSuffix, helpItemAny, helpItemPositional, helpItemCommand, helpItemFlag, helpItemArgument:
 			ty := ty(item)
 			switch {
 			case !self.block.present:
@@ -189,17 +190,17 @@ func (self *HelpItemsIter) next() (HelpItem, bool) {
 			default:
 				keep = self.block.ty == self.target && has_help(item)
 			}
-		case HelpItemGroupStart:
-			self.block = ItemBlockDecor(it.ty)
+		case helpItemGroupStart:
+			self.block = itemBlockDecor(it.ty)
 			keep = it.ty == self.target
-		case HelpItemGroupEnd:
-			self.block = ItemBlockNo
+		case helpItemGroupEnd:
+			self.block = itemBlockNo
 			keep = it.ty == self.target
-		case HelpItemAnywhereStart:
-			self.block = ItemBlockAnywhere(it.ty)
+		case helpItemAnywhereStart:
+			self.block = itemBlockAnywhere(it.ty)
 			keep = it.ty == self.target
-		case HelpItemAnywhereStop:
-			self.block = ItemBlockNo
+		case helpItemAnywhereStop:
+			self.block = itemBlockNo
 			keep = it.ty == self.target
 		}
 		if keep {
@@ -208,14 +209,14 @@ func (self *HelpItemsIter) next() (HelpItem, bool) {
 	}
 }
 
-func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
-	iter := HelpItemsIter{
+func (self helpItems) items_of_ty(target hiTy) iter.Seq[helpItem] {
+	iter := helpItemsIter{
 		items:  self,
 		target: target,
 		cur:    0,
-		block:  ItemBlockNo,
+		block:  itemBlockNo,
 	}
-	return func(yield func(HelpItem) bool) {
+	return func(yield func(helpItem) bool) {
 		for {
 			x, ok := iter.next()
 			if !ok || !yield(x) {
@@ -225,102 +226,102 @@ func (self HelpItems) items_of_ty(target HiTy) iter.Seq[HelpItem] {
 	}
 }
 
-func peek_front_ty(self Meta) (HiTy, bool) {
+func peek_front_ty(self meta) (hiTy, bool) {
 	var (
-		res HiTy
+		res hiTy
 		ok  bool
 	)
 	switch m := self.(type) {
-	case MetaAnd:
+	case metaAnd:
 		res, ok = find_map(m, peek_front_ty)
-	case MetaOr:
+	case metaOr:
 		res, ok = find_map(m, peek_front_ty)
-	case MetaOptional:
+	case metaOptional:
 		res, ok = peek_front_ty(m.m)
-	case MetaRequired:
+	case metaRequired:
 		res, ok = peek_front_ty(m.m)
-	case MetaAdjacent:
+	case metaAdjacent:
 		res, ok = peek_front_ty(m.m)
-	case MetaItem:
-		res, ok = HiTyFromItem(Item(m)), true
-	case MetaMany:
+	case metaItem:
+		res, ok = hiTyFromItem(item(m)), true
+	case metaMany:
 		res, ok = peek_front_ty(m.m)
-	case MetaSubsection:
+	case metaSubsection:
 		res, ok = peek_front_ty(m.m)
-	case MetaSuffix:
+	case metaSuffix:
 		res, ok = peek_front_ty(m.m)
-	case MetaCustomUsage:
+	case metaCustomUsage:
 		res, ok = peek_front_ty(m.m)
 	}
 	return res, ok
 }
 
-// Recursively classify contents of the Meta
-func (self *HelpItems) append_meta(meta Meta) {
-	var GO func(meta Meta, no_ss bool)
-	GO = func(meta Meta, no_ss bool) {
-		switch meta := meta.(type) {
-		case MetaAnd:
-			for _, x := range meta {
+// Recursively classify contents of the meta
+func (self *helpItems) append_meta(mm meta) {
+	var GO func(mm meta, no_ss bool)
+	GO = func(mm meta, no_ss bool) {
+		switch mm := mm.(type) {
+		case metaAnd:
+			for _, x := range mm {
 				GO(x, no_ss)
 			}
-		case MetaOr:
-			for _, x := range meta {
+		case metaOr:
+			for _, x := range mm {
 				GO(x, no_ss)
 			}
-		case MetaAdjacent:
-			if ty, ok := peek_front_ty(meta.m); ok {
-				*self = append(*self, HelpItemAnywhereStart{meta.m, ty})
-				GO(meta.m, no_ss)
-				*self = append(*self, HelpItemAnywhereStop{ty})
+		case metaAdjacent:
+			if ty, ok := peek_front_ty(mm.m); ok {
+				*self = append(*self, helpItemAnywhereStart{mm.m, ty})
+				GO(mm.m, no_ss)
+				*self = append(*self, helpItemAnywhereStop{ty})
 			}
-		case MetaStrict:
-			GO(meta.m, no_ss)
-		case MetaCustomUsage:
-			GO(meta.m, no_ss)
-		case MetaMany:
-			GO(meta.m, no_ss)
-		case MetaRequired:
-			GO(meta.m, no_ss)
-		case MetaOptional:
-			GO(meta.m, no_ss)
-		case MetaItem:
-			if _, ok := meta.v.(ItemPositional); ok && !meta.help.Valid {
+		case metaStrict:
+			GO(mm.m, no_ss)
+		case metaCustomUsage:
+			GO(mm.m, no_ss)
+		case metaMany:
+			GO(mm.m, no_ss)
+		case metaRequired:
+			GO(mm.m, no_ss)
+		case metaOptional:
+			GO(mm.m, no_ss)
+		case metaItem:
+			if _, ok := mm.v.(itemPositional); ok && !mm.help.Valid {
 				return
 			}
-			*self = append(*self, HelpItemFromItem(Item(meta)))
-		case MetaSubsection:
-			m := meta.m
-			help := meta.doc
+			*self = append(*self, helpItemFromItem(item(mm)))
+		case metaSubsection:
+			m := mm.m
+			help := mm.doc
 			if ty, ok := peek_front_ty(m); ok {
 				if no_ss {
 					GO(m, true)
 				} else {
-					*self = append(*self, HelpItemGroupStart{help, ty})
+					*self = append(*self, helpItemGroupStart{help, ty})
 					GO(m, true)
-					*self = append(*self, HelpItemGroupEnd{ty})
+					*self = append(*self, helpItemGroupEnd{ty})
 				}
 			}
-		case MetaSuffix:
-			m := meta.m
-			help := meta.doc
+		case metaSuffix:
+			m := mm.m
+			help := mm.doc
 			if ty, ok := peek_front_ty(m); ok {
 				GO(m, no_ss)
-				*self = append(*self, HelpItemDecorSuffix{help, ty})
+				*self = append(*self, helpItemDecorSuffix{help, ty})
 			}
-		case MetaSkip:
+		case metaSkip:
 		}
 	}
-	GO(meta, false)
+	GO(mm, false)
 }
-func (self HelpItems) find_group() (Range, bool) {
+func (self helpItems) find_group() (rng, bool) {
 	start, end := -1, -1
 	for i, x := range self {
 		var isStart, isEnd bool
 		switch x.(type) {
-		case HelpItemGroupStart:
+		case helpItemGroupStart:
 			isStart = true
-		case HelpItemGroupEnd:
+		case helpItemGroupEnd:
 			isEnd = true
 		}
 		if start == -1 && isStart {
@@ -331,39 +332,39 @@ func (self HelpItems) find_group() (Range, bool) {
 		}
 	}
 	if start == -1 || end == -1 {
-		return Range{}, false
+		return rng{}, false
 	}
-	return Range{start, end + 1}, true
+	return rng{start, end + 1}, true
 }
 
-func HiTyFromItem(value Item) HiTy {
+func hiTyFromItem(value item) hiTy {
 	switch v := value.v.(type) {
-	case ItemAny:
-		return fun.IF(v.anywhere, HiTyFlag, HiTyPositional)
-	case ItemPositional:
-		return HiTyPositional
-	case ItemCommand:
-		return HiTyCommand
-	case ItemFlag:
-		return HiTyFlag
-	case ItemArgument:
-		return HiTyFlag
+	case itemAny:
+		return fun.IF(v.anywhere, hiTyFlag, hiTyPositional)
+	case itemPositional:
+		return hiTyPositional
+	case itemCommand:
+		return hiTyCommand
+	case itemFlag:
+		return hiTyFlag
+	case itemArgument:
+		return hiTyFlag
 	}
 	panic("unreachable")
 }
 
-func HelpItemFromItem(item Item) HelpItem {
+func helpItemFromItem(item item) helpItem {
 	switch v := item.v.(type) {
-	case ItemAny:
-		return HelpItemAny{v.metavar, v.anywhere, item.help}
-	case ItemPositional:
-		return HelpItemPositional{v.metavar, item.help}
-	case ItemCommand:
-		return HelpItemCommand{v.name, v.short, item.help, v.meta, v.info}
-	case ItemFlag:
-		return HelpItemFlag{v.name, v.env, item.help}
-	case ItemArgument:
-		return HelpItemArgument{v.name, v.metavar, v.env, item.help}
+	case itemAny:
+		return helpItemAny{v.metavar, v.anywhere, item.help}
+	case itemPositional:
+		return helpItemPositional{v.metavar, item.help}
+	case itemCommand:
+		return helpItemCommand{v.name, v.short, item.help, v.meta, v.info}
+	case itemFlag:
+		return helpItemFlag{v.name, v.env, item.help}
+	case itemArgument:
+		return helpItemArgument{v.name, v.metavar, v.env, item.help}
 	}
 	panic("unreachable")
 }
@@ -378,90 +379,90 @@ func (self *Doc) metavar(metavar Metavar) {
 	}
 }
 
-func write_help_item(buf *Doc, item HelpItem, include_env bool) {
+func write_help_item(buf *Doc, item helpItem, include_env bool) {
 	switch item := item.(type) {
-	case HelpItemDecorSuffix:
-		buf.token(TokenBlockStart(BlockItemTerm))
-		buf.token(TokenBlockEnd(BlockItemTerm))
-		buf.token(TokenBlockStart(BlockItemBody))
+	case helpItemDecorSuffix:
+		buf.token(tokenBlockStart(blockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
+		buf.token(tokenBlockStart(blockItemBody))
 		buf.Doc(item.help)
-		buf.token(TokenBlockEnd(BlockItemBody))
-	case HelpItemGroupStart:
-		buf.token(TokenBlockStart(BlockBlock))
-		buf.token(TokenBlockStart(BlockSection2))
-		buf.EmDoc(item.help)
-		buf.token(TokenBlockEnd(BlockSection2))
-		buf.token(TokenBlockStart(BlockDefinitionList))
-	case HelpItemGroupEnd:
-		buf.token(TokenBlockEnd(BlockDefinitionList))
-		buf.token(TokenBlockEnd(BlockBlock))
-	case HelpItemAny:
-		buf.token(TokenBlockStart(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemBody))
+	case helpItemGroupStart:
+		buf.token(tokenBlockStart(blockBlock))
+		buf.token(tokenBlockStart(blockSection2))
+		buf.emDoc(item.help)
+		buf.token(tokenBlockEnd(blockSection2))
+		buf.token(tokenBlockStart(blockDefinitionList))
+	case helpItemGroupEnd:
+		buf.token(tokenBlockEnd(blockDefinitionList))
+		buf.token(tokenBlockEnd(blockBlock))
+	case helpItemAny:
+		buf.token(tokenBlockStart(blockItemTerm))
 		buf.Doc(item.metavar)
-		buf.token(TokenBlockEnd(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
 		if help, ok := item.help.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
-	case HelpItemPositional:
-		buf.token(TokenBlockStart(BlockItemTerm))
+	case helpItemPositional:
+		buf.token(tokenBlockStart(blockItemTerm))
 		buf.metavar(item.metavar)
-		buf.token(TokenBlockEnd(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
 		if help, ok := item.help.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
-	case HelpItemCommand:
-		buf.token(TokenBlockStart(BlockItemTerm))
+	case helpItemCommand:
+		buf.token(tokenBlockStart(blockItemTerm))
 		buf.write_str(item.name, StyleLiteral)
 		if short, ok := item.short.Unpack(); ok {
 			buf.write_str(", ", StyleText)
 			buf.write_char(short, StyleLiteral)
 		}
-		buf.token(TokenBlockEnd(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
 		if help, ok := item.help.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
-	case HelpItemFlag:
-		buf.token(TokenBlockStart(BlockItemTerm))
+	case helpItemFlag:
+		buf.token(tokenBlockStart(blockItemTerm))
 		write_shortlong(buf, item.name)
-		buf.token(TokenBlockEnd(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
 		if help, ok := item.help.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
 		if env, ok := item.env.Unpack(); ok {
 			_, found := os.LookupEnv(env)
 			val := fun.IF(found, ": set", ": not set")
 			if item.help.Valid {
-				buf.token(TokenBlockStart(BlockItemTerm))
-				buf.token(TokenBlockEnd(BlockItemTerm))
+				buf.token(tokenBlockStart(blockItemTerm))
+				buf.token(tokenBlockEnd(blockItemTerm))
 			}
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			if include_env {
 				buf.write_str(fmt.Sprintf("[env:%v%v]", env, val), StyleText)
 			} else {
 				buf.Text("Uses environment variable ")
 				buf.Literal(env)
 			}
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
-	case HelpItemArgument:
-		buf.token(TokenBlockStart(BlockItemTerm))
+	case helpItemArgument:
+		buf.token(tokenBlockStart(blockItemTerm))
 		write_shortlong(buf, item.name)
 		buf.write_str("=", StyleText)
 		buf.metavar(item.metavar)
-		buf.token(TokenBlockEnd(BlockItemTerm))
+		buf.token(tokenBlockEnd(blockItemTerm))
 
 		if help, ok := item.help.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
 
 		if env, ok := item.env.Unpack(); ok {
@@ -471,10 +472,10 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 			}
 
 			if item.help.Valid {
-				buf.token(TokenBlockStart(BlockItemTerm))
-				buf.token(TokenBlockEnd(BlockItemTerm))
+				buf.token(tokenBlockStart(blockItemTerm))
+				buf.token(tokenBlockEnd(blockItemTerm))
 			}
-			buf.token(TokenBlockStart(BlockItemBody))
+			buf.token(tokenBlockStart(blockItemBody))
 
 			if include_env {
 				buf.write_str(fmt.Sprintf("[env:%v%v]", env, val), StyleText)
@@ -483,19 +484,19 @@ func write_help_item(buf *Doc, item HelpItem, include_env bool) {
 				buf.Literal(env)
 			}
 
-			buf.token(TokenBlockEnd(BlockItemBody))
+			buf.token(tokenBlockEnd(blockItemBody))
 		}
-	case HelpItemAnywhereStart:
-		buf.token(TokenBlockStart(BlockSection3))
+	case helpItemAnywhereStart:
+		buf.token(tokenBlockStart(blockSection3))
 		buf.write_meta(item.inner, true)
-		buf.token(TokenBlockEnd(BlockSection3))
-	case HelpItemAnywhereStop:
-		buf.token(TokenBlockStart(BlockBlock))
-		buf.token(TokenBlockEnd(BlockBlock))
+		buf.token(tokenBlockEnd(blockSection3))
+	case helpItemAnywhereStop:
+		buf.token(tokenBlockStart(blockBlock))
+		buf.token(tokenBlockEnd(blockBlock))
 	}
 }
 
-func write_shortlong(buf *Doc, name ShortLong) {
+func write_shortlong(buf *Doc, name shortLong) {
 	if s := name.Short; s != 0 {
 		buf.write_char('-', StyleLiteral)
 		buf.write_char(s, StyleLiteral)
@@ -511,59 +512,59 @@ func write_shortlong(buf *Doc, name ShortLong) {
 
 func render_help(
 	path []string,
-	info Info,
-	parser_meta Meta,
-	help_meta Meta,
+	info info,
+	parser_meta meta,
+	help_meta meta,
 ) Doc {
 	positional_invariant_check(parser_meta, false)
 	buf := Doc{}
 
 	if t, ok := info.descr.Unpack(); ok {
-		buf.token(TokenBlockStart(BlockBlock))
+		buf.token(tokenBlockStart(blockBlock))
 		buf.Doc(t)
-		buf.token(TokenBlockEnd(BlockBlock))
+		buf.token(tokenBlockEnd(blockBlock))
 	}
 
-	buf.token(TokenBlockStart(BlockBlock))
+	buf.token(tokenBlockStart(blockBlock))
 	if usage, ok := info.usage.Unpack(); ok {
 		buf.Doc(usage)
 	} else {
 		buf.write_str("Usage", StyleEmphasis)
 		buf.write_str(": ", StyleText)
-		buf.token(TokenBlockStart(BlockMono))
+		buf.token(tokenBlockStart(blockMono))
 		buf.write_path(path)
 		buf.write_meta(parser_meta, true)
-		buf.token(TokenBlockEnd(BlockMono))
+		buf.token(tokenBlockEnd(blockMono))
 	}
-	buf.token(TokenBlockEnd(BlockBlock))
+	buf.token(tokenBlockEnd(blockBlock))
 
 	if t, ok := info.header.Unpack(); ok {
-		buf.token(TokenBlockStart(BlockBlock))
+		buf.token(tokenBlockStart(blockBlock))
 		buf.Doc(t)
-		buf.token(TokenBlockEnd(BlockBlock))
+		buf.token(tokenBlockEnd(blockBlock))
 	}
 
-	items := HelpItemsdefault()
+	items := helpItemsDefault()
 	items.append_meta(parser_meta)
 	items.append_meta(help_meta)
 
 	buf.write_help_item_groups(items, true)
 
 	if footer, ok := info.footer.Unpack(); ok {
-		buf.token(TokenBlockStart(BlockBlock))
+		buf.token(tokenBlockStart(blockBlock))
 		buf.Doc(footer)
-		buf.token(TokenBlockEnd(BlockBlock))
+		buf.token(tokenBlockEnd(blockBlock))
 	}
 	return buf
 }
 
-type Dedup struct {
+type dedup struct {
 	items set.Set[string]
 	keep  bool
 }
 
-func Dedupdefault() Dedup {
-	return Dedup{set.New[string](0), false}
+func dedupDefault() dedup {
+	return dedup{set.New[string](0), false}
 }
 
 func insert[K comparable](s *set.Set[K], item K) bool {
@@ -575,40 +576,40 @@ func insert[K comparable](s *set.Set[K], item K) bool {
 }
 
 // TODO: mutate somehow vahui
-func (self *Dedup) check(item HelpItem) bool {
+func (self *dedup) check(item helpItem) bool {
 	switch item := item.(type) {
-	case HelpItemDecorSuffix:
+	case helpItemDecorSuffix:
 		return self.keep
-	case HelpItemAny:
+	case helpItemAny:
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %#v", item.metavar, item.help))
 		return self.keep
-	case HelpItemPositional:
+	case helpItemPositional:
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %#v", item.metavar, item.help))
 		return self.keep
-	case HelpItemCommand:
+	case helpItemCommand:
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %#v", item.name, item.help))
 		return self.keep
-	case HelpItemFlag:
+	case helpItemFlag:
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %#v", item.name, item.help))
 		return self.keep
-	case HelpItemArgument:
+	case helpItemArgument:
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %v %#v", item.name, item.metavar, item.help))
 		return self.keep
-	case HelpItemGroupStart, HelpItemGroupEnd, HelpItemAnywhereStart, HelpItemAnywhereStop:
+	case helpItemGroupStart, helpItemGroupEnd, helpItemAnywhereStart, helpItemAnywhereStop:
 		self.keep = true
 		return true
 	}
 	panic("unreachable")
 }
 
-func (self *Doc) write_help_item_groups(items HelpItems, include_env bool) {
+func (self *Doc) write_help_item_groups(items helpItems, include_env bool) {
 	for {
 		rangee, ok := items.find_group()
 		if !ok {
 			break
 		}
 
-		dd := Dedupdefault()
+		dd := dedupDefault()
 		drain := items[rangee.start():rangee.end()]
 		items = append(items[:rangee.start():rangee.start()], items[rangee.end():]...)
 		for _, item := range drain {
@@ -619,19 +620,19 @@ func (self *Doc) write_help_item_groups(items HelpItems, include_env bool) {
 	}
 
 	for _, tyname := range []struct {
-		HiTy HiTy
+		hiTy hiTy
 		name string
 	}{
-		{HiTyPositional, "Available positional items:"},
-		{HiTyFlag, "Available options:"},
-		{HiTyCommand, "Available commands:"},
+		{hiTyPositional, "Available positional items:"},
+		{hiTyFlag, "Available options:"},
+		{hiTyCommand, "Available commands:"},
 	} {
-		ty, name := tyname.HiTy, tyname.name
+		ty, name := tyname.hiTy, tyname.name
 		self.write_help_items(items, ty, name, include_env)
 	}
 }
 
-func (self *Doc) write_help_items(items HelpItems, ty HiTy, name string, include_env bool) {
+func (self *Doc) write_help_items(items helpItems, ty hiTy, name string, include_env bool) {
 	zalupa := func() bool {
 		for range items.items_of_ty(ty) {
 			return true
@@ -640,19 +641,19 @@ func (self *Doc) write_help_items(items HelpItems, ty HiTy, name string, include
 	}()
 	xs := items.items_of_ty(ty)
 	if zalupa {
-		self.token(TokenBlockStart(BlockBlock))
-		self.token(TokenBlockStart(BlockSection2))
+		self.token(tokenBlockStart(blockBlock))
+		self.token(tokenBlockStart(blockSection2))
 		self.write_str(name, StyleEmphasis)
-		self.token(TokenBlockEnd(BlockSection2))
-		self.token(TokenBlockStart(BlockDefinitionList))
-		dd := Dedupdefault()
+		self.token(tokenBlockEnd(blockSection2))
+		self.token(tokenBlockStart(blockDefinitionList))
+		dd := dedupDefault()
 		for item := range xs {
 			if dd.check(item) {
 				write_help_item(self, item, include_env)
 			}
 		}
-		self.token(TokenBlockEnd(BlockDefinitionList))
-		self.token(TokenBlockEnd(BlockBlock))
+		self.token(tokenBlockEnd(blockDefinitionList))
+		self.token(tokenBlockEnd(blockBlock))
 	}
 }
 

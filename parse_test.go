@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 // import (
 // 	"errors"
@@ -273,19 +273,19 @@ package cli_test
 
 // type cmdArgs struct {
 // 	Value bool     `short:"v"`
-// 	Args  []string `positional-args:"yes"`
+// 	argList  []string `positional-args:"yes"`
 // }
 
 // func TestCommandHandlerNoCommand(t *testing.T) {
 // 	assertSuccess[cmdArgs](t, func(x cmdArgs) {
 // 		require.False(t, x.Value)
-// 		require.Equal(t, []string{"arg1", "arg2"}, x.Args)
+// 		require.Equal(t, []string{"arg1", "arg2"}, x.argList)
 // 	}, "arg1", "arg2")
 // }
 
 // type cmdSubcommand struct {
 // 	Value bool     `short:"v"`
-// 	Args  []string `positional-args:"yes"`
+// 	argList  []string `positional-args:"yes"`
 // }
 
 // func TestCommandHandler(t *testing.T) {
@@ -295,7 +295,7 @@ package cli_test
 
 // 	assertSuccess[cmd](t, func(x cmdSubcommand) {
 // 		require.False(t, x.Value)
-// 		require.Equal(t, []string{"arg1", "arg2"}, x.Args)
+// 		require.Equal(t, []string{"arg1", "arg2"}, x.argList)
 // 	}, "cmd", "arg1", "arg2")
 // }
 
@@ -340,7 +340,7 @@ package cli_test
 // }
 
 // type cmdCustomPositional struct {
-// 	Args struct {
+// 	argList struct {
 // 		Value marshalled
 // 	} `positional-args:"yes"`
 // }
@@ -376,20 +376,20 @@ package cli_test
 
 // type cmdPositionalsV0 struct {
 // 	Value bool     `short:"v"`
-// 	Args  []string `positional-args:"yes"`
+// 	argList  []string `positional-args:"yes"`
 // }
 
 // func TestPassDoubleDash(t *testing.T) {
 // 	assertSuccess[cmdPositionalsV0](t, func(x cmdPositionalsV0) {
 // 		require.True(t, x.Value)
-// 		require.Equal(t, []string{"-v", "-g"}, x.Args)
+// 		require.Equal(t, []string{"-v", "-g"}, x.argList)
 // 	}, "-v", "--", "-v", "-g")
 // }
 
 // func TestPassAfterNonOption(t *testing.T) {
 // 	assertSuccess[cmdPositionalsV0](t, func(x cmdPositionalsV0) {
 // 		require.True(t, x.Value)
-// 		require.Equal(t, []string{"arg", "-v", "-g"}, x.Args)
+// 		require.Equal(t, []string{"arg", "-v", "-g"}, x.argList)
 // 	}, "-v", "arg", "-v", "-g")
 // }
 
@@ -409,27 +409,27 @@ package cli_test
 
 // type cmdPositionalsVInts struct {
 // 	Value bool  `short:"v"`
-// 	Args  []int `positional-args:"yes"`
+// 	argList  []int `positional-args:"yes"`
 // }
 
 // func TestPassAfterNonOptionWithPositionalIntPass(t *testing.T) {
 // 	assertSuccess[cmdPositionalsVInts](t, func(x cmdPositionalsVInts) {
 // 		require.True(t, x.Value)
-// 		require.Equal(t, []int{1, 2, 3}, x.Args)
+// 		require.Equal(t, []int{1, 2, 3}, x.argList)
 // 	}, "-v", "1", "2", "3")
 // }
 
 // type cmdPositionalsVInts2 struct {
 // 	Value      bool `short:"v"`
 // 	Positional struct {
-// 		Args []int
+// 		argList []int
 // 	} `positional-args:"yes"`
 // }
 
 // func TestPassAfterNonOptionWithPositionalIntPass2(t *testing.T) {
 // 	assertSuccess[cmdPositionalsVInts2](t, func(x cmdPositionalsVInts2) {
 // 		require.True(t, x.Value)
-// 		require.Equal(t, []int{1, 2, 3}, x.Positional.Args)
+// 		require.Equal(t, []int{1, 2, 3}, x.Positional.argList)
 // 	}, "-v", "1", "2", "3")
 // }
 

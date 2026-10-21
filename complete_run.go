@@ -7,7 +7,7 @@ import (
 )
 
 func dump_bash_completer(name string) {
-	println(`_bpaf_dynamic_completion()
+	println(`_cli_dynamic_completion()
 {{
     line="$1 --bpaf-complete-rev=8 ${{COMP_WORDS[@]:1}}"
     if [[ ${{COMP_WORDS[-1]}} == "" ]]; then
@@ -15,7 +15,7 @@ func dump_bash_completer(name string) {
     fi
     source <( eval ${{line}})
 }}
-complete -o nosort -F _bpaf_dynamic_completion ` + name)
+complete -o nosort -F _cli_dynamic_completion ` + name)
 }
 
 func dump_zsh_completer(name string) {
@@ -58,12 +58,12 @@ func dump_elvish_completer(name string) {
 }}`)
 }
 
-type ArgScanner struct {
-	revision Option[uint]
-	name     Option[string]
+type argScanner struct {
+	revision Opt[uint]
+	name     Opt[string]
 }
 
-func (self *ArgScanner) check_next(arg string) bool {
+func (self *argScanner) check_next(arg string) bool {
 	// this only works when there's a name
 	if name, ok := self.name.Unpack(); ok {
 		matched := true
@@ -93,10 +93,10 @@ func (self *ArgScanner) check_next(arg string) bool {
 	return false
 }
 
-func (self ArgScanner) done() (Complete, bool) {
+func (self argScanner) done() (Complete, bool) {
 	revision, ok := self.revision.Unpack()
 	if !ok {
 		return Complete{}, false
 	}
-	return Completenew(revision), true
+	return newComplete(revision), true
 }

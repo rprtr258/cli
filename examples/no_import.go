@@ -1,4 +1,4 @@
-// You don't need to import bpaf in order to use it, it will look ugly though
+// You don't need to import this library in order to use it via struct tags, it will look ugly though
 package examples
 
 import (

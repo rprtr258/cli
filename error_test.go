@@ -1,9 +1,8 @@
-package cli_test
+package cli
 
 import (
 	"testing"
 
-	. "github.com/rprtr258/cli"
 	"github.com/rprtr258/fun"
 )
 
@@ -114,7 +113,7 @@ func TestNot_expected_at_all(t *testing.T) {
 
 func TestCannot_be_used_twice(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Short('b').Switch(), false)
+	b := Many(Short('b').Switch())
 	parser := Pair(a, b).Parser().ToOptions()
 
 	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-a", "-b", "-a")
@@ -162,7 +161,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
 	a := Short('a').Switch()
-	b := Some(Positional("B", parseUint), "Want B", false)
+	b := Some(Positional("B", parseUint), "Want B")
 	parser := Pair(a, b).Parser().ToOptions()
 
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
@@ -171,7 +170,7 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseUint).Parser(), false)
+	a := Optional(Argument(Short('a'), "A", parseUint).Parser())
 	b := Positional("B", parseUint)
 	parser := Pair(a, b).Parser().ToOptions()
 

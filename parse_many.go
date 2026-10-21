@@ -2,9 +2,9 @@ package cli
 
 import "math"
 
-// Apply inner parser several times and collect results into `Vec`, created with
-// [Many], implements catch mode via the `catch` parameter.
-func many_eval[T any](inner Parser[T], catch bool, state *State) ([]T, Error) {
+// Repeatedly apply an inner parser and collect the results, created with
+// [Many] or [ManyCatch].
+func many_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseError) {
 	len := uint(math.MaxUint)
 	res := []T{}
 	for {
@@ -21,39 +21,35 @@ func many_eval[T any](inner Parser[T], catch bool, state *State) ([]T, Error) {
 	return res, nil
 }
 
-// Consume zero or more items from a command line and collect them into a [Vec]
+// Many collects zero or more items from a command line.
 //
-// `Many` preserves any parsing failures and propagates them outwards, with an extra
-// [catch](ParseManycatch) statement you can instead stop at the first value
-// that failed to parse and ignore it and all the subsequent ones.
+// Inner parser failures propagate outward and abort the collection.
+// See [ManyCatch] for the variant that stops at the first failing item, keeping
+// the values collected so far.
 //
-// `Many` will collect at most one result that does not consume anything from the argument
-// list allowing using it in combination with any parsers with a fallback. After the first
-// one, it will keep collecting the results as long as they consume something.
+// Many will collect at most one result that does not consume anything from the
+// argument list, allowing its use in combination with parsers with a fallback. After
+// the first one, it keeps collecting the results as long as they consume something.
 //
-// For derive usage `bpaf` would insert implicit `Many` when the resulting type is a
-// vector.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Many.md"))]
+// With [Construct] a slice field parses as [Many] of the field parser.
 //
 // # See also
-// [Parser.Some] also collects results to a vector but requires at least one
-// element to succeed, [Parser.Collect] collects results into a collection
-func Many[T any, P parser[T]](
-	self P,
-	// Handle parse failures
-	//
-	// Can be useful to decide to skip parsing of some items on a command line
-	// When parser succeeds - `catch` version would return a value as usual
-	// if it fails - `catch` would restore all the consumed values and return Invalid().
-	//
-	// There's several structures that implement this attribute: [Optional], [Many]
-	// and [Parser.Some], behavior should be identical for all of them.
-	catch bool,
-) Parser[[]T] {
+// [Some] also collects results to a slice but requires at least one
+// element to succeed; [Collect] collects results into a slice
+func Many[T any, P parser[T]](self P) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
-		eval: func(state *State) ([]T, Error) { return many_eval(inner, catch, state) },
-		meta: MetaMany{MetaOptional{inner.meta}},
+		eval: func(state *state) ([]T, parseError) { return many_eval(inner, false, state) },
+		meta: metaMany{metaOptional{inner.meta}},
+	}
+}
+
+// ManyCatch collects zero or more items, stopping at the first inner parser
+// failure and keeping the values collected so far.
+func ManyCatch[T any, P parser[T]](self P) Parser[[]T] {
+	inner := self.Parser()
+	return Parser[[]T]{
+		eval: func(state *state) ([]T, parseError) { return many_eval(inner, true, state) },
+		meta: metaMany{metaOptional{inner.meta}},
 	}
 }

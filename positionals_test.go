@@ -1,12 +1,10 @@
-package cli_test
+package cli
 
 import (
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
-	. "github.com/rprtr258/cli"
 )
 
 func TestPositional_with_help(t *testing.T) {
@@ -50,8 +48,7 @@ func TestDash_is_positional(t *testing.T) {
 }
 
 func TestHelpful_error_message(t *testing.T) {
-	parser := Some(Positional("FOO", parseString),
-		"you need to specify at least one FOO", false).
+	parser := Some(Positional("FOO", parseString), "you need to specify at least one FOO").
 		ToOptions()
 
 	assertFailure(t, parser, "you need to specify at least one FOO")
@@ -81,10 +78,10 @@ func TestPositional_help_complain_1(t *testing.T) {
 		b := Short('b').Switch()
 		parser := Pair(a, b).Parser().ToOptions()
 
-		_, err := parser.RunInner(NewArgs("--help"))
+		_, err := parser.RunInner(newArgList("--help"))
 		UnwrapStderr(err)
 	})
-	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
+	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
 
 func TestPositional_help_complain_2(t *testing.T) {
@@ -95,10 +92,10 @@ func TestPositional_help_complain_2(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).Parser().ToOptions()
 
-		_, err := parser.RunInner(NewArgs("--help"))
+		_, err := parser.RunInner(newArgList("--help"))
 		UnwrapStderr(err)
 	})
-	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
+	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
 
 func TestPositional_help_complain_3(t *testing.T) {
@@ -109,10 +106,10 @@ func TestPositional_help_complain_3(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).Parser().ToOptions()
 
-		_, err := parser.RunInner(NewArgs("--help"))
+		_, err := parser.RunInner(newArgList("--help"))
 		UnwrapStderr(err)
 	})
-	require.True(t, strings.HasPrefix(v, "bpaf usage BUG: all positional"))
+	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
 
 func TestPositional_help_complain_4(t *testing.T) {
@@ -120,7 +117,7 @@ func TestPositional_help_complain_4(t *testing.T) {
 	b := Argument(Short('b'), "B", parseString)
 	parser := Choice(b, a).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("--help"))
+	_, err := parser.RunInner(newArgList("--help"))
 	UnwrapStdout(err)
 }
 

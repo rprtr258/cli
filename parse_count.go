@@ -3,7 +3,7 @@ package cli
 import "math"
 
 // Apply inner parser as many times as it succeeds while consuming something and return this number
-func count_eval[T any](inner Parser[T], state *State) (int, Error) {
+func count_eval[T any](inner Parser[T], state *state) (int, parseError) {
 	res := 0
 	current := state.len()
 	len := uint(math.MaxUint)
@@ -27,13 +27,15 @@ func count_eval[T any](inner Parser[T], state *State) (int, Error) {
 // Count how many times the inner parser succeeds, and return that number.
 //
 // When you are dealing with a parser that can succeed without consuming
-// anything from a command line - `bpaf` will Count first such success as well.
+// anything from a command line - the first such success counts as well.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Count.md"))]
+// # Example
+//
+//	count := cli.Short('v').Switch().Parser().Count() // -vvv -> 3
 func (self Parser[T]) Count() Parser[int] {
 	inner := self
 	return Parser[int]{
-		eval: func(state *State) (int, Error) { return count_eval(inner, state) },
-		meta: MetaMany{MetaOptional{inner.meta}},
+		eval: func(state *state) (int, parseError) { return count_eval(inner, state) },
+		meta: metaMany{metaOptional{inner.meta}},
 	}
 }

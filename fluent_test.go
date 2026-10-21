@@ -1,27 +1,25 @@
-package cli_test
+package cli
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
-
-	. "github.com/rprtr258/cli"
 )
 
 // Combinators return Parser directly: no intermediate .Parser() calls needed
 // anywhere in the chain, and builders compose into combinators directly.
 func TestFluentChaining(t *testing.T) {
-	verbose := Many(Short('v').Long("verbose").Switch(), false)
+	verbose := Many(Short('v').Long("verbose").Switch())
 	speed := Argument[int](Short('s').Long("speed"), "SPEED", parseInt).
 		Parser().
 		FallbackDisplay(42).
 		Guard(func(x int) bool { return x < 1000 }, "too fast").
 		GroupHelp("Speed settings").
 		Hide()
-	rest := Optional(Positional[string]("REST", parseString), false)
+	rest := Optional(Positional[string]("REST", parseString))
 
-	parser := Map(Pair(verbose, Pair(speed, rest)), func(x fun.Pair[[]bool, fun.Pair[int, Option[string]]]) string {
+	parser := Map(Pair(verbose, Pair(speed, rest)), func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
 		res := ""
 		for range x.K {
 			res += "v"
@@ -52,7 +50,7 @@ func TestFluentChaining(t *testing.T) {
 func TestFluentCountSome(t *testing.T) {
 	parser := Pair(
 		ReqFlag[struct{}](Short('c'), struct{}{}).Parser().Count(),
-		Some(Positional[uint32]("N", parseUint32), "want N", false),
+		Some(Positional[uint32]("N", parseUint32), "want N"),
 	).Parser().ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-c", "-c", "-c", "7"})
@@ -105,27 +103,33 @@ func strconvItoa(x int) string {
 	return res
 }
 
-// Map and Parse are generic methods on Parser: they chain after any combinator
-// and infer their type parameters, including on ParseCon results from Pair.
+// Map and Parse are free generic functions: they accept any parser, including
+// ParseCon results from Pair.
 func TestFluentGenericMethods(t *testing.T) {
-	parser := Some(Positional[uint32]("N", parseUint32), "want N", false).
-		Map(func(xs []uint32) uint32 {
+	parser := Map(
+		Some(Positional[uint32]("N", parseUint32), "want N"),
+		func(xs []uint32) uint32 {
 			res := uint32(0)
 			for _, x := range xs {
 				res += x
 			}
 			return res
 		}).
+		Parser().
 		ToOptions()
 	assertSuccess(t, uint32(3), parser, "1", "2")
 
-	parser2 := Pair(Positional[uint32]("W", parseUint32), Positional[uint32]("H", parseUint32)).
-		Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).
+	parser2 := Map(
+		Pair(Positional[uint32]("W", parseUint32), Positional[uint32]("H", parseUint32)).Parser(),
+		func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).
+		Parser().
 		ToOptions()
 	assertSuccess(t, uint32(20), parser2, "4", "5")
 
-	parser3 := Positional[uint32]("N", parseUint32).Parser().
-		Parse(func(x uint32) (string, error) { return strconvItoa(int(x)), nil }).
+	parser3 := Parse(
+		Positional[uint32]("N", parseUint32).Parser(),
+		func(x uint32) (string, error) { return strconvItoa(int(x)), nil }).
+		Parser().
 		ToOptions()
 	assertSuccess(t, "42", parser3, "42")
 }

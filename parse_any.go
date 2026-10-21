@@ -2,35 +2,38 @@ package cli
 
 import "github.com/rprtr258/fun"
 
-// Consume an arbitrary value that satisfies a condition, created with [any], implements [anywhere](ParseAnyanywhere).
+// Consume an arbitrary value that satisfies a condition, created with [Any],
+// optionally in "anywhere" mode.
 type ParseAny[T any] struct {
 	metavar  Doc
-	help     Option[Doc]
+	help     Opt[Doc]
 	parse    func(string) (T, bool)
 	anywhere bool
 }
 
 func (self ParseAny[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, MetaItem(self.item())}
+	return Parser[T]{self.eval, metaItem(self.item())}
 }
 
-func (self ParseAny[T]) item() Item {
-	return Item{self.help, ItemAny{self.metavar, self.anywhere}}
+func (self ParseAny[T]) item() item {
+	return item{self.help, itemAny{self.metavar, self.anywhere}}
 }
 
-// Add a help message to [any] parser.
+// Add a help message to the [Any] parser.
 func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
 	self.help = Valid(NewDoc(help))
 	return self
 }
 
-// Replace metavar with a custom value
+// Replace the metavar with a custom value
+//
+// The metavar is the placeholder shown in the usage line and help output.
 func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
 	self.metavar = metavar
 	return self
 }
 
-func (self ParseAny[T]) eval(state *State) (T, Error) {
+func (self ParseAny[T]) eval(state *state) (T, parseError) {
 	for ix, x := range push2(state.items_iter()) {
 		if i, ok := self.parse(x.str); ok {
 			state.remove(ix)
@@ -44,7 +47,7 @@ func (self ParseAny[T]) eval(state *State) (T, Error) {
 			break
 		}
 	}
-	return *new(T), ErrorMissing([]MissingItem{{
+	return *new(T), errorMissing([]missingItem{{
 		item:     self.item(),
 		position: state.scope.start(),
 		scope:    state.scope,
@@ -53,40 +56,32 @@ func (self ParseAny[T]) eval(state *State) (T, Error) {
 
 // Parse a single arbitrary item from a command line
 //
-// **`any` is designed to consume items that don't fit into the usual [flag](NamedArgflag)
-// /[switch](NamedArgswitch)/[argument](NamedArgargument)/[positional]/
-// [command](OptionParsercommand) classification, in most cases you don't need to use it**
+// **[Any] is designed to consume items that don't fit into the usual flag, switch,
+// argument, positional or command classification - in most cases you don't need to use it**
 //
-// By default, `any` behaves similarly to [positional] so you should be using it near the
-// rightmost end of the consumer struct and it will only try to parse the first unconsumed item
-// on the command line. It is possible to lift this restriction by calling
-// [anywhere](ParseAnyanywhere) on the parser.
+// By default, Any behaves similarly to a positional item: place it near the rightmost end
+// of the composed parser and it will only try to parse the first unconsumed item
+// on the command line. It is possible to lift this restriction by enabling the `anywhere`
+// mode.
 //
-// `check` argument is a function from any type `I` that implements `FromStr` to `T`.
-// Usually this should be `String` or `string`, but feel free to experiment. When
-// running `any` tries to parse an item on a command line into that `I` and applies the `check`
-// function. If the `check` succeeds - parser `any` succeeds and produces `T`, otherwise it behaves
-// as if it hasn't seen it. If `any` works in `anywhere` mode - it will try to parse all other
-// unconsumed items, otherwise, `any` fails.
+// The `parse` function decides whether to consume an item: when it returns true the parser
+// succeeds and produces the value, otherwise it behaves as if it hasn't seen the item. In
+// `anywhere` mode it will try to parse all other unconsumed items, otherwise it fails after
+// the first unconsumed item.
 //
-// # Use `any` to capture the remaining arguments
-// Normally you would use [positional] with [strict](ParsePositionalstrict) annotation for
-// that, but using any allows you to blur the boundary between arguments for child process and self
-// process a bit more.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
+// # Use Any to capture the remaining arguments
+// Normally you would use [Positional] with [ParsePositional.Strict] for
+// that, but Any allows you to blur the boundary between arguments for the child process and
+// this process a bit more.
 //
-// # Use `any` to parse a non standard flag
+// # Use Any to parse a non standard flag
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/any_switch.md"))]
-//
-// # Use `any` to parse a non standard argument
-// Normally `any` would try to display itself as a usual metavariable in the usage line and
-// generated help, you can customize that with [metavar](ParseAnymetavar) method:
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
+// # Use Any to parse a non standard argument
+// Normally Any displays itself as a metavariable in the usage line and
+// generated help; customize that with [ParseAny.Metavar].
 //
 // # See also
-// [literal] - a specialized version of `any` that tries to parse a fixed literal
+// [Literal] - a specialized version of Any that tries to parse a fixed literal
 func Any[T any](
 	metavar string,
 	parse func(string) (T, bool),
@@ -107,17 +102,15 @@ func Any[T any](
 	}
 }
 
-// A specialized version of [any] that consumes an arbitrary string
+// A specialized version of [Any] that consumes an arbitrary string
 //
-// By default `Literal` behaves similarly to [positional] so you should be using it near the
-// rightmost end of the consumer struct and it will only try to parse the first unconsumed
-// item on the command line. It is possible to lift this restriction by calling
-// [anywhere](ParseAnyanywhere) on the parser.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
+// By default Literal behaves similarly to a positional item: place it near the
+// rightmost end of the composed parser and it will only try to parse the first unconsumed
+// item on the command line. It is possible to lift this restriction by enabling the
+// `anywhere` mode.
 //
 // # See also
-// [any] - a generic version of `Literal` that uses function to decide if value is to be parsed
+// [Any] - a generic version of Literal that uses a function to decide if the value is to be parsed
 // or not.
 func Literal(val string) Parser[struct{}] {
 	p := Any("", func(s string) (struct{}, bool) {
@@ -125,5 +118,5 @@ func Literal(val string) Parser[struct{}] {
 	}, false).Metavar(NewDocFromPairs([]fun.Pair[string, Style]{
 		{val, StyleLiteral},
 	}))
-	return Parser[struct{}]{p.eval, MetaItem(p.item())}
+	return Parser[struct{}]{p.eval, metaItem(p.item())}
 }

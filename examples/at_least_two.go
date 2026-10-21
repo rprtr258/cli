@@ -11,7 +11,7 @@ import (
 )
 
 func AtLeastTwo() {
-	opt := cli.Many(cli.ReqFlag(cli.Short('f'), struct{}{}).Parser(), false).Parser().
+	opt := cli.Many(cli.ReqFlag(cli.Short('f'), struct{}{}).Parser()).Parser().
 		Guard(func(x []struct{}) bool { return len(x) >= 2 }, "at least two arguments are required").
 		Parser().
 		ToOptions().Run(os.Args)

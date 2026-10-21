@@ -1,4 +1,4 @@
-// A somewhat comprehensive example of a typical `bpaf` usage.
+// A somewhat comprehensive example of a typical usage of this library.
 // Since those can be functions - order doesn't really matter
 package examples
 
@@ -32,7 +32,7 @@ func TopToBottom() {
 		Map(cli.Many(cli.ReqFlag(cli.Short('v').
 			Long("verbose").
 			Help("Increase the verbosity\nYou can specify it up to 3 times\neither as -v -v -v or as -vvv"),
-			struct{}{}).Parser(), false).Parser(), func(xs []struct{}) uint { return uint(len(xs)) }).
+			struct{}{}).Parser()).Parser(), func(xs []struct{}) uint { return uint(len(xs)) }).
 		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this").
 		Parser()
 
@@ -67,7 +67,7 @@ func TopToBottom() {
 	var files_to_process cli.Parser[[]string] = cli.
 		Many(cli.Argument(cli.Short('f').
 			Long("file").
-			Help("File to process"), "FILE", parseString).Parser(), false).Parser()
+			Help("File to process"), "FILE", parseString).Parser()).Parser()
 	// packing things in a struct assumes parser for each field is in scope.
 	opt := (cli.Map6(
 		debug,

@@ -1,7 +1,7 @@
 package cli
 
 // Parser fails with a message if check returns false, created with [Parser.Guard].
-func guard_eval[T any](inner Parser[T], check func(T) bool, message string, state *State) (T, Error) {
+func guard_eval[T any](inner Parser[T], check func(T) bool, message string, state *state) (T, parseError) {
 	t, err := inner.eval(state)
 	if err != nil {
 		return *new(T), err
@@ -9,7 +9,7 @@ func guard_eval[T any](inner Parser[T], check func(T) bool, message string, stat
 	if check(t) {
 		return t, nil
 	} else {
-		return *new(T), ErrorGuardFailed{state.currentIdx, message}
+		return *new(T), errorGuardFailed{state.currentIdx, message}
 	}
 }
 
@@ -21,11 +21,14 @@ func guard_eval[T any](inner Parser[T], check func(T) bool, message string, stat
 // Derive variant of the `Guard` takes a function name instead of a closure, mostly to keep things
 // clean. The second argument can be either a string literal or a constant name for a static [str].
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Guard.md"))]
+// # Example
+//
+//	collectA := cli.Argument[uint32](cli.Short('a'), "N", parseUint32).Parser().
+//	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
 func (self Parser[T]) Guard(check func(T) bool, message string) Parser[T] {
 	inner := self
 	return Parser[T]{
-		eval: func(state *State) (T, Error) { return guard_eval(inner, check, message, state) },
+		eval: func(state *state) (T, parseError) { return guard_eval(inner, check, message, state) },
 		meta: inner.meta,
 	}
 }

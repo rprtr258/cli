@@ -1,12 +1,10 @@
-package cli_test
+package cli
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/rprtr258/fun"
-
-	. "github.com/rprtr258/cli"
 )
 
 func TestHelp_after_switch(t *testing.T) {
@@ -57,7 +55,7 @@ func TestDecorations(t *testing.T) {
 		Long("parser").
 		Env("BPAF_VARIABLE"), "ARG", parseString).
 		Parser().ToOptions().
-		Descr("descr\n descr").
+		Description("descr\n descr").
 		Header("header\n header").
 		Footer("footer\n footer").
 		Version("version").
@@ -266,10 +264,10 @@ func TestMulti_arg_help(t *testing.T) {
 	b := Short('e').Long("extra").Help("extra strange").Switch()
 	c := Positional("NAME", parseString).Help("pos1 help").Parser()
 	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
-	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser(), false).Parser()
+	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser()).Parser()
 	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
 	detailed := Long("detailed").Short('d').Help("detailed").Switch().Parser()
-	parser := Map3(verbose, combo, detailed, func(_ bool, _ Option[fun.Pair[fun.Pair[struct{}, bool], fun.Pair[string, bool]]], _ bool) struct{} {
+	parser := Map3(verbose, combo, detailed, func(_ bool, _ Opt[fun.Pair[fun.Pair[struct{}, bool], fun.Pair[string, bool]]], _ bool) struct{} {
 		return struct{}{}
 	}).Parser().ToOptions()
 
@@ -393,7 +391,7 @@ func TestEnv_fallback_visible(t *testing.T) {
 	fonts_dir := Optional(Argument(Long("fonts").
 		Env("OIKOS_FONTS").
 		Help("Load fonts from this directory"),
-		"DIR", parseString).Parser(), false)
+		"DIR", parseString).Parser())
 
 	system_fonts := Long("system-fonts").
 		Env("OIKOS_SYSTEM_FONTS").
@@ -436,10 +434,10 @@ func TestWith_group_help(t *testing.T) {
 	b := Short('b').Help("option b").Switch()
 	c := Short('c').Help("option c").Switch()
 
-	ab := Pair(a, b).Parser().WithGroupHelp(func(meta Meta) Doc {
+	ab := Pair(a, b).Parser().withGroupHelp(func(meta meta) Doc {
 		var b Doc
 		b.Emphasis("Uses either of those ")
-		b.Meta(meta, false)
+		b.meta(meta, false)
 		return b
 	}).Parser()
 	parser := Pair(ab, c).Parser().ToOptions()

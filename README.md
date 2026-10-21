@@ -1,271 +1,160 @@
-https://rustmagazine.org/issue-2/applicative-parsing/
-https://pkg.go.dev/github.com/fluhus/godoc-tricks
+# cli
 
+Lightweight command line argument parser for Go with a combinator-style API.
 
+A parser is assembled from small building blocks, composed into larger parsers, and
+finally run against the command line. The result is a regular Go value - the library
+either produces it or prints a message describing the problem (missing argument,
+validation failure, `--help` request, etc).
 
-# construct
-construct(a, b, c) is Pair(a, Pair(b, c))
-construct([a,b,c]) is Choice(a, b, c)
+## Install
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-go-flags: a go library for parsing command line arguments
-=========================================================
-
-[![GoDoc](https://godoc.org/github.com/jessevdk/go-flags?status.png)](https://godoc.org/github.com/jessevdk/go-flags)
-[![Build Status](https://travis-ci.org/jessevdk/go-flags.svg?branch=master)](https://travis-ci.org/jessevdk/go-flags)
-[![Coverage Status](https://img.shields.io/coveralls/jessevdk/go-flags.svg)](https://coveralls.io/r/jessevdk/go-flags?branch=master)
-
-This library provides similar functionality to the builtin flag library of go, but provides much more functionality and nicer formatting. From the documentation:
-
-package cli provides an extensive command line fun.Option parser. The flags package is similar in functionality to the go builtin flag package but provides more fun.Options and uses reflection to provide a convenient and succinct way of specifying command line fun.Options.
-
-## Supported features
-The following features are supported:
-- fun.Options with short names: `-v`
-- fun.Options with long names: `--verbose`
-- fun.Options with and without arguments (`bool` vs any other type)
-- fun.Options with fun.Optional arguments and default values
-- Multiple fun.Option groups each containing a set of fun.Options
-- Generate and print well-formatted help message
-- Passing remaining command line arguments after `--`
-- Supports multiple short fun.Options: `-aux`
-- Supports all primitive and standard library go types: `string`, `int{8..64}`, `uint{8..64}`, `float`, `time.Duration`, etc.
-- Supports maps
-
-
-## Basic usage
-The flags package uses structs, reflection and struct field tags to allow users to specify command line fun.Options. This results in very simple and concise specification of your application fun.Options. For example:
-
-```go
-type fun.Options struct {
-	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
-}
+```bash
+go get github.com/rprtr258/cli
 ```
 
-This specifies one fun.Option with a short name `-v` and a long name `--verbose`. When either `-v` or `--verbose` is found on the command line, a `true` value will be appended to the `Verbose` field. e.g. when specifying `-vvv`, the resulting value of `Verbose` will be `{true, true, true}`.
+## Quick start
 
-## Example
 ```go
-type cmdRoot struct {
-	// Slice of bool will append 'true' each time the fun.Option
-	// is encountered (can be set multiple times, like -vvv)
-	Verbose []bool `short:"v" long:"verbose" description:"Show verbose debug information"`
+package main
 
-	// Example of automatic marshalling to desired type (uint)
-	Offset uint `long:"offset" description:"Offset"`
+import (
+	"fmt"
+	"os"
 
-	// Example of a callback, called each time the fun.Option is found.
-	Call func(string) `short:"c" description:"Call phone number"`
-
-	// Example of a required flag
-	Name string `short:"n" long:"name" description:"A name" required:"true"`
-
-	// Example of a flag restricted to a pre-defined set of strings
-	Animal string `long:"animal" choice:"cat" choice:"dog"`
-
-	// Example of a value name
-	File string `short:"f" long:"file" description:"A file" value-name:"FILE"`
-
-	// Example of a pointer
-	Ptr *int `short:"p" description:"A pointer to an integer"`
-
-	// Example of a slice of strings
-	StringSlice []string `short:"s" description:"A slice of strings"`
-
-	// Example of a slice of pointers
-	PtrSlice []*string `long:"ptrslice" description:"A slice of pointers to string"`
-
-	// Example of a map
-	IntMap map[string]int `long:"intmap" description:"A map from string to int"`
-
-	Args []string `positional-args:"yes"`
-}
-
-func (x cmdRoot) Execute(context.Context) error {
-	fmt.Println("Verbosity:", x.Verbose)
-	fmt.Println("Offset:", x.Offset)
-	fmt.Println("Name:", x.Name)
-	fmt.Println("Animal:", x.Animal)
-	fmt.Println("Ptr:", *x.Ptr)
-	fmt.Println("StringSlice:", x.StringSlice)
-	fmt.Println("PtrSlice:", *x.PtrSlice[0], *x.PtrSlice[1])
-	fmt.Println("IntMap:", x.IntMap)
-	fmt.Println("Remaining args:", x.Args)
-
-	// Output: Verbosity: [true true]
-	// Offset: 5
-	// Name: Me
-	// Ptr: 3
-	// StringSlice: [hello world]
-	// PtrSlice: [hello world]
-	// IntMap: [a:1 b:5]
-	// Remaining args: arg1 arg2 arg3
-}
-
-// Parse flags. Note that here we use flags.RunContext for
-// the sake of making a working example. Normally, you would simply use
-// flags.Parse(&opts) which uses os.Args
-err := flags.RunContext[cmdRoot](
-	"-vv",
-	"--offset=5",
-	"-n", "Me",
-	"--animal", "dog", // anything other than "cat" or "dog" will raise an error
-	"-p", "3",
-	"-s", "hello",
-	"-s", "world",
-	"--ptrslice", "hello",
-	"--ptrslice", "world",
-	"--intmap", "a:1",
-	"--intmap", "b:5",
-	"arg1",
-	"arg2",
-	"arg3",
+	"github.com/rprtr258/cli"
+	"github.com/rprtr258/fun"
 )
-if err != nil {
-	panic(err)
+
+type Rectangle struct {
+	Width, Height int
+}
+
+func rectangle() cli.Parser[Rectangle] {
+	invalidSize := "Sides of a rectangle must be 1..20 units long"
+	invalidArea := "Area of a rectangle must not exceed 200 units square"
+	width := cli.Argument[int](cli.Long("width").Help("Width of the rectangle"), "PX", parseInt).
+		Parser().
+		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
+	height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", parseInt).
+		Parser().
+		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
+	return cli.Map(cli.Pair(width, height).Parser(),
+		func(wh fun.Pair[int, int]) Rectangle {
+			return Rectangle{Width: wh.K, Height: wh.V}
+		}).
+		Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
+}
+
+func main() {
+	rect := rectangle().ToOptions().Run(os.Args)
+	fmt.Println(rect)
 }
 ```
 
-Slice fun.Options work exactly the same as primitive type fun.Options, except that whenever the fun.Option is encountered, a value is appended to the slice.
+```console
+$ app --width 10 --height 5
+{10 5}
+$ app --width 0
+Error:  --width=P: Sides of a rectangle must be 1..20 units long
+```
 
-Map fun.Options from string to primitive type are also supported. On the command line, you specify the value for such an fun.Option as `key:value`. For example
+## Struct-based declaration
+
+For plain option structs `Construct` builds the whole parser from `cli` struct
+tags - no manual wiring required:
 
 ```go
-type fun.Options struct {
-	AuthorInfo string[string] `short:"a"`
-}
-```
-
-Then, the `AuthorInfo` map can be filled with something like `-a name:Jesse -a "surname:van den Kieboom"`.
-
-Finally, for full control over the conversion between command line argument values and fun.Options, user defined types can choose to implement the Marshaler and Unmarshaler interfaces.
-
-
-## Available field tags
-|Tag|Description|
-|-|-|
-|`short`|the short name of the flag, single character|
-|`long`|`the long name of the flag, at least two characters|
-|`description`|the description of the flag (optional)|
-|`long-description`|the long description of the flag. Currently only displayed in generated man pages (optional)|
-|`default`|the default value of an flag. This tag can be specified multiple times in the case of slices or maps (optional)|
-|`value-name`|the name of the argument value (to be shown in the help) (optional)|
-
-Either the `short:` tag or the `long:` must be specified to make the field eligible as an
-flag.
-
-
-## Available positional args tags
-|Tag|Description|
-|-|-|
-|`positional-args`|when specified on a field with a struct type, uses the fields of that struct to parse remaining positional command line arguments into (in order of the fields). If a field has a slice type, then all remaining arguments will be added to it. (optional)|
-|`positional-arg-name`|used on a field in a positional argument struct; name of the positional argument placeholder to be shown in the help (optional)|
-
-
-## Commands
-Commands are often used in monolithic applications that support various commands or actions. Take git for example, all of the add, commit, checkout, etc. are called commands. Using commands you can easily separate multiple functions of your application.
-
-To specify a command add a struct field to your fun.Options struct annotated with the `command:"command-name"` tag.
-
-Use `alias:"alias-name"` tag to add aliases for command.
-
-When parsing ends and there is an active command and that command implements the Commander interface, then its Execute method will be run with the remaining command line arguments.
-
-Command structs can have fun.Options which become valid to parse after the command has been specified on the command line, in addition to the fun.Options of all the parent commands. I.e. considering a `-v` flag on the parser and an add command, the following are equivalent:
-
-```bash
-./app -v add
-./app add -v
-```
-
-However, if the `-v` flag is defined on the add command, then the first of the two examples above would fail since the `-v` flag is not defined before the add command.
-
-## Completion
-There is builtin support to provide bash completion of flags, commands and argument values. To use completion, the binary which uses go-flags can be invoked in a special environment to list completion of the current command line argument. It should be noted that this `executes` your application, and it is up to the user to make sure there are no negative side effects (for example from init functions).
-
-Setting the environment variable `GO_FLAGS_COMPLETION=1` enables completion by replacing the argument parsing routine with the completion routine which outputs completions for the passed arguments. The basic invocation to complete a set of arguments is therefore:
-
-```bash
-GO_FLAGS_COMPLETION=1 ./completion-example arg1 arg2 arg3
-```
-
-where `completion-example` is the binary, `arg1` and `arg2` are the current arguments, and `arg3` (the last argument) is the argument to be completed. If the `GO_FLAGS_COMPLETION` is set to "verbose", then descriptions of possible completion items will also be shown, if there are more than 1 completion items.
-
-To use this with bash completion, a simple file can be written which calls the binary which supports go-flags completion:
-
-```bash
-_completion_example() {
-	# All arguments except the first one
-	args=("${COMP_WORDS[@]:1:$COMP_CWORD}")
-
-	# Only split on newlines
-	local IFS=$'\n'
-
-	# Call completion (note that the first element of COMP_WORDS is
-	# the executable itself)
-	COMPREPLY=($(GO_FLAGS_COMPLETION=1 ${COMP_WORDS[0]} "${args[@]}"))
-	return 0
+type Out struct {
+	Debug   bool    `cli:"short=d,long=debug,help='Activate debug mode'"`
+	Speed   float64 `cli:"long=speed,metavar=SPEED,default=42"`
+	Home    string  `cli:"long=home,env=HOME"`
+	Files   []string
+	Verbose cli.Count `cli:"short=v,long=verbose"`
 }
 
-complete -F _completion_example completion-example
+out := cli.Construct[Out]().Parser().ToOptions().Run(os.Args)
 ```
 
-Completion requires the parser fun.Option PassDoubleDash and is therefore enforced if the environment variable `GO_FLAGS_COMPLETION` is set.
+Field types choose the consumers: `bool` - a switch, primitives - an argument
+(or a positional if the field has no name), `[]E` - zero or more, `cli.Opt[E]` -
+optional, `cli.Count` - number of repeats.
 
-Customized completion for argument values is supported by implementing the `flags.Completer` interface for the argument value type. An example of a type which does so is the `flags.Filename` type, an alias of string allowing simple filename completion. A slice or array argument value whose element type implements `flags.Completer` will also be completed.
-
-# Tools to define primitive parsers
 ## Ways to consume data
 
-### Flag
-- [flag](NamedArgflag) - a string that consists of two dashes (`--flag`) and a name and a single dash and a single character (`-f`) created with [long](NamedArglong) and [short](NamedArgshort) respectively. Depending if this name is present or absent on the command line primitive flag parser produces one of two values. User can combine several short flags in a single invocation: `-a -b -c` is the same as `-abc`.
+| Builder | Consumes | Produces |
+|-|-|-|
+| `Short('f')` / `Long("flag")` / `Env("VAR")` | - | `NamedArg` to build on |
+| `NamedArg.Switch` | `-f` / `--flag` | `Parser[bool]` |
+| `Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
+| `ReqFlag` | `-f` (required) | `Parser[T]` |
+| `Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
+| `Positional` | a free-standing value | `Parser[T]` |
+| `Any` | any unconsumed item | `Parser[T]` |
+| `Command("cmd")` | a subcommand | independent subparser |
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/flag.md"))]
+## Transforming parsers
 
-### Required flag
-Similar to `flag`, but instead of falling back to the second value required flag parser would fail. Mostly useful in combination with other parsers, created with [NamedArgreq_flag].
+- `Map` / `Parse` - convert the produced value
+- `Guard` - validate the value with a custom check and error message
+- `Optional` / `OptionalCatch` - make a parser optional
+- `Many` / `Some` / `ManyCatch` / `SomeCatch` - collect repeated items into a slice
+- `Collect` - collect repeated items into a slice
+- `Count` - count the number of occurrences of a flag
+- `Fallback` / `FallbackWith` - provide default values
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/req_flag.md"))]
+## Composing parsers
 
-### Switch
-A special case of a flag that gets decoded into a `bool`, mostly serves as a convenient shortcut to `.flag(true, false)`. Created with [NamedArgswitch].
+- `Pair` / `Triple` - sequential composition of two or three parsers
+- `Choice` - parallel composition: the first parser that consumes the leftmost value wins
+- `Construct` - struct composition from `cli` tags
+- `Parser.Adjacent` - restrict a composed group to adjacent command line items
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/switch.md"))]
+## Improving user experience
 
-### Argument
-A short or long `flag` followed by either a space or `=` and then by a string literal.  `-f foo`, `--flag bar` or `-o=-` are all valid argument examples. Note, string literal can't start with `-` unless separated from the flag with `=`. For short flags value can follow immediately: `-fbar`.
+- `Help` - document flags, arguments and positional items
+- `Hide`, `HideUsage`, `GroupHelp` - control what is shown in `--help`
+- `Description`, `Header`, `Footer`, `Usage`, `WithUsage`, `MaxWidth` - shape the help output
+- `Version` - add a `--version` switch
+- `HelpParser`, `VersionParser` - customize the flags that trigger help and version
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/argument.md"))]
+## Shell completion
 
-### Positional
-A positional argument with no additonal name, for example in `vim main.rs` `main.rs` is a positional argument. Can't start with `-`, created with [positional].
+Flag and value names are completed out of the box through the dynamic completion
+protocol of the shell. Register the stub once and both bash, zsh and fish will
+query your binary:
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
+```bash
+source <(your-binary --bpaf-complete-style-bash)
+```
 
-### Any
-Also a positional argument with no additional name, but unlike [positional] itself, [any] isn't restricted to positional looking structure and would consume any items as they appear on a command line. Can be useful to collect anything unused to pass to other applications.
+Custom dynamic completion is available with `Parser.CompleteShell` for
+files/directories and raw values, and with `Parser.Complete` for fully custom
+completion logic.
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/any_simple.md"))]
-#![cfg_attr(not(doctest), doc = include_str!("docs2/any_literal.md"))]
+## Running the parser
 
-### Command
-A command defines a starting point for an independent subparser. Name must be a valid utf8 string. For example `cargo build` invokes command `"build"` and after `"build"` `cargo` starts accepting values it won't accept otherwise
+`ToOptions` finalizes a parser into an `OptionParser`. `OptionParser.Run` parses
+`os.Args` (or any argument list) and returns the value, exiting the process on
+`--help`, `--version` or parse failures. `OptionParser.RunE` returns an error
+instead of exiting, which is useful for tests and libraries:
 
-#![cfg_attr(not(doctest), doc = include_str!("docs2/command.md"))]
+```go
+value, err := parser.RunE([]string{"prog", "-vvv"})
+```
+
+## Testing
+
+`CheckInvariants` panics with a descriptive message when a parser is built with
+violated invariants, such as positional items or commands placed before named
+options. Call it in tests to catch misconfiguration early:
+
+```go
+rectangle().ToOptions().CheckInvariants(false)
+```
+
+## Examples
+
+The [examples](examples/) directory contains runnable programs covering most of
+the API: subcommands, environment variables, adjacent groups, dynamic completion,
+custom help output and more.

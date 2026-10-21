@@ -7,31 +7,16 @@ import (
 
 // All currently present command line parameters with some extra metainfo
 //
-// Use it for unit tests and manual parsing. For production use you would want to replace the
-// program name with [set_name](Argsset_name), but for tests passing a slice of strings to
-// run_inner is usually more convenient.
-//
-// The easiest way to create `Args` is by using `newArgs`.
-//
-//	use bpaf*;
-//	parser := short('f')
-//		.Switch()
-//		.to_options();
-//
-//	value, _ := parser.run_inner(Argsfrom(&["-f"]))
-//	require.True(t, value);
-//
-//	// this also works
-//	value, _ := parser.run_inner(newArgs("-f"])
-//	require.True(t, value);
-type Args struct {
+// Internal type used for parsing; for tests build one with [newArgList]
+// and pass it to the internal run helpers.
+type argList struct {
 	items []string
-	name  Option[string]
-	comp  Option[uint]
+	name  Opt[string]
+	comp  Opt[uint]
 }
 
-func NewArgs(args ...string) Args {
-	return Args{
+func newArgList(args ...string) argList {
+	return argList{
 		items: args,
 		name:  Invalid[string](),
 		comp:  Invalid[uint](),
@@ -40,64 +25,60 @@ func NewArgs(args ...string) Args {
 
 // Enable completions with custom output revision style
 //
-// # Use revision 0 if you want to test completion mechanism
+// Revision 0 is useful to test the completion mechanism:
 //
-//	parser := short('f').Switch().to_options();
-//	// ask bpaf to produce more input from "-", for
+//	// ask the completer to produce more input from "-", for
 //	// suggesting new items use "" at the end
-//	r := parser.run_inner(Argsfrom(&["-"])
-//		.SetComp(0))
-//		.unwrap_err()
-//		.unwrap_stdout();
-//	require.Equal(t,r, "-f");
+//	r, err := parser.run(newArgList("-").setComp(0))
 //
-// Note to self: shell passes "" as a parameter in situations like foo `--bar TAB`, bpaf
-// completion stubs adopt this conventions add pass it along. This is needed so completer can
-// tell the difference between `--bar` being completed or an argument to it in the example above.
-func (self Args) SetComp(rev uint) Args {
+// Note: the shell passes "" as a parameter in situations like `foo --bar TAB`; the
+// completion stubs adopt this convention and pass it along. This is needed so the
+// completer can tell the difference between `--bar` being completed or an argument
+// to it in the example above.
+func (self argList) setComp(rev uint) argList {
 	self.comp = Valid(rev)
 	return self
 }
 
-type ItemStateKind uint8
+type itemStateKind uint8
 
 const (
-	ItemStateKindUnparsed ItemStateKind = iota // Value is yet to be parsed
-	ItemStateKindConflict                      // Both branches succeeded, first parser was taken in favor of the second one
-	ItemStateKindParsed                        // Value was parsed
+	itemStateKindUnparsed itemStateKind = iota // Value is yet to be parsed
+	itemStateKindConflict                      // Both branches succeeded, first parser was taken in favor of the second one
+	itemStateKindParsed                        // Value was parsed
 )
 
 // Shows which branch of [Parser.OrElse] parsed the argument
-type ItemState struct {
-	kind     ItemStateKind
+type itemState struct {
+	kind     itemStateKind
 	conflict int
 }
 
-var ItemStateUnparsed = ItemState{kind: ItemStateKindUnparsed}
+var itemStateUnparsed = itemState{kind: itemStateKindUnparsed}
 
-func ItemStateConflict(value int) ItemState {
-	return ItemState{
-		kind:     ItemStateKindConflict,
+func itemStateConflict(value int) itemState {
+	return itemState{
+		kind:     itemStateKindConflict,
 		conflict: value,
 	}
 }
 
-var ItemStateParsed = ItemState{kind: ItemStateKindParsed}
+var itemStateParsed = itemState{kind: itemStateKindParsed}
 
-func (self ItemState) parsed() bool {
-	return self.kind == ItemStateKindParsed
+func (self itemState) parsed() bool {
+	return self.kind == itemStateKindParsed
 }
 func disambiguate_short(
 	os string,
 	short string,
 	short_flags []byte,
 	short_args []byte,
-	items *[]Arg,
-) (Error, bool) {
+	items *[]arg,
+) (parseError, bool) {
 	// block can start with 0 or more short flags
 	// followed by zero or one short argument, possibly with a body
 
-	// keep the old length around so we can trimp items to it and push a ArgWord
+	// keep the old length around so we can trimp items to it and push a argWord
 	// if we decide to give up
 	original := len(*items)
 
@@ -108,9 +89,9 @@ func disambiguate_short(
 		tail_ix := ix + utf8.RuneLen(c)
 		rest := short[tail_ix:]
 
-		// shortcircuit single character short fun.Options
+		// shortcircuit single character short flags
 		if ix == 0 && rest == "" {
-			*items = append(*items, ArgShort(first_flag, cc, false))
+			*items = append(*items, argShort(first_flag, cc, false))
 			return nil, false
 		}
 		a := bytes.ContainsRune(short_flags, c)
@@ -118,25 +99,25 @@ func disambiguate_short(
 		switch {
 		// short name that can be flag
 		case a && !b:
-			*items = append(*items, ArgShort(first_flag, cc, false))
+			*items = append(*items, argShort(first_flag, cc, false))
 			first_flag = ""
 			// short name that can be argument
 		case !a && b:
 			adjacent_body := rest != ""
-			*items = append(*items, ArgShort(os, cc, adjacent_body))
+			*items = append(*items, argShort(os, cc, adjacent_body))
 			if adjacent_body {
-				*items = append(*items, ArgWord(rest))
+				*items = append(*items, argWord(rest))
 			}
 			return nil, false
 		// neither is valid and there's more than one character. fallback to using it as a Word
 		case !a && !b:
 			*items = (*items)[:original]
-			*items = append(*items, ArgWord(os))
+			*items = append(*items, argWord(os))
 			return nil, false
 		// ambiguity, this is bad
 		case a && b:
-			msg := ErrorAmbiguity{len(*items), short}
-			*items = append(*items, ArgWord(os))
+			msg := errorAmbiguity{len(*items), short}
+			*items = append(*items, argWord(os))
 			return msg, true
 		}
 	}

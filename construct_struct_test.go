@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 import (
 	"strconv"
@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
-
-	. "github.com/rprtr258/cli"
 )
 
 // constructTestPort implements encoding.TextUnmarshaler.
@@ -64,8 +62,8 @@ func TestConstructMany(t *testing.T) {
 
 func TestConstructOptional(t *testing.T) {
 	type Out struct {
-		Speed Option[float64] `cli:"long=speed"`
-		Name  Option[string]  // optional positional
+		Speed Opt[float64] `cli:"long=speed"`
+		Name  Opt[string]  // optional positional
 	}
 	parser := Construct[Out]().Parser().ToOptions()
 
@@ -109,7 +107,7 @@ func TestConstructMissingAggregated(t *testing.T) {
 	}
 	parser := Construct[Out]().Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs())
+	_, err := parser.RunInner(newArgList())
 	require.NotNil(t, err)
 	msg := UnwrapStderr(err)
 	require.Contains(t, msg, "--aaa")
@@ -122,7 +120,7 @@ func TestConstructParseError(t *testing.T) {
 	}
 	parser := Construct[Out]().Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("-n", "12x"))
+	_, err := parser.RunInner(newArgList("-n", "12x"))
 	require.NotNil(t, err)
 	require.Contains(t, UnwrapStderr(err), "couldn't parse `12x`")
 }
@@ -139,7 +137,7 @@ func TestConstructTextUnmarshaler(t *testing.T) {
 		Out{Port: 8080, Timeout: 10 * time.Second, Deadline: 90 * time.Second},
 		parser, "-p", "8080", "--deadline", "1m30s")
 
-	_, err := parser.RunInner(NewArgs("-p", "not-a-port"))
+	_, err := parser.RunInner(newArgList("-p", "not-a-port"))
 	require.NotNil(t, err)
 }
 
@@ -155,7 +153,7 @@ func TestConstructAdjacentStructGroup(t *testing.T) {
 		"--rect", "--width", "10", "--height", "20")
 
 	// group broken by an unconsumable item
-	_, err := parser.RunInner(NewArgs("--rect", "--width", "10", "stop", "--height", "20"))
+	_, err := parser.RunInner(newArgList("--rect", "--width", "10", "stop", "--height", "20"))
 	require.NotNil(t, err)
 }
 
@@ -176,7 +174,7 @@ func TestConstructHelp(t *testing.T) {
 	}
 	parser := Construct[Out]().Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("--help"))
+	_, err := parser.RunInner(newArgList("--help"))
 	require.NotNil(t, err)
 	out := UnwrapStdout(err)
 	require.Contains(t, out, "-d, --debug")
@@ -220,7 +218,7 @@ func TestConstructPanics(t *testing.T) {
 	assertPanicsContains(t, func() { Construct[Nested]() }, "nested")
 
 	type OptionWithDefault struct {
-		X Option[int] `cli:"long=x,default=1"`
+		X Opt[int] `cli:"long=x,default=1"`
 	}
 	assertPanicsContains(t, func() { Construct[OptionWithDefault]() }, "cannot have a default")
 
@@ -242,7 +240,7 @@ func TestConstructPanics(t *testing.T) {
 	type CountNoName struct {
 		V Count
 	}
-	assertPanicsContains(t, func() { Construct[CountNoName]() }, "cli.Count field requires a short or a long name")
+	assertPanicsContains(t, func() { Construct[CountNoName]() }, "Count field requires a short or a long name")
 
 	type Unexported struct {
 		x int `cli:"long=x"`

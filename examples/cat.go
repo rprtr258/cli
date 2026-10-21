@@ -1,5 +1,5 @@
 // You can open files as part of parsing process too, might not be the best idea though
-// because depending on a context `bpaf` might need to evaluate some parsers multiple times.
+// because depending on a context the library might need to evaluate some parsers multiple times.
 //
 // Main motivation for this example is that you can open a file as part of the argument parsing
 // and give a reader directly to user. In practice to replicate `cat`'s behavior you'd accept
@@ -21,8 +21,8 @@ func Cat() {
 			cli.Optional(
 				cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 					Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
-					Parser(), false).Parser(),
-			func(pathOpt cli.Option[string]) (*os.File, error) {
+					Parser()).Parser(),
+			func(pathOpt cli.Opt[string]) (*os.File, error) {
 				path, ok := pathOpt.Unpack()
 				if !ok {
 					return os.Stdin, nil
@@ -36,7 +36,7 @@ func Cat() {
 			}).
 			Parser().
 			ToOptions().
-			Descr("Concatenate a file to standard output").
+			Description("Concatenate a file to standard output").
 			Run(os.Args)
 		defer file.Close()
 

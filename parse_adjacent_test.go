@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 import (
 	"strconv"
@@ -6,8 +6,6 @@ import (
 
 	"github.com/rprtr258/fun"
 	"github.com/stretchr/testify/require"
-
-	. "github.com/rprtr258/cli"
 )
 
 func TestAdjacent(t *testing.T) {
@@ -20,7 +18,7 @@ func TestAdjacent(t *testing.T) {
 	b := Short('b').Switch()
 	c := Short('c').Switch()
 
-	parser := Many(Map(Pair(a.Parser(), Pair(b, c).Parser()).Adjacent().Parser(), func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} }), false).Parser().ToOptions()
+	parser := Many(Map(Pair(a.Parser(), Pair(b, c).Parser()).Adjacent().Parser(), func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} })).Parser().ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string
@@ -46,7 +44,7 @@ func TestAdjacent(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.RunInner(NewArgs(tc.args...))
+			r, err := parser.RunInner(newArgList(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
@@ -54,13 +52,13 @@ func TestAdjacent(t *testing.T) {
 }
 
 func TestAdjacentPrefix(t *testing.T) {
-	type cmd = fun.Pair[Option[fun.Pair[struct{}, uint]], bool]
+	type cmd = fun.Pair[Opt[fun.Pair[struct{}, uint]], bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("X", func(s string) (uint, error) {
 		u, err := strconv.ParseUint(s, 10, 32)
 		return uint(u), err
 	})
-	ab := Optional(Pair(a.Parser(), b.Parser()).Adjacent().Parser(), false)
+	ab := Optional(Pair(a.Parser(), b.Parser()).Adjacent().Parser())
 	c := Short('c').Switch()
 	parser := Pair(ab.Parser(), c).Parser().ToOptions()
 
@@ -98,7 +96,7 @@ func TestAdjacentPrefix(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := parser.RunInner(NewArgs(tc.args...))
+			r, err := parser.RunInner(newArgList(tc.args...))
 			RequireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})

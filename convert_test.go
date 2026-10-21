@@ -121,7 +121,7 @@ package cli
 // 	if err != nil {
 // 		err = newErrorf(ErrMarshal, "%v", err)
 // 	}
-// 	require.Equal(t, &Error{
+// 	require.Equal(t, &parseError{
 // 		Kind:    ErrMarshal,
 // 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 // 	}, err)
@@ -139,7 +139,7 @@ package cli
 // 	if err != nil {
 // 		err = newErrorf(ErrMarshal, "%v", err)
 // 	}
-// 	require.Equal(t, &Error{
+// 	require.Equal(t, &parseError{
 // 		Kind:    ErrMarshal,
 // 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
 // 	}, err)

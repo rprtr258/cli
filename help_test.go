@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 // import (
 // 	"context"
@@ -9,7 +9,7 @@ package cli_test
 // )
 
 // type cmdBommand struct {
-// 	Hidden bool `long:"hidden" description:"A hidden fun.Option"`
+// 	Hidden bool `long:"hidden" description:"A hidden goflags.Option"`
 // }
 
 // type cmdCommand struct {
@@ -21,11 +21,11 @@ package cli_test
 // }
 
 // type cmdParentSub struct {
-// 	Opt string `long:"opt" description:"This is a sub command fun.Option"`
+// 	Opt string `long:"opt" description:"This is a sub command goflags.Option"`
 // }
 
 // type cmdParent struct {
-// 	Opt        string       `long:"opt" description:"This is a parent command fun.Option"`
+// 	Opt        string       `long:"opt" description:"This is a parent command goflags.Option"`
 // 	SubCommand cmdParentSub `command:"sub" description:"A sub command"`
 // }
 
@@ -39,9 +39,9 @@ package cli_test
 // 	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
 // 	EnvDefault1       string            `long:"env-default1" default:"Some value" description:"Test env-default1 value"`
 // 	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
-// 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Option with named argument"`
-// 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Option with choices"`
-// 	Hidden            string            `long:"hidden" description:"Hidden fun.Option"`
+// 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Opt with named argument"`
+// 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Opt with choices"`
+// 	Hidden            string            `long:"hidden" description:"Hidden goflags.Option"`
 
 // 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name"`
 
@@ -59,21 +59,21 @@ package cli_test
 // 	// }
 
 // 	// Sip struct {
-// 	// 	Opt                  string `long:"opt" description:"This is a subgroup fun.Option"`
+// 	// 	Opt                  string `long:"opt" description:"This is a subgroup goflags.Option"`
 // 	// 	HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group"`
 // 	// 	NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group"`
 
 // 	// 	Sap struct {
-// 	// 		Opt string `long:"opt" description:"This is a subsubgroup fun.Option"`
+// 	// 		Opt string `long:"opt" description:"This is a subsubgroup goflags.Option"`
 // 	// 	}
 // 	// }
 
-// 	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden fun.Options"`
+// 	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden goflags.Options"`
 // 	Command       cmdCommand `command:"command" alias:"cm" alias:"cmd" description:"A command"`
 // 	HiddenCommand cmdHidden  `command:"hidden-command" description:"A hidden command"`
 // 	ParentCommand cmdParent  `command:"parent" description:"A parent command"`
 
-// 	Args struct {
+// 	argList struct {
 // 		Filename     string  `positional-arg-name:"filename" description:"A filename with a long description to trigger line wrapping"`
 // 		Number       int     `positional-arg-name:"num" description:"A number"`
 // 		HiddenInHelp float32 `positional-arg-name:"hidden-in-help"`
@@ -82,7 +82,7 @@ package cli_test
 
 // func TestHelp(t *testing.T) {
 // 	err := Run[cmdHelp](context.Background(), "x", "--help")
-// 	require.Equal(t, Error{
+// 	require.Equal(t, parseError{
 // 		Kind: ErrHelp,
 // 		Message: strings.Join([]string{
 // 			"Usage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m \x1b[95m[ARGUMENTS]\x1b[0m",
@@ -90,7 +90,7 @@ package cli_test
 // 			"",
 // 			"",
 // 			"Commands:",
-// 			"\t\x1b[91mbommand\x1b[0m          A command with only hidden fun.Options",
+// 			"\t\x1b[91mbommand\x1b[0m          A command with only hidden goflags.Options",
 // 			"\t\x1b[91mcommand\x1b[0m,\x1b[31mcm\x1b[0m,\x1b[31mcmd\x1b[0m   A command",
 // 			"\t\x1b[91mhidden-command\x1b[0m   A hidden command",
 // 			"\t\x1b[91mparent\x1b[0m           A parent command",
@@ -109,9 +109,9 @@ package cli_test
 // 			"\t\x1b[93m--default-map\x1b[0m                                        Testdefault map value (default: some:value, another:value)",
 // 			"\t\x1b[93m--env-default1\x1b[0m                                       Test env-default1 value (default: Some value)",
 // 			"\t\x1b[93m--env-default2\x1b[0m                                       Test env-default2 value",
-// 			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  fun.Option with named argument",
-// 			"\t\x1b[93m--opt-with-choices\x1b[0m                                   fun.Option with choices",
-// 			"\t\x1b[93m--hidden\x1b[0m                                             Hidden fun.Option",
+// 			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  goflags.Option with named argument",
+// 			"\t\x1b[93m--opt-with-choices\x1b[0m                                   goflags.Option with choices",
+// 			"\t\x1b[93m--hidden\x1b[0m                                             Hidden goflags.Option",
 // 			"\t\x1b[93m--this-hidden-option-has-a-ridiculously-long-name\x1b[0m    ",
 // 			"\t\x1b[93m-s\x1b[0m                                                   A slice of strings (default: some, value)",
 // 			"\t\x1b[93m--intmap\x1b[0m                                             A map from string to int (default: a:1)",
@@ -127,7 +127,7 @@ package cli_test
 
 // func TestHelpCommand(t *testing.T) {
 // 	err := Run[helpCommandNoOptions](context.Background(), "x", "command", "--help")
-// 	require.Equal(t, &Error{
+// 	require.Equal(t, &parseError{
 // 		Kind: ErrHelp,
 // 		Message: strings.Join([]string{
 // 			"Usage: \x1b[94mx command\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
@@ -135,7 +135,7 @@ package cli_test
 // 			"A command",
 // 			"",
 // 			"Flags:",
-// 			"\t\x1b[93m--opt\x1b[0m         This is a sub command fun.Option",
+// 			"\t\x1b[93m--opt\x1b[0m         This is a sub command goflags.Option",
 // 			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message",
 // 			"",
 // 		}, "\n"),
@@ -155,7 +155,7 @@ package cli_test
 // 	} {
 // 		t.Run(name, func(t *testing.T) {
 // 			err := Run[cmdHelpDefaults](context.Background(), args...)
-// 			require.Equal(t, &Error{
+// 			require.Equal(t, &parseError{
 // 				Kind: ErrHelp,
 // 				Message: strings.Join([]string{
 // 					"Usage: \x1b[94mx\x1b[0m \x1b[93m[FLAGS]\x1b[0m",

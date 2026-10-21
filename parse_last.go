@@ -3,7 +3,7 @@ package cli
 import "math"
 
 // Apply inner parser as many times as it succeeds, return the Last value
-func last_eval[T any](inner Parser[T], state *State) (T, Error) {
+func last_eval[T any](inner Parser[T], state *state) (T, parseError) {
 	last := Invalid[T]()
 	current := state.len()
 	len := uint(math.MaxUint)
@@ -26,12 +26,15 @@ func last_eval[T any](inner Parser[T], state *State) (T, Error) {
 
 // Apply the inner parser as many times as it succeeds, return the Last value
 //
-// You can use this to allow users to pick contradicting fun.Options
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Last.md"))]
+// # You can use this to allow users to pick contradicting options
+//
+// # Example
+//
+//	pick := cli.Choice(flagA.Last(), flagB.Last())
 func (self Parser[T]) Last() Parser[T] {
 	inner := self
 	return Parser[T]{
-		eval: func(state *State) (T, Error) { return last_eval(inner, state) },
-		meta: MetaMany{MetaRequired{inner.meta}},
+		eval: func(state *state) (T, parseError) { return last_eval(inner, state) },
+		meta: metaMany{metaRequired{inner.meta}},
 	}
 }

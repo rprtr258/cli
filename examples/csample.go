@@ -11,9 +11,9 @@ import (
 )
 
 func Csample() {
-	complete_calculator := func(input string) iter.Seq2[string, cli.Option[string]] {
+	complete_calculator := func(input string) iter.Seq2[string, cli.Opt[string]] {
 		items := []string{"alpha", "beta", "banana", "cat", "durian"}
-		return func(yield func(string, cli.Option[string]) bool) {
+		return func(yield func(string, cli.Opt[string]) bool) {
 			for _, item := range items {
 				if strings.HasPrefix(item, input) && !yield(item, cli.Invalid[string]()) {
 					return
@@ -32,8 +32,8 @@ func Csample() {
 		Complete(complete_calculator)
 	parser := cli.Pair(cli.Pair(a, b).Parser(), cli.Pair(bb, c.Parser()).Parser()).Parser().
 		ToOptions().
-		Descr("Dynamic autocomplete example").
-		Footer(`bpaf supports dynamic autocompletion for a few shells, make sure your binary is in $PATH and try using one of those this output should go into a file that depends on your shell:
+		Description("Dynamic autocomplete example").
+		Footer(`This library supports dynamic autocompletion for a few shells, make sure your binary is in $PATH and try using one of those; this output should go into a file that depends on your shell:
 $ csample --bpaf-complete-style-bash
 $ csample --bpaf-complete-style-zsh
 $ csample --bpaf-complete-style-fish

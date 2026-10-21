@@ -9,6 +9,7 @@ import (
 	"github.com/rprtr258/fun/iter"
 )
 
+// Shell identifies a supported interactive shell, such as "bash", "zsh" or "fish".
 type Shell string
 
 func (self Shell) fmt(f *strings.Builder) {
@@ -23,22 +24,26 @@ func (self Shell) fmt(f *strings.Builder) {
 	f.WriteByte('\'')
 }
 
+// A completion callback for shell completion of the current word.
+//
+// Implement it to provide custom completion logic and pass it to
+// [Parser.CompleteShell].
 type ShellComp func(
-	// A file or directory name with an fun.Optional file mask.
+	// A file or directory name with an optional file mask.
 	//
 	// For bash filemask should start with `*.` or contain only the
 	// extension
 	File func(
-		// fun.Optional filemask to use, no spaces, no tabs
-		mask Option[string],
+		// Optional filemask to use, no spaces, no tabs
+		mask Opt[string],
 	),
 
 	// Similar to `File` but limited to directories only
 	// For bash filemask should start with `*.` or contain only the
 	// extension
 	Dir func(
-		// fun.Optional filemask to use, no spaces, no tabs
-		mask Option[string],
+		// Optional filemask to use, no spaces, no tabs
+		mask Opt[string],
 	),
 
 	// You can also specify a raw value to use for each supported shell
@@ -63,15 +68,16 @@ type ShellComp func(
 		elvish string,
 	),
 
-	// Don't produce anything at all from this parser - can be useful if you want to compose
-	// bpaf completion with shell completion
+	// Don't produce anything from this parser - can be useful if you want to compose
+	// this library's completion with shell completion
 	Nothing func(),
 )
 
-func ShellCompFile(mask Option[string]) ShellComp {
+// ShellCompFile completes with a file or directory name matching an optional mask
+func ShellCompFile(mask Opt[string]) ShellComp {
 	return func(
-		f func(mask Option[string]),
-		_ func(mask Option[string]),
+		f func(mask Opt[string]),
+		_ func(mask Opt[string]),
 		_ func(_, _, _, _ string),
 		_ func(),
 	) {
@@ -81,10 +87,11 @@ func ShellCompFile(mask Option[string]) ShellComp {
 	}
 }
 
-func ShellCompDir(mask Option[string]) ShellComp {
+// ShellCompDir completes with a directory name matching an optional mask
+func ShellCompDir(mask Opt[string]) ShellComp {
 	return func(
-		_ func(mask Option[string]),
-		f func(mask Option[string]),
+		_ func(mask Opt[string]),
+		f func(mask Opt[string]),
 		_ func(_, _, _, _ string),
 		_ func(),
 	) {
@@ -106,14 +113,14 @@ func render_zsh(
 	res := &strings.Builder{}
 	for _, op := range ops {
 		op(
-			func(mask Option[string]) {
+			func(mask Opt[string]) {
 				if mask, ok := mask.Unpack(); ok {
 					fmt.Fprintf(res, "_files -g %v\n", Shell(mask))
 				} else {
 					fmt.Fprintln(res, "_files")
 				}
 			},
-			func(mask Option[string]) {
+			func(mask Opt[string]) {
 				if mask, ok := mask.Unpack(); ok {
 					fmt.Fprintf(res, "_files -/ -g %v\n", Shell(mask))
 				} else {
@@ -205,14 +212,14 @@ func render_bash(
 	res := &strings.Builder{}
 	for _, op := range ops {
 		op(
-			func(mask Option[string]) {
+			func(mask Opt[string]) {
 				if mask, ok := mask.Unpack(); ok {
 					fmt.Fprintf(res, "%v _filedir %v\n", init, Shell(bashmask(mask)))
 				} else {
 					fmt.Fprintf(res, "%v _filedir", init)
 				}
 			},
-			func(mask Option[string]) {
+			func(mask Opt[string]) {
 				if mask, ok := mask.Unpack(); ok {
 					fmt.Fprintf(res, "%v _filedir -d %v\n", init, Shell(bashmask(mask)))
 				} else {
@@ -249,7 +256,7 @@ func render_bash(
 
 // Render like the Rust `Debug` derive does for the `ShellComp` enum - used in test output
 func (self ShellComp) debug_string() string {
-	option_str := func(o Option[string]) string {
+	option_str := func(o Opt[string]) string {
 		if s, ok := o.Unpack(); ok {
 			return fmt.Sprintf("Some(%#v)", s)
 		}
@@ -258,8 +265,8 @@ func (self ShellComp) debug_string() string {
 
 	res := ""
 	self(
-		func(mask Option[string]) { res = fmt.Sprintf("File { mask: %v }", option_str(mask)) },
-		func(mask Option[string]) { res = fmt.Sprintf("Dir { mask: %v }", option_str(mask)) },
+		func(mask Opt[string]) { res = fmt.Sprintf("File { mask: %v }", option_str(mask)) },
+		func(mask Opt[string]) { res = fmt.Sprintf("Dir { mask: %v }", option_str(mask)) },
 		func(bash, zsh, fish, elvish string) {
 			res = fmt.Sprintf("Raw { bash: %#v, zsh: %#v, fish: %#v, elvish: %#v }", bash, zsh, fish, elvish)
 		},
@@ -339,7 +346,7 @@ func render_simple(items []ShowComp) string {
 				fmt.Fprintf(res,
 					"%v\t%v\n",
 					item.subst,
-					First(strings.Split(descr, "\n")).OrDefault(""),
+					first(strings.Split(descr, "\n")).OrDefault(""),
 				)
 			} else {
 				fmt.Fprintln(res, item.subst)

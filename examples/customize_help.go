@@ -15,7 +15,7 @@ func CustomizeHelp() {
 		Help("Release the dragon").
 		Switch().Parser().
 		ToOptions().
-		Descr("I am a program and I do things").
+		Description("I am a program and I do things").
 		Header("Sometimes they even work.").
 		Footer("Beware `-d`, dragons be here").
 		WithUsage(func(doc cli.Doc) cli.Doc {

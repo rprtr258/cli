@@ -7,8 +7,8 @@ import (
 )
 
 // Parser that tries to either of two parsers and uses one that succeeeds, created with [Parser.OrElse].
-func or_else_eval[T any](self Parser[T], alt Parser[T], state *State) (T, Error) {
-	var comp_items []Comp
+func or_else_eval[T any](self Parser[T], alt Parser[T], state *state) (T, parseError) {
+	var comp_items []comp
 
 	state.swap_comps_with(&comp_items)
 
@@ -19,30 +19,30 @@ func or_else_eval[T any](self Parser[T], alt Parser[T], state *State) (T, Error)
 	args_a := state.clone()
 	args_b := state.clone()
 
-	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
+	// run both parsers, expand the results into Opt[T] + Opt[parseError]
 	// so that code that does a bunch of comparing logic can be shared across
 	// all invocations of parsers rather than being inlined into each one.
 
 	ok, err := self.eval(&args_a)
 	var (
-		res_a Option[T]
-		err_a Option[Error]
+		res_a Opt[T]
+		err_a Opt[parseError]
 	)
 	if err != nil {
 		res_a, err_a = Invalid[T](), Valid(err)
 	} else {
-		res_a, err_a = Valid(ok), Invalid[Error]()
+		res_a, err_a = Valid(ok), Invalid[parseError]()
 	}
 
 	ok, err = alt.eval(&args_b)
 	var (
-		res_b Option[T]
-		err_b Option[Error]
+		res_b Opt[T]
+		err_b Opt[parseError]
 	)
 	if err != nil {
 		res_b, err_b = Invalid[T](), Valid(err)
 	} else {
-		res_b, err_b = Valid(ok), Invalid[Error]()
+		res_b, err_b = Valid(ok), Invalid[parseError]()
 	}
 
 	zalupa, err := this_or_that_picks_first(
@@ -66,13 +66,13 @@ func or_else_eval[T any](self Parser[T], alt Parser[T], state *State) (T, Error)
 // Given two possible errors along with to sets of arguments produce a new error or an instruction
 // to pick between two answers. Updates arguments state to switch the results
 func this_or_that_picks_first(
-	err_a Option[Error],
-	err_b Option[Error],
-	state *State,
-	args_a *State,
-	args_b *State,
-	comp_stash *[]Comp,
-) (bool, Error) {
+	err_a Opt[parseError],
+	err_b Opt[parseError],
+	state *state,
+	args_a *state,
+	args_b *state,
+	comp_stash *[]comp,
+) (bool, parseError) {
 	// if higher depth parser succeeds - it takes a priority
 	// completion from different depths should never mix either
 	switch ccc := cmp.Compare(args_a.depth(), args_b.depth()); {
@@ -104,10 +104,10 @@ func this_or_that_picks_first(
 	// otherwise pick based on the left most or successful one
 	e1, a_ok := err_a.Unpack()
 	e2, b_ok := err_b.Unpack()
-	type resT fun.Pair[bool, Option[int]]
+	type resT fun.Pair[bool, Opt[int]]
 	var (
 		res    resT
-		resErr Error
+		resErr parseError
 	)
 	switch {
 	case !a_ok && !b_ok:
@@ -132,7 +132,7 @@ func this_or_that_picks_first(
 			// look for the first "significant" consume and keep that parser
 			//
 			// This is needed to preserve completion from a choice between a positional and a flag
-			// See https://github.com/pacak/bpaf/issues/303 for more details
+			// See the upstream discussion for more details: this mimics the original or_else behavior
 			_, ok1 := args_a.comp_mut()
 			_, ok2 := args_b.comp_mut()
 			if ok1 && ok2 {
@@ -207,14 +207,14 @@ func this_or_that_picks_first(
 // Choose between several parsers specified at runtime
 //
 // You can use this function to create multiple parsers that produce the same type of value at a runtime
-// and let bpaf to pick one that best fits best. This function is designed to work in Combinatoric
-// API, but you can use it in Derive API with `extern`.
+// and let the library pick one that best fits. This function is designed to work with the
+// combinatoric API.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Choice.md"))]
+// Deprecated: use [Choice] instead.
 func Choice[T any](parsers ...parser[T]) Parser[T] {
 	if len(parsers) == 0 {
 		p := Fail[T]("Invalid choice usage")
-		return Parser[T]{p.eval, MetaSkip{}}
+		return Parser[T]{p.eval, metaSkip{}}
 	}
 
 	this := parsers[0].Parser()

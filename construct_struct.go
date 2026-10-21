@@ -12,21 +12,23 @@ import (
 // Count is a field type for [Construct]: the field holds the number of times the
 // associated flag was repeated on the command line (`-v -v -v` and `-vvv` both give 3).
 // A Count field requires a short or a long name.
+// Count is a marker type for [Construct] fields parsed as the number of times
+// the flag was repeated, e.g. Verbose cli.Count with a "short=v,long=verbose" tag.
 type Count int
 
 var (
 	countType           = reflect.TypeFor[Count]()
-	cliPkgPath          = reflect.TypeFor[Option[int]]().PkgPath()
+	cliPkgPath          = reflect.TypeFor[Opt[int]]().PkgPath()
 	boolType            = reflect.TypeFor[bool]()
 	textUnmarshalerType = reflect.TypeFor[encoding.TextUnmarshaler]()
 )
 
-// isOptionType checks whether t is an instantiated cli.Option[E]. Note, reflect
-// reports instantiated generic type names like "Option[float64]".
+// isOptionType checks whether t is an instantiated cli.Opt[E]. Note, reflect
+// reports instantiated generic type names like "Opt[float64]".
 func isOptionType(t reflect.Type) bool {
 	return t.Kind() == reflect.Struct &&
 		t.PkgPath() == cliPkgPath &&
-		strings.HasPrefix(t.Name(), "Option[") &&
+		strings.HasPrefix(t.Name(), "Opt[") &&
 		t.NumField() == 2 &&
 		t.Field(0).Name == "Value" && t.Field(1).Name == "Valid"
 }
@@ -37,12 +39,12 @@ func isOptionType(t reflect.Type) bool {
 type fieldPart struct {
 	ix    int
 	named bool
-	meta  Meta
-	eval  func(*State) (reflect.Value, Error)
+	meta  meta
+	eval  func(*state) (reflect.Value, parseError)
 }
 
 // Construct builds a parser for the struct `T` from `cli` struct tags - the Go
-// counterpart of bpaf's `construct!` macro. It lets you define the whole command
+// counterpart of the compose-into-struct pattern. It lets you define the whole command
 // line interface as one typed struct:
 //
 //	type Out struct {
@@ -65,11 +67,11 @@ type fieldPart struct {
 //   - types implementing [encoding.TextUnmarshaler] -> argument or positional,
 //     parsed with UnmarshalText; this is the extension point for custom types
 //   - []E -> zero or more of the element parser
-//   - cli.Option[E] -> optional element parser
+//   - cli.Opt[E] -> optional element parser
 //   - cli.Count -> number of times the flag was repeated
 //
-// Nested wrappers ([]E, Option[E]) over wrappers ([]byte is fine, [][]int or
-// Option[[]int] are not) are rejected.
+// Nested wrappers ([]E, Opt[E]) over wrappers ([]byte is fine, [][]int or
+// Opt[[]int] are not) are rejected.
 //
 // # Tags
 //
@@ -82,7 +84,7 @@ type fieldPart struct {
 //   - help=... - help message
 //   - env=VAR - environment variable fallback
 //   - default=v - value used when the field is absent; parsed with the same rules
-//     as the field type and shown in help; not valid for bool, []E, Option[E] and Count
+//     as the field type and shown in help; not valid for bool, []E, Opt[E] and Count
 //   - positional - forces positional parsing; fields without short/long/env are
 //     positional automatically
 //
@@ -106,13 +108,14 @@ func Construct[T any]() *ParseCon[T] {
 	for i := range t.NumField() {
 		f := t.Field(i)
 		tag, tagged := f.Tag.Lookup("cli")
+		if tag == "-" {
+			// explicitly skipped field, exported or not
+			continue
+		}
 		if !f.IsExported() {
 			if tagged && tag != "" {
 				panic(fmt.Sprintf("cli.Construct: field %q: unexported field with a cli tag cannot be parsed, export it or drop the tag", f.Name))
 			}
-			continue
-		}
-		if tag == "-" {
 			continue
 		}
 		part := buildFieldPart(i, f.Name, f.Type, parseCliTag(tag))
@@ -126,25 +129,25 @@ func Construct[T any]() *ParseCon[T] {
 	parts := make([]fieldPart, 0, len(named)+len(positional))
 	parts = append(parts, named...)
 	parts = append(parts, positional...)
-	metas := make([]Meta, 0, len(parts))
+	metas := make([]meta, 0, len(parts))
 	for _, p := range parts {
 		metas = append(metas, p.meta)
 	}
-	var meta Meta = MetaSkip{}
+	var meta meta = metaSkip{}
 	switch len(metas) {
 	case 1:
 		meta = metas[0]
 	default:
-		meta = MetaAnd(metas)
+		meta = metaAnd(metas)
 	}
 
-	eval := func(_ bool, state *State) (T, Error) {
+	eval := func(_ bool, state *state) (T, parseError) {
 		out := reflect.New(t).Elem()
-		var missing []MissingItem
+		var missing []missingItem
 		for _, p := range parts {
 			v, err := p.eval(state)
 			if err != nil {
-				if items, ok := err.(ErrorMissing); ok {
+				if items, ok := err.(errorMissing); ok {
 					missing = append(missing, items...)
 					continue
 				}
@@ -153,7 +156,7 @@ func Construct[T any]() *ParseCon[T] {
 			out.Field(p.ix).Set(v)
 		}
 		if len(missing) > 0 {
-			return *new(T), ErrorMissing(missing)
+			return *new(T), errorMissing(missing)
 		}
 		return out.Interface().(T), nil
 	}
@@ -256,12 +259,12 @@ func unquoteTag(quoted string) (string, error) {
 
 // fieldCfg is the parsed `cli` tag of one field.
 type fieldCfg struct {
-	short      Option[byte]
-	long       Option[string]
-	env        Option[string]
-	help       Option[string]
-	metavar    Option[string]
-	def        Option[string]
+	short      Opt[byte]
+	long       Opt[string]
+	env        Opt[string]
+	help       Opt[string]
+	metavar    Opt[string]
+	def        Opt[string]
 	positional bool
 }
 
@@ -345,7 +348,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 			panic(fmt.Sprintf("cli.Construct: field %q: cli.Count field cannot have a default", name))
 		}
 		p := ReqFlag[struct{}](na, struct{}{}).Parser().Count()
-		return fieldPart{ix: ix, named: true, meta: p.meta, eval: func(state *State) (reflect.Value, Error) {
+		return fieldPart{ix: ix, named: true, meta: p.meta, eval: func(state *state) (reflect.Value, parseError) {
 			n, err := p.eval(state)
 			if err != nil {
 				return reflect.Value{}, err
@@ -354,11 +357,11 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		}}
 	}
 
-	// Unwrap one optional container: []E or cli.Option[E].
+	// Unwrap one optional container: []E or cli.Opt[E].
 	isSlice := ft.Kind() == reflect.Slice
 	isOption := isOptionType(ft)
 	if cfg.def.Valid && (isSlice || isOption) {
-		panic(fmt.Sprintf("cli.Construct: field %q: []E and cli.Option[E] fields cannot have a default", name))
+		panic(fmt.Sprintf("cli.Construct: field %q: []E and cli.Opt[E] fields cannot have a default", name))
 	}
 	leaf := ft
 	if isSlice {
@@ -367,7 +370,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		leaf = ft.Field(0).Type
 	}
 	if leaf.Kind() == reflect.Slice || isOptionType(leaf) {
-		panic(fmt.Sprintf("cli.Construct: field %q: nested %s is not supported, use a single []E or cli.Option[E] wrapper", name, leaf))
+		panic(fmt.Sprintf("cli.Construct: field %q: nested %s is not supported, use a single []E or cli.Opt[E] wrapper", name, leaf))
 	}
 
 	// bool leaf: a switch.
@@ -412,12 +415,12 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 }
 
 // wrapTyped wraps a parser whose result type matches the field type exactly
-// (bool switch); for []bool and cli.Option[bool] fields it applies the wrapper.
+// (bool switch); for []bool and cli.Opt[bool] fields it applies the wrapper.
 func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOption bool) fieldPart {
-	wrapEval := func(inner func(*State) (reflect.Value, Error), meta Meta) fieldPart {
+	wrapEval := func(inner func(*state) (reflect.Value, parseError), meta meta) fieldPart {
 		return fieldPart{ix: ix, named: named, meta: meta, eval: inner}
 	}
-	pe := func(state *State) (reflect.Value, Error) {
+	pe := func(state *state) (reflect.Value, parseError) {
 		v, err := p.eval(state)
 		if err != nil {
 			return reflect.Value{}, err
@@ -426,8 +429,8 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 	}
 	switch {
 	case isSlice:
-		pm := Many(p, false)
-		return wrapEval(func(state *State) (reflect.Value, Error) {
+		pm := Many(p)
+		return wrapEval(func(state *state) (reflect.Value, parseError) {
 			xs, err := pm.eval(state)
 			if err != nil {
 				return reflect.Value{}, err
@@ -439,8 +442,8 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 			return res, nil
 		}, pm.meta)
 	case isOption:
-		pm := Optional(p, false)
-		return wrapEval(func(state *State) (reflect.Value, Error) {
+		pm := Optional(p)
+		return wrapEval(func(state *state) (reflect.Value, parseError) {
 			v, err := pm.eval(state)
 			if err != nil {
 				return reflect.Value{}, err
@@ -458,9 +461,9 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 }
 
 // wrapAny wraps a Parser[any] whose dynamic values have the field's element type
-// and materializes the field value: plain, slice or cli.Option.
+// and materializes the field value: plain, slice or cli.Opt.
 func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bool) fieldPart {
-	pe := func(state *State) (reflect.Value, Error) {
+	pe := func(state *state) (reflect.Value, parseError) {
 		v, err := p.eval(state)
 		if err != nil {
 			return reflect.Value{}, err
@@ -469,8 +472,8 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 	}
 	switch {
 	case isSlice:
-		pm := Many(p, false)
-		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *State) (reflect.Value, Error) {
+		pm := Many(p)
+		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *state) (reflect.Value, parseError) {
 			xs, err := pm.eval(state)
 			if err != nil {
 				return reflect.Value{}, err
@@ -482,8 +485,8 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 			return res, nil
 		}}
 	case isOption:
-		pm := Optional(p, false)
-		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *State) (reflect.Value, Error) {
+		pm := Optional(p)
+		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *state) (reflect.Value, parseError) {
 			v, err := pm.eval(state)
 			if err != nil {
 				return reflect.Value{}, err

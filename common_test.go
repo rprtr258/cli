@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 import (
 	"errors"
@@ -10,8 +10,6 @@ import (
 	"github.com/rprtr258/fun"
 	funiter "github.com/rprtr258/fun/iter"
 	"github.com/stretchr/testify/require"
-
-	. "github.com/rprtr258/cli"
 )
 
 func map3[A, B, C any](A, B, C) struct{} {
@@ -82,8 +80,8 @@ func parseBool(s string) (bool, error) {
 // 3. And don't show anything to the user in `--help` or completion
 // 4. Parse this word and then everything else as a tuple, return that second item.
 func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
-	skip := Optional(Literal(cmd), false).Parser().Hide()
-	return Map2(skip, parser, func(_ Option[struct{}], x T) T { return x })
+	skip := Optional(Literal(cmd)).Parser().Hide()
+	return Map2(skip, parser, func(_ Opt[struct{}], x T) T { return x })
 }
 
 // Adapt a sequence of pairs into a two-value sequence.
@@ -107,7 +105,7 @@ func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], arg
 func assertFailure[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
 	t.Helper()
 
-	_, err := parser.RunInner(NewArgs(args...))
+	_, err := parser.RunInner(newArgList(args...))
 	require.Equal(t, expected, UnwrapStderr(err))
 }
 
@@ -118,7 +116,7 @@ func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected string, a
 	if len(args) == 0 {
 		args = []string{"--help"}
 	}
-	_, err := parser.RunInner(NewArgs(args...))
+	_, err := parser.RunInner(newArgList(args...))
 	require.Equal(t, expected, UnwrapStdout(err))
 }
 
@@ -126,15 +124,15 @@ func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected string, a
 func assertCompletion[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
 	t.Helper()
 
-	_, err := parser.RunInner(NewArgs(args...).SetComp(0))
+	_, err := parser.RunInner(newArgList(args...).setComp(0))
 	require.Equal(t, expected, UnwrapStdout(err))
 }
 
-// First line of `--help` output without the `Usage: ` prefix must be the expected usage.
+// first line of `--help` output without the `Usage: ` prefix must be the expected usage.
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
 
-	_, output := parser.RunInner(NewArgs("--help"))
+	_, output := parser.RunInner(newArgList("--help"))
 	usage := strings.TrimPrefix(strings.Split(UnwrapStdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, expected, usage)
 }

@@ -5,8 +5,8 @@ import "iter"
 // Parser that replaces metavar placeholders with actual info in shell completion
 type ParseComp[T any] struct {
 	inner Parser[T]
-	op    func(T) iter.Seq2[string, Option[string]]
-	group Option[string]
+	op    func(T) iter.Seq2[string, Opt[string]]
+	group Opt[string]
 }
 
 func (self ParseComp[T]) Parser() Parser[T] {
@@ -19,9 +19,9 @@ func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	return self
 }
 
-func (self ParseComp[T]) eval(state *State) (T, Error) {
+func (self ParseComp[T]) eval(state *state) (T, parseError) {
 	// stash old
-	comp_items := []Comp(nil)
+	comp_items := []comp(nil)
 	state.swap_comps_with(&comp_items)
 
 	res, err := self.inner.eval(state)
@@ -46,7 +46,7 @@ func (self ParseComp[T]) eval(state *State) (T, Error) {
 			if is_arg, ok := ci.is_metavar(); ok {
 				type suggestion struct {
 					replacement string
-					description Option[string]
+					description Opt[string]
 				}
 				suggestions := []suggestion(nil)
 				for replacement, description := range self.op(res) {
@@ -76,14 +76,14 @@ func (self ParseComp[T]) eval(state *State) (T, Error) {
 
 // Dynamic shell completion
 //
-// Allows to generate autocompletion information for the shell. Completer places generated input
-// in place of metavar placeholders, so running `completer` on something that doesn't have a
-// [positional] or an [argument](NamedArgargument) doesn't make much sense.
+// Allows to generate autocompletion information for the shell. The completer places generated
+// input in place of metavar placeholders, so running it on something that doesn't have a
+// positional or an argument doesn't make much sense.
 //
 // Takes a function as a parameter that tries to complete partial input to a full one with an
-// fun.Optional description. `bpaf` would substitute a current positional item or an argument with an empty
+// Optional description. The library would substitute the current positional item or an argument with an empty
 // string if a value isn't available yet so it's best to run `complete` where parsing can't fail:
-// right after [argument](NamedArgargument) or [positional], but this isn't enforced.
+// right after an argument or a positional, but this isn't enforced.
 //
 // # Example
 // ```console
@@ -91,16 +91,16 @@ func (self ParseComp[T]) eval(state *State) (T, Error) {
 // $ app --name Lupusregina _
 // ```
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/complete.md"))]
+// # A simple example
 //
-// ## A simple example
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/simple_dynamic.md"))]
+// Complete the value of one parser with values of another, for example completing
+// `--name` with a list of known names.
 //
 // ## More detailed example
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/derive_show_asm.md"))]
-func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Option[string]]) ParseComp[T] {
+// The callback receives the partial value parsed so far and yields candidate
+// completions; the library feeds them to the shell.
+func (self Parser[T]) Complete(op func(T) iter.Seq2[string, Opt[string]]) ParseComp[T] {
 	return ParseComp[T]{
 		inner: self,
 		op:    op,

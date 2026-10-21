@@ -1,11 +1,9 @@
-package cli_test
+package cli
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-
-	. "github.com/rprtr258/cli"
 )
 
 func some(s string) (string, bool) { return s, true }
@@ -23,7 +21,7 @@ func TestGet_any_simple(t *testing.T) {
 
 func TestGet_any_many(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Any("REST", some, false).Help("any help"), false)
+	b := Many(Any("REST", some, false).Help("any help"))
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, []string]
@@ -33,17 +31,17 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	parser := Many(Any("REST", some, false), false).Parser().ToOptions()
+	parser := Many(Any("REST", some, false)).Parser().ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
 func TestGet_any_magic(t *testing.T) {
-	parser := Map(Optional(Argument(Short('b'),
+	parser := Map(OptionalCatch(Argument(Short('b'),
 		"anana", parseString).
 		Adjacent().Parser().
-		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser(), true).
+		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser()).
 		Parser(),
-		func(b Option[string]) bool { return b.Valid }).
+		func(b Opt[string]) bool { return b.Valid }).
 		ToOptions()
 
 	// -b anana - isn't a -banana

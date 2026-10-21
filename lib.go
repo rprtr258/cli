@@ -1,287 +1,172 @@
+// Package cli provides a lightweight command line argument parser with a
+// combinator-style API.
+//
+// A parser is assembled from small building blocks, composed into larger
+// parsers, and finally run against the command line. The value produced by a
+// successful parse is a regular Go value - the parser either produces it or
+// prints a message describing the problem (missing argument, validation
+// failure, --help request, etc).
+//
+// # Overview
+//
+// It is best to think of a [Parser[T]] as a container with a value inside.
+// Containers are composed with [Pair], [Triple], [Choice] and [Construct];
+// the only way to extract the value is to finalize the parser with
+// [Parser.ToOptions] and run it with [OptionParser.Run] or
+// [OptionParser.RunE].
+//
+// Values inside can be of any type, as long as they are comparable with ==
+// where needed. Parse functions convert raw command line strings to the value
+// types, e.g. strconv.ParseUint for numbers. It is better to perform as much
+// parsing and validation inside the parser as possible, so the program itself
+// gets strictly typed and correct values while the user gets immediate
+// feedback on what is wrong with the arguments they pass.
+//
+// # Quick start
+//
+// Suppose the program needs the user to specify the dimensions of a rectangle,
+// with sides 1..20 units long and the total area not exceeding 200 square
+// units:
+//
+//	type Rectangle struct {
+//	    Width, Height int
+//	}
+//
+//	func rectangle() cli.Parser[Rectangle] {
+//	    invalidSize := "Sides of a rectangle must be 1..20 units long"
+//	    invalidArea := "Area of a rectangle must not exceed 200 units square"
+//	    width := cli.Argument[int](cli.Long("width").Help("Width of the rectangle"), "PX", strconv.Atoi).
+//	        Parser().
+//	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
+//	    height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", strconv.Atoi).
+//	        Parser().
+//	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
+//	    return cli.Map(cli.Pair(width, height).Parser(),
+//	        func(wh fun.Pair[int, int]) Rectangle {
+//	            return Rectangle{Width: wh.K, Height: wh.V}
+//	        }).
+//	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
+//	}
+//
+//	func main() {
+//	    rect := rectangle().ToOptions().Run()
+//	    fmt.Println(rect)
+//	}
+//
+// # Consuming items
+//
+// [Short], [Long] and [Env] build a [NamedArg]. [NamedArg.Switch] makes a boolean
+// flag; [Flag] and [ReqFlag] make flags with custom present/absent values;
+// [Argument] and [Positional] consume a value, converting the raw string with a
+// parse function whose error is reported to the user.
+//
+// # Transforming parsers
+//
+// Each combinator returns a new parser without changing the original:
+// [Map] and [Parse] convert values, [Parser.Guard] validates them,
+// [Parser.Fallback] and [Parser.FallbackWith] provide defaults,
+// [Optional] makes a parser optional, [Many] and [Some] collect repeated
+// items, [Collect] fills any slice, [Count] counts occurrences.
+//
+// # Combining parsers
+//
+// [Pair] and [Triple] combine a fixed number of parsers, [Construct]
+// combines them into a struct, [Choice] and [Parser.OrElse] pick the first
+// parser that succeeds, [Parser.Adjacent] restricts a group to adjacent
+// command line items, [Any] consumes items at arbitrary positions.
+//
+// # Improving user experience
+//
+// [NamedArg.Help] documents flags and arguments, [Parser.Hide] hides them
+// from --help, [Parser.GroupHelp] groups related options,
+// [OptionParser.Description], [OptionParser.Header], [OptionParser.Footer]
+// and [OptionParser.Usage] customize help output, [OptionParser.Version]
+// adds --version, [OptionParser.HelpParser] and
+// [OptionParser.VersionParser] customize the flags used to trigger help and
+// version, [OptionParser.MaxWidth] limits the rendered width.
+//
+// # Shell completion
+//
+// Flag and value names are completed out of the box through the complete
+// protocol of the shell. Custom dynamic completion is available with
+// [Parser.CompleteShell] and [Parser.Complete].
+//
+// # Running the parser
+//
+// [OptionParser.Run] parses os.Args and returns the value, exiting the
+// process on --help, --version or parse failures. [OptionParser.RunE]
+// returns an error instead of exiting, which is useful for tests and
+// libraries.
+
 package cli
-
-// #![warn(missing_docs)]
-// #![allow(clippyneedless_doctest_main)]
-// #![allow(clippyredundant_else)] // not useful
-// #![allow(rustdocredundant_explicit_links)] // two random markdown parsers I tried only supports explicit links
-// #![cfg_attr(docsrs, feature(doc_auto_cfg))]
-
-//! Lightweight and flexible command line argument parser with derive and combinatoric style API
-
-//! # Quick links
-//! - [Introduction](_documentation_0_intro) - features, design goals, restrictions
-//! - [Tutorials](_documentation_1_tutorials) - practical learning oriented information and
-//!   examples to get you started
-//!   + [Types of arguments](_documentation_1_tutorials_0_types_of_arguments) -
-//!     common types of line fun.Options and conventions (optional)
-//!   + [Combinatoric API](_documentation_1_tutorials_1_combinatoric_api)  -
-//!     Parse arguments without using proc macros
-//!   + [Derive API](_documentation_1_tutorials_2_derive_api) -
-//!     Create a parser by defining a structure
-//! - [How-to and guides](_documentation_2_howto) - assumes familiarity with the basics and
-//!   explains how to concrete tasks
-//! - [Explanations](_documentation_4_explanation) - theoretical information about abstractions
-//!   used by the library, oriented for understanding
-//! - [FAQ](https://github.com/pacak/bpaf/discussions) - questions from library users
-
-//! # A quick start
-//!
-//! Add `bpaf`, fun.Optionally with derive enabled
-//!
-//! ```text
-//! $ cargo add bpaf -F derive,dull_color
-//! ```
-//!
-//! Use either derive or combinatoric API and try running it
-//!
-// #![cfg_attr(not(doctest), doc = include_str!("docs2/intro.md"))]
-
-//!
-//! ## Consuming items - making `Parser`
-//!
-//! `bpaf` allows you to describe the parsers using a mix of two APIs: combinatoric and derive.
-//! Both APIs can achieve the same results, you can use one that better suits your needs. You can
-//! find documentation with more examples following those links.
-//!
-//! - For an argument with a name you define [NamedArg] using a combination of [short],
-//!   [long] and [env](crateenv()). At the same time you can attach
-//!   [help](NamedArghelp).
-//! - [NamedArgswitch] - simple switch that returns `true` if it's present on a command
-//!   line and `false` otherwise.
-//! - [NamedArgflag] - a variant of `switch` that lets you return one of two custom
-//!   values, for example `ColorOn` and `ColorOff`.
-//! - [NamedArgreq_flag] - a variant of `switch` that only only succeeds when it's name
-//!   is present on a command line
-//! - [NamedArgargument] - named argument containing a value, you can further
-//!   customize it with [adjacent](crateparsersParseArgumentadjacent)
-//! - [positional] - positional argument, you can further customize it with
-//!   [strict](ParsePositionalstrict)
-//! - [OptionParsercommand] - subcommand parser.
-//! - [any] and its specialized version [literal] are escape hatches that can parse anything
-//!   not fitting into usual classification.
-//! - [pure] and [pure_with] - a way to generate a value that can be composed without parsing
-//!   it from the command line.
-//!
-//! ## Transforming and changing parsers
-//!
-//! By default primitive parsers gives you back a single `bool`, a single `PathBuf` or a single
-//! value produced by [FromStr] trait, etc. You can further transform it by chaining methods from
-//! [Parser] trait, some of those methods are applied automagically if you are using derive API.
-//!
-//! `bpaf` distinguishes two types of parse failures - "value is absent" and
-//! "value is present but invalid", most parsers listed in this section only handle the first
-//! type of failure by default, but you can use their respective `catch` method to handle the later
-//! one.
-//!
-//! - [fallback](Parserfallback) and [fallback_with](Parserfallback_with) - return a
-//!   different value if parser fails to find what it is looking for. Generated help for former
-//!   can be updated to include default value using
-//!   [display_fallback](ParseFallbackdisplay_fallback) and
-//!   [debug_fallback](ParseFallbackdebug_fallback) .
-//! - [optional](Parseroptional) - return `Invalid()` if value is missing instead of failing, see
-//!   also [catch](ParseOptionalcatch) .
-//! - [many](Parsermany), [some](Parsersome) and [collect](Parsercollect) - collect
-//!   multiple values into a collection, usually a vector, see their respective
-//!   [catch](ParseManycatch), [catch](ParseSomecatch) and [catch](ParseCollectcatch).
-//! - [map](Parsermap), [parse](Parserparse) and [guard](Parserguard) - transform
-//!   and/or validate value produced by a parser
-//! - [to_options](Parserto_options) - finalize the parser and prepare to run it
-//!
-//! ## Combining multiple parsers together
-//!
-//! Once you have parsers for all the primitive fields figured out you can start combining them
-//! together to produce a parser for a final result - data type you designed in the step one.
-//! For derive API you apply annotations to data types with `#[derive(Bpaf)`] and `#[bpaf(..)]`,
-//! with combinatoric API you use [construct](crateconstruct) macro.
-//!
-//! All fields in a struct needs to be successfully parsed in order for the parser to succeed
-//! and only one variant from enum will consume its values at a time.
-//!
-//! You can use [adjacent](ParseConadjacent) annotation to parse multiple flags as an adjacent
-//! group allowing for more unusual scenarios such as multiple value arguments or chained commands.
-//!
-//! ## Improving user experience
-//!
-//! `bpaf` would use doc comments on fields and structures in derive mode and and values passed
-//! in various `help` methods to generate `--help` documentation, you can further improve it
-//! using those methods:
-//!
-//! - [hide_usage](Parserhide_usage) and [hide](Parserhide) - hide the parser from
-//!   generated *Usage* line or whole generated help
-//! - [group_help](Parsergroup_help) and [with_group_help](Parserwith_group_help) -
-//!   add a common description shared by several parsers
-//! - [custom_usage](Parsercustom_usage) - customize usage for a primitive or composite parser
-//! - [usage](OptionParserusage) and [with_usage](OptionParserwith_usage) lets you to
-//!   customize whole usage line as a whole either by completely overriding it or by building around it.
-//!
-//! By default with completion enabled `bpaf` would complete names for flags, arguments and
-//! commands. You can also generate completion for argument values, possible positionals, etc.
-//! This requires enabling **autocomplete** cargo feature.
-//!
-//! - [complete](Parsercomplete) and [complete_shell](Parsercomplete_shell)
-//!
-//! And finally you can generate documentation for command line in markdown, html and manpage
-//! formats using [render_markdown](OptionParserrender_markdown),
-//! [render_html](OptionParserrender_html) and [render_manpage](OptionParserrender_manpage),
-//! for more detailed info see [doc] module
-//!
-//! ## Testing your parsers and running them
-//! - You can [OptionParserrun] the parser on the arguments passed on the command line
-//! - [check_invariants](OptionParsercheck_invariants) checks for a few invariants in the
-//!   parser `bpaf` relies on
-//! - [run_inner](OptionParserrun_inner) runs the parser with custom [Args] you can create
-//!   either explicitly or implicitly using one of the [From] implementations, `Args` can be
-//!   customized with [set_comp](Argsset_comp) and [set_name](Argsset_name).
-//! - [ParseFailure] contains the parse outcome, you can consume it either by hands or using one
-//!   of [exit_code](ParseFailureexit_code), [unwrap_stdout](ParseFailureunwrap_stdout) and
-//!   [unwrap_stderr](ParseFailureunwrap_stderr)
-//!
-//! ## Cargo features
-//!
-//!  - `derive`: adds a dependency on `bpaf_derive` crate and reexport `Bpaf` derive macro. You
-//!     need to enable it to use derive API. Disabled by default.
-//!
-//!  - `batteries`: helpers implemented with public `bpaf` API. Disabled by default.
-//!
-//!  - `autocomplete`: enables support for shell autocompletion. Disabled by default.
-//!
-//!
-//! - `bright-color`, `dull-color`: use more colors when printing `--help` and such. Enabling
-//!   either color feature adds some extra dependencies and might raise MRSV. If you are planning
-//!   to use this feature in a published app - it’s best to expose them as feature flags:
-//!
-//!    ```toml
-//!    [features]
-//!    bright-color = ["bpaf/bright-color"]
-//!    dull-color = ["bpaf/dull-color"]
-//!    ```
-//!    Disabled by default.
-//!
-//!  - `docgen`: generate documentation from help declaration, see [OptionParserrender_markdown] and [doc](cratedoc). Disabled by default.
 
 // Simple or composed argument parser
 //
 // # Overview
 //
-// It's best to think of an object implementing [Parser] trait as a container with a value
-// inside that is composable with other `Parser` containers using [construct] and the only
-// way to extract this value is by transforming it to [OptionParser] with
-// [to_options](Parserto_options) and running it with [run](OptionParserrun). At which
-// point you either get your value out or `bpaf` would generate a message describing a problem
-// (missing argument, validation failure, user requested help, etc) and the program would
-// exit.
+// It's best to think of a [Parser[T]] as a container with a value inside that is composable
+// with other containers using [Pair], [Triple] or [Construct]; the only way to extract the
+// value is by finalizing the parser with [Parser.ToOptions] and running it with
+// [OptionParser.Run] or [OptionParser.RunE]. At that point you either get your value out or
+// the library generates a message describing a problem (missing argument, validation
+// failure, user requested help, etc).
 //
-// Values inside can be of any type for as long as they implement `Debug`, `Clone` and
-// there are no lifetimes other than static.
+// Values inside can be of any type. Parse functions convert raw command line strings into
+// the value type - for numbers that's usually a strconv helper. It's better to perform as
+// much parsing and validation inside the parser as possible, so the program itself gets
+// strictly typed and correct values while the user gets immediate feedback on what's wrong
+// with the arguments they pass.
 //
-// When consuming the values you can jump straight to a value that implements
-// [FromStr] trait and then transform it into something that your program would use. Alternatively,
-// you can consume either `String` or `string` and parse that by hand. It's better to perform
-// as much parsing and validation inside the `Parser` as possible so the program itself gets
-// strictly typed and correct value while the user gets immediate feedback on what's wrong with the
-// arguments they pass.
+// Order of operations matters: each subsequent transformation gets the output of the earlier
+// one. Both parsers below collect multiple numeric values below 10, but `a` validates each
+// value as it is consumed while `b` first collects and then validates the whole slice. The
+// former approach is usually more readable:
 //
-// Order of operations matters, each subsequent parser gets the output of the earlier one. Both
-// parsers `a` and `b` would consume multiple numeric values, each less than 10, but `a`
-// validates a single value and then consumes multiple of them already validated, while `b` first
-// consumes and then performs validation. The former approach is usually more readable.
-// ```rust
+//	a := Argument[uint32](Short('a'), "N", parseUint32).Parser().
+//	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
+//	collectA := Many(a)
 //
-//	use bpaf*;
+//	b := Many(Argument[uint](Short('b'), "N", parseUint32))
+//	collectB := Parse(b, func(bs []uint32) ([]uint32, error) {
+//	    for _, b := range bs {
+//	        if b >= 10 {
+//	            return nil, errors.New("`b` must be below 10")
+//	        }
+//	    }
+//	    return bs, nil
+//	})
 //
-//	func simple() {
-//	  a := short('a').argument[uint]("N")
-//	    .guard(|&a| a < 10, "`a` must be below 10")
-//	    .many();
+// For example suppose the program needs the user to specify dimensions of a rectangle, with
+// sides being 1..20 units long and the total area must not exceed 200 square units. A parser
+// that consumes it might look like this:
 //
-//	  b := short('b').argument[uint]("N")
-//	   .many()
-//	   .guard(|bs| bs.iter().all(|&b| b < 10), "`b` must be below 10");
+//	type Rectangle struct {
+//	    Width, Height uint32
 //	}
 //
-// ```
-//
-// The same logic applies to derive API - the current type depends on the order of annotations:
-// ```rust
-// # func less_than_10(a: &uint)bool { true }
-// # func all_less_than_10(a: &Vec[uint])bool { true }
-// #[derive(Bpaf, Debug, Clone)]
-//
-//	struct Simple {
-//	    #[bpaf(argument("N"), guard(less_than_10, "`a` must be below 10"), many)]
-//	    a: Vec[uint],
-//	    #[bpaf(argument("N"), many, guard(all_less_than_10, "`b` must be below 10"))]
-//	    b: Vec[uint],
+//	func rectangle() cli.Parser[Rectangle] {
+//	    invalidSize := "Sides of a rectangle must be 1..20 units long"
+//	    invalidArea := "Area of a rectangle must not exceed 200 units square"
+//	    width := cli.Argument[uint32](cli.Long("width"), "PX", parseUint32).
+//	        Help("Width of the rectangle").
+//	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
+//	    height := cli.Argument[uint32](cli.Long("height"), "PX", parseUint32).
+//	        Help("Height of the rectangle").
+//	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
+//	    return cli.Map(cli.Pair(width.Parser(), height.Parser()).Parser(),
+//	        func(wh fun.Pair[uint32, uint32]) Rectangle {
+//	            return Rectangle{Width: wh.K, Height: wh.V}
+//	        }).
+//	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
 //	}
 //
-// ```
+// # Composition with structs
 //
-// For example suppose your program needs the user to specify dimensions of a rectangle, with sides
-// being 1..20 units long and the total area must not exceed 200 units square. A parser that
-// consumes it might look like this:
-//
-// ```rust
-// #[derive(Debug, Copy, Clone)]
-//
-//	struct Rectangle {
-//	    width: u32,
-//	    height: u32,
-//	}
-//
-//	func rectangle()impl Parser<Rectangle> {
-//	    invalid_size := "Sides of a rectangle must be 1..20 units long";
-//	    invalid_area := "Area of a rectangle must not exceed 200 units square";
-//	    width := long("width")
-//	        .help("Width of the rectangle")
-//	        .argument<u32>("PX")
-//	        .guard(|&x| 1 <= x && x <= 10, invalid_size);
-//	    height := long("height")
-//	        .help("Height of the rectangle")
-//	        .argument<u32>("PX")
-//	        .guard(|&x| 1 <= x && x <= 10, invalid_size);
-//	    construct(Rectangle { width, height })
-//	        .guard(|&r| r.width * r.height <= 400, invalid_area)
-//	}
-//
-// ```
-//
-// # Derive specific considerations
-//
-// Every method defined on this trait belongs to the `postprocessing` section of the field
-// annotation. `bpaf` would try to figure out what chain to use for as long as there are no
-// fun.Options changing the type: you can use [fallback](Parserfallback_with),
-// [fallback_with](Parserfallback_with), [guard](Parserguard), [hide](Parserhide`) and
-// [group_help](Parsergroup_help) but not the rest of them.
-//
-// ```rust
-//
-//	struct fun.Options {
-//	    // no annotation at all - `bpaf` inserts implicit `argument` and gets the right type
-//	    number_1: u32,
-//
-//	    // fallback isn't changing the type so `bpaf` still handles it
-//	    #[bpaf(fallback(42))]
-//	    number_2: u32,
-//
-//	    // `bpaf` inserts implicit `argument`, `optional` and the right type
-//	    number_3: Option[u32],
-//
-//	    // fails to compile: you need to specify `argument`
-//	    // #[bpaf(optional)]
-//	    // number_4: Option[u32],
-//
-//	    #[bpaf(argument("N"), fun.Optional)]
-//	    number_5: Option[u32],
-//
-//	    // explicit consumer and a full postprocessing chain
-//	    #[bpaf(argument<u32>("N"), fun.Optional)]
-//	    number_6: Option[u32],
-//	}
-//
-// ```
+// [Construct] builds a parser for a struct type from its fields: each exported field with a
+// `cli` tag is parsed according to the tag, producing the value for that field.
 type Parser[T any] struct {
-	eval func(*State) (T, Error) // Evaluate inner function
-	meta Meta                    // Included information about the parser
+	eval func(*state) (T, parseError) // Evaluate inner function
+	meta meta                         // Included information about the parser
 }
 
 func (self Parser[T]) Parser() Parser[T] {
@@ -294,79 +179,40 @@ type parser[T any] interface {
 
 // If first parser fails - try the second one
 //
-// For parser to succeed eiter of the components needs to succeed. If both succeed - `bpaf`
-// would use output from one that consumed the left most value. The second flag on the command
-// line remains unconsumed by `or_else`.
+// For parser to succeed either of the components needs to succeed. If both succeed the
+// result comes from the one that consumed the left most value. The second flag on the
+// command line remains unconsumed by [Parser.OrElse].
 //
-// # Combinatoric usage:
-// There's two ways to write this combinator with identical results:
-// ```rust
+// # Combinatoric usage
+// There are two ways to write this combinator with identical results:
 //
-//	func a()impl Parser<u32> {
-//	    short('a').argument<u32>("NUM")
+//	func a() cli.Parser[uint32] {
+//	    return cli.Argument[uint32](cli.Short('a'), "NUM", parseUint32).Parser()
 //	}
 //
-//	func b()impl Parser<u32> {
-//	    short('b').argument<u32>("NUM")
+//	func b() cli.Parser[uint32] {
+//	    return cli.Argument[uint32](cli.Short('b'), "NUM", parseUint32).Parser()
 //	}
 //
-//	func a_or_b_comb()impl Parser<u32> {
-//	    construct([a(), b()])
+//	func aOrB() cli.Parser[uint32] {
+//	    return cli.Choice(a(), b())
 //	}
-//
-//	func a_or_b_comb2()impl Parser<u32> {
-//	    a().or_else(b())
-//	}
-//
-// ```
 //
 // # Example
-// ```console
-// $ app -a 12 -b 3
-// // 12
-// $ app -b 3 -a 12
-// // 3
-// $ app -b 13
-// // 13
-// $ app
-// // fails asking for either -a NUM or -b NUM
-// ```
 //
-// # Derive usage:
+//	$ app -a 12 -b 3
+//	12
+//	$ app -b 3 -a 12
+//	3
+//	$ app -b 13
+//	13
+//	$ app
+//	fails asking for either -a NUM or -b NUM
 //
-// `bpaf` translates enum into alternative combinations, different shapes of variants
-// produce different results.
-//
-// ```bpaf
-//
-//	enum Flag {
-//	    A { a: u32 }
-//	    B { b: u32 }
-//	}
-//
-// ```
-//
-// ```console
-// $ app -a 12 -b 3
-// // FlagA { a: 12 }
-// $ app -b 3 -a 12
-// // FlagB { b: 3 }
-// $ app -b 3
-// // FlagB { b: 3 }
-// $ app
-// // fails asking for either -a NUM or -b NUM
-// ```
-//
-// # Performance
-//
-// `bpaf` tries to evaluate both branches regardless of the successes to produce a
-// better error message for combinations of mutually exclusive parsers:
-// Suppose program accepts one of two mutually exclusive switches `-a` and `-b`
-// and both are present error message should point at the second flag
-// Deprecated: instead of a.or_else(b) you should use construct([a, b])
+// Deprecated: instead of a.OrElse(b) you should use Choice(a, b)
 func (self Parser[T]) OrElse(alt Parser[T]) Parser[T] {
 	return Parser[T]{
-		eval: func(state *State) (T, Error) {
+		eval: func(state *state) (T, parseError) {
 			return or_else_eval(self, alt, state)
 		},
 		meta: or(self.meta, alt.meta),
@@ -375,78 +221,63 @@ func (self Parser[T]) OrElse(alt Parser[T]) Parser[T] {
 
 // Ignore this parser during any sort of help generation
 //
-// Best used for fun.Optional parsers or parsers with a defined fallback, usually for implementing
+// Best used for optional parsers or parsers with a defined fallback, usually for implementing
 // backward compatibility or hidden aliases
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Hide.md"))]
 func (self Parser[T]) Hide() Parser[T] {
 	inner := self
 	return Parser[T]{
-		eval: func(state *State) (T, Error) {
-			var comps []Comp
+		eval: func(state *state) (T, parseError) {
+			var comps []comp
 			state.swap_comps_with(&comps)
 			res, err := inner.eval(state)
 			state.swap_comps_with(&comps)
-			if _, ok := err.(ErrorMissing); err != nil && ok {
-				return *new(T), ErrorMissing(nil)
+			if _, ok := err.(errorMissing); err != nil && ok {
+				return *new(T), errorMissing(nil)
 			}
 			return res, err
 		},
-		meta: MetaSkip{},
+		meta: metaSkip{},
 	}
 }
 
-// GroupHelp Attach a help message to a complex parser
+// Attach a help message to a complex parser
 //
-// `bpaf` inserts the group help message before the block with all the fields
+// The library inserts the group help message before the block with all the options
 // from the inner parser and an empty line after the block.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/GroupHelp.md"))]
 func (self Parser[T]) GroupHelp(message string) Parser[T] {
 	inner := self
 	buf := NewDoc(message)
 	return Parser[T]{
-		eval: func(state *State) (T, Error) {
-			comp_items := []Comp(nil)
+		eval: func(state *state) (T, parseError) {
+			comp_items := []comp(nil)
 			state.swap_comps_with(&comp_items)
 			res, err := inner.eval(state)
 			state.swap_comps_with(&comp_items)
 			state.push_with_group(buf.to_completion(), &comp_items)
 			return res, err
 		},
-		meta: MetaSubsection{inner.meta, buf},
+		meta: metaSubsection{inner.meta, buf},
 	}
 }
 
-// Make a help message for a complex parser from its [Meta]
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/WithGroupHelp.md"))]
-func (self Parser[T]) WithGroupHelp(f func(Meta) Doc) Parser[T] {
+// Make a help message for a complex parser from its inner structure
+func (self Parser[T]) withGroupHelp(f func(meta) Doc) Parser[T] {
 	inner := self
 	return Parser[T]{
 		eval: inner.eval,
-		meta: MetaSubsection{inner.meta, f(inner.meta)},
+		meta: metaSubsection{inner.meta, f(inner.meta)},
 	}
 }
 
-// Transform `Parser` into [OptionParser] to get ready to [run](OptionParserrun) it
+// Transform `Parser` into [OptionParser] to get ready to run it
 //
-// # Derive usage
-// Add a top-level `options` annotation to generate [OptionParser] instead of default
-// [Parser].
-//
-// In addition to `options` annotation, you can also specify either `version` or
-// `version(value)` annotation. The former uses version from `cargo`, later uses the
-// specified value which should be an expression of type `string`, see
-// [version](OptionParserversion).
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/ToOptions.md"))]
-//
-// # See also
-// There's some methods implemented on [OptionParser] directly to customize the appearance
+// The returned [OptionParser] carries the presentation and runtime options:
+// [OptionParser.Run] or [OptionParser.RunE] parse the command line, and
+// [OptionParser.Description], [OptionParser.Usage], [OptionParser.Version]
+// and friends customize the help output.
 func (self Parser[T]) ToOptions() *OptionParser[T] {
 	return &OptionParser[T]{
-		info:  NewInfo(),
+		info:  newInfo(),
 		inner: self,
 	}
 }

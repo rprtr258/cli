@@ -1,45 +1,36 @@
 package cli
 
-type Position uint8
+type posKind uint8
 
 const (
-	PositionUnrestricted Position = iota
+	PositionUnrestricted posKind = iota
 	PositionStrict
 	PositionNonStrict
 )
 
-// Parse a positional item, created with [positional](cratepositional)
+// A positional item parser, created with [Positional]
 //
-// You can add extra information to positional parsers with [help](Selfhelp),
-// [strict](Selfstrict), or [non_strict](Selfnon_strict) on this struct.
+// You can add extra information with [ParsePositional.Help],
+// [ParsePositional.Strict] and [ParsePositional.NonStrict].
 type ParsePositional[T any] struct {
 	metavar  Metavar
-	help     Option[Doc]
-	position Position
+	help     Opt[Doc]
+	position posKind
 	p        func(string) (T, error)
 }
 
-// Add a help message to a [positional] parser
+// Add a help message to the positional item
 //
-// `bpaf` converts doc comments and string into help by following those rules:
-// 1. Everything up to the first blank line is included into a "short" help message
-// 2. Everything is included into a "long" help message
-// 3. `bpaf` preserves linebreaks followed by a line that starts with a space
-// 4. Linebreaks are removed otherwise
-//
-// You can pass anything that can be converted into [Doc], if you are not using
-// documentation generation functionality ([doc](cratedoc)) this can be `string`.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/positional.md"))]
+// The help message is displayed in the `--help` output.
 func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
 	self.help = Valid(NewDoc(help))
 	return self
 }
 
 func (self *ParsePositional[T]) Parser() Parser[T] {
-	meta := Meta(MetaItem(Item{self.help, ItemPositional{Metavar(self.metavar)}}))
+	meta := meta(metaItem(item{self.help, itemPositional{Metavar(self.metavar)}}))
 	if self.position == PositionStrict {
-		meta = MetaStrict{meta}
+		meta = metaStrict{meta}
 	}
 
 	return Parser[T]{self.eval, meta}
@@ -48,23 +39,21 @@ func (self *ParsePositional[T]) Parser() Parser[T] {
 // Changes positional parser to be a "Strict" positional
 //
 // Usually positional items can appear anywhere on a command line:
-// ```console
-// $ ls -d bpaf
-// $ ls bpaf -d
-// ```
-// here `ls` takes a positional item `bpaf` and a flag `-d`
+//
+//	$ ls -d file
+//	$ ls file -d
+//
+// here `ls` takes a positional item `file` and a flag `-d`
 //
 // But in some cases it might be useful to have a stricter separation between
-// positonal items and flags, such as passing arguments to a subprocess:
-// ```console
-// $ cargo run --example basic -- --help
-// ```
+// positional items and flags, such as passing arguments to a subprocess:
 //
-// here `cargo` takes a `--help` as a positional item and passes it to the example
+//	$ go run --example basic -- --help
 //
-// `bpaf` allows to require user to pass `--` for positional items with `Strict` annotation.
-// `bpaf` would display such positional elements differently in usage line as well.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/positional_strict.md"))]
+// here `go` takes `--help` as a positional item and passes it to the example.
+//
+// [ParsePositional.Strict] requires the user to pass `--` before such positional items.
+// Such positional elements are displayed differently in the usage line as well.
 func (self *ParsePositional[T]) Strict() *ParsePositional[T] {
 	self.position = PositionStrict
 	return self
@@ -73,14 +62,14 @@ func (self *ParsePositional[T]) Strict() *ParsePositional[T] {
 // Changes positional parser to be a "not strict" positional
 //
 // Ensures the parser always rejects "strict" positions to the right of the separator, `--`.
-// Essentially the inverse operation to [ParsePositionalstrict], which can be used to ensure
-// adjacent strict and nonstrict args never conflict with eachother.
+// Essentially the inverse operation to [ParsePositional.Strict], which can be used to ensure
+// adjacent strict and non-strict positionals never conflict with each other.
 func (self *ParsePositional[T]) NonStrict() *ParsePositional[T] {
 	self.position = PositionNonStrict
 	return self
 }
 
-func (self ParsePositional[T]) eval(state *State) (T, Error) {
+func (self ParsePositional[T]) eval(state *state) (T, parseError) {
 	pos, isStrict, word, err := state.takePositional(self.metavar)
 	if err != nil {
 		if !state.check_no_pos_ahead() {
@@ -92,9 +81,9 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 
 	if self.position == PositionStrict && !isStrict {
 		state.push_pos_sep()
-		return *new(T), ErrorStrictPos{pos, self.metavar}
+		return *new(T), errorStrictPos{pos, self.metavar}
 	} else if self.position == PositionNonStrict && isStrict {
-		return *new(T), ErrorNonStrictPos{pos, self.metavar}
+		return *new(T), errorNonStrictPos{pos, self.metavar}
 	}
 
 	if state.touching_last_remove() && !state.check_no_pos_ahead() {
@@ -104,7 +93,7 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 
 	t, errr := self.p(word)
 	if errr != nil {
-		return *new(T), ErrorParseFailed{state.currentIdx, errr.Error()}
+		return *new(T), errorParseFailed{state.currentIdx, errr.Error()}
 	}
 	return t, nil
 }
@@ -116,38 +105,41 @@ func (self ParsePositional[T]) eval(state *State) (T, Error) {
 // `cat hello world` and `cat world hello` would display contents of the same two files but in
 // a different order.
 //
-// When using combinatoric API you can specify the type with turbofish, for parsing types
-// that don't implement [FromStr] you can use consume a `String`/`string` first and parse
-// it by hand.
+// # Parse a positional item
 //
-//	func parse_pos() Parser[uint] {
-//	    return Positional[uint]("POS")
+// For named flags and arguments ordering generally doesn't matter: most programs would
+// understand `-O2 -v` the same way as `-v -O2`, but for positional items order matters: in *nix
+// `cat hello world` and `cat world hello` would display contents of the same two files but in
+// a different order.
+//
+// The type parameter is the parsed value type, the `parse` function converts the raw string
+// into it:
+//
+//	func parsePos() cli.Parser[uint] {
+//	    return cli.Positional[uint]("POS", parseUint)
 //	}
 //
 // # Important restriction
-// To parse Positional arguments from a command line you should place parsers for all your
-// named values before parsers for Positional items and commands. In derive API fields parsed as
-// Positional items or commands should be at the end of your `struct`/`enum`. The same rule applies
-// to parsers with Positional fields or commands inside: such parsers should go to the end as well.
+// To parse positional items from a command line you should place parsers for all your
+// named values before parsers for positional items and commands. With [Construct] the fields
+// parsed as positional items or commands should be at the end of the struct. The same rule applies
+// to parsers with positional fields or commands inside: such parsers should go to the end as well.
 //
-// Use [check_invariants](OptionParsercheck_invariants) in your test to ensure correctness.
+// Use [OptionParser.CheckInvariants] in your tests to ensure correctness.
 //
-// For example for non-Positional `non_pos` and Positional `pos` parsers
+// For example for non-positional `nonPos` and positional `pos` parsers:
 //
-//	# non_pos := short('n').Switch();
-//	# pos := Positional[string]("POS");
-//	valid := Pair(non_pos, pos);
-//	invalid := Pair(pos, non_pos);
+//	valid := cli.Pair(nonPos, pos)
+//	invalid := cli.Pair(pos, nonPos)
 //
-// **`bpaf` panics during help generation unless this restriction holds**
+// **The library panics during help generation unless this restriction holds**
 //
-// Without using `--` `bpaf` would only accept items that don't start with `-` as Positional, you
-// can use [any] to work around this restriction.
+// Without using `--` the library would only accept items that don't start with `-` as
+// positional, you can use [Any] to work around this restriction.
 //
-// By default `bpaf` accepts Positional items with or without `--` where values permit, you can
-// further restrict the parser to accept Positional items only on the right side of `--` using
-// [strict](ParsePositionalstrict).
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Positional.md"))]
+// By default the parser accepts positional items with or without `--` where values permit, you can
+// further restrict the parser to accept positional items only on the right side of `--` using
+// [ParsePositional.Strict].
 func Positional[T any](metavar Metavar, parse func(string) (T, error)) *ParsePositional[T] {
 	return &ParsePositional[T]{
 		metavar:  metavar,

@@ -55,22 +55,22 @@ func Git() {
 	}).Parser().Fallback("origin").Parser()
 	fetch := cli.Map(cli.Pair(cli.Pair(dry_run, all).Parser(), repository).Parser(), func(x fun.Pair[fun.Pair[bool, bool], string]) Opt { return OptFetch(x.K.K, x.K.V, x.V) }).
 		ToOptions().
-		Descr("fetches branches from remote repository")
+		Description("fetches branches from remote repository")
 
 	fetch_cmd := fetch.Command("fetch")
 
 	interactive := cli.Short('i').Switch()
 	all2 := cli.Long("all").Switch()
-	files := cli.Many(cli.Positional("FILE", parseString).Parser(), false)
+	files := cli.Many(cli.Positional("FILE", parseString).Parser())
 	add := cli.Map(cli.Pair(cli.Pair(interactive, all2).Parser(), files).Parser(), func(x fun.Pair[fun.Pair[bool, bool], []string]) Opt { return OptAdd(x.K.K, x.K.V, x.V) }).
 		ToOptions().
-		Descr("add files to the staging area")
+		Description("add files to the staging area")
 
 	add_cmd := add.Command("add").Help("add files to the staging area")
 
 	opt := cli.Choice(fetch_cmd.Parser(), add_cmd.Parser()).
 		ToOptions().
-		Descr("The stupid content tracker").
+		Description("The stupid content tracker").
 		Run(os.Args)
 
 	fmt.Println(opt)

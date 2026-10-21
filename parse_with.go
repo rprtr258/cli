@@ -3,9 +3,9 @@ package cli
 // Parse
 // Apply a failing transformation to a contained value
 //
-// Transformation preserves the present/absent state of the value: to Parse an fun.Optional value you
+// Transformation preserves the present/absent state of the value: to transform an optional value you
 // can either first try to `Parse` it and then mark it as [Optional] or first
-// deal with the fun.Optionality and then Parse a value wrapped in [Option]. In most cases
+// deal with the optionality first and then transform the value wrapped in [Opt]. In most cases
 // the former approach is more concise.
 //
 // Similarly, it is possible to Parse multiple items with [Many] or
@@ -14,35 +14,22 @@ package cli
 // is more concise.
 //
 // This is a most general of transforming parsers and you can express
-// [Parser.Map] and [Parser.Guard] in terms of it.
-func (self Parser[T]) Parse[R any](f func(T) (R, error)) Parser[R] {
+// [Map] and [Guard] in terms of it.
+func Parse[T, R any, P parser[T]](self P, f func(T) (R, error)) Parser[R] {
 	return Parser[R]{
-		eval: func(state *State) (R, Error) {
-			t, err := self.eval(state)
+		eval: func(state *state) (R, parseError) {
+			t, err := self.Parser().eval(state)
 			if err != nil {
 				return *new(R), err
 			}
 
 			r, errr := f(t)
 			if errr != nil {
-				return *new(R), ErrorParseFailed{state.currentIdx, errr.Error()}
+				return *new(R), errorParseFailed{state.currentIdx, errr.Error()}
 			}
 
 			return r, nil
 		},
-		meta: self.meta,
+		meta: self.Parser().meta,
 	}
-}
-
-// Parse - Apply a failing transformation to a contained value
-//
-// Free-function form of [Parser.Parse] that also accepts builders:
-//
-//	Parse(Positional("N", parseUint32), strconv.ParseUint)
-//
-// is the same as
-//
-//	Positional("N", parseUint32).Parser().Parse(strconv.ParseUint)
-func Parse[T, R any, P parser[T]](self P, f func(T) (R, error)) Parser[R] {
-	return self.Parser().Parse(f)
 }

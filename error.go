@@ -10,75 +10,75 @@ import (
 )
 
 // Unsuccessful command line parsing outcome, internal representation
-type Error interface {
+type parseError interface {
 	isError()
 }
 
 // those can be caught ---------------------------------------------------------------
 // Tried to consume an env variable with no fallback, variable was not set
-type ErrorNoEnv string
+type errorNoEnv string
 
-func (ErrorNoEnv) isError() {}
+func (errorNoEnv) isError() {}
 
 // User specified an error message on some
-type ErrorParseSome string
+type errorParseSome string
 
-func (ErrorParseSome) isError() {}
+func (errorParseSome) isError() {}
 
 // User asked for parser to fail explicitly
-type ErrorParseFail string
+type errorParseFail string
 
-func (ErrorParseFail) isError() {}
+func (errorParseFail) isError() {}
 
 // pure_with failed to parse a value
-type ErrorPureFailed string
+type errorPureFailed string
 
-func (ErrorPureFailed) isError() {}
+func (errorPureFailed) isError() {}
 
 // Expected one of those values
 //
 // Used internally to generate better error messages
-type ErrorMissing []MissingItem
+type errorMissing []missingItem
 
-func (ErrorMissing) isError() {}
+func (errorMissing) isError() {}
 
 // those cannot be caught-------------------------------------------------------------
 // Parsing failed and this is the final output
-type ErrorParseFailure struct{ e ParseFailure }
+type errorParseFailure struct{ e parseFailure }
 
-func (ErrorParseFailure) isError() {}
+func (errorParseFailure) isError() {}
 
 // Tried to consume a strict positional argument, value was present but was not strictly positional
-type ErrorStrictPos struct {
+type errorStrictPos struct {
 	a       int
 	metavar Metavar
 }
 
-func (ErrorStrictPos) isError() {}
+func (errorStrictPos) isError() {}
 
 // Tried to consume a non-strict positional argument, but the value was strict
-type ErrorNonStrictPos struct {
+type errorNonStrictPos struct {
 	a       int
 	metavar Metavar
 }
 
-func (ErrorNonStrictPos) isError() {}
+func (errorNonStrictPos) isError() {}
 
 // Parser provided by user failed to parse a value
-type ErrorParseFailed struct {
-	pos Option[int]
+type errorParseFailed struct {
+	pos Opt[int]
 	msg string
 }
 
-func (ErrorParseFailed) isError() {}
+func (errorParseFailed) isError() {}
 
 // Parser provided by user failed to validate a value
-type ErrorGuardFailed struct {
-	pos Option[int]
+type errorGuardFailed struct {
+	pos Opt[int]
 	msg string
 }
 
-func (ErrorGuardFailed) isError() {}
+func (errorGuardFailed) isError() {}
 
 // Argument requres a value but something else was passed,
 // required: --foo <BAR>
@@ -86,121 +86,122 @@ func (ErrorGuardFailed) isError() {}
 //
 //	--foo -- bar
 //	--foo
-type ErrorNoArgument struct {
+type errorNoArgument struct {
 	ix      int
 	metavar Metavar
 }
 
-func (ErrorNoArgument) isError() {}
+func (errorNoArgument) isError() {}
 
 // Parser is expected to consume all the things from the command line
 // this item will contain an index of the unconsumed value
-type ErrorUnconsumed int
+type errorUnconsumed int
 
-func (ErrorUnconsumed) isError() {}
+func (errorUnconsumed) isError() {}
 
 // argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
-type ErrorAmbiguity struct {
+type errorAmbiguity struct {
 	ix   int
 	name string
 }
 
-func (ErrorAmbiguity) isError() {}
+func (errorAmbiguity) isError() {}
 
 // Suggested fixes for typos or missing input
-type ErrorSuggestion struct {
+type errorSuggestion struct {
 	ix         int
-	suggestion Suggestion
+	suggestion suggestion
 }
 
-func (ErrorSuggestion) isError() {}
+func (errorSuggestion) isError() {}
 
 // Two arguments are mutually exclusive
 // --release --dev
-type ErrorConflict struct{ winner, loser int }
+type errorConflict struct{ winner, loser int }
 
-func (ErrorConflict) isError() {}
+func (errorConflict) isError() {}
 
 // Expected one or more items in the scope, got someting else if any
-type ErrorExpected struct {
-	expected []Item
-	actual   Option[int]
+type errorExpected struct {
+	expected []item
+	actual   Opt[int]
 }
 
-func (ErrorExpected) isError() {}
+func (errorExpected) isError() {}
 
 // Parameter is accepted but only once
-type ErrorOnlyOnce struct{ winner, loser int }
+type errorOnlyOnce struct{ winner, loser int }
 
-func (ErrorOnlyOnce) isError() {}
+func (errorOnlyOnce) isError() {}
 
-func errorToString(self Error) string {
+func errorToString(self parseError) string {
 	switch self := self.(type) {
-	case ErrorNoEnv:
+	case errorNoEnv:
 		return fmt.Sprintf("NoEnv(%#v)", self)
-	case ErrorParseSome:
+	case errorParseSome:
 		return fmt.Sprintf("ParseSome(%#v)", self)
-	case ErrorParseFail:
+	case errorParseFail:
 		return string(self)
-	case ErrorPureFailed:
+	case errorPureFailed:
 		return string(self)
-	case ErrorMissing:
-		return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((MissingItem).String, self...), ", "))
-	case ErrorParseFailure:
-		return fmt.Sprintf("ParseFailure(%#v)", self.e)
-	case ErrorStrictPos:
+	case errorMissing:
+		return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((missingItem).String, self...), ", "))
+	case errorParseFailure:
+		return fmt.Sprintf("parseFailure(%#v)", self.e)
+	case errorStrictPos:
 		return fmt.Sprintf("StrictPos(%#v, %#v)", self.a, self.metavar)
-	case ErrorNonStrictPos:
+	case errorNonStrictPos:
 		return fmt.Sprintf("NonStrictPos(%#v, %#v)", self.a, self.metavar)
-	case ErrorParseFailed:
+	case errorParseFailed:
 		return fmt.Sprintf("ParseFailed(%#v, %#v)", self.pos, self.msg)
-	case ErrorGuardFailed:
+	case errorGuardFailed:
 		return fmt.Sprintf("GuardFailed(%#v, %#v)", self.pos, self.msg)
-	case ErrorNoArgument:
+	case errorNoArgument:
 		return fmt.Sprintf("NoArgument(%#v, %#v)", self.ix, self.metavar)
-	case ErrorUnconsumed:
+	case errorUnconsumed:
 		return fmt.Sprintf("Unconsumed(%#v)", int(self))
-	case ErrorAmbiguity:
+	case errorAmbiguity:
 		return fmt.Sprintf("Ambiguity(%#v, %#v)", self.ix, self.name)
-	case ErrorSuggestion:
-		return fmt.Sprintf("Suggestion(%#v, %#v)", self.ix, self.suggestion)
-	case ErrorConflict:
+	case errorSuggestion:
+		return fmt.Sprintf("suggestion(%#v, %#v)", self.ix, self.suggestion)
+	case errorConflict:
 		return fmt.Sprintf("Conflict(%#v, %#v)", self.winner, self.loser)
-	case ErrorExpected:
+	case errorExpected:
 		return fmt.Sprintf("Expected(%#v, %#v)", self.expected, self.actual)
-	case ErrorOnlyOnce:
+	case errorOnlyOnce:
 		return fmt.Sprintf("OnlyOnce(%#v, %#v)", self.winner, self.loser)
 	}
 	panic("unerasable")
 }
 
-type Range [2]int
+type rng [2]int
 
-func (r Range) start() int           { return r[0] }
-func (r Range) end() int             { return r[1] }
-func (r Range) contains(ix int) bool { return r[0] <= ix && ix < r[1] }
-func (r Range) String() string       { return fmt.Sprintf("[%d, %d]", r[0], r[1]) }
+func (r rng) start() int           { return r[0] }
+func (r rng) end() int             { return r[1] }
+func (r rng) contains(ix int) bool { return r[0] <= ix && ix < r[1] }
+func (r rng) String() string       { return fmt.Sprintf("[%d, %d]", r[0], r[1]) }
 
 // Missing item in a context
-type MissingItem struct {
-	// Item that is missing
-	item Item
-	// Position it is missing from - exact for positionals, earliest possible for flags
+type missingItem struct {
+	// item that is missing
+	item item
+	// posKind it is missing from - exact for positionals, earliest possible for flags
 	position int
-	// Range where search was performed, important for combinators that narrow the search scope such as adjacent
-	scope Range
+	// rng where search was performed, important for combinators that narrow the search scope such as adjacent
+	scope rng
 }
 
-func (mi MissingItem) String() string {
+func (mi missingItem) String() string {
 	return fmt.Sprintf(
-		"MissingItem{item: %s, position: %d, scope: %s}",
+		"missingItem{item: %s, position: %d, scope: %s}",
 		mi.item.String(), mi.position, mi.scope.String(),
 	)
 }
 
 // Unsuccessful command line parsing outcome, use it for unit tests
 //
-// When [OptionParserrun_inner](crateOptionParserrun_inner) produces `Err(ParseFailure)`
+// When the internal run helper produces a failure it means that the parser couldn't
+// produce the value it was supposed to produce and the program should terminate.
 // it means that the parser couldn't produce the value it supposed to produce and the program
 // should terminate.
 //
@@ -216,57 +217,57 @@ func (mi MissingItem) String() string {
 // [ParseFailureunwrap_stdout] and [ParseFailureunwrap_stdout] - both of which produce a
 // an unformatted `String` that parser might produce if failure type is correct or panics
 // otherwise.
-type ParseFailure interface {
+type parseFailure interface {
 	isParseFailure()
 }
 
 // Print this to stdout and exit with success code
-type ParseFailureStdout struct {
+type parseFailureStdout struct {
 	msg  Doc
 	full bool
 }
 
-func (ParseFailureStdout) isParseFailure() {}
+func (parseFailureStdout) isParseFailure() {}
 
 // This also goes to stdout with exit code of 0,
 // this cannot be Doc because completion needs more control about rendering
-type ParseFailureCompletion string
+type parseFailureCompletion string
 
-func (ParseFailureCompletion) isParseFailure() {}
+func (parseFailureCompletion) isParseFailure() {}
 
 // Print this to stderr and exit with failure code
-type ParseFailureStderr Doc
+type parseFailureStderr Doc
 
-func (ParseFailureStderr) isParseFailure() {}
+func (parseFailureStderr) isParseFailure() {}
 
-func can_catch(self Error) bool {
+func can_catch(self parseError) bool {
 	switch self.(type) {
 	case
-		ErrorNoEnv,
-		ErrorParseSome,
-		ErrorParseFail,
-		ErrorPureFailed,
-		ErrorMissing,
-		ErrorNonStrictPos:
+		errorNoEnv,
+		errorParseSome,
+		errorParseFail,
+		errorPureFailed,
+		errorMissing,
+		errorNonStrictPos:
 		return true
 	}
 	return false
 }
 
-func combine_with(self, other Error) Error {
+func combine_with(self, other parseError) parseError {
 	// help output takes priority
-	if _, ok := self.(ErrorParseFailure); ok {
+	if _, ok := self.(errorParseFailure); ok {
 		return self
 	}
-	if _, ok := other.(ErrorParseFailure); ok {
+	if _, ok := other.(errorParseFailure); ok {
 		return other
 	}
 
 	// combine missing elements
-	a, oka := self.(ErrorMissing)
-	b, okb := other.(ErrorMissing)
+	a, oka := self.(errorMissing)
+	b, okb := other.(errorMissing)
 	if oka && okb {
-		return ErrorMissing(append(a, b...))
+		return errorMissing(append(a, b...))
 	}
 
 	// otherwise earliest wins
@@ -282,13 +283,13 @@ func combine_with(self, other Error) Error {
 // # Panics
 //
 // Panics if failure contains `stdout`
-func unwrap_stderr(self ParseFailure) string {
+func unwrap_stderr(self parseFailure) string {
 	switch self := self.(type) {
-	case ParseFailureStdout:
+	case parseFailureStdout:
 		panic(fmt.Sprintf("not an stderr: %#v", self))
-	case ParseFailureCompletion:
+	case parseFailureCompletion:
 		panic(fmt.Sprintf("not an stderr: %#v", self))
-	case ParseFailureStderr:
+	case parseFailureStderr:
 		return Doc(self).monochrome(true)
 	}
 	panic(fmt.Sprintf("unreachable %T", self))
@@ -299,19 +300,19 @@ func unwrap_stderr(self ParseFailure) string {
 // # Panics
 //
 // Panics if failure contains `stderr`
-func unwrap_stdout(self ParseFailure) string {
+func unwrap_stdout(self parseFailure) string {
 	switch self := self.(type) {
-	case ParseFailureStdout:
+	case parseFailureStdout:
 		return self.msg.monochrome(self.full)
-	case ParseFailureCompletion:
+	case parseFailureCompletion:
 		return string(self)
-	case ParseFailureStderr:
+	case parseFailureStderr:
 		panic(fmt.Sprintf("not an stdout: %#v", self))
 	}
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-func textual_part(state State, ixxx Option[int]) (string, bool) {
+func textual_part(state state, ixxx Opt[int]) (string, bool) {
 	ixx, ok := ixxx.Unpack()
 	if !ok {
 		return "", false
@@ -323,13 +324,13 @@ func textual_part(state State, ixxx Option[int]) (string, bool) {
 	}
 
 	switch ix.kind {
-	case ArgKindWord, ArgKindPositional:
+	case argKindWord, argKindPositional:
 		return ix.str, true
 	}
 	return "", false
 }
 
-func only_once(state State, cur int) (int, bool) {
+func only_once(state state, cur int) (int, bool) {
 	if cur == 0 {
 		return 0, false
 	}
@@ -345,10 +346,10 @@ func only_once(state State, cur int) (int, bool) {
 		okk    bool
 	)
 	switch v.kind {
-	case ArgKindShortFlag:
-		offset, okk = position(iter, func(a Arg) bool { return a.match_short(v.c) })
-	case ArgKindLongFlag:
-		offset, okk = position(iter, func(a Arg) bool { return a.match_long(v.s) })
+	case argKindShortFlag:
+		offset, okk = position(iter, func(a arg) bool { return a.match_short(v.c) })
+	case argKindLongFlag:
+		offset, okk = position(iter, func(a arg) bool { return a.match_long(v.s) })
 	}
 	if !okk {
 		return 0, false
@@ -356,192 +357,192 @@ func only_once(state State, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func render(self *Error, state State, meta Meta) ParseFailure {
+func render(self *parseError, state state, meta meta) parseFailure {
 	// try to come up with a better error message for a few cases
 	switch e := (*self).(type) {
-	case ErrorMissing:
+	case errorMissing:
 		*self = summarize_missing(e, meta, state)
-	case ErrorUnconsumed:
+	case errorUnconsumed:
 		ix := int(e)
 
 		if loserwinner, ok := state.conflict(); ok {
 			loser, winner := loserwinner.start(), loserwinner.end()
-			*self = ErrorConflict{winner, loser}
+			*self = errorConflict{winner, loser}
 		} else if prev_ix, ok := only_once(state, ix); ok {
-			*self = ErrorOnlyOnce{prev_ix, ix}
+			*self = errorOnlyOnce{prev_ix, ix}
 		} else if ix, suggestion, ok := suggest(state, meta); ok {
-			*self = ErrorSuggestion{ix, suggestion}
+			*self = errorSuggestion{ix, suggestion}
 		}
 	}
 
 	doc := Doc{}
 	switch e := (*self).(type) {
-	case ErrorNoEnv:
+	case errorNoEnv:
 		name := string(e)
-		// Error: environment variable FOO is not set
+		// parseError: environment variable FOO is not set
 		doc.Text("environment variable ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Invalid(name)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" is not set")
-	case ErrorParseSome:
+	case errorParseSome:
 		s := string(e)
-		// Error: <message from some or fail>
+		// parseError: <message from some or fail>
 		doc.Text(s)
-	case ErrorParseFail:
+	case errorParseFail:
 		s := string(e)
-		// Error: <message from some or fail>
+		// parseError: <message from some or fail>
 		doc.Text(s)
-	case ErrorPureFailed:
+	case errorPureFailed:
 		s := string(e)
-		// Error: <message from pure_with>
+		// parseError: <message from pure_with>
 		doc.Text(s)
-	case ErrorMissing:
+	case errorMissing:
 		// this case is handled above(?)
 		// this one is unreachable
 		// already rendered
-	case ErrorParseFailure:
+	case errorParseFailure:
 		return e.e
-	case ErrorStrictPos:
-		// Error: FOO expected to be  in the right side of --
+	case errorStrictPos:
+		// parseError: FOO expected to be  in the right side of --
 		doc.Text("expected ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.metavar(e.metavar)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" to be on the right side of ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Literal("--")
-		doc.token(TokenBlockEnd(BlockTermRef))
-	case ErrorNonStrictPos:
-		// Error: FOO expected to be on the left side of --
+		doc.token(tokenBlockEnd(blockTermRef))
+	case errorNonStrictPos:
+		// parseError: FOO expected to be on the left side of --
 		doc.Text("expected ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.metavar(e.metavar)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" to be on the left side of ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Literal("--")
-		doc.token(TokenBlockEnd(BlockTermRef))
-	case ErrorParseFailed:
-		// Error: couldn't parse FIELD: <FromStr message>
+		doc.token(tokenBlockEnd(blockTermRef))
+	case errorParseFailed:
+		// parseError: couldn't parse FIELD: <FromStr message>
 		doc.Text("couldn't parse")
 		if field, ok := textual_part(state, e.pos); ok {
 			doc.Text(" ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.Invalid(field)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 		}
 		doc.Text(": ")
 		doc.Text(e.msg)
-	case ErrorGuardFailed:
-		// Error: ( FIELD:  | check failed: ) <message from guard>
+	case errorGuardFailed:
+		// parseError: ( FIELD:  | check failed: ) <message from guard>
 		if field, ok := textual_part(state, e.pos); ok {
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.Invalid(field)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(": ")
 		} else {
 			doc.Text("check failed: ")
 		}
 		doc.Text(e.msg)
-	case ErrorNoArgument:
-		// Error: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
-		// Error: --foo requires an argument FOO
+	case errorNoArgument:
+		// parseError: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
+		// parseError: --foo requires an argument FOO
 		a, ok := state.get(e.ix + 1)
 		if ok && (a.IsShort() || a.IsLong()) {
 			arg := &state.items[e.ix]
 
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(arg.GoString(), StyleLiteral)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(" requires an argument ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.metavar(e.metavar)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(", got a flag ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(a.str, StyleInvalid)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(", try ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(arg.GoString(), StyleLiteral)
 			doc.Literal("=")
 			doc.write(a.str, StyleLiteral)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(" to use it as an argument")
 		} else {
 			// "Some" part of this branch is actually unreachable
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(state.items[e.ix].GoString(), StyleLiteral)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(" requires an argument ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.metavar(e.metavar)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 		}
-	case ErrorUnconsumed:
+	case errorUnconsumed:
 		ix := int(e)
-		// Error: --foo is not expected in this context
-		doc.token(TokenBlockStart(BlockTermRef))
+		// parseError: --foo is not expected in this context
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.write(state.items[ix].GoString(), StyleInvalid)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" is not expected in this context")
-	case ErrorAmbiguity:
+	case errorAmbiguity:
 		name, ix := e.name, e.ix
-		// Error: app supports -f as both an option and an fun.Option-argument, try to split -foo
-		// into invididual fun.Options (-f -o ..) or use -f=oo syntax to disambiguate
-		first := name[0]
-		second := name[1]
+		// parseError: app supports -f as both an option and an argument, try to split -foo
+		// into individual options (-f -o ..) or use -f=oo syntax to disambiguate
+		c0 := name[0]
+		c1 := name[1]
 		rest := name[1:]
 		s := state.items[ix].str
 
-		if name, ok := First(state.path).Unpack(); ok {
+		if name, ok := first(state.path).Unpack(); ok {
 			doc.Literal(name)
 			doc.Text(" supports ")
 		} else {
 			doc.Text("app supports ")
 		}
 
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Literal("-")
-		doc.write_char(first, StyleLiteral)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.write_char(c0, StyleLiteral)
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" as both an option and an option-argument, try to split ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.write(s, StyleLiteral)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" into individual options (")
 		doc.Literal("-")
-		doc.write_char(first, StyleLiteral)
+		doc.write_char(c0, StyleLiteral)
 		doc.Literal(" -")
-		doc.write_char(second, StyleLiteral)
+		doc.write_char(c1, StyleLiteral)
 		doc.Literal(" ..")
 		doc.Text(") or use ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Literal("-")
-		doc.write_char(first, StyleLiteral)
+		doc.write_char(c0, StyleLiteral)
 		doc.Literal("=")
 		doc.Literal(rest)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" syntax to disambiguate")
-	case ErrorSuggestion:
+	case errorSuggestion:
 		ix, suggestion := e.ix, e.suggestion
-		// Error: No such (flag|argument|command), did you mean  ...
+		// parseError: No such (flag|argument|command), did you mean  ...
 		actual := state.items[ix].GoString()
 		suggestion(
-			func(v Variant) {
+			func(v variant) {
 				var ty string
 				if starts_withb(actual, '-') {
 					ty = "flag"
 				} else {
 					switch state.items[ix].kind {
-					case ArgKindShortFlag:
+					case argKindShortFlag:
 						ty = "flag"
-					case ArgKindLongFlag:
+					case argKindLongFlag:
 						ty = "flag"
-					case ArgKindWord:
+					case argKindWord:
 						ty = "command or positional"
-					case ArgKindPositional:
+					case argKindPositional:
 						ty = "command or positional"
 					}
 				}
@@ -549,17 +550,17 @@ func render(self *Error, state State, meta Meta) ParseFailure {
 				doc.Text("no such ")
 				doc.Text(ty)
 				doc.Text(": ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Invalid(actual)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text(", did you mean ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 
 				v(
 					func(name string) {
 						doc.Literal(name)
 					},
-					func(f ShortLong) {
+					func(f shortLong) {
 						if f.is_short() {
 							doc.Literal("-")
 							doc.write_char(f.Short, StyleLiteral)
@@ -570,126 +571,126 @@ func render(self *Error, state State, meta Meta) ParseFailure {
 					},
 				)
 
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text("?")
 			},
 			func(name string) {
 				doc.Text("no such flag: ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal("-")
 				doc.Literal(name)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text(" (with one dash), did you mean ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal("--")
 				doc.Literal(name)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text("?")
 			},
 			func(name byte) {
 				doc.Text("no such flag: ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal("--")
 				doc.write_char(name, StyleLiteral)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text(" (with two dashes), did you mean ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal("-")
 				doc.write_char(name, StyleLiteral)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text("?")
 			},
-			func(x string, v Variant) {
+			func(x string, v variant) {
 				var ty string
 				v(
 					func(string) { ty = "subcommand" },
-					func(ShortLong) { ty = "flag" },
+					func(shortLong) { ty = "flag" },
 				)
 				doc.Text(ty)
 				doc.Text(" ")
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal(actual)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text(
 					" is not valid in this context, did you mean to pass it to command ",
 				)
-				doc.token(TokenBlockStart(BlockTermRef))
+				doc.token(tokenBlockStart(blockTermRef))
 				doc.Literal(x)
-				doc.token(TokenBlockEnd(BlockTermRef))
+				doc.token(tokenBlockEnd(blockTermRef))
 				doc.Text("?")
 			},
 		)
-	case ErrorConflict:
+	case errorConflict:
 		winner, loser := e.winner, e.loser
-		// Error: --intel cannot be used at the same time as --att
-		doc.token(TokenBlockStart(BlockTermRef))
+		// parseError: --intel cannot be used at the same time as --att
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.write(state.items[loser].GoString(), StyleLiteral)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" cannot be used at the same time as ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.write(state.items[winner].GoString(), StyleLiteral)
-		doc.token(TokenBlockEnd(BlockTermRef))
-	case ErrorExpected:
+		doc.token(tokenBlockEnd(blockTermRef))
+	case errorExpected:
 		exp, actual := e.expected, e.actual
-		// Error: Expected (no arguments|--foo), got ..., pass --help
+		// parseError: Expected (no arguments|--foo), got ..., pass --help
 		doc.Text("expected ")
 		switch len(exp) {
 		case 0:
 			doc.Text("no arguments")
 		case 1:
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write_item(exp[0])
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 		case 2:
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write_item(exp[0])
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(" or ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write_item(exp[1])
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 		default:
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write_item(exp[0])
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(", ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write_item(exp[1])
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(", or more")
 		}
 
 		if actual, ok := actual.Unpack(); ok {
 			doc.Text(", got ")
-			doc.token(TokenBlockStart(BlockTermRef))
+			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(state.items[actual].GoString(), StyleInvalid)
-			doc.token(TokenBlockEnd(BlockTermRef))
+			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(". Pass ")
 		} else {
 			doc.Text(", pass ")
 		}
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.Literal("--help")
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" for usage information")
-	case ErrorOnlyOnce:
+	case errorOnlyOnce:
 		loser := e.loser
-		// Error: argument FOO cannot be used multiple times in this context
+		// parseError: argument FOO cannot be used multiple times in this context
 		doc.Text("argument ")
-		doc.token(TokenBlockStart(BlockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
 		doc.write(state.items[loser].GoString(), StyleLiteral)
-		doc.token(TokenBlockEnd(BlockTermRef))
+		doc.token(tokenBlockEnd(blockTermRef))
 		doc.Text(" cannot be used multiple times in this context")
 	}
-	return ParseFailureStderr(doc)
+	return parseFailureStderr(doc)
 }
 
 // go over all the missing items, pick the left most scope
-func summarize_missing(items []MissingItem, inner Meta, state State) Error {
+func summarize_missing(items []missingItem, inner meta, state state) parseError {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(
 		slices.Values(items),
-		func(a, b MissingItem) int {
+		func(a, b missingItem) int {
 			aa, ab := a.position, a.scope.start()
 			ba, bb := b.position, b.scope.start()
 			return cmp.Or(
@@ -699,18 +700,18 @@ func summarize_missing(items []MissingItem, inner Meta, state State) Error {
 		},
 	)
 	if !ok {
-		return ErrorParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+		return errorParseFail("parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 	}
 
 	best_scope := best_item.scope
 
 	saw_command := false
-	expected := slices.Collect(filter_map(slices.Values(items), func(i MissingItem) (Item, bool) {
-		if _, cmd := i.item.v.(ItemCommand); i.scope == best_scope && !(saw_command && cmd) {
+	expected := slices.Collect(filter_map(slices.Values(items), func(i missingItem) (item, bool) {
+		if _, cmd := i.item.v.(itemCommand); i.scope == best_scope && !(saw_command && cmd) {
 			saw_command = saw_command || cmd
 			return i.item, true
 		} else {
-			return Item{}, false
+			return item{}, false
 		}
 	}))
 
@@ -719,11 +720,11 @@ func summarize_missing(items []MissingItem, inner Meta, state State) Error {
 	state.scope = best_scope
 	if ix, _, ok := state.items_iter()(); ok {
 		if iy, sugg, ok := suggest(state, inner); ok {
-			return ErrorSuggestion{iy, sugg}
+			return errorSuggestion{iy, sugg}
 		} else {
-			return ErrorExpected{expected, Valid(ix)}
+			return errorExpected{expected, Valid(ix)}
 		}
 	}
 
-	return ErrorExpected{expected, Invalid[int]()}
+	return errorExpected{expected, Invalid[int]()}
 }

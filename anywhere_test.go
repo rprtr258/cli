@@ -1,11 +1,9 @@
-package cli_test
+package cli
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-
-	. "github.com/rprtr258/cli"
 )
 
 func TestParse_anywhere_positional(t *testing.T) {
@@ -49,12 +47,12 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := Optional(Pair(a, b).Adjacent().Parser(), true)
+	ab := OptionalCatch(Pair(a, b).Adjacent().Parser())
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
 
 	type P = fun.Pair[struct{}, uint]
-	type R = fun.Pair[Option[P], bool]
+	type R = fun.Pair[Opt[P], bool]
 	assertSuccess(t, R{Valid(P{struct{}{}, 10}), false}, parser, "-a", "10")
 	assertSuccess(t, R{Invalid[P](), true}, parser, "-a")
 	assertSuccess(t, R{Invalid[P](), false}, parser)
@@ -63,7 +61,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 func TestAnywhere_catch_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := Many(Pair(a, b).Adjacent(), true)
+	ab := ManyCatch(Pair(a, b).Adjacent())
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).Parser().ToOptions()
 
@@ -94,7 +92,7 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
-	ab := Optional(Pair(a, b).Adjacent().Parser(), true)
+	ab := OptionalCatch(Pair(a, b).Adjacent().Parser())
 	c := Short('c').Switch()
 	parser := Pair(ab, c).Parser().ToOptions()
 
@@ -114,7 +112,7 @@ func TestAnywhere_literal(t *testing.T) {
 		false,
 	)
 	mode := Positional("value", parseUint)
-	a := Many(Pair(tag, mode).Adjacent(), true)
+	a := ManyCatch(Pair(tag, mode).Adjacent())
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]P, bool]

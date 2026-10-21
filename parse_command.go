@@ -2,60 +2,44 @@ package cli
 
 import "github.com/rprtr258/fun"
 
-// Builder structure for the [command]
+// Builder structure for a subcommand parser
 //
-// Created with [command], implements parser for the inner structure, gives access to [help](ParseCommandhelp).
+// Created with [Command]; implements a parser for the inner structure, allows attaching
+// a help message with [ParseCommand.Help].
 type ParseCommand[T any] struct {
 	longs  []string
 	shorts []byte
 	// short help!
-	help      Option[Doc]
+	help      Opt[Doc]
 	subparser OptionParser[T]
 	adjacent  bool
 }
 
 // Add a brief description to a command
 //
-// `bpaf` uses this description along with the command name
-// in help output so it shouldn't exceed one or two lines. If `help` isn't specified
-// `bpaf` falls back to [descr](OptionParserdescr) from the inner parser.
+// The library uses this description along with the command name in the help output
+// so it shouldn't exceed one or two lines. If `help` isn't specified the library falls
+// back to the description of the inner parser set with [OptionParser.Description].
 //
-// # Combinatoric usage
+// # Usage
 //
-// ```rust
+//	inner := cli.Short('i').
+//	    Help("Mysterious inner switch").
+//	    Switch().
+//	    Parser().
+//	    ToOptions().
+//	    Description("performs an operation")
 //
-//	func inner()OptionParser<bool> {
-//	    short('i')
-//	        .help("Mysterious inner switch")
-//	        .Switch()
-//	        .to_options()
-//	        .descr("performs an operation")
-//	}
-//
-//	func mysterious_parser()impl Parser<bool> {
-//	    inner().command("mystery")
-//	        .help("This command performs a mystery operation")
-//	}
-//
-// ```
-//
-// # Derive usage
-// `bpaf_derive` uses doc comments for inner parser, no specific fun.Options are available.
-// See [descr](OptionParserdescr) for more details
-// ```rust
-// // This command performs a mystery operation
-//
-// #[bpaf(command)]
-//
-//	struct Mystery {
-//	    #[bpaf(short)]
-//	    // Mysterious inner switch
-//	    inner bool,
-//	}
-//
-// ```
+//	mysteryParser := inner.
+//	    Command("mystery").
+//	    Help("This command performs a mystery operation")
 //
 // # Example
+//
+//	$ app --help
+//	Available commands:
+//	  mystery  This command performs a mystery operation// # Example
+//
 // ```console
 // $ app --help
 //
@@ -73,7 +57,7 @@ func (self *ParseCommand[P]) Help(help string) *ParseCommand[P] {
 
 // Add a custom short alias for a command
 //
-// Behavior is similar to [short](NamedArgshort), only first short name is visible.
+// Behavior is similar to [NamedArg.Short]: only the first short name is visible.
 func (self *ParseCommand[P]) Short(short byte) *ParseCommand[P] {
 	self.shorts = append(self.shorts, short)
 	return self
@@ -81,7 +65,7 @@ func (self *ParseCommand[P]) Short(short byte) *ParseCommand[P] {
 
 // Add a custom hidden long alias for a command
 //
-// Behavior is similar to [long](NamedArglong), but since you had to specify the first long
+// Behavior is similar to [NamedArg.Long], but since you had to specify the first long
 // name when making the command - this one becomes a hidden alias.
 func (self *ParseCommand[P]) Long(long string) *ParseCommand[P] {
 	self.longs = append(self.longs, long)
@@ -104,17 +88,17 @@ func (self *ParseCommand[P]) Long(long string) *ParseCommand[P] {
 // while here in the second one the name and all the consumed items are adjacent to each other so
 // parsing will succeed.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
+// The library panics during help generation if this restriction is violated.
 func (self *ParseCommand[P]) Adjacent() *ParseCommand[P] {
 	self.adjacent = true
 	return self
 }
 
 func (self ParseCommand[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, MetaItem(self.item())}
+	return Parser[T]{self.eval, metaItem(self.item())}
 }
 
-func (self ParseCommand[T]) eval(state *State) (T, Error) {
+func (self ParseCommand[T]) eval(state *state) (T, parseError) {
 	// used to avoid allocations for short names
 	tmp := ""
 	if fun.Any(func(long string) bool { return state.takeCmd(long) }, self.longs...) || fun.Any(func(s byte) bool {
@@ -124,12 +108,12 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 		if state.touching_last_remove() {
 			// in completion mode prefer to autocomplete the command name vs going inside the parser
 			state.clear_comps()
-			state.push_command(self.longs[0], First(self.shorts), self.help)
-			return *new(T), ErrorMissing(nil)
+			state.push_command(self.longs[0], first(self.shorts), self.help)
+			return *new(T), errorMissing(nil)
 		}
 
 		if cur, ok := state.currentIdx.Unpack(); ok {
-			state.scope = Range{cur, state.scope.end()}
+			state.scope = rng{cur, state.scope.end()}
 		}
 
 		state.path = append(state.path, self.longs[0])
@@ -150,7 +134,7 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 						return res, nil
 					}
 				}
-				return *new(T), Error(ErrorParseFailure{xxx})
+				return *new(T), parseError(errorParseFailure{xxx})
 			}
 
 			state.scope = orig_args.scope
@@ -158,13 +142,13 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 		} else {
 			v, e := self.subparser.run_subparser(state)
 			if e != nil {
-				return *new(T), ErrorParseFailure{e}
+				return *new(T), errorParseFailure{e}
 			}
 			return v, nil
 		}
 	} else {
-		state.push_command(self.longs[0], First(self.shorts), self.help)
-		return *new(T), ErrorMissing([]MissingItem{{
+		state.push_command(self.longs[0], first(self.shorts), self.help)
+		return *new(T), errorMissing([]missingItem{{
 			item:     self.item(),
 			position: state.scope.start(),
 			scope:    state.scope,
@@ -172,10 +156,10 @@ func (self ParseCommand[T]) eval(state *State) (T, Error) {
 	}
 }
 
-func (self ParseCommand[T]) item() Item {
-	return Item{self.help, ItemCommand{
+func (self ParseCommand[T]) item() item {
+	return item{self.help, itemCommand{
 		self.longs[0],
-		First(self.shorts),
+		first(self.shorts),
 		self.subparser.inner.meta,
 		self.subparser.info,
 	}}
@@ -188,30 +172,25 @@ func (self ParseCommand[T]) item() Item {
 // too.
 //
 // # Important restriction
-// When parsing Command arguments from Command lines you should have parsers for all your
-// named values before parsers for commands and positional items. In derive API fields parsed as
-// positional should be at the end of your `struct`/`enum`. Same rule applies
+// When parsing command arguments from command lines you should place parsers for all your
+// named values before parsers for commands and positional items. With [Construct] the fields
+// parsed as commands or positional items should be at the end of the struct. The same rule applies
 // to parsers with positional fields or commands inside: such parsers should go to the end as well.
 //
-// Use [check_invariants](OptionParsercheck_invariants) in your test to ensure correctness.
+// Use [OptionParser.CheckInvariants] in your tests to ensure correctness.
 //
-// For example for non positional `non_pos` and a Command `Command` parsers
-// ```rust
-// # non_pos := || short('n').Switch();
-// # Command := || pure(struct{}{}).to_options().Command("POS");
-// valid := construct(non_pos(), Command());
-// invalid := construct(Command(), non_pos());
-// ```
+// For example for a non-positional `nonPos` and a command `command` parsers:
 //
-// **`bpaf` panics during help generation unless if this restriction holds**
+//	valid := cli.Pair(nonPos, command.Parser())
+//	invalid := cli.Pair(command.Parser(), nonPos)
 //
-// You can attach a single visible short alias and multiple hiddden short and long aliases
-// using [short](ParseCommandshort) and [long](ParseCommandlong) methods.
+// **The library panics during help generation if this restriction is violated.**
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Command.md"))]
+// You can attach a single visible short alias and multiple hidden short and long aliases
+// using [ParseCommand.Short] and [ParseCommand.Long] methods.
 //
-// To represent multiple possible commands it is convenient to use enums
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/command_enum.md"))]
+// To represent multiple possible commands with [Construct] define a field per command in the
+// struct and make each one [Optional].
 func (self OptionParser[T]) Command(name string) *ParseCommand[T] {
 	return &ParseCommand[T]{
 		longs:     []string{name},

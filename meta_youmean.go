@@ -8,70 +8,70 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type Variant func(
+type variant func(
 	CommandLong func(string),
-	Flag func(ShortLong),
+	Flag func(shortLong),
 )
 
-func VariantCommandLong(name string) Variant {
-	return func(CommandLong func(string), _ func(ShortLong)) {
+func variantCommandLong(name string) variant {
+	return func(CommandLong func(string), _ func(shortLong)) {
 		if CommandLong != nil {
 			CommandLong(name)
 		}
 	}
 }
 
-func VariantFlag(name ShortLong) Variant {
-	return func(_ func(string), Flag func(ShortLong)) {
+func variantFlag(name shortLong) variant {
+	return func(_ func(string), Flag func(shortLong)) {
 		if Flag != nil {
 			Flag(name)
 		}
 	}
 }
 
-type Suggestion func(
-	Variant func(Variant),
+type suggestion func(
+	variant func(variant),
 	// expected --foo, actual -foo
 	MissingDash func(string),
 	// expected -f, actual --f
 	ExtraDash func(byte),
-	Nested func(string, Variant),
+	Nested func(string, variant),
 )
 
-func SuggestionVariant(variant Variant) Suggestion {
-	return func(Variant func(Variant), _ func(string), _ func(byte), _ func(string, Variant)) {
-		if Variant != nil {
-			Variant(variant)
+func suggestionVariant(v variant) suggestion {
+	return func(vv func(variant), _ func(string), _ func(byte), _ func(string, variant)) {
+		if vv != nil {
+			vv(v)
 		}
 	}
 }
 
-func SuggestionMissingDash(long string) Suggestion {
-	return func(_ func(Variant), MissingDash func(string), _ func(byte), _ func(string, Variant)) {
+func suggestionMissingDash(long string) suggestion {
+	return func(_ func(variant), MissingDash func(string), _ func(byte), _ func(string, variant)) {
 		if MissingDash != nil {
 			MissingDash(long)
 		}
 	}
 }
 
-func SuggestionExtraDash(short byte) Suggestion {
-	return func(_ func(Variant), _ func(string), ExtraDash func(byte), _ func(string, Variant)) {
+func suggestionExtraDash(short byte) suggestion {
+	return func(_ func(variant), _ func(string), ExtraDash func(byte), _ func(string, variant)) {
 		if ExtraDash != nil {
 			ExtraDash(short)
 		}
 	}
 }
 
-func SuggestionNested(name string, variant Variant) Suggestion {
-	return func(_ func(Variant), _ func(string), _ func(byte), Nested func(string, Variant)) {
+func suggestionNested(name string, v variant) suggestion {
+	return func(_ func(variant), _ func(string), _ func(byte), Nested func(string, variant)) {
 		if Nested != nil {
-			Nested(name, variant)
+			Nested(name, v)
 		}
 	}
 }
 
 // Looks for potential typos
-func suggest_zalupa(state State, meta Meta, return_ func(int, Suggestion, bool)) {
+func suggest_zalupa(state state, meta meta, return_ func(int, suggestion, bool)) {
 	next := state.items_iter()
 	ix, arg, ok := next()
 	if !ok {
@@ -90,78 +90,78 @@ func suggest_zalupa(state State, meta Meta, return_ func(int, Suggestion, bool))
 	actual := arg.GoString()
 
 	// all the help items one level deep
-	hi := HelpItemsdefault()
+	hi := helpItemsDefault()
 	hi.append_meta(meta)
 
 	// this will be used to avoid reallocations on scannign
-	nested := HelpItemsdefault()
+	nested := helpItemsDefault()
 
 	// while scanning keep the closest match
-	best_switch := Invalid[Variant]()
+	best_switch := Invalid[variant]()
 	best_dist := math.MaxInt
-	improve := func(dist int, val Variant) {
+	improve := func(dist int, val variant) {
 		if best_dist > dist && dist > 0 && dist < 4 {
 			best_dist = dist
 			best_switch = Valid(val)
 		}
 	}
 
-	nest := Invalid[fun.Pair[string, Variant]]()
+	nest := Invalid[fun.Pair[string, variant]]()
 	for _, item := range hi {
 		switch item := item.(type) {
-		case HelpItemCommand:
+		case helpItemCommand:
 			name, meta := item.name, item.meta
 			// command can result in 2 types of suggestions:
 			// - typo in a short or a long name
 			// - there is a nested command that matches perfectly - try using that
 			distance := damerau_levenshtein(actual, name)
-			improve(distance, VariantCommandLong(name))
+			improve(distance, variantCommandLong(name))
 
 			// scan nested items and look for exact matches only
 			nested = nil
 			nested.append_meta(meta)
 			for _, item := range nested {
 				switch item := item.(type) {
-				case HelpItemCommand:
+				case helpItemCommand:
 					nname := item.name
 					if nname == actual {
-						nest = Valid(fun.Pair[string, Variant]{name, VariantCommandLong(nname)})
+						nest = Valid(fun.Pair[string, variant]{name, variantCommandLong(nname)})
 					}
-				case HelpItemFlag:
+				case helpItemFlag:
 					nname := item.name
 					if nname.eq(actual) {
-						nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
+						nest = Valid(fun.Pair[string, variant]{name, variantFlag(nname)})
 					}
-				case HelpItemArgument:
+				case helpItemArgument:
 					nname := item.name
 					if nname.eq(actual) {
-						nest = Valid(fun.Pair[string, Variant]{name, VariantFlag(nname)})
+						nest = Valid(fun.Pair[string, variant]{name, variantFlag(nname)})
 					}
 				}
 			}
-		case HelpItemFlag:
+		case helpItemFlag:
 			name := item.name
 			if long, ok := name.as_long(); ok {
 				distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
-				improve(distance, VariantFlag(name))
+				improve(distance, variantFlag(name))
 			}
 			if short, ok := name.as_short(); ok {
 				if act, ok := strings.CutPrefix(actual, "--"); ok {
 					if act == string(short) {
-						return_(ix, SuggestionExtraDash(short), true)
+						return_(ix, suggestionExtraDash(short), true)
 					}
 				}
 			}
-		case HelpItemArgument:
+		case helpItemArgument:
 			name := item.name
 			if long, ok := name.as_long(); ok {
 				distance := damerau_levenshtein(actual, fmt.Sprintf("--%v", long))
-				improve(distance, VariantFlag(name))
+				improve(distance, variantFlag(name))
 			}
 			if short, ok := name.as_short(); ok {
 				if act, ok := strings.CutPrefix(actual, "--"); ok {
 					if act == string(short) {
-						return_(ix, SuggestionExtraDash(short), true)
+						return_(ix, suggestionExtraDash(short), true)
 					}
 				}
 			}
@@ -169,7 +169,7 @@ func suggest_zalupa(state State, meta Meta, return_ func(int, Suggestion, bool))
 	}
 
 	if namevariant, ok := nest.Unpack(); ok {
-		return_(ix, SuggestionNested(namevariant.K, namevariant.V), true)
+		return_(ix, suggestionNested(namevariant.K, namevariant.V), true)
 	} else {
 		// skip confusing errors
 		if best_dist == math.MaxInt {
@@ -183,21 +183,21 @@ func suggest_zalupa(state State, meta Meta, return_ func(int, Suggestion, bool))
 		// handle missing single dash typos separately
 		best_match(
 			nil,
-			func(n ShortLong) {
+			func(n shortLong) {
 				if long, ok := n.as_long(); ok {
 					if s, ok := strings.CutPrefix(actual, "-"); ok && s == long {
-						return_(ix, SuggestionMissingDash(long), true)
+						return_(ix, suggestionMissingDash(long), true)
 					}
 				}
 
 			},
 		)
-		return_(ix, SuggestionVariant(best_match), true)
+		return_(ix, suggestionVariant(best_match), true)
 	}
 
 }
 
-func suggest(state State, meta Meta) (a int, b Suggestion, c bool) {
+func suggest(state state, meta meta) (a int, b suggestion, c bool) {
 	type zalupa struct{}
 	defer func() {
 		if r := recover(); r != nil {
@@ -208,7 +208,7 @@ func suggest(state State, meta Meta) (a int, b Suggestion, c bool) {
 		}
 	}()
 
-	suggest_zalupa(state, meta, func(aa int, bb Suggestion, cc bool) {
+	suggest_zalupa(state, meta, func(aa int, bb suggestion, cc bool) {
 		a, b, c = aa, bb, cc
 		panic(zalupa{})
 	})

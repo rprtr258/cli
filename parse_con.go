@@ -4,12 +4,12 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Create parser from a function, [construct](crateconstruct) uses it internally
+// A composed parser over several inner parsers, created with [Pair], [Triple] or [Construct]
 type ParseCon[T any] struct {
 	// inner parser closure
-	inner func(bool, *State) (T, Error)
+	inner func(bool, *state) (T, parseError)
 	// metas for inner parsers
-	meta Meta
+	meta meta
 	// To produce a better error messages while parsing constructed values
 	// we want to look at all the items so values that can be consumed are consumed
 	// autocomplete relies on the same logic
@@ -22,101 +22,76 @@ func (self ParseCon[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
-// Map - Apply a pure transformation to a contained value
-//
-// Fluent continuation for [ParseCon] results like [Pair] and [Triple]:
-//
-//	Pair(a, b).Map(f) instead of a.Pair(b).Parser().Map(f)
-func (self ParseCon[T]) Map[R any](fn func(T) R) Parser[R] {
-	return self.Parser().Map(fn)
-}
-
-// Parse - Apply a failing transformation to a contained value
-//
-// Fluent continuation for [ParseCon] results like [Pair] and [Triple].
-func (self ParseCon[T]) Parse[R any](f func(T) (R, error)) Parser[R] {
-	return self.Parser().Parse(f)
-}
-
-func (self ParseCon[T]) eval(state *State) (T, Error) {
+func (self ParseCon[T]) eval(state *state) (T, parseError) {
 	res, err := self.inner(self.failfast, state)
 	state.currentIdx = Invalid[int]()
 	return res, err
 }
 
-// Automagically restrict the inner parser scope to accept Adjacent values only
+// Restrict the inner parser scope to accept adjacent values only
 //
-// `Adjacent` can solve surprisingly wide variety of problems: sequential command chaining,
-// multi-value arguments, fun.Option-structs to name a few. If you want to run a parser on a
-// sequential subset of arguments - `Adjacent` might be able to help you. Check the examples
-// for better intuition.
+// Adjacent can solve a surprisingly wide variety of problems: sequential command chaining,
+// multi-value arguments, groups of options to name a few. If you want to run a parser on a
+// sequential subset of arguments - Adjacent might be able to help you. Check the examples
+// for a better intuition.
 //
-// Let's consider two examples with consumed items marked in bold and constructor containing
-// parsers for `-c` and `-d`.
+// Consider two examples with consumed items marked in bold and a group containing
+// parsers for `-c` and `-d`:
 //
-// - <code>**-a** -b **-c** -d</code>
-// - <code>**-a** **-c** -b -d</code>
-//
-// In the first example `-b` breaks the adjacency for all the consumed items so parsing will fail,
-// while here in the second one all the consumed items are Adjacent to each other so
-// parsing will succeed.
+//	-a -b -c -d   // adjacency holds: -a, -c, -d form one block
+//	-a -c -b -d   // adjacency holds: -a, -c, -d form one block
 //
 // # Multi-value arguments
 //
-// Parsing things like `--point X Y Z`
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_0.md"))]
+// Parsing things like `--point X Y Z` - a group of a flag followed by several arguments
+// consumes them only when they are adjacent on the command line.
 //
-// # Structure groups
+// # Option groups
 //
-// Parsing things like `--rect --width W --height H --rect --height H --width W`
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_1.md"))]
+// Parsing things like `--rect --width W --height H --rect --height H --width W` - each group
+// starts with a flag and consumes the following options.
 //
 // # Chaining commands
-// This example explains [Adjacent](crateparamsParseCommandadjacent), but the same idea holds.
-// Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag`
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_command.md"))]
+// Parsing things like `cmd1 --arg1 cmd2 --arg2 --arg3 cmd3 --flag` - see [ParseCommand.Adjacent].
 //
 // # Capturing everything between markers
 //
-// Parsing things like `find . --exec foo {} -bar ; --more`
+// Parsing things like `find . --exec foo {} -bar ; --more`.
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_3.md"))]
+// # Multi-value arguments with optional flags
 //
-// # Multi-value arguments with fun.Optional flags
-//
-// Parsing things like `--foo ARG1 --flag --inner ARG2`
-//
-// So you can parse things while parsing things. Not sure why you might need this, but you can
-// :)
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/adjacent_struct_4.md"))]
+// Parsing things like `--foo ARG1 --flag --inner ARG2`.
 //
 // # Performance and other considerations
 //
-// `bpaf` can run adjacently restricted parsers multiple times to refine the guesses. It's
-// best not to have complex inter-fields verification since they might trip up the detection
-// logic: instead of restricting, for example "sum of two fields to be 5 or greater" *inside* the
-// `Adjacent` parser, you can restrict it *outside*, once `Adjacent` done the parsing.
+// The library can run adjacently restricted parsers multiple times to refine the guesses. It's
+// best not to have complex inter-field verification since it might trip up the detection
+// logic: instead of restricting, for example, "sum of two fields to be 5 or greater" *inside* the
+// Adjacent parser, restrict it *outside*, once Adjacent finished the parsing.
 //
-// There's also similar method [Adjacent](crateparsersParseArgument) that allows to restrict argument
-// parser to work only for arguments where both key and a value are in the same shell word:
+// There's also a similar restriction on [parseArgument.Adjacent] that allows to restrict an
+// argument parser to work only when both key and value are in the same shell word:
 // `-f=bar` or `-fbar`, but not `-f bar`.
 func (self ParseCon[T]) Adjacent() Parser[T] {
 	self.failfast = true
 	inner := Parser[T]{self.eval, self.meta}
 	return Parser[T]{
-		eval: func(state *State) (T, Error) { return adjacent_eval(inner, state) },
-		meta: MetaAdjacent{inner.meta},
+		eval: func(state *state) (T, parseError) { return adjacent_eval(inner, state) },
+		meta: metaAdjacent{inner.meta},
 	}
 }
 
+// Combine two parsers into one producing a [fun.Pair] of their results
+//
+// Both parsers must succeed for the combined parser to succeed. See also [Triple]
+// for three parsers and [Construct] for struct composition.
 func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	pa := ppa.Parser()
 	pb := ppb.Parser()
-	meta := MetaAnd{pa.meta, pb.meta}
+	meta := metaAnd{pa.meta, pb.meta}
 	type R = fun.Pair[A, B]
-	inner := func(failfast bool, state *State) (R, Error) {
+	inner := func(failfast bool, state *state) (R, parseError) {
 		a, erra := pa.eval(state)
 		if failfast && erra != nil {
 			return R{}, erra
@@ -134,17 +109,21 @@ func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	return &ParseCon[R]{inner, meta, false}
 }
 
-type Truple[A, B, C any] struct {
+// Tuple is the result of [Triple]: three combined parser values.
+type Tuple[A, B, C any] struct {
 	A A
 	B B
 	C C
 }
 
-func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[Truple[A, B, C]] {
+// Combine three parsers into one producing a [Tuple] of their results
+//
+// All three parsers must succeed for the combined parser to succeed.
+func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[Tuple[A, B, C]] {
 	pa, pb, pc := ppa.Parser(), ppb.Parser(), ppc.Parser()
-	meta := MetaAnd{pa.meta, pb.meta, pc.meta}
-	type R = Truple[A, B, C]
-	inner := func(failfast bool, state *State) (R, Error) {
+	meta := metaAnd{pa.meta, pb.meta, pc.meta}
+	type R = Tuple[A, B, C]
+	inner := func(failfast bool, state *state) (R, parseError) {
 		a, erra := pa.eval(state)
 		if failfast && erra != nil {
 			return R{}, erra

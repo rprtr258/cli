@@ -1,20 +1,18 @@
-package cli_test
+package cli
 
 import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-
-	. "github.com/rprtr258/cli"
 )
 
 func TestTest_adjacent(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Short('b').Switch()
 	c := Short('c').Switch()
-	parser := Many(Triple(a.Parser(), b, c).Adjacent(), false).Parser().ToOptions()
+	parser := Many(Triple(a.Parser(), b, c).Adjacent()).Parser().ToOptions()
 
-	type R = Truple[struct{}, bool, bool]
+	type R = Tuple[struct{}, bool, bool]
 	assertSuccess(t, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}}, parser, "-a", "-c", "-a", "-b", "-a", "-b", "-c")
 	assertSuccess(t, []R{{struct{}{}, false, false}}, parser, "-a")
 	assertSuccess(t, []R{{struct{}{}, false, true}}, parser, "-a", "-c")
@@ -23,10 +21,10 @@ func TestTest_adjacent(t *testing.T) {
 
 func TestTest_adjacent_prefix(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
-	type R = fun.Pair[Option[P], bool]
+	type R = fun.Pair[Opt[P], bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("X", parseUint)
-	ab := Optional(Pair(a, b).Adjacent().Parser(), false)
+	ab := Optional(Pair(a, b).Adjacent().Parser())
 	c := Short('c').Switch()
 	parser := Pair(ab, c).Parser().ToOptions()
 
@@ -71,7 +69,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	b := Positional("B", parseUint)
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent(), false)
+	adj := Many(Triple(a, b, c).Adjacent())
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
@@ -82,7 +80,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	b := Argument(Short('b'), "B", parseUint)
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent(), false)
+	adj := Many(Triple(a, b, c).Adjacent())
 	parser := Pair(adj, d).Parser().ToOptions()
 
 	// this should ask for -b or -c and complain on 10...
@@ -92,7 +90,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 func TestAdjacent_is_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("B", parseUint)
-	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false).Parser().ToOptions()
+	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V })).Parser().ToOptions()
 
 	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
 
@@ -102,7 +100,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 func TestAdjacent_with_switch(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("B", parseUint)
-	ab := Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }), false)
+	ab := Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }))
 	c := Short('c').Switch()
 	parser := Pair(ab, c).Parser().ToOptions()
 
@@ -169,7 +167,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 		// Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
 
 		// TODO: get back
-		// r, err := parser.RunInner(NewArgs("-y", "3", "-x", "4", "-c"))
+		// r, err := parser.RunInner(newArgList("-y", "3", "-x", "4", "-c"))
 		// require.Nil(t, err)
 		// require.Equal(t, r, pair(pair(4, 3), true))
 	}

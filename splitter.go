@@ -5,41 +5,41 @@ import (
 	"strings"
 )
 
-type Code uint8
+type code uint8
 
 const (
-	CodeNo Code = iota
-	CodeFirst
-	CodeRest
+	codeNo code = iota
+	codeFirst
+	codeRest
 )
 
 // Raw(string, uint) | Paragraph | LineBreak
-type Chunk struct {
+type chunk struct {
 	s string
 	i int // -1 for paragraph, -2 for LineBreak
 }
 
-func ChunkRaw(code string, code_type uint) Chunk {
-	return Chunk{code, int(code_type)}
+func chunkRaw(code string, code_type uint) chunk {
+	return chunk{code, int(code_type)}
 }
 
-var ChunkParagraph = Chunk{"", -1}
-var ChunkLineBreak = Chunk{"", -2}
+var chunkParagraph = chunk{"", -1}
+var chunkLineBreak = chunk{"", -2}
 
-const ChunkCODE = 1_000_000
-const ChunkTICKED_CODE = 1_000_001
+const chunkCode = 1_000_000
+const chunkTickedCode = 1_000_001
 
 // Split payload into chunks annotated with character width and containing no newlines according
 // to text formatting rules
-func split(input string) iter.Seq[Chunk] {
+func split(input string) iter.Seq[chunk] {
 	type Splitter struct {
 		input string
-		code  Code
+		code  code
 	}
 
 	self := Splitter{
 		input: input,
-		code:  CodeNo,
+		code:  codeNo,
 	}
 
 	// 1. paragraphs are separated by a blank line.
@@ -53,17 +53,17 @@ func split(input string) iter.Seq[Chunk] {
 	// 3. "\n" = " "
 	// 4. "\n    " = code block
 	// 5. take next word
-	next := func() (Chunk, bool) {
+	next := func() (chunk, bool) {
 		if self.input == "" {
-			return Chunk{}, false
+			return chunk{}, false
 		}
 
-		if self.code != CodeNo {
-			if self.code == CodeRest && strings.HasPrefix(self.input, "```") {
-				self.code = CodeNo
+		if self.code != codeNo {
+			if self.code == codeRest && strings.HasPrefix(self.input, "```") {
+				self.code = codeNo
 			}
-			if self.code == CodeFirst {
-				self.code = CodeRest
+			if self.code == codeFirst {
+				self.code = codeRest
 			}
 
 			tail := self.input
@@ -71,7 +71,7 @@ func split(input string) iter.Seq[Chunk] {
 			var code string
 			if code, rest, ok := strings.Cut(self.input, "\n"); ok {
 				tail := tail[len(code):]
-				if strings.HasPrefix(tail, "\n\n") && self.code == CodeNo {
+				if strings.HasPrefix(tail, "\n\n") && self.code == codeNo {
 					self.input = tail
 				} else {
 					self.input = rest
@@ -80,7 +80,7 @@ func split(input string) iter.Seq[Chunk] {
 				self.input = ""
 				code = tail
 			}
-			return ChunkRaw(code, ChunkTICKED_CODE), true
+			return chunkRaw(code, chunkTickedCode), true
 		}
 
 		if tail, ok := strip_prefixb(self.input, '\n').Unpack(); ok {
@@ -92,27 +92,27 @@ func split(input string) iter.Seq[Chunk] {
 					self.input = ""
 					code = tail
 				}
-				return ChunkRaw(code, ChunkCODE), true
+				return chunkRaw(code, chunkCode), true
 			} else if strings.HasPrefix(tail, "\n```") {
-				self.code = CodeFirst
+				self.code = codeFirst
 				self.input = tail[1:]
-				return ChunkParagraph, true
+				return chunkParagraph, true
 			} else if strings.HasPrefix(tail, "\n    ") {
 				self.input = tail
-				return ChunkParagraph, true
+				return chunkParagraph, true
 			} else if tail, ok := strip_prefixb(tail, '\n').Unpack(); ok {
 				self.input = tail
-				return ChunkParagraph, true
+				return chunkParagraph, true
 			} else if tail, ok := strip_prefixb(tail, ' ').Unpack(); ok {
 				self.input = tail
-				return ChunkLineBreak, true
+				return chunkLineBreak, true
 			} else {
 				self.input = tail
-				return ChunkRaw(" ", 1), true
+				return chunkRaw(" ", 1), true
 			}
 		} else if tail, ok := strip_prefixb(self.input, ' ').Unpack(); ok {
 			self.input = tail
-			return ChunkRaw(" ", 1), true
+			return chunkRaw(" ", 1), true
 		} else {
 			// there's iterator position but it won't give me character length of the rest of the input
 			char_ix := uint(0)
@@ -121,13 +121,13 @@ func split(input string) iter.Seq[Chunk] {
 					head := self.input[:byte_ix]
 					tail := self.input[byte_ix:]
 					self.input = tail
-					return ChunkRaw(head, char_ix), true
+					return chunkRaw(head, char_ix), true
 				}
 				char_ix += 1
 			}
 			head := self.input
 			self.input = ""
-			return ChunkRaw(head, char_ix), true
+			return chunkRaw(head, char_ix), true
 		}
 	}
 

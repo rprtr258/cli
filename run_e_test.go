@@ -1,17 +1,16 @@
-package cli_test
+package cli
 
 import (
 	"errors"
 	"strconv"
 	"testing"
 
-	"github.com/rprtr258/cli"
 	"github.com/stretchr/testify/require"
 )
 
 // RunE must not print or exit, so it has to be usable from external packages.
 func TestRunEReturnsParsedValue(t *testing.T) {
-	parser := cli.Long("verbose").Switch().Parser().ToOptions()
+	parser := Long("verbose").Switch().Parser().ToOptions()
 
 	verbose, err := parser.RunE([]string{"app", "--verbose"})
 
@@ -20,7 +19,7 @@ func TestRunEReturnsParsedValue(t *testing.T) {
 }
 
 func TestRunEUsesDefaults(t *testing.T) {
-	parser := cli.Long("verbose").Switch().Parser().ToOptions()
+	parser := Long("verbose").Switch().Parser().ToOptions()
 
 	verbose, err := parser.RunE([]string{"app"})
 
@@ -29,7 +28,7 @@ func TestRunEUsesDefaults(t *testing.T) {
 }
 
 func TestRunEParsesArgument(t *testing.T) {
-	parser := cli.Argument(cli.Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
 
 	number, err := parser.RunE([]string{"app", "--number", "42"})
 
@@ -38,13 +37,13 @@ func TestRunEParsesArgument(t *testing.T) {
 }
 
 func TestRunEErrorInsteadOfExit(t *testing.T) {
-	parser := cli.Argument(cli.Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
 
 	// If RunE behaved like Run and called os.Exit, this test would terminate here.
 	_, err := parser.RunE([]string{"app", "--number", "not-a-number"})
 
 	require.Error(t, err)
-	failure, ok := errors.AsType[cli.FailureError](err)
+	failure, ok := errors.AsType[FailureError](err)
 	require.True(t, ok)
 	require.True(t, failure.IsError())
 	require.Equal(t, 1, failure.ExitCode())
@@ -52,11 +51,11 @@ func TestRunEErrorInsteadOfExit(t *testing.T) {
 }
 
 func TestRunEHelpIsNotAnErrorDiagnostic(t *testing.T) {
-	parser := cli.Argument(cli.Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
 
 	_, err := parser.RunE([]string{"app", "--help"})
 
-	failure, ok := errors.AsType[cli.FailureError](err)
+	failure, ok := errors.AsType[FailureError](err)
 	require.True(t, ok)
 	require.False(t, failure.IsError())
 	require.Equal(t, 0, failure.ExitCode())
@@ -65,11 +64,11 @@ func TestRunEHelpIsNotAnErrorDiagnostic(t *testing.T) {
 
 // The program name passed as args[0] must show up in the usage line.
 func TestRunEUsageContainsProgramName(t *testing.T) {
-	parser := cli.Argument(cli.Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
 
 	_, err := parser.RunE([]string{"app", "--help"})
 
-	failure, ok := errors.AsType[cli.FailureError](err)
+	failure, ok := errors.AsType[FailureError](err)
 	require.True(t, ok)
 	require.Contains(t, failure.Error(), "Usage: app --number=N")
 }

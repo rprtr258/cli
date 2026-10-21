@@ -2,37 +2,37 @@ package cli
 
 import "fmt"
 
-type item interface {
+type itemI interface {
 	isItem()
-	clone() item
+	clone() itemI
 }
 
-type ItemAny struct {
+type itemAny struct {
 	metavar Doc
 	// used by any, moves it from positionals into arguments
 	anywhere bool
 }
 
-func (ItemAny) isItem()          {}
-func (self ItemAny) clone() item { return ItemAny{self.metavar.clone(), self.anywhere} }
+func (itemAny) isItem()           {}
+func (self itemAny) clone() itemI { return itemAny{self.metavar.clone(), self.anywhere} }
 
 // Positional item, consumed from the the front of the arguments
 // <FILE>
-type ItemPositional struct{ metavar Metavar }
+type itemPositional struct{ metavar Metavar }
 
-func (ItemPositional) isItem()          {}
-func (self ItemPositional) clone() item { return ItemPositional{self.metavar} }
+func (itemPositional) isItem()           {}
+func (self itemPositional) clone() itemI { return itemPositional{self.metavar} }
 
-type ItemCommand struct {
+type itemCommand struct {
 	name  string
-	short Option[byte]
-	meta  Meta
-	info  Info
+	short Opt[byte]
+	meta  meta
+	info  info
 }
 
-func (ItemCommand) isItem() {}
-func (self ItemCommand) clone() item {
-	return ItemCommand{
+func (itemCommand) isItem() {}
+func (self itemCommand) clone() itemI {
+	return itemCommand{
 		self.name,
 		self.short,
 		self.meta.clone(),
@@ -43,16 +43,16 @@ func (self ItemCommand) clone() item {
 // short or long name, consumed anywhere
 // -f
 // --file
-type ItemFlag struct {
-	name ShortLong
+type itemFlag struct {
+	name shortLong
 	// used for disambiguation
 	shorts []byte
-	env    Option[string]
+	env    Opt[string]
 }
 
-func (ItemFlag) isItem() {}
-func (self ItemFlag) clone() item {
-	return ItemFlag{
+func (itemFlag) isItem() {}
+func (self itemFlag) clone() itemI {
+	return itemFlag{
 		self.name,
 		append([]byte(nil), self.shorts...),
 		self.env,
@@ -62,17 +62,17 @@ func (self ItemFlag) clone() item {
 // Short or long name followed by a value, consumed anywhere
 // -f <VAL>
 // --file <VAL>
-type ItemArgument struct {
-	name ShortLong
+type itemArgument struct {
+	name shortLong
 	// used for disambiguation
 	shorts  []byte
 	metavar Metavar
-	env     Option[string]
+	env     Opt[string]
 }
 
-func (ItemArgument) isItem() {}
-func (self ItemArgument) clone() item {
-	return ItemArgument{
+func (itemArgument) isItem() {}
+func (self itemArgument) clone() itemI {
+	return itemArgument{
 		self.name,
 		append([]byte(nil), self.shorts...),
 		self.metavar,
@@ -80,14 +80,14 @@ func (self ItemArgument) clone() item {
 	}
 }
 
-type Item struct {
-	help Option[Doc]
-	v    item
+type item struct {
+	help Opt[Doc]
+	v    itemI
 }
 
-func (i Item) clone() Item {
-	return Item{
-		Option[Doc]{
+func (i item) clone() item {
+	return item{
+		Opt[Doc]{
 			i.help.Value.clone(),
 			i.help.Valid,
 		},
@@ -95,29 +95,29 @@ func (i Item) clone() Item {
 	}
 }
 
-func (i Item) String() string {
+func (i item) String() string {
 	switch v := i.v.(type) {
-	case ItemAny:
+	case itemAny:
 		return fmt.Sprintf(
 			"Any{help: %v, metavar: %#v, anywhere: %v}",
 			i.help, v.metavar, v.anywhere,
 		)
-	case ItemPositional:
+	case itemPositional:
 		return fmt.Sprintf(
 			"Positional{help: %v, metavar: %s}",
 			i.help, v.metavar,
 		)
-	case ItemCommand:
+	case itemCommand:
 		return fmt.Sprintf(
 			"Command{help: %v, name: %s, short: %#v, meta: %#v, info: %#v}",
 			i.help, v.name, v.short, v.meta, v.info,
 		)
-	case ItemFlag:
+	case itemFlag:
 		return fmt.Sprintf(
 			"Flag{help: %v, name: %#v, shorts: %#v, env: %v}",
 			i.help, v.name, v.shorts, v.env,
 		)
-	case ItemArgument:
+	case itemArgument:
 		return fmt.Sprintf(
 			"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v}",
 			i.help, v.name, v.shorts, v.metavar, v.env,
@@ -126,53 +126,53 @@ func (i Item) String() string {
 	panic("unreachable")
 }
 
-func (self Item) is_pos() bool {
+func (self item) is_pos() bool {
 	switch v := self.v.(type) {
-	case ItemAny:
+	case itemAny:
 		return !v.anywhere
-	case ItemPositional:
+	case itemPositional:
 		return true
-	case ItemCommand:
+	case itemCommand:
 		return true
 	}
 	return false
 }
 
-// normalize name inside [ShortLong] into either short or long
-func (self *Item) normalize(short bool) {
+// normalize name inside [shortLong] into either short or long
+func (self *item) normalize(short bool) {
 	switch v := self.v.(type) {
-	case ItemFlag:
+	case itemFlag:
 		v.name.normalize(short)
-		*self = Item{self.help, ItemFlag{v.name, v.shorts, v.env}}
-	case ItemArgument:
+		*self = item{self.help, itemFlag{v.name, v.shorts, v.env}}
+	case itemArgument:
 		v.name.normalize(short)
-		*self = Item{self.help, ItemArgument{v.name, v.shorts, v.metavar, v.env}}
+		*self = item{self.help, itemArgument{v.name, v.shorts, v.metavar, v.env}}
 	}
 }
 
-// ShortLong at least one field must be presented
-type ShortLong struct {
+// shortLong at least one field must be presented
+type shortLong struct {
 	Short byte
 	Long  string
 }
 
-func (sl ShortLong) is_short() bool { return sl.Short != 0 && sl.Long == "" }
-func (sl ShortLong) is_long() bool  { return sl.Short == 0 && sl.Long != "" }
-func (sl ShortLong) is_both() bool  { return sl.Short != 0 && sl.Long != "" }
+func (sl shortLong) is_short() bool { return sl.Short != 0 && sl.Long == "" }
+func (sl shortLong) is_long() bool  { return sl.Short == 0 && sl.Long != "" }
+func (sl shortLong) is_both() bool  { return sl.Short != 0 && sl.Long != "" }
 
-func ShortLongShort(b byte) ShortLong          { return ShortLong{Short: b} }
-func ShortLongLong(s string) ShortLong         { return ShortLong{Long: s} }
-func ShortLongBoth(b byte, s string) ShortLong { return ShortLong{Short: b, Long: s} }
+func shortLongShort(b byte) shortLong          { return shortLong{Short: b} }
+func shortLongLong(s string) shortLong         { return shortLong{Long: s} }
+func shortLongBoth(b byte, s string) shortLong { return shortLong{Short: b, Long: s} }
 
-func (self ShortLong) as_long() (string, bool) {
+func (self shortLong) as_long() (string, bool) {
 	return self.Long, self.Long != ""
 }
 
-func (self ShortLong) as_short() (byte, bool) {
+func (self shortLong) as_short() (byte, bool) {
 	return self.Short, self.Short != 0
 }
 
-func (self ShortLong) eq(other string) bool {
+func (self shortLong) eq(other string) bool {
 	short_eq := func(c byte, s string) bool {
 		return strip_prefixb(s, '-') == Valid(string([]byte{c}))
 	}
@@ -189,37 +189,37 @@ func (self ShortLong) eq(other string) bool {
 	}
 }
 
-// Changes [ShortLong](ShortLongShortLong) variant into either short or long depending,
+// Changes [shortLong](shortLongShortLong) variant into either short or long depending,
 // leaves both Short and Long untouched
-func (self *ShortLong) normalize(short bool) {
+func (self *shortLong) normalize(short bool) {
 	if !self.is_both() {
 		return
 	}
 	if short {
-		*self = ShortLongShort(self.Short)
+		*self = shortLongShort(self.Short)
 	} else {
-		*self = ShortLongLong(self.Long)
+		*self = shortLongLong(self.Long)
 	}
 }
 
-func ShortLongtry_from(named NamedArg) (ShortLong, bool) {
+func shortLongTryFrom(named NamedArg) (shortLong, bool) {
 	switch {
 	case len(named.short) == 0 && len(named.long) == 0:
-		return ShortLong{}, false
+		return shortLong{}, false
 	case len(named.short) == 0:
-		return ShortLongLong(named.long[0]), true
+		return shortLongLong(named.long[0]), true
 	case len(named.long) == 0:
-		return ShortLongShort(named.short[0]), true
+		return shortLongShort(named.short[0]), true
 	default:
-		return ShortLongBoth(named.short[0], named.long[0]), true
+		return shortLongBoth(named.short[0], named.long[0]), true
 	}
 }
 
-func (self Item) required(required bool) Meta {
-	boxed := MetaItem(self)
+func (self item) required(required bool) meta {
+	boxed := metaItem(self)
 	if required {
 		return boxed
 	} else {
-		return MetaOptional{boxed}
+		return metaOptional{boxed}
 	}
 }

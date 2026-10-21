@@ -16,7 +16,7 @@ func Rectangle() {
 	}
 
 	type Out struct {
-		rect    cli.Option[Rect]
+		rect    cli.Opt[Rect]
 		verbose bool
 	}
 
@@ -31,16 +31,16 @@ func Rectangle() {
 		"PX", parseUint).Parser()
 
 	rect := cli.Optional(cli.Map(cli.Pair(width, height).Parser(), func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
-		GroupHelp("Rectangle is defined by width and height in meters").Parser(), false).Parser()
+		GroupHelp("Rectangle is defined by width and height in meters").Parser()).Parser()
 
 	verbose := cli.Short('v').
 		Long("verbose").
 		Help("Print computation steps").
 		Switch()
 
-	opt := cli.Map(cli.Pair(verbose, rect).Parser(), func(x fun.Pair[bool, cli.Option[Rect]]) Out { return Out{x.V, x.K} }).
+	opt := cli.Map(cli.Pair(verbose, rect).Parser(), func(x fun.Pair[bool, cli.Opt[Rect]]) Out { return Out{x.V, x.K} }).
 		ToOptions().
-		Descr("This program calculates rectangle's area").
+		Description("This program calculates rectangle's area").
 		Header("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv").
 		Footer("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^").
 		Run(os.Args)

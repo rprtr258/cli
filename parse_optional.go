@@ -4,40 +4,32 @@ import "math"
 
 // Apply inner parser, return a value in `Some` if items requested by it are all present, restore
 // and return `None` if any are missing. Created with [Optional].
-func optional_eval[T any](inner Parser[T], catch bool, state *State) (Option[T], Error) {
+func optional_eval[T any](inner Parser[T], catch bool, state *state) (Opt[T], parseError) {
 	len := uint(math.MaxUint)
 	return parse_option(inner, &len, state, catch)
 }
 
-// Turn a required argument into an fun.Optional one
+// Make a parser optional
 //
-// `Optional` converts any missing items into `Invalid()` and passes the remaining parsing
-// failures untouched. With an extra [catch](ParseOptionalcatch) statement, you can handle
-// those failures too.
-//
-// # Derive usage
-//
-// By default, `bpaf` would automatically use fun.Optional for fields of type `Option[T]`,
-// for as long as it's not prevented from doing so by present postprocessing fun.Options.
-// But it's also possible to specify it explicitly.
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Optional.md"))]
-// TODO: compiler ne mogyet v return Parser[Option[T]] in method
-func Optional[T any, P parser[T]](
-	self P,
-	// Handle parse failures for fun.Optional parsers
-	//
-	// Can be useful to decide to skip parsing of some items on a command line.
-	// When parser succeeds - `catch` version would return a value as usual
-	// if it fails - `catch` would restore all the consumed values and return Invalid().
-	//
-	// There's several structures that implement this attribute: [Optional], [Many]
-	// and [Parser.Some], behavior should be identical for all of them.
-	catch bool,
-) Parser[Option[T]] {
+// Optional produces an [Opt] with the parsed value or
+// nothing if the parser fails softly, without consuming input.
+// See [OptionalCatch] for the variant that also catches consumed-input failures.
+func Optional[T any, P parser[T]](self P) Parser[Opt[T]] {
 	inner := self.Parser()
-	return Parser[Option[T]]{
-		eval: func(state *State) (Option[T], Error) { return optional_eval(inner, catch, state) },
-		meta: MetaOptional{inner.meta},
+	return Parser[Opt[T]]{
+		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, false, state) },
+		meta: metaOptional{inner.meta},
+	}
+}
+
+// OptionalCatch makes a parser optional and, additionally, restores all
+// consumed values and yields nothing if the inner parser fails.
+//
+// This is the behavior [Construct] applies to fields with an Opt[T] type.
+func OptionalCatch[T any, P parser[T]](self P) Parser[Opt[T]] {
+	inner := self.Parser()
+	return Parser[Opt[T]]{
+		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, true, state) },
+		meta: metaOptional{inner.meta},
 	}
 }

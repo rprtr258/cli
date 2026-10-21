@@ -3,32 +3,17 @@ package cli
 import "github.com/rprtr258/fun"
 
 // Map - Apply a pure transformation to a contained value
-func (self Parser[T]) Map[R any](fn func(T) R) Parser[R] {
+func Map[T, R any, P parser[T]](self P, fn func(T) R) Parser[R] {
 	return Parser[R]{
-		eval: func(state *State) (R, Error) {
-			t, e := self.eval(state)
+		eval: func(state *state) (R, parseError) {
+			t, e := self.Parser().eval(state)
 			if e != nil {
 				return *new(R), e
 			}
 			return fn(t), nil
 		},
-		meta: self.meta,
+		meta: self.Parser().meta,
 	}
-}
-
-// Map - Apply a pure transformation to a contained value
-//
-// A common case of the [Parse] function, exists mostly for convenience.
-//
-// Free-function form of [Parser.Map] that also accepts builders:
-//
-//	Map(Positional("N", parseUint32), strconv.Itoa)
-//
-// is the same as
-//
-//	Positional("N", parseUint32).Parser().Map(strconv.Itoa)
-func Map[T, R any, P parser[T]](self P, fn func(T) R) Parser[R] {
-	return self.Parser().Map(fn)
 }
 
 func Map2[A, B, R any](

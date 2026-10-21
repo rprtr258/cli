@@ -36,23 +36,23 @@ import (
 // margin sets the minimal offset for any new text and retained until new margin is set:
 // "hello" [margin 8] "world" is rendered as "hello   world"
 
-const MAX_TAB = 24
-const MAX_WIDTH = 100
+const maxTab = 24
+const maxRenderWidth = 100
 
 // Default to dull color if colors are enabled,
-type Color uint8
+type color uint8
 
 const (
-	ColorMonochrome Color = iota
-	ColorDull
-	ColorBright
+	colorMonochrome color = iota
+	colorDull
+	colorBright
 )
 
-func (c Color) IsMonochrome() bool {
-	return c == ColorMonochrome
+func (c color) IsMonochrome() bool {
+	return c == colorMonochrome
 }
 
-var Colordefault = ColorMonochrome
+var colorDefault = colorMonochrome
 
 // ANSI escape sequences, mirroring owo_colors output in Rust
 const (
@@ -79,11 +79,11 @@ func styled(item string, seqs ...string) string {
 	return res.String()
 }
 
-func (self Color) push_str(style Style, item string) string {
+func (self color) push_str(style Style, item string) string {
 	switch self {
-	case ColorMonochrome:
+	case colorMonochrome:
 		return item
-	case ColorDull:
+	case colorDull:
 		switch style {
 		case StyleText:
 			return item
@@ -96,7 +96,7 @@ func (self Color) push_str(style Style, item string) string {
 		case StyleInvalid:
 			return styled(item, ansiBold, ansiRed)
 		}
-	case ColorBright:
+	case colorBright:
 		switch style {
 		case StyleText:
 			return item
@@ -113,23 +113,23 @@ func (self Color) push_str(style Style, item string) string {
 	return ""
 }
 
-const PADDING = "                                                  "
+const padding = "                                                  "
 
 // Render a monochrome version of the document
 //
 // `full` indicates if full message should be rendered, this makes
 // difference for rendered help message, otherwise you can pass `true`.
 func (self Doc) monochrome(full bool) string {
-	return self.render_console(full, ColorMonochrome, MAX_WIDTH)
+	return self.render_console(full, colorMonochrome, maxRenderWidth)
 }
 
-func (self Doc) render_console(full bool, color Color, max_width uint) string {
+func (self Doc) render_console(full bool, color color, max_width uint) string {
 	tabstop := 0
 	byte_pos := 0
 	{
 		current := 0
 		in_term := false
-		// looking for widest term below MAX_TAB
+		// looking for widest term below maxTab
 		for _, token := range self.tokens {
 			switch {
 			case token.isText:
@@ -138,14 +138,14 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 				}
 				byte_pos += token.bytes
 			case token.isStart:
-				if token.block == BlockItemTerm {
+				if token.block == blockItemTerm {
 					in_term = true
 					current = 0
 				}
 			default:
-				if token.block == BlockItemTerm {
+				if token.block == blockItemTerm {
 					in_term = false
-					if current > tabstop && current <= MAX_TAB {
+					if current > tabstop && current <= maxTab {
 						tabstop = current
 					}
 				}
@@ -156,8 +156,8 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 	tabstop += 4
 
 	res := ""
-	stack := []Block{}
-	skip := Skip(0)
+	stack := []block{}
+	skip := skip(0)
 	char_pos := 0
 	margins := []uint{}
 	pending_newline := false    // a single new line, unless one exists
@@ -200,13 +200,13 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 					pushed := 0
 					if int(margin) >= char_pos {
 						missing := int(margin) - char_pos
-						res += PADDING[:missing]
+						res += padding[:missing]
 						char_pos = int(margin)
 						pushed = missing
 					}
-					if pending_margin && char_pos >= MAX_TAB+4 && pushed < 2 {
+					if pending_margin && char_pos >= maxTab+4 && pushed < 2 {
 						missing := 2 - pushed
-						res += PADDING[:missing]
+						res += padding[:missing]
 						char_pos += missing
 					}
 
@@ -233,24 +233,24 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 			margin := last(margins).OrDefault(0)
 
 			switch block {
-			case BlockHeader, BlockSection2:
+			case blockHeader, blockSection2:
 				pending_newline = true
 				margins = append(margins, margin)
-			case BlockSection3:
+			case blockSection3:
 				pending_newline = true
 				margins = append(margins, margin+2)
-			case BlockItemTerm:
+			case blockItemTerm:
 				pending_newline = true
 				margins = append(margins, margin+4)
-			case BlockItemBody:
+			case blockItemBody:
 				margins = append(margins, margin+uint(tabstop)+2)
 				pending_margin = true
-			case BlockInlineBlock:
+			case blockInlineBlock:
 				skip.push()
-			case BlockBlock:
+			case blockBlock:
 				margins = append(margins, margin)
-			case BlockDefinitionList, BlockMeta, BlockMono:
-			case BlockTermRef:
+			case blockDefinitionList, blockMeta, blockMono:
+			case blockTermRef:
 				if color.IsMonochrome() {
 					res += "`"
 					char_pos += 1
@@ -266,20 +266,20 @@ func (self Doc) render_console(full bool, color Color, max_width uint) string {
 				margins = margins[:len(margins)-1]
 			}
 			switch block {
-			case BlockItemBody:
+			case blockItemBody:
 				pending_margin = false
-			case BlockHeader,
-				BlockSection2,
-				BlockSection3,
-				BlockItemTerm,
-				BlockDefinitionList,
-				BlockMeta,
-				BlockMono:
-			case BlockInlineBlock:
+			case blockHeader,
+				blockSection2,
+				blockSection3,
+				blockItemTerm,
+				blockDefinitionList,
+				blockMeta,
+				blockMono:
+			case blockInlineBlock:
 				skip.pop()
-			case BlockBlock:
+			case blockBlock:
 				pending_blank_line = true
-			case BlockTermRef:
+			case blockTermRef:
 				if color.IsMonochrome() {
 					res += "`"
 					char_pos += 1

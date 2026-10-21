@@ -1,13 +1,13 @@
 package cli
 
-// Parser that inserts static shell completion into bpaf's dynamic shell completion
-func compShell_eval[T any](inner Parser[T], op ShellComp, state *State) (T, Error) {
+// Parser that inserts static shell completion into the dynamic shell completion
+func compShell_eval[T any](inner Parser[T], op ShellComp, state *state) (T, parseError) {
 	// same as with ParseComp the goal is to replace metavars added by inner parser
 	// with a completion that would call a bash script.
 	// unlike ParseComp we don't care if inner parser succeeds
 
 	// stash old completions
-	comp_items := []Comp{}
+	comp_items := []comp{}
 	state.swap_comps_with(&comp_items)
 
 	res, err := inner.eval(state)
@@ -35,8 +35,8 @@ func compShell_eval[T any](inner Parser[T], op ShellComp, state *State) (T, Erro
 // directory names or pass through existing shell completion scripts, see
 // [ShellComp](complete_shellShellComp) for accessible functionality
 //
-// Places function calls in place of metavar placeholder, so running `complete_shell` on
-// something that doesn't have a [positional] or [argument](NamedArgargument) doesn't
+// Places function calls in place of the metavar placeholder, so running it on
+// something that doesn't have a positional or an argument doesn't
 // make much sense.
 //
 // # Example
@@ -45,34 +45,17 @@ func compShell_eval[T any](inner Parser[T], op ShellComp, state *State) (T, Erro
 // $ app --output Cargo.toml _
 // ```
 //
-// # Combinatoric usage
-// ```rust
+// # Usage
 //
-//	func output()impl Parser<String> {
-//	    long("output")
-//	        .help("Cargo.toml file to use as output")
-//	        .argument("OUTPUT")
-//	        .complete_shell(ShellCompFile { mask: Valid("*.toml") })
-//	}
-//
-// ```
-//
-// # Derive usage
-// ```rust
-//
-//	struct fun.Options {
-//	    // Cargo.toml file to use as output
-//	    #[bpaf(argument("OUTPUT"), complete_shell(ShellCompFile { mask: Valid("*.toml") }))]
-//	    output string,
-//	}
-//
-// ```
+//	out := cli.Argument[string](cli.Long("output").
+//	    Help("Cargo.toml file to use as output"), "OUTPUT", nil).
+//	    CompleteShell(cli.ShellCompFile(Valid("*.toml")))
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.
 func (self Parser[T]) CompleteShell(op ShellComp) Parser[T] {
 	inner := self
 	return Parser[T]{
-		eval: func(state *State) (T, Error) { return compShell_eval(inner, op, state) },
+		eval: func(state *state) (T, parseError) { return compShell_eval(inner, op, state) },
 		meta: inner.meta,
 	}
 }

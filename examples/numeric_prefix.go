@@ -22,22 +22,22 @@ import (
 
 func NumericPrefix() {
 	type Options struct {
-		prefix  cli.Option[uint]
+		prefix  cli.Opt[uint]
 		command string
 	}
 
 	var options = func() cli.Parser[Options] {
-		prefix := cli.Optional(cli.Positional("PREFIX", func(s string) (uint, error) {
+		prefix := cli.OptionalCatch(cli.Positional("PREFIX", func(s string) (uint, error) {
 			u, err := strconv.ParseUint(s, 10, 64)
 			return uint(u), err
 		}).
-			Help("Optional numeric command prefix").Parser(), true).
+			Help("Optional numeric command prefix").Parser()).
 			Parser()
 		command := cli.Positional("COMMAND", func(s string) (string, error) {
 			return s, nil
 		}).Help("Required command name").Parser()
 
-		return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Option[uint], string]) Options { return Options{x.K, x.V} })
+		return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Opt[uint], string]) Options { return Options{x.K, x.V} })
 	}()
 
 	fmt.Println(options.ToOptions().Run(os.Args))

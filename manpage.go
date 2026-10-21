@@ -9,10 +9,10 @@ import (
 	"github.com/rprtr258/cli/roff"
 )
 
-type SectionKind uint8
+type sectionKind uint8
 
 const (
-	SectionGeneral         SectionKind = iota // General commands
+	SectionGeneral         sectionKind = iota // General commands
 	SectionSystemCall                         // System calls
 	SectionLibraryFunction                    // Library functions such as C standard library functions
 	SectionSpecialFile                        // Special files (usually devices in /dev) and drivers
@@ -24,8 +24,9 @@ const (
 )
 
 // Manual page section
+// Section is a fragment of the manpage: a kind plus the text.
 type Section struct {
-	Kind SectionKind
+	Kind sectionKind
 	Text string
 }
 
@@ -57,11 +58,11 @@ func (self Section) String() string {
 func (self OptionParser[T]) RenderManpage(
 	app string,
 	section Section,
-	last_update_date Option[string],
-	vendor Option[string],
-	application_title Option[string],
+	last_update_date Opt[string],
+	vendor Opt[string],
+	application_title Opt[string],
 ) string {
-	sections := []DocSection{}
+	sections := []docSection{}
 	root := self.inner.meta
 	path := []string{app}
 
@@ -70,13 +71,13 @@ func (self OptionParser[T]) RenderManpage(
 	var buf Doc
 
 	if len(sections) > 1 {
-		buf.token(TokenBlockStart(BlockBlock))
-		buf.token(TokenBlockStart(BlockHeader))
+		buf.token(tokenBlockStart(blockBlock))
+		buf.token(tokenBlockStart(blockHeader))
 		buf.Text("SYNOPSIS")
-		buf.token(TokenBlockEnd(BlockHeader))
-		buf.token(TokenBlockEnd(BlockBlock))
+		buf.token(tokenBlockEnd(blockHeader))
+		buf.token(tokenBlockEnd(blockBlock))
 
-		buf.token(TokenBlockStart(BlockMeta))
+		buf.token(tokenBlockStart(blockMeta))
 		for _, section := range sections {
 			for _, p := range section.path {
 				buf.Literal(p)
@@ -86,7 +87,7 @@ func (self OptionParser[T]) RenderManpage(
 			buf.write_meta(section.meta, true)
 			buf.Text("\n")
 		}
-		buf.token(TokenBlockEnd(BlockMeta))
+		buf.token(tokenBlockEnd(blockMeta))
 	}
 
 	// NAME
@@ -99,43 +100,43 @@ func (self OptionParser[T]) RenderManpage(
 
 	for _, section := range sections {
 		if len(sections) > 1 {
-			buf.token(TokenBlockStart(BlockHeader))
+			buf.token(tokenBlockStart(blockHeader))
 			buf.write_path(section.path)
-			buf.token(TokenBlockEnd(BlockHeader))
+			buf.token(tokenBlockEnd(blockHeader))
 		}
 
 		if descr, ok := section.info.descr.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockHeader))
+			buf.token(tokenBlockStart(blockHeader))
 			buf.Text("NAME")
-			buf.token(TokenBlockEnd(BlockHeader))
+			buf.token(tokenBlockEnd(blockHeader))
 
 			buf.Text(app)
 			buf.Text(" - ")
 			buf.Doc(descr)
 		}
 
-		buf.token(TokenBlockStart(BlockHeader))
+		buf.token(tokenBlockStart(blockHeader))
 		buf.Text("SYNOPSIS")
-		buf.token(TokenBlockEnd(BlockHeader))
+		buf.token(tokenBlockEnd(blockHeader))
 		buf.write_path(section.path)
 		buf.write_meta(section.meta, true)
 
 		if t, ok := section.info.header.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockBlock))
+			buf.token(tokenBlockStart(blockBlock))
 			buf.Doc(t)
-			buf.token(TokenBlockEnd(BlockBlock))
+			buf.token(tokenBlockEnd(blockBlock))
 		}
 
-		var items HelpItems
+		var items helpItems
 		items.append_meta(section.meta)
 		help_meta := section.info.meta()
 		items.append_meta(help_meta)
 		buf.write_help_item_groups(items, false)
 
 		if footer, ok := section.info.footer.Unpack(); ok {
-			buf.token(TokenBlockStart(BlockBlock))
+			buf.token(tokenBlockStart(blockBlock))
 			buf.Doc(footer)
-			buf.token(TokenBlockEnd(BlockBlock))
+			buf.token(tokenBlockEnd(blockBlock))
 		}
 	}
 
@@ -154,7 +155,7 @@ func (self OptionParser[T]) RenderManpage(
 
 type Font = string
 
-func Fontfrom(value Style) Font {
+func FontFrom(value Style) Font {
 	switch value {
 	case StyleText:
 		return ""
@@ -187,48 +188,48 @@ func (self Doc) render_roff(roff *roff.Document) string {
 				if style == StyleEmphasis {
 					roff.B.WriteString("SS")
 				}
-				roff.Text(Fontfrom(style) + input)
+				roff.Text(FontFrom(style) + input)
 			}
 		case token.isStart:
 			block := token.block
 			switch block {
-			case BlockHeader, BlockSection2, BlockSection3:
+			case blockHeader, blockSection2, blockSection3:
 				capture.V = true
-			case BlockItemTerm:
+			case blockItemTerm:
 				roff.B.WriteString("TP")
-			case BlockMono,
-				BlockItemBody,
-				BlockDefinitionList,
-				BlockInlineBlock:
-			case BlockBlock:
+			case blockMono,
+				blockItemBody,
+				blockDefinitionList,
+				blockInlineBlock:
+			case blockBlock:
 				roff.Paragraph()
-			case BlockMeta:
+			case blockMeta:
 				roff.B.WriteString("nf")
-			case BlockTermRef:
-				// mirrors upstream bpaf: Block::TermRef => todo!() - unreachable,
+			case blockTermRef:
+				// mirrors the upstream implementation: this block is unreachable,
 				// TermRef is only emitted by error rendering which never uses manpage
 				panic("TermRef is not supported in manpage rendering")
 			}
 		default:
 			block := token.block
 			switch block {
-			case BlockHeader:
+			case blockHeader:
 				capture.V = false
 				roff.Section(capture.K)
 				capture.K = ""
-			case BlockSection2, BlockSection3:
+			case blockSection2, blockSection3:
 				capture.V = false
 				fmt.Fprint(&roff.B, "SS", []string{strings.ToUpper(capture.K)})
 				capture.K = ""
-			case BlockItemTerm:
+			case blockItemTerm:
 				fmt.Fprint(&roff.B, "\n")
-			case BlockItemBody:
+			case blockItemBody:
 				roff.Paragraph()
-			case BlockMono, BlockDefinitionList, BlockBlock, BlockInlineBlock:
-			case BlockMeta:
+			case blockMono, blockDefinitionList, blockBlock, blockInlineBlock:
+			case blockMeta:
 				fmt.Fprint(&roff.B, "fi")
-			case BlockTermRef:
-				// mirrors upstream bpaf: Block::TermRef => todo!() - unreachable,
+			case blockTermRef:
+				// mirrors the upstream implementation: this block is unreachable,
 				// TermRef is only emitted by error rendering which never uses manpage
 				panic("TermRef is not supported in manpage rendering")
 			}

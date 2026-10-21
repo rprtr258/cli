@@ -20,10 +20,10 @@ package cli
 //	$ app --agree
 //	// succeeds
 func Fail[T any](msg string) Parser[T] {
-	eval := func(state *State) (T, Error) {
+	eval := func(state *state) (T, parseError) {
 		state.currentIdx = Invalid[int]()
-		return *new(T), ErrorParseFail(msg)
+		return *new(T), errorParseFail(msg)
 	}
-	meta := MetaSkip{}
+	meta := metaSkip{}
 	return Parser[T]{eval, meta}
 }

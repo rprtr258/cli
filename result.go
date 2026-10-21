@@ -10,37 +10,37 @@ import (
 	funiter "github.com/rprtr258/fun/iter"
 )
 
-func get[T any](xs []T, ix int) Option[T] {
+func get[T any](xs []T, ix int) Opt[T] {
 	if ix < 0 || ix >= len(xs) {
 		return Invalid[T]()
 	}
 	return Valid(xs[ix])
 }
 
-func First[T any](xs []T) Option[T] {
+func first[T any](xs []T) Opt[T] {
 	return get(xs, 0)
 }
 
-func last[T any](xs []T) Option[T] {
+func last[T any](xs []T) Opt[T] {
 	return get(xs, len(xs)-1)
 }
 
-func strip_prefix(s string, prefix string) Option[string] {
+func strip_prefix(s string, prefix string) Opt[string] {
 	x, ok := strings.CutPrefix(s, prefix)
-	return Option[string]{x, ok}
+	return Opt[string]{x, ok}
 }
 
-func strip_prefixb(s string, prefix byte) Option[string] {
+func strip_prefixb(s string, prefix byte) Opt[string] {
 	return strip_prefix(s, string(prefix))
 }
 
-// Option is either value or nothing.
-type Option[T any] struct {
+// Opt is either value or nothing.
+type Opt[T any] struct {
 	Value T
 	Valid bool
 }
 
-func (o Option[T]) String() string {
+func (o Opt[T]) String() string {
 	if o.Valid {
 		return fmt.Sprintf("Some(%v)", o.Value)
 	} else {
@@ -48,64 +48,64 @@ func (o Option[T]) String() string {
 	}
 }
 
-func (o Option[T]) clone() Option[T] {
+func (o Opt[T]) clone() Opt[T] {
 	switch t := any(o.Value).(type) {
 	case interface{ clone() T }:
-		return Option[T]{t.clone(), o.Valid}
+		return Opt[T]{t.clone(), o.Valid}
 	default:
 		panic(1)
 	}
 }
 
-func Invalid[T any]() Option[T] {
-	return Option[T]{}
+func Invalid[T any]() Opt[T] {
+	return Opt[T]{}
 }
 
-func Valid[T any](t T) Option[T] {
-	return Option[T]{
+func Valid[T any](t T) Opt[T] {
+	return Opt[T]{
 		Value: t,
 		Valid: true,
 	}
 }
 
-func (o Option[T]) Unpack() (T, bool) {
+func (o Opt[T]) Unpack() (T, bool) {
 	return o.Value, o.Valid
 }
 
-func (o Option[T]) unwrap() T {
+func (o Opt[T]) unwrap() T {
 	if !o.Valid {
 		panic("invalid optional value unwrap")
 	}
 	return o.Value
 }
 
-func (o Option[T]) Or(other Option[T]) Option[T] {
+func (o Opt[T]) Or(other Opt[T]) Opt[T] {
 	return fun.IF(o.Valid, o, other)
 }
 
-func (o Option[T]) OrDefault(value T) T {
+func (o Opt[T]) OrDefault(value T) T {
 	return fun.IF(o.Valid, o.Value, value)
 }
 
-func (o Option[T]) and_then(f func(T) Option[T]) Option[T] {
+func (o Opt[T]) and_then(f func(T) Opt[T]) Opt[T] {
 	if !o.Valid {
 		return Invalid[T]()
 	}
 	return f(o.Value)
 }
 
-func OptMap[I, O any](o Option[I], f func(I) O) Option[O] {
+func optMap[I, O any](o Opt[I], f func(I) O) Opt[O] {
 	if !o.Valid {
 		return Invalid[O]()
 	}
 	return Valid(f(o.Value))
 }
 
-func map_or[I, O any](o Option[I], defVal O, f func(I) O) O {
-	return OptMap(o, f).OrDefault(defVal)
+func map_or[I, O any](o Opt[I], defVal O, f func(I) O) O {
+	return optMap(o, f).OrDefault(defVal)
 }
 
-func OptFlatMap[I, O any](o Option[I], f func(I) Option[O]) Option[O] {
+func optFlatMap[I, O any](o Opt[I], f func(I) Opt[O]) Opt[O] {
 	if !o.Valid {
 		return Invalid[O]()
 	}
@@ -183,6 +183,6 @@ func push2[A, B any](next func() (A, B, bool)) iter.Seq2[A, B] {
 	}
 }
 
-func Len[T any](xs []T) int {
+func lenOf[T any](xs []T) int {
 	return len(xs)
 }

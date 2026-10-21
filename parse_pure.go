@@ -3,11 +3,11 @@ package cli
 // Parser that returns a given value without consuming anything, created with [Pure].
 func Pure[T any](val T) Parser[T] {
 	return Parser[T]{
-		eval: func(state *State) (T, Error) {
+		eval: func(state *state) (T, parseError) {
 			state.currentIdx = Invalid[int]()
 			return val, nil
 		},
-		meta: MetaSkip{},
+		meta: metaSkip{},
 	}
 }
 
@@ -20,15 +20,15 @@ func Pure[T any](val T) Parser[T] {
 // you should be using [Parser.Fallback] and [Parser.FallbackWith].
 //
 // See also [PureWith] for a Pure computation that can fail.
-func PureWith[T any](val func() (T, Error)) Parser[T] {
+func PureWith[T any](val func() (T, error)) Parser[T] {
 	return Parser[T]{
-		eval: func(*State) (T, Error) {
+		eval: func(*state) (T, parseError) {
 			ok, e := val()
 			if e == nil {
 				return ok, nil
 			}
-			return *new(T), ErrorPureFailed(errorToString(e))
+			return *new(T), errorPureFailed(e.Error())
 		},
-		meta: MetaSkip{},
+		meta: metaSkip{},
 	}
 }

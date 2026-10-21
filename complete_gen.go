@@ -10,17 +10,17 @@ import (
 	funiter "github.com/rprtr258/fun/iter"
 )
 
-type CompExtra struct {
-	depth int            // Used by complete_gen to separate commands from each other
-	group Option[string] // Render this fun.Option in a group along with all other items with the same name
-	help  Option[string] // help message attached to a completion item
+type compExtra struct {
+	depth int         // Used by complete_gen to separate commands from each other
+	group Opt[string] // Render this option in a group along with all other items with the same name
+	help  Opt[string] // help message attached to a completion item
 }
 
-type CompKind uint8
+type compKind uint8
 
 const (
 	// short or long flag
-	compKindFlag CompKind = iota
+	compKindFlag compKind = iota
 	// argument + metadata
 	compKindArgument
 	compKindCommand
@@ -30,47 +30,47 @@ const (
 	compKindShell
 )
 
-// A single completion hint, mirrors the Rust `Comp` enum
-type Comp struct {
-	kind CompKind
+// A single completion hint, mirrors the Rust `comp` enum
+type comp struct {
+	kind compKind
 	// shared metadata
-	extra CompExtra
+	extra compExtra
 	// flag or argument name
-	name ShortLong
+	name shortLong
 	// argument or metavariable placeholder
 	metavar Metavar
 	// command name or value body
 	body string
 	// command short name
-	short Option[byte]
+	short Opt[byte]
 	// value/metavariable/shell: true when completing an argument value rather than a positional
 	is_argument bool
 	// shell completion operation
 	script ShellComp
 }
 
-func CompFlag(extra CompExtra, name ShortLong) Comp {
-	return Comp{kind: compKindFlag, extra: extra, name: name}
+func compFlag(extra compExtra, name shortLong) comp {
+	return comp{kind: compKindFlag, extra: extra, name: name}
 }
 
-func CompArgument(extra CompExtra, name ShortLong, metavar Metavar) Comp {
-	return Comp{kind: compKindArgument, extra: extra, name: name, metavar: metavar}
+func compArgument(extra compExtra, name shortLong, metavar Metavar) comp {
+	return comp{kind: compKindArgument, extra: extra, name: name, metavar: metavar}
 }
 
-func CompCommand(extra CompExtra, body string, short Option[byte]) Comp {
-	return Comp{kind: compKindCommand, extra: extra, body: body, short: short}
+func compCommand(extra compExtra, body string, short Opt[byte]) comp {
+	return comp{kind: compKindCommand, extra: extra, body: body, short: short}
 }
 
-func CompValue(extra CompExtra, body string, is_argument bool) Comp {
-	return Comp{kind: compKindValue, extra: extra, body: body, is_argument: is_argument}
+func compValue(extra compExtra, body string, is_argument bool) comp {
+	return comp{kind: compKindValue, extra: extra, body: body, is_argument: is_argument}
 }
 
-func CompMetavariable(extra CompExtra, metavar Metavar, is_argument bool) Comp {
-	return Comp{kind: compKindMetavariable, extra: extra, metavar: metavar, is_argument: is_argument}
+func compMetavariable(extra compExtra, metavar Metavar, is_argument bool) comp {
+	return comp{kind: compKindMetavariable, extra: extra, metavar: metavar, is_argument: is_argument}
 }
 
-func CompShell(extra CompExtra, script ShellComp, is_argument bool) Comp {
-	return Comp{kind: compKindShell, extra: extra, script: script, is_argument: is_argument}
+func compShell(extra compExtra, script ShellComp, is_argument bool) comp {
+	return comp{kind: compKindShell, extra: extra, script: script, is_argument: is_argument}
 }
 
 // completion:
@@ -83,7 +83,7 @@ func CompShell(extra CompExtra, script ShellComp, is_argument bool) Comp {
 // AND: usual logic without shortcircuits
 //
 // for static completion it's enough to collect items
-// for argument completion - only one argument(CompMeta) should be active at once
+// for argument completion - only one argument(compMeta) should be active at once
 //
 // for rendering prefer longer version of names
 //
@@ -91,7 +91,7 @@ func CompShell(extra CompExtra, script ShellComp, is_argument bool) Comp {
 
 type Complete struct {
 	// completions accumulated so far
-	comps      []Comp
+	comps      []comp
 	output_rev uint
 
 	// don't try to suggest any more positional items after there's a positional item failure
@@ -99,24 +99,24 @@ type Complete struct {
 	no_pos_ahead bool
 }
 
-func Completenew(output_rev uint) Complete {
+func newComplete(output_rev uint) Complete {
 	return Complete{
-		comps:        []Comp{},
+		comps:        []comp{},
 		output_rev:   output_rev,
 		no_pos_ahead: false,
 	}
 }
 
 // Add a new completion hint for flag, if needed
-func (self *State) push_flag(named NamedArg) {
+func (self *state) push_flag(named NamedArg) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
-		if name, ok := ShortLongtry_from(named); ok {
-			comp.comps = append(comp.comps, CompFlag(
-				CompExtra{
+		if name, ok := shortLongTryFrom(named); ok {
+			comp.comps = append(comp.comps, compFlag(
+				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  OptFlatMap(named.help, (Doc).to_completion),
+					help:  optFlatMap(named.help, (Doc).to_completion),
 				},
 				name,
 			))
@@ -125,15 +125,15 @@ func (self *State) push_flag(named NamedArg) {
 }
 
 // Add a new completion hint for an argument, if needed
-func (self *State) push_argument(named NamedArg, metavar Metavar) {
+func (self *state) push_argument(named NamedArg, metavar Metavar) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
-		if name, ok := ShortLongtry_from(named); ok {
-			comp.comps = append(comp.comps, CompArgument(
-				CompExtra{
+		if name, ok := shortLongTryFrom(named); ok {
+			comp.comps = append(comp.comps, compArgument(
+				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  OptFlatMap(named.help, (Doc).to_completion),
+					help:  optFlatMap(named.help, (Doc).to_completion),
 				},
 				name,
 				metavar,
@@ -146,36 +146,36 @@ func (self *State) push_argument(named NamedArg, metavar Metavar) {
 //
 // `is_argument` is set to true when we are trying to parse the value and false if
 // when meta
-func (self *State) push_metavar(
+func (self *state) push_metavar(
 	meta Metavar,
-	help Option[Doc],
+	help Opt[Doc],
 	is_argument bool,
 ) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
-		extra := CompExtra{
+		extra := compExtra{
 			depth: depth,
 			group: Invalid[string](),
-			help:  OptFlatMap(help, (Doc).to_completion),
+			help:  optFlatMap(help, (Doc).to_completion),
 		}
 
-		comp.comps = append(comp.comps, CompMetavariable(extra, meta, is_argument))
+		comp.comps = append(comp.comps, compMetavariable(extra, meta, is_argument))
 	}
 }
 
 // Add a new completion hint for command, if needed
-func (self *State) push_command(
+func (self *state) push_command(
 	name string,
-	short Option[byte],
-	help Option[Doc],
+	short Opt[byte],
+	help Opt[Doc],
 ) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
-		comp.comps = append(comp.comps, CompCommand(
-			CompExtra{
+		comp.comps = append(comp.comps, compCommand(
+			compExtra{
 				depth: depth,
 				group: Invalid[string](),
-				help:  OptFlatMap(help, (Doc).to_completion),
+				help:  optFlatMap(help, (Doc).to_completion),
 			},
 			name,
 			short,
@@ -184,7 +184,7 @@ func (self *State) push_command(
 }
 
 // Clear collected completions if enabled
-func (self *State) clear_comps() {
+func (self *state) clear_comps() {
 	if comp, ok := self.comp_mut(); ok {
 		comp.comps = comp.comps[:0]
 	}
@@ -193,11 +193,11 @@ func (self *State) clear_comps() {
 // Insert a literal value with some description for completion
 //
 // In practice it's "--"
-func (self *State) push_pos_sep() {
+func (self *state) push_pos_sep() {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
-		comp.comps = append(comp.comps, CompValue(
-			CompExtra{
+		comp.comps = append(comp.comps, compValue(
+			compExtra{
 				depth: depth,
 				group: Invalid[string](),
 				help:  Valid("Positional only items after this token"),
@@ -209,7 +209,7 @@ func (self *State) push_pos_sep() {
 }
 
 // Insert a bunch of items
-func (self *State) push_with_group(group Option[string], comps *[]Comp) {
+func (self *state) push_with_group(group Opt[string], comps *[]comp) {
 	if comp, ok := self.comp_mut(); ok {
 		for i := range *comps {
 			if group, ok := group.Unpack(); ok {
@@ -221,8 +221,8 @@ func (self *State) push_with_group(group Option[string], comps *[]Comp) {
 }
 
 func (self *Complete) push_shell(op ShellComp, is_argument bool, depth int) {
-	self.comps = append(self.comps, CompShell(
-		CompExtra{
+	self.comps = append(self.comps, compShell(
+		compExtra{
 			depth: depth,
 			group: Invalid[string](),
 			help:  Invalid[string](),
@@ -234,42 +234,42 @@ func (self *Complete) push_shell(op ShellComp, is_argument bool, depth int) {
 
 func (self *Complete) push_value(
 	body string,
-	help Option[string],
-	group Option[string],
+	help Opt[string],
+	group Opt[string],
 	depth int,
 	is_argument bool,
 ) {
-	self.comps = append(self.comps, CompValue(
-		CompExtra{depth, group, help},
+	self.comps = append(self.comps, compValue(
+		compExtra{depth, group, help},
 		body,
 		is_argument,
 	))
 }
 
-func (self *Complete) push_comp(comp Comp) {
+func (self *Complete) push_comp(comp comp) {
 	self.comps = append(self.comps, comp)
 }
 
-func (self *Complete) extend_comps(comps []Comp) {
+func (self *Complete) extend_comps(comps []comp) {
 	self.comps = append(self.comps, comps...)
 }
 
 // to avoid leaking items with higher depth into items with lower depth
-func (self Comp) depth() int {
+func (self comp) depth() int {
 	return self.extra.depth
 }
 
 // completer needs to replace meta placeholder with actual values - uses this
 //
 // value indicates if it's an argument or a positional meta
-func (self Comp) is_metavar() (bool, bool) {
+func (self comp) is_metavar() (bool, bool) {
 	if self.kind == compKindMetavariable {
 		return self.is_argument, true
 	}
 	return false, false
 }
 
-func (self *Comp) set_group(group string) {
+func (self *comp) set_group(group string) {
 	if !self.extra.group.Valid {
 		self.extra.group = Valid(group)
 	}
@@ -282,7 +282,7 @@ type ShowComp struct {
 	// pretty rendering which might include metavars, etc
 	pretty string
 
-	extra CompExtra
+	extra compExtra
 }
 
 func (self ShowComp) fmt(f *strings.Builder) {
@@ -304,21 +304,21 @@ func (self ShowComp) to_string() string {
 // What is the preceeding item, if any
 //
 // Mostly is there to tell if we are trying to complete and argument or not...
-type Prefix = func(
+type prefix = func(
 	NA func(),
 	Short func(byte),
 	Long func(string),
 )
 
-func PrefixNA(f func(), _ func(byte), _ func(string)) { f() }
-func PrefixShort(s byte) Prefix {
+func prefixNA(f func(), _ func(byte), _ func(string)) { f() }
+func prefixShort(s byte) prefix {
 	return func(_ func(), f func(byte), _ func(string)) {
 		if f != nil {
 			f(s)
 		}
 	}
 }
-func PrefixLong(s string) Prefix {
+func prefixLong(s string) prefix {
 	return func(_ func(), _ func(byte), f func(string)) {
 		if f != nil {
 			f(s)
@@ -329,16 +329,16 @@ func PrefixLong(s string) Prefix {
 // Generate completion from collected heads
 // before calling this method we run parser in "complete" mode and collect live heads inside
 // `self.comp`, this part goes over collected heads and generates possible completions from that
-func (self State) check_complete() (string, bool) {
+func (self state) check_complete() (string, bool) {
 	comp, ok := self.comp.Unpack()
 	if !ok {
 		return "", false
 	}
 
-	next, cancel := iter.Pull2(func(yield func(Arg, string) bool) {
+	next, cancel := iter.Pull2(func(yield func(arg, string) bool) {
 		for _, s := range slices.Backward(self.items) {
 			// empty string is only expected for short flags in a block like -abc
-			if s.kind == ArgKindShortFlag && s.str == "" {
+			if s.kind == argKindShortFlag && s.str == "" {
 				continue
 			}
 			if !yield(s, s.str) {
@@ -350,14 +350,14 @@ func (self State) check_complete() (string, bool) {
 
 	// try get a current item to complete - must be non-virtual right most one
 	// value must be present here, and can fail only for non-utf8 values
-	// can't do much completing with non-utf8 values since bpaf needs to print them to stdout
+	// can't do much completing with non-utf8 values since they need to be printed to stdout
 	cur, lit, ok := next()
 	if !ok {
 		return "", false
 	}
 
 	// For cases like "-k=val", "-kval", "--key=val", "--key val"
-	// last value is going  to be either ArgWord or ArgArgWord
+	// last value is going  to be either argWord or argArgWord
 	// so to perform full completion we look at the preceeding item
 	// and use it's value if it was a composite short/long argument
 	preceeding, preceeding_os, ok := next()
@@ -366,25 +366,25 @@ func (self State) check_complete() (string, bool) {
 		full_lit string
 	)
 	switch {
-	case ok && fun.Contains(preceeding.kind, ArgKindShortFlag, ArgKindLongFlag) && preceeding.isAdjacent:
+	case ok && fun.Contains(preceeding.kind, argKindShortFlag, argKindLongFlag) && preceeding.isAdjacent:
 		pos_only, full_lit = false, preceeding_os
-	case ok && preceeding.kind == ArgKindPositional:
+	case ok && preceeding.kind == argKindPositional:
 		pos_only, full_lit = true, lit
 	default:
 		pos_only, full_lit = false, lit
 	}
 
-	is_named := fun.Contains(cur.kind, ArgKindShortFlag, ArgKindLongFlag)
+	is_named := fun.Contains(cur.kind, argKindShortFlag, argKindLongFlag)
 
-	prefix := PrefixNA
+	prefix := prefixNA
 	switch preceeding.kind {
-	case ArgKindShortFlag:
+	case argKindShortFlag:
 		if preceeding.isAdjacent {
-			prefix = PrefixShort(preceeding.c)
+			prefix = prefixShort(preceeding.c)
 		}
-	case ArgKindLongFlag:
+	case argKindLongFlag:
 		if preceeding.isAdjacent {
-			prefix = PrefixLong(preceeding.s)
+			prefix = prefixLong(preceeding.s)
 		}
 	}
 
@@ -409,7 +409,7 @@ func (self State) check_complete() (string, bool) {
 }
 
 // Try to expand short string names into long names if possible
-func preferred_name(name ShortLong) string {
+func preferred_name(name shortLong) string {
 	if name.is_short() {
 		return fmt.Sprintf("-%c", name.Short)
 	} else {
@@ -422,12 +422,12 @@ func stris_empty(s string) bool {
 }
 
 // check if argument can possibly switch the argument passed in and returns a preferrable replacement
-func arg_matches(arg string, name ShortLong) (string, bool) {
+func arg_matches(arg string, name shortLong) (string, bool) {
 	// "" and "-" switch any flag
 	if arg == "" || arg == "-" ||
 		// separately check for short and long names, fancy strip prefix things is here to avoid allocations and cloning
 		map_or(strip_prefixb(arg, '-').
-			and_then(func(a string) Option[string] { return strip_prefixb(a, name.Short) }),
+			and_then(func(a string) Opt[string] { return strip_prefixb(a, name.Short) }),
 			false, stris_empty) ||
 		// and long string too, name must actually have a long variant
 		map_or(strip_prefix(arg, "--"), false, func(s string) bool {
@@ -439,7 +439,7 @@ func arg_matches(arg string, name ShortLong) (string, bool) {
 	return "", false
 }
 
-func cmd_matches(arg string, name string, short Option[byte]) (string, bool) {
+func cmd_matches(arg string, name string, short Opt[byte]) (string, bool) {
 	// partial long name and exact short name switch anything
 	if strings.HasPrefix(name, arg) || map_or(short, false, func(s byte) bool {
 		// avoid allocations
@@ -452,7 +452,7 @@ func cmd_matches(arg string, name string, short Option[byte]) (string, bool) {
 }
 
 // this completion should suppress anything else that is not a value
-func (self Comp) only_value() bool {
+func (self comp) only_value() bool {
 	switch self.kind {
 	case compKindValue, compKindMetavariable, compKindShell:
 		return self.is_argument
@@ -461,7 +461,7 @@ func (self Comp) only_value() bool {
 	}
 }
 
-func (self Comp) is_pos() bool {
+func (self comp) is_pos() bool {
 	switch self.kind {
 	case compKindValue:
 		return !self.is_argument
@@ -476,7 +476,7 @@ func (self Complete) complete(
 	arg string,
 	pos_only bool,
 	is_named bool,
-	prefix Prefix,
+	prefix prefix,
 ) ([]ShowComp, []ShellComp) {
 	max_depth := 0
 	for _, c := range self.comps {
@@ -489,7 +489,7 @@ func (self Complete) complete(
 F:
 	for item := range funiter.
 		FromMany(self.comps...).
-		Filter(func(c Comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
+		Filter(func(c comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
 		switch {
 		case only_values == item.only_value():
 		case only_values:

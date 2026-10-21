@@ -6,190 +6,190 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type Meta interface {
+type meta interface {
 	isMeta()
-	clone() Meta
+	clone() meta
 }
 
 // All arguments listed in a vector must be present
-type MetaAnd []Meta
+type metaAnd []meta
 
-func (MetaAnd) isMeta() {}
-func (self MetaAnd) clone() Meta {
-	return MetaAnd(fun.Map[Meta](Meta.clone, self...))
+func (metaAnd) isMeta() {}
+func (self metaAnd) clone() meta {
+	return metaAnd(fun.Map[meta](meta.clone, self...))
 }
 
 // One of arguments listed in a vector must be present
-type MetaOr []Meta
+type metaOr []meta
 
-func (MetaOr) isMeta() {}
-func (self MetaOr) clone() Meta {
-	return MetaOr(fun.Map[Meta](Meta.clone, self...))
+func (metaOr) isMeta() {}
+func (self metaOr) clone() meta {
+	return metaOr(fun.Map[meta](meta.clone, self...))
 }
 
-// Arguments are fun.Optional and encased in [] when rendered
-type MetaOptional struct{ m Meta }
+// Arguments are optional and encased in [] when rendered
+type metaOptional struct{ m meta }
 
-func (MetaOptional) isMeta() {}
-func (self MetaOptional) clone() Meta {
-	return MetaOptional{self.m.clone()}
+func (metaOptional) isMeta() {}
+func (self metaOptional) clone() meta {
+	return metaOptional{self.m.clone()}
 }
 
 // Arguments are requred and encased in () when rendered
-type MetaRequired struct{ m Meta }
+type metaRequired struct{ m meta }
 
-func (MetaRequired) isMeta() {}
-func (self MetaRequired) clone() Meta {
-	return MetaRequired{self.m.clone()}
+func (metaRequired) isMeta() {}
+func (self metaRequired) clone() meta {
+	return metaRequired{self.m.clone()}
 }
 
 // Argumens are required to be adjacent to each other
-type MetaAdjacent struct{ m Meta }
+type metaAdjacent struct{ m meta }
 
-func (MetaAdjacent) isMeta() {}
-func (self MetaAdjacent) clone() Meta {
-	return MetaAdjacent{self.m.clone()}
+func (metaAdjacent) isMeta() {}
+func (self metaAdjacent) clone() meta {
+	return metaAdjacent{self.m.clone()}
 }
 
 // Primitive argument as described
-type MetaItem Item
+type metaItem item
 
-func (MetaItem) isMeta() {}
-func (self MetaItem) clone() Meta {
-	return MetaItem(Item(self).clone())
+func (metaItem) isMeta() {}
+func (self metaItem) clone() meta {
+	return metaItem(item(self).clone())
 }
 
 // Accepts multiple arguments
-type MetaMany struct{ m Meta }
+type metaMany struct{ m meta }
 
-func (MetaMany) isMeta() {}
-func (self MetaMany) clone() Meta {
-	return MetaMany{self.m.clone()}
+func (metaMany) isMeta() {}
+func (self metaMany) clone() meta {
+	return metaMany{self.m.clone()}
 }
 
 // Arguments form a subsection with buffer being it's header
 //
 // whole set of arguments go into the same section as the first one
-type MetaSubsection struct {
-	m   Meta
+type metaSubsection struct {
+	m   meta
 	doc Doc
 }
 
-func (MetaSubsection) isMeta() {}
-func (self MetaSubsection) clone() Meta {
-	return MetaSubsection{self.m.clone(), self.doc.clone()}
+func (metaSubsection) isMeta() {}
+func (self metaSubsection) clone() meta {
+	return metaSubsection{self.m.clone(), self.doc.clone()}
 }
 
 // Buffer is rendered after
-type MetaSuffix struct {
-	m   Meta
+type metaSuffix struct {
+	m   meta
 	doc Doc
 }
 
-func (MetaSuffix) isMeta() {}
-func (self MetaSuffix) clone() Meta {
-	return MetaSuffix{self.m.clone(), self.doc.clone()}
+func (metaSuffix) isMeta() {}
+func (self metaSuffix) clone() meta {
+	return metaSuffix{self.m.clone(), self.doc.clone()}
 }
 
 // This item is not rendered in the help message
-type MetaSkip struct{}
+type metaSkip struct{}
 
-func (MetaSkip) isMeta() {}
-func (MetaSkip) clone() Meta {
-	return MetaSkip{}
+func (metaSkip) isMeta() {}
+func (metaSkip) clone() meta {
+	return metaSkip{}
 }
 
-// mirrors Rust's Meta::CustomUsage(Box<Meta>, Box<Doc>) - the doc is always set
+// mirrors Rust's meta::CustomUsage(Box<meta>, Box<Doc>) - the doc is always set
 // where this variant is constructed (parse_usage)
-type MetaCustomUsage struct {
-	m   Meta
+type metaCustomUsage struct {
+	m   meta
 	doc Doc
 }
 
-func (MetaCustomUsage) isMeta() {}
-func (self MetaCustomUsage) clone() Meta {
-	return MetaCustomUsage{self.m.clone(), self.doc.clone()}
+func (metaCustomUsage) isMeta() {}
+func (self metaCustomUsage) clone() meta {
+	return metaCustomUsage{self.m.clone(), self.doc.clone()}
 }
 
 // this meta must be prefixed with -- in unsage group
-type MetaStrict struct{ m Meta }
+type metaStrict struct{ m meta }
 
-func (MetaStrict) isMeta() {}
-func (self MetaStrict) clone() Meta {
-	return MetaStrict{self.m.clone()}
+func (metaStrict) isMeta() {}
+func (self metaStrict) clone() meta {
+	return metaStrict{self.m.clone()}
 }
 
-func DefaultMeta() Meta {
-	return MetaSkip{}
+func defaultMeta() meta {
+	return metaSkip{}
 }
 
-func cloneMeta(m Meta) Meta {
+func cloneMeta(m meta) meta {
 	cloneDoc := func(d Doc) Doc {
-		return Doc{d.payload, append([]Token(nil), d.tokens...)}
+		return Doc{d.payload, append([]token(nil), d.tokens...)}
 	}
 	switch m := m.(type) {
-	case MetaAnd:
-		return MetaAnd(fun.Map[Meta](cloneMeta, m...))
-	case MetaOr:
-		return MetaOr(fun.Map[Meta](cloneMeta, m...))
-	case MetaOptional:
-		return MetaOptional{cloneMeta(m.m)}
-	case MetaRequired:
-		return MetaRequired{cloneMeta(m.m)}
-	case MetaAdjacent:
-		return MetaAdjacent{cloneMeta(m.m)}
-	case MetaItem:
-		return MetaItem(Item(m).clone())
-	case MetaMany:
-		return MetaMany{cloneMeta(m.m)}
-	case MetaSubsection:
-		return MetaSubsection{cloneMeta(m.m), cloneDoc(m.doc)}
-	case MetaSuffix:
-		return MetaSuffix{cloneMeta(m.m), cloneDoc(m.doc)}
-	case MetaSkip:
-		return MetaSkip{}
-	case MetaCustomUsage:
-		return MetaCustomUsage{cloneMeta(m.m), cloneDoc(m.doc)}
-	case MetaStrict:
-		return MetaStrict{cloneMeta(m.m)}
+	case metaAnd:
+		return metaAnd(fun.Map[meta](cloneMeta, m...))
+	case metaOr:
+		return metaOr(fun.Map[meta](cloneMeta, m...))
+	case metaOptional:
+		return metaOptional{cloneMeta(m.m)}
+	case metaRequired:
+		return metaRequired{cloneMeta(m.m)}
+	case metaAdjacent:
+		return metaAdjacent{cloneMeta(m.m)}
+	case metaItem:
+		return metaItem(item(m).clone())
+	case metaMany:
+		return metaMany{cloneMeta(m.m)}
+	case metaSubsection:
+		return metaSubsection{cloneMeta(m.m), cloneDoc(m.doc)}
+	case metaSuffix:
+		return metaSuffix{cloneMeta(m.m), cloneDoc(m.doc)}
+	case metaSkip:
+		return metaSkip{}
+	case metaCustomUsage:
+		return metaCustomUsage{cloneMeta(m.m), cloneDoc(m.doc)}
+	case metaStrict:
+		return metaStrict{cloneMeta(m.m)}
 	}
 	panic("unreachable")
 }
 
-func IsAnd(m Meta) bool {
-	_, ok := m.(MetaAnd)
+func isAnd(m meta) bool {
+	_, ok := m.(metaAnd)
 	return ok
 }
 
-func IsOr(m Meta) bool {
-	_, ok := m.(MetaOr)
+func isOr(m meta) bool {
+	_, ok := m.(metaOr)
 	return ok
 }
 
-func IsSkip(m Meta) bool {
-	_, ok := m.(MetaSkip)
+func isSkip(m meta) bool {
+	_, ok := m.(metaSkip)
 	return ok
 }
 
-// MetaStrict should bubble up to one of 3 places:
+// metaStrict should bubble up to one of 3 places:
 // - top level
 // - one of "and" elements
 // - one of "or" elements
-type StrictNorm uint8
+type strictNorm uint8
 
 const (
 	// starting at the top and looking for Strict inside
-	StrictNormPull StrictNorm = iota
+	StrictNormPull strictNorm = iota
 	StrictNormPush
 	// Already accounted for one, can strip the rest
 	StrictNormStrip
 )
 
-func (self StrictNorm) IsPull() bool  { return self == StrictNormPull }
-func (self StrictNorm) IsPush() bool  { return self == StrictNormPush }
-func (self StrictNorm) IsStrip() bool { return self == StrictNormStrip }
+func (self strictNorm) IsPull() bool  { return self == StrictNormPull }
+func (self strictNorm) IsPush() bool  { return self == StrictNormPush }
+func (self strictNorm) IsStrip() bool { return self == StrictNormStrip }
 
-func (self *StrictNorm) push() {
+func (self *strictNorm) push() {
 	if *self == StrictNormPull {
 		*self = StrictNormPush
 	}
@@ -197,27 +197,27 @@ func (self *StrictNorm) push() {
 
 // Used by normalization function to collapse duplicated commands.
 // It seems to be fine to strip section information but not anything else
-func is_command(self Meta) bool {
+func is_command(self meta) bool {
 	switch self := self.(type) {
-	case MetaItem:
-		_, ok := self.v.(ItemCommand)
+	case metaItem:
+		_, ok := self.v.(itemCommand)
 		return ok
-	case MetaSubsection:
+	case metaSubsection:
 		return is_command(self.m)
 	}
 	return false
 }
 
 // do a nested invariant check
-func positional_invariant_check(self Meta, verbose bool) {
-	var GO func(meta Meta, is_pos *bool, v bool)
-	GO = func(meta Meta, is_pos *bool, v bool) {
+func positional_invariant_check(self meta, verbose bool) {
+	var GO func(meta meta, is_pos *bool, v bool)
+	GO = func(meta meta, is_pos *bool, v bool) {
 		switch meta := meta.(type) {
-		case MetaAnd:
+		case metaAnd:
 			for _, x := range meta {
 				GO(x, is_pos, v)
 			}
-		case MetaOr:
+		case metaOr:
 			out := *is_pos
 			for _, x := range meta {
 				this_pos := *is_pos
@@ -225,12 +225,12 @@ func positional_invariant_check(self Meta, verbose bool) {
 				out = out || this_pos
 			}
 			*is_pos = out
-		case MetaOptional:
+		case metaOptional:
 			GO(meta.m, is_pos, v)
-		case MetaRequired:
+		case metaRequired:
 			GO(meta.m, is_pos, v)
-		case MetaAdjacent:
-			if i, ok := Metafirst_item(meta.m).Unpack(); ok {
+		case metaAdjacent:
+			if i, ok := metaFirstItem(meta.m).Unpack(); ok {
 				if i.is_pos() {
 					GO(meta.m, is_pos, v)
 				} else {
@@ -238,16 +238,16 @@ func positional_invariant_check(self Meta, verbose bool) {
 					GO(meta.m, &inner, v)
 				}
 			}
-		case MetaItem:
-			i := Item(meta)
+		case metaItem:
+			i := item(meta)
 			switch {
 			case *is_pos == i.is_pos():
 			case *is_pos:
-				panic(fmt.Sprintf(`bpaf usage BUG: all positional and command items must be placed in the right most position of the structure or tuple they are in but %#v breaks this rule. See bpaf documentation for "positional" for details.`, i))
+				panic(fmt.Sprintf(`cli usage BUG: all positional and command items must be placed in the right most position of the structure or tuple they are in but %#v breaks this rule. See the "Positional" documentation for details.`, i))
 			case i.is_pos():
 				*is_pos = true
 			}
-			m, ok := i.v.(ItemCommand)
+			m, ok := i.v.(itemCommand)
 			if ok {
 				command_pos := false
 				if v {
@@ -255,16 +255,16 @@ func positional_invariant_check(self Meta, verbose bool) {
 				}
 				GO(m.meta, &command_pos, v)
 			}
-		case MetaMany:
+		case metaMany:
 			GO(meta.m, is_pos, v)
-		case MetaSubsection:
+		case metaSubsection:
 			GO(meta.m, is_pos, v)
-		case MetaSuffix:
+		case metaSuffix:
 			GO(meta.m, is_pos, v)
-		case MetaSkip:
-		case MetaCustomUsage:
+		case metaSkip:
+		case metaCustomUsage:
 			GO(meta.m, is_pos, v)
-		case MetaStrict:
+		case metaStrict:
 			GO(meta.m, is_pos, v)
 		}
 	}
@@ -275,80 +275,80 @@ func positional_invariant_check(self Meta, verbose bool) {
 	GO(self, &is_pos, verbose)
 }
 
-func normalized(m Meta, for_usage bool) Meta {
+func normalized(m meta, for_usage bool) meta {
 	m = cloneMeta(m)
 	norm := StrictNormPull
 	normalize(&m, for_usage, &norm)
 	// strip outer () around meta unless inner
-	if i, ok := m.(MetaRequired); ok {
+	if i, ok := m.(metaRequired); ok {
 		m = i
 	}
-	if _, ok := m.(MetaOr); ok {
-		m = MetaRequired{m}
+	if _, ok := m.(metaOr); ok {
+		m = metaRequired{m}
 	}
 	if norm == StrictNormPush {
-		m = MetaStrict{m}
+		m = metaStrict{m}
 	}
 	return m
 }
 
 // Used by adjacent parsers since it inherits behavior of the front item
-func Metafirst_item(meta Meta) Option[Item] {
+func metaFirstItem(meta meta) Opt[item] {
 	switch meta := meta.(type) {
-	case MetaAnd:
-		return OptFlatMap(First(meta), Metafirst_item)
-	case MetaItem:
-		return Valid(Item(meta))
-	case MetaOptional:
-		return Metafirst_item(meta.m)
-	case MetaRequired:
-		return Metafirst_item(meta.m)
-	case MetaAdjacent:
-		return Metafirst_item(meta.m)
-	case MetaMany:
-		return Metafirst_item(meta.m)
-	case MetaSubsection:
-		return Metafirst_item(meta.m)
-	case MetaSuffix:
-		return Metafirst_item(meta.m)
-	case MetaCustomUsage:
-		return Metafirst_item(meta.m)
-	case MetaStrict:
-		return Metafirst_item(meta.m)
+	case metaAnd:
+		return optFlatMap(first(meta), metaFirstItem)
+	case metaItem:
+		return Valid(item(meta))
+	case metaOptional:
+		return metaFirstItem(meta.m)
+	case metaRequired:
+		return metaFirstItem(meta.m)
+	case metaAdjacent:
+		return metaFirstItem(meta.m)
+	case metaMany:
+		return metaFirstItem(meta.m)
+	case metaSubsection:
+		return metaFirstItem(meta.m)
+	case metaSuffix:
+		return metaFirstItem(meta.m)
+	case metaCustomUsage:
+		return metaFirstItem(meta.m)
+	case metaStrict:
+		return metaFirstItem(meta.m)
 	}
-	return Invalid[Item]()
+	return Invalid[item]()
 }
 
 // Normalize meta info for display as usage. Required propagates outwards
-func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
+func normalize(self *meta, for_usage bool, norm *strictNorm) {
 	normalize_vec := func(
-		xs *[]Meta,
+		xs *[]meta,
 		for_usage bool,
-		norm *StrictNorm,
+		norm *strictNorm,
 		or bool,
-	) (Meta, bool) {
+	) (meta, bool) {
 		final_norm := *norm
 		for i := range *xs {
 			this_norm := *norm
 			normalize(&(*xs)[i], for_usage, &this_norm)
-			var target *StrictNorm = fun.IF(or, &final_norm, norm)
+			var target *strictNorm = fun.IF(or, &final_norm, norm)
 			switch {
 			// switch (*target, this_norm) {
 			case this_norm.IsPull() || target.IsStrip():
 			case target.IsPull() && this_norm.IsPush():
-				*self = MetaStrict{*self}
+				*self = metaStrict{*self}
 				*target = StrictNormStrip
 			default:
 				*target = this_norm
 			}
 		}
-		*xs = fun.Filter(func(m Meta) bool { return !IsSkip(m) }, *xs...)
+		*xs = fun.Filter(func(m meta) bool { return !isSkip(m) }, *xs...)
 
 		*norm = final_norm
 
 		switch len(*xs) {
 		case 0:
-			return MetaSkip{}, true
+			return metaSkip{}, true
 		case 1:
 			res := (*xs)[0]
 			*xs = (*xs)[1:]
@@ -359,18 +359,18 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 	}
 
 	switch m := (*self).(type) {
-	case MetaAnd:
-		if replacement, ok := normalize_vec((*[]Meta)(&m), for_usage, norm, false); ok {
+	case metaAnd:
+		if replacement, ok := normalize_vec((*[]meta)(&m), for_usage, norm, false); ok {
 			*self = replacement
 		}
 	// or should have either () or [] around it
-	case MetaOr:
-		if replacement, ok := normalize_vec((*[]Meta)(&m), for_usage, norm, true); ok {
+	case metaOr:
+		if replacement, ok := normalize_vec((*[]meta)(&m), for_usage, norm, true); ok {
 			*self = replacement
 		} else {
 			saw_cmd := false
 			// drop all the commands apart from the first one
-			m = fun.Filter(func(m Meta) bool {
+			m = fun.Filter(func(m meta) bool {
 				is_cmd := is_command(m)
 				keep := !(is_cmd && saw_cmd)
 				saw_cmd = saw_cmd || is_cmd
@@ -378,137 +378,137 @@ func normalize(self *Meta, for_usage bool, norm *StrictNorm) {
 			}, m...)
 			switch len(m) {
 			case 0:
-				*self = MetaSkip{}
+				*self = metaSkip{}
 			case 1:
 				*self = m[0]
 				m = m[1:]
 			default:
-				*self = MetaRequired{m}
+				*self = metaRequired{m}
 			}
 		}
-	case MetaOptional:
+	case metaOptional:
 		normalize(&m.m, for_usage, norm)
 		// *self = m
 		switch mm := m.m.(type) {
-		case MetaOptional:
+		case metaOptional:
 			*self = mm.m
-		case MetaRequired:
+		case metaRequired:
 			*self = mm.m
-		case MetaMany:
-			if x, ok := mm.m.(MetaRequired); ok {
-				*self = MetaMany(MetaOptional(x))
+		case metaMany:
+			if x, ok := mm.m.(metaRequired); ok {
+				*self = metaMany(metaOptional(x))
 			}
-		case MetaSkip:
-			*self = MetaSkip{}
+		case metaSkip:
+			*self = metaSkip{}
 		}
-	case MetaRequired:
+	case metaRequired:
 		normalize(&m.m, for_usage, norm)
 		switch {
-		case IsSkip(m.m):
-			// Required(Skip)Skip
-			*self = MetaSkip{}
-		case IsAnd(m) || IsOr(m):
+		case isSkip(m.m):
+			// Required(skip)skip
+			*self = metaSkip{}
+		case isAnd(m) || isOr(m):
 			// keep () around composite parsers
 		default:
 			// and strip them elsewhere
 			*self = m
 		}
-	case MetaMany:
+	case metaMany:
 		normalize(&m.m, for_usage, norm)
 		*self = m
-		if IsSkip(m.m) {
-			*self = MetaSkip{}
+		if isSkip(m.m) {
+			*self = metaSkip{}
 		}
-	case MetaItem:
-		i := Item(m)
+	case metaItem:
+		i := item(m)
 		i.normalize(for_usage)
-	case MetaSkip:
+	case metaSkip:
 		// nothing to do with items and skip just bubbles upwards
-	case MetaCustomUsage:
+	case metaCustomUsage:
 		normalize(&m.m, for_usage, norm)
 		// strip CustomUsage if we are not in usage so writer can simply render it
 		if for_usage {
 			*self = m
 		} else if m.doc.is_empty() {
-			*self = MetaSkip{}
+			*self = metaSkip{}
 		}
-	case MetaStrict:
+	case metaStrict:
 		normalize(&m.m, for_usage, norm)
 		norm.push()
 		*self = m.m
-	case MetaAdjacent:
+	case metaAdjacent:
 		normalize(&m.m, for_usage, norm)
 		*self = m.m
-	case MetaSubsection:
+	case metaSubsection:
 		normalize(&m.m, for_usage, norm)
 		*self = m.m
-	case MetaSuffix:
+	case metaSuffix:
 		normalize(&m.m, for_usage, norm)
 		*self = m.m
 	}
 }
 
-func MetaFromItem(value Item) Meta {
-	return MetaItem(value)
+func metaFromItem(value item) meta {
+	return metaItem(value)
 }
 
-func alts(self Meta, to *[]Meta) {
+func alts(self meta, to *[]meta) {
 	switch self := self.(type) {
-	case MetaOr:
+	case metaOr:
 		*to = append(*to, self...)
-	case MetaSkip:
+	case metaSkip:
 	default:
 		*to = append(*to, self)
 	}
 }
 
-func or(self, other Meta) Meta {
-	res := []Meta{}
+func or(self, other meta) meta {
+	res := []meta{}
 	alts(self, &res)
 	alts(other, &res)
 	switch len(res) {
 	case 0:
-		return MetaSkip{}
+		return metaSkip{}
 	case 1:
 		return res[0]
 	default:
-		return MetaOr(res)
+		return metaOr(res)
 	}
 }
 
 // collect different kinds of short names for disambiguation
-func collect_shorts(self Meta, flags *[]byte, args *[]byte) {
+func collect_shorts(self meta, flags *[]byte, args *[]byte) {
 	switch self := self.(type) {
-	case MetaAnd:
+	case metaAnd:
 		for _, x := range self {
 			collect_shorts(x, flags, args)
 		}
-	case MetaOr:
+	case metaOr:
 		for _, x := range self {
 			collect_shorts(x, flags, args)
 		}
-	case MetaItem:
+	case metaItem:
 		switch v := self.v.(type) {
-		case ItemCommand:
+		case itemCommand:
 			collect_shorts(v.meta, flags, args)
-		case ItemFlag:
+		case itemFlag:
 			*flags = append(*flags, v.shorts...)
-		case ItemArgument:
+		case itemArgument:
 			*args = append(*args, v.shorts...)
 		}
-	case MetaOptional:
+	case metaOptional:
 		collect_shorts(self.m, flags, args)
-	case MetaRequired:
+	case metaRequired:
 		collect_shorts(self.m, flags, args)
-	case MetaAdjacent:
+	case metaAdjacent:
 		collect_shorts(self.m, flags, args)
-	case MetaMany:
+	case metaMany:
 		collect_shorts(self.m, flags, args)
-	case MetaSubsection:
+	case metaSubsection:
 		collect_shorts(self.m, flags, args)
-	case MetaSuffix:
+	case metaSuffix:
 		collect_shorts(self.m, flags, args)
-	case MetaCustomUsage:
+	case metaCustomUsage:
 		collect_shorts(self.m, flags, args)
 	}
 }

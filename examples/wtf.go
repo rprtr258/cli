@@ -34,21 +34,21 @@ package examples
 
 // type cmdAdd struct {
 // 	All  bool     `short:"a" long:"all" description:"Add all files"`
-// 	Args []string `positional-args:"yes"`
+// 	argList []string `positional-args:"yes"`
 // }
 
 // func (x cmdAdd) Execute(context.Context) error {
-// 	fmt.Printf("Adding (all=%v): %#v\n", x.All, x.Args)
+// 	fmt.Printf("Adding (all=%v): %#v\n", x.All, x.argList)
 // 	return nil
 // }
 
 // type cmdRm struct {
 // 	Force bool     `short:"f" long:"force" description:"Force removal of files"`
-// 	Args  []string `positional-args:"yes"`
+// 	argList  []string `positional-args:"yes"`
 // }
 
 // func (x cmdRm) Execute(context.Context) error {
-// 	fmt.Printf("Removing (force=%v): %#v\n", x.Force, x.Args)
+// 	fmt.Printf("Removing (force=%v): %#v\n", x.Force, x.argList)
 // 	return nil
 // }
 
@@ -62,7 +62,7 @@ package examples
 // 	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
 // 	File        string         `short:"f" long:"file" description:"A file" value-name:"FILE"`
 // 	Filename    flags.Filename `long:"filename" description:"A filename"`
-// 	Args        []string       `positional-args:"yes"`
+// 	argList        []string       `positional-args:"yes"`
 // }
 
 // func (x cmdExample) Execute(context.Context) error {
@@ -91,11 +91,11 @@ package examples
 // type cmdRoot struct {
 // 	// Example of verbosity with level
 // 	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-// 	// Example of fun.Optional value
-// 	// User string `short:"u" long:"user" description:"User name" fun.Optional:"yes" fun.Optional-value:"pancake"`
+// 	// Example of optional value
+// 	// User string `short:"u" long:"user" description:"User name" optional:"yes" optional-value:"pancake"`
 // 	// Example of map with multiple default values
 // 	// Users map[string]string `long:"users" description:"User e-mail map" default:"system:system@example.org" default:"admin:admin@example.org"`
-// 	// Example of fun.Option group
+// 	// Example of optional group
 // 	// EditorOptions
 // 	// Example of custom type Marshal/Unmarshal
 // 	// Point Point `long:"point" description:"A x,y point" default:"1,2"`

@@ -39,8 +39,8 @@ func Sensors() {
 	}
 
 	// generates completion suggestions
-	sensor_device_comp := func(input string) iter.Seq2[string, cli.Option[string]] {
-		return func(yield func(string, cli.Option[string]) bool) {
+	sensor_device_comp := func(input string) iter.Seq2[string, cli.Opt[string]] {
+		return func(yield func(string, cli.Opt[string]) bool) {
 			for name, descr := range func(yield func(string, string) bool) {
 				_ = yield("temp100", "Main temperature sensor") &&
 					yield("temp101", "Output temperature sensor") &&
@@ -82,7 +82,7 @@ func Sensors() {
 				address.Parser(),
 			).Adjacent().Parser(), func(x fun.Pair[fun.Pair[fun.Pair[struct{}, string], fun.Pair[string, uint]], uint]) Sensor {
 				return Sensor{x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V}
-			}), false) // TODO: adjacent must be after Map somehow
+			})) // TODO: adjacent must be after Map somehow
 		return cli.Map(sensors.Parser(), func(x []Sensor) Opts { return Opts{x} })
 	}()
 

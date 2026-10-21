@@ -1,22 +1,22 @@
 package cli
 
-func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
+func adjacent_eval[T any](inner Parser[T], state *state) (T, parseError) {
 	original_scope := state.scope
 
-	var first_item Item
-	best_error := func() Error {
-		item, ok := Metafirst_item(inner.meta).Unpack()
+	var first_item item
+	best_error := func() parseError {
+		item, ok := metaFirstItem(inner.meta).Unpack()
 		if !ok {
-			panic("bpaf usage BUG: adjacent should start with a required argument")
+			panic("cli usage BUG: adjacent should start with a required argument")
 		}
 
 		first_item = item
-		missing_item := MissingItem{
+		missing_item := missingItem{
 			item:     item.clone(),
 			position: original_scope.start(),
 			scope:    original_scope,
 		}
-		return ErrorMissing([]MissingItem{missing_item})
+		return errorMissing([]missingItem{missing_item})
 	}()
 	best_args := state.clone()
 	best_consumed := 0
@@ -41,7 +41,7 @@ func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
 		// consider examples "42 -n" and "-n 42"
 		// without multi step approach first command line also parses into 42
 		scratch := this_arg.clone()
-		scratch.scope = Range{start, start + width}
+		scratch.scope = rng{start, start + width}
 		before := scratch.len()
 
 		// nothing to consume, might as well skip this segment right now
@@ -58,7 +58,7 @@ func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
 			continue
 		}
 
-		this_arg.scope = Range{start, original_scope.end()}
+		this_arg.scope = rng{start, original_scope.end()}
 		before = this_arg.len()
 
 		// values consumed by adjacent must be actually adjacent - if a scope contains
@@ -84,7 +84,7 @@ func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
 				if consumed > best_consumed {
 					best_consumed = consumed
 					best_args, this_arg = this_arg, best_args
-					best_error = Error(err)
+					best_error = parseError(err)
 				}
 				break
 			}
@@ -92,5 +92,5 @@ func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
 	}
 
 	*state, best_args = best_args, *state
-	return *new(T), Error(best_error)
+	return *new(T), parseError(best_error)
 }

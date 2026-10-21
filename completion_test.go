@@ -1,4 +1,4 @@
-package cli_test
+package cli
 
 import (
 	stditer "iter"
@@ -8,16 +8,14 @@ import (
 
 	"github.com/rprtr258/fun"
 	funiter "github.com/rprtr258/fun/iter"
-
-	. "github.com/rprtr258/cli"
 )
 
-type PSOS = fun.Pair[string, Option[string]]
-type SSOS = stditer.Seq2[string, Option[string]]
+type PSOS = fun.Pair[string, Opt[string]]
+type SSOS = stditer.Seq2[string, Opt[string]]
 
 func test_completer(input string) SSOS {
 	vec := test_completer_descr(input)
-	return func(yield func(string, Option[string]) bool) {
+	return func(yield func(string, Opt[string]) bool) {
 		for v := range vec {
 			if !yield(v, Invalid[string]()) {
 				return
@@ -297,8 +295,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 }
 
 func TestStatic_complete_test_6(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseString).Parser(), false)
-	b := Many(Argument(Short('b'), "B", parseString), false)
+	a := Optional(Argument(Short('a'), "A", parseString).Parser())
+	b := Many(Argument(Short('b'), "B", parseString))
 	parser := Pair(a, b).Parser().ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "-b", "x", "")
@@ -428,7 +426,7 @@ func TestCsample_mystery(t *testing.T) {
 		Parser().Complete(test_completer)
 	parser := Pair(Pair(a, b), Pair(bb, c)).
 		Parser().ToOptions().
-		Descr("Dynamic autocomplete example").
+		Description("Dynamic autocomplete example").
 		Footer("footer")
 
 	assertCompletion(t, parser, "--avocado\t--avocado\t\tUse avocado\n--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n--calculator\t--calculator=EXPR\t\tcalculator expression\n\n", "")
@@ -451,18 +449,18 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 }
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
-	parser := Many(Positional("D", parseString), false).Parser().ToOptions()
+	parser := Many(Positional("D", parseString)).Parser().ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
-	parser := Some(Positional("D", parseString), "", false).ToOptions()
+	parser := Some(Positional("D", parseString), "").ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestOnly_positionals_after_positionals(t *testing.T) {
 	a := Short('a').Switch()
-	d := Many(Positional("D", parseString), false)
+	d := Many(Positional("D", parseString))
 	parser := Pair(a, d).Parser().ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\t\n\tD\t\t\n\n", "")
@@ -506,7 +504,7 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	}
 	a := Optional(Argument(Long("arg"),
 		"ARG", parseString).
-		Parser().Complete(c_b).Parser(), false)
+		Parser().Complete(c_b).Parser())
 
 	// parser := Pair(a).Parser().ToOptions()
 	parser := a.Parser().ToOptions()
@@ -578,7 +576,7 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 }
 
 func TestAmbiguity_to_flags(t *testing.T) {
-	parser := Many(Short('a').Switch(), false).Parser().ToOptions()
+	parser := Many(Short('a').Switch()).Parser().ToOptions()
 
 	assertCompletion(t, parser, "-aaa\n", "-aaa")
 }
@@ -615,7 +613,7 @@ func TestZsh_style_completion_visible(t *testing.T) {
 }
 
 func TestZsh_many_positionals(t *testing.T) {
-	parser := Many(Positional("POS", parseString), false).Parser().ToOptions()
+	parser := Many(Positional("POS", parseString)).Parser().ToOptions()
 
 	assertCompletion(t, parser, "\tPOS\t\t\n\n", "")
 
@@ -673,7 +671,7 @@ func TestShell_help_single_line_only(t *testing.T) {
 //     parser := opts();
 
 //     r := parser.
-//         RunInner(NewArgs("").SetComp(0)).
+//         RunInner(newArgList("").setComp(0)).
 //         unwrap_err().
 //         UnwrapStdout();
 //     assert.Equal(t, r, `

@@ -10,7 +10,7 @@ import (
 
 func EnumTuple() {
 	type Foo struct {
-		bar cli.Option[string]
+		bar cli.Opt[string]
 	}
 
 	type Command func(
@@ -30,11 +30,11 @@ func EnumTuple() {
 		Help("some bar command"),
 		"BAR", func(s string) (string, error) {
 			return s, nil
-		}).Parser(), false).Parser()
+		}).Parser()).Parser()
 
-	bar_cmd := cli.Map(bar, func(bar cli.Option[string]) Foo { return Foo{bar} }).
+	bar_cmd := cli.Map(bar, func(bar cli.Opt[string]) Foo { return Foo{bar} }).
 		ToOptions().
-		Descr("This command will try to do foo given a bar argument")
+		Description("This command will try to do foo given a bar argument")
 
 	opt := cli.Map(bar_cmd.
 		Command("foo").

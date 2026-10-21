@@ -6,19 +6,19 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-type State struct {
+type state struct {
 	// list of all available command line arguments
-	items      []Arg
-	item_state []ItemState
+	items      []arg
+	item_state []itemState
 
 	// Used to render an error message for `parse`
 	// contains an index of a currently consumed item if we are parsing a single item
-	currentIdx Option[int]
+	currentIdx Opt[int]
 
 	// path to current command, "deeper" parser should win in or_else branches
 	path []string
 
-	comp Option[Complete]
+	comp Opt[Complete]
 
 	// A way to customize behavior for --help and error handling
 	// improve_error: superImprove,
@@ -27,57 +27,57 @@ type State struct {
 	// considering the whole sequence of (unconsumed) arguments, but for "adjacent"
 	// scope starts on the right of the first consumed item and might end before the end
 	// of the list, similarly for "commands"
-	scope Range
+	scope rng
 }
 
-func (self State) clone() State {
+func (self state) clone() state {
 	s := self
-	s.items = append([]Arg(nil), self.items...)
-	s.item_state = append([]ItemState(nil), self.item_state...)
-	s.comp.Value.comps = append([]Comp(nil), self.comp.Value.comps...)
+	s.items = append([]arg(nil), self.items...)
+	s.item_state = append([]itemState(nil), self.item_state...)
+	s.comp.Value.comps = append([]comp(nil), self.comp.Value.comps...)
 	return s
 }
 
 // Check if item at ixth position is still present (was not parsed)
-func (self State) present(ix int) (bool, bool) {
+func (self state) present(ix int) (bool, bool) {
 	inBounds := ix < len(self.item_state)
 	return inBounds && !self.item_state[ix].parsed(), inBounds
 }
 
-func (self State) depth() int {
+func (self state) depth() int {
 	return len(self.path)
 }
 
-func (self State) check_no_pos_ahead() bool {
+func (self state) check_no_pos_ahead() bool {
 	c, ok := self.comp.Unpack()
 	return ok && c.no_pos_ahead
 }
 
-func (self *State) set_no_pos_ahead() {
+func (self *state) set_no_pos_ahead() {
 	if _, ok := self.comp.Unpack(); ok {
 		self.comp.Value.no_pos_ahead = true
 	}
 }
 
 func newState(
-	args Args,
+	args argList,
 	short_flags []byte,
 	short_args []byte,
-) (State, Error) {
-	items := []Arg{}
+) (state, parseError) {
+	items := []arg{}
 	pos_only := false
 	double_dash_marker := Invalid[int]()
 
-	comp_scanner := ArgScanner{
+	comp_scanner := argScanner{
 		revision: args.comp,
 		name:     args.name,
 	}
 
-	var err Error
+	var err parseError
 LOOP:
 	for _, os := range args.items {
 		if pos_only {
-			items = append(items, ArgPositional(os))
+			items = append(items, argPositional(os))
 			continue
 		}
 
@@ -85,10 +85,10 @@ LOOP:
 			continue
 		}
 
-		argType, s, arg, ok := split_os_argument(os)
+		argType, s, a, ok := split_os_argument(os)
 		switch {
 		// -f and -fbar, but also -vvvvv
-		case ok && argType == ArgTypeShort && !arg.Valid:
+		case ok && argType == argTypeShort && !a.Valid:
 			if msg, ok := disambiguate_short(
 				os,
 				s,
@@ -99,14 +99,14 @@ LOOP:
 				err = msg
 				break LOOP
 			}
-		case ok && argType == ArgTypeShort && arg.Valid:
-			items = append(items, ArgShort(os, s[0], true))
-			items = append(items, arg.Value)
+		case ok && argType == argTypeShort && a.Valid:
+			items = append(items, argShort(os, s[0], true))
+			items = append(items, a.Value)
 			// --key and --key=val
-		case ok && argType == ArgTypeLong:
-			items = append(items, ArgLong(os, s, arg.Valid))
-			if arg, ok := arg.Unpack(); ok {
-				items = append(items, arg)
+		case ok && argType == argTypeLong:
+			items = append(items, argLong(os, s, a.Valid))
+			if value, ok := a.Unpack(); ok {
+				items = append(items, value)
 			}
 			// something that is not a short or long flag, keep them as positionals
 			// handle "--" specifically as "end of flags" marker
@@ -115,45 +115,45 @@ LOOP:
 				double_dash_marker = Valid(len(items))
 				pos_only = true
 			}
-			items = append(items, func() Arg {
+			items = append(items, func() arg {
 				if pos_only {
-					return ArgPositional(os)
+					return argPositional(os)
 				} else {
-					return ArgWord(os)
+					return argWord(os)
 				}
 			}())
 		}
 	}
 
-	item_state := make([]ItemState, len(items))
+	item_state := make([]itemState, len(items))
 	for i := range items {
-		item_state[i] = ItemStateUnparsed
+		item_state[i] = itemStateUnparsed
 	}
 	if ix, ok := double_dash_marker.Unpack(); ok {
-		item_state[ix] = ItemStateParsed
+		item_state[ix] = itemStateParsed
 
 		if comp_scanner.revision.Valid && ix == len(items)-1 {
-			item_state[ix] = ItemStateUnparsed
+			item_state[ix] = itemStateUnparsed
 		}
 	}
 
 	name, name_ok := args.name.Unpack()
 
 	comp, comp_ok := comp_scanner.done()
-	return State{
+	return state{
 		items,
 		item_state,
 		Invalid[int](),
 		fun.IF(name_ok, []string{name}, []string{}),
-		Option[Complete]{comp, comp_ok},
-		Range{0, len(items)},
+		Opt[Complete]{comp, comp_ok},
+		rng{0, len(items)},
 	}, err
 }
 
 // creates iterator over remaining elements
-func (self State) items_iter() func() (int, Arg, bool) {
+func (self state) items_iter() func() (int, arg, bool) {
 	i := self.scope[0]
-	return func() (int, Arg, bool) {
+	return func() (int, arg, bool) {
 		for self.scope.contains(i) && i < len(self.item_state) {
 			if !self.item_state[i].parsed() {
 				a, b := i, self.items[i]
@@ -162,20 +162,20 @@ func (self State) items_iter() func() (int, Arg, bool) {
 			}
 			i++
 		}
-		return 0, Arg{}, false
+		return 0, arg{}, false
 	}
 }
 
-func (self *State) remove(index int) {
+func (self *state) remove(index int) {
 	if !self.scope.contains(index) || self.item_state[index].parsed() {
 		return
 	}
 
 	self.currentIdx = Valid(index)
-	self.item_state[index] = ItemStateParsed
+	self.item_state[index] = itemStateParsed
 }
 
-func (self State) pick_winner(other State) (bool, Option[int]) {
+func (self state) pick_winner(other state) (bool, Opt[int]) {
 	for i, me := range self.item_state {
 		other := other.item_state[i]
 		if me.parsed() != other.parsed() {
@@ -186,32 +186,32 @@ func (self State) pick_winner(other State) (bool, Option[int]) {
 }
 
 // find first saved conflict
-func (self State) conflict() (Range, bool) {
+func (self state) conflict() (rng, bool) {
 	next := self.items_iter()
 	ix, _, ok := next()
 	if !ok {
-		return Range{}, false
+		return rng{}, false
 	}
 	if ix >= len(self.item_state) {
-		return Range{}, false
+		return rng{}, false
 	}
-	if xxx := self.item_state[ix]; xxx.kind == ItemStateKindConflict {
+	if xxx := self.item_state[ix]; xxx.kind == itemStateKindConflict {
 		other := xxx.conflict
-		return Range{ix, other}, true
+		return rng{ix, other}, true
 	}
-	return Range{}, false
+	return rng{}, false
 }
 
-func (self *State) save_conflicts(loser State, win int) {
+func (self *state) save_conflicts(loser state, win int) {
 	for i, winner := range self.item_state {
 		loser := loser.item_state[i]
 		if !winner.parsed() && loser.parsed() {
-			self.item_state[i] = ItemStateConflict(win)
+			self.item_state[i] = itemStateConflict(win)
 		}
 	}
 }
 
-func (self State) len() int {
+func (self state) len() int {
 	res := 0
 	for _, v := range self.item_state {
 		if !v.parsed() {
@@ -222,18 +222,18 @@ func (self State) len() int {
 }
 
 // Get an argument from a scope that was not consumed yet
-func (self State) get(ix int) (Arg, bool) {
+func (self state) get(ix int) (arg, bool) {
 	if !self.scope.contains(ix) || self.item_state[ix].parsed() {
-		return Arg{}, false
+		return arg{}, false
 	}
 
 	return self.items[ix], true
 }
 
 // Narrow down scope of &self to adjacently consumed values compared to original.
-func (self State) adjacent_scope(original State) (Range, bool) {
+func (self state) adjacent_scope(original state) (rng, bool) {
 	if len(self.items) == 0 {
-		return Range{}, false
+		return rng{}, false
 	}
 
 	// starting at the beginning of the scope look for the first mismatch
@@ -245,40 +245,40 @@ func (self State) adjacent_scope(original State) (Range, bool) {
 		// all the adjacent items consumed in this. It doesn't make sense to remove it if
 		// it matches the original scope though...
 		if !this.parsed() && !orig.parsed() {
-			proposed_scope := Range{start, offset}
+			proposed_scope := rng{start, offset}
 			if self.scope == proposed_scope {
-				return Range{}, false
+				return rng{}, false
 			} else {
 				return proposed_scope, true
 			}
 		}
 	}
-	return Range{}, false
+	return rng{}, false
 }
 
 // Get a scope for an adjacently available block of item starting at start
-func (self State) adjacently_available_from(start int) Range {
+func (self state) adjacently_available_from(start int) rng {
 	span_size := 0
 	for _, v := range self.item_state[start:] {
 		if !v.parsed() {
 			span_size++
 		}
 	}
-	return Range{start, start + span_size}
+	return rng{start, start + span_size}
 }
 
 type argRangesIterItem struct {
 	startOffset         int
 	widthOfTheFirstItem int
-	state               State
+	state               state
 }
 
-func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
+func (self state) ranges(item item) func() (argRangesIterItem, bool) {
 	width := 0
 	switch item.v.(type) {
-	case ItemAny, ItemPositional, ItemCommand, ItemFlag:
+	case itemAny, itemPositional, itemCommand, itemFlag:
 		width = 1
-	case ItemArgument:
+	case itemArgument:
 		width = 2
 	}
 
@@ -296,23 +296,23 @@ func (self State) ranges(item Item) func() (argRangesIterItem, bool) {
 			// It should be possible to optimize this code a bit
 			// by checking if first item can possibly
 			args := self.clone()
-			args.scope = Range{cur, len(args.items)}
+			args.scope = rng{cur, len(args.items)}
 			return argRangesIterItem{cur, width, args}, true
 		}
 		return argRangesIterItem{}, false
 	}
 }
 
-// check if bpaf tries to complete last consumed element
-func (self State) touching_last_remove() bool {
+// check if the library tries to complete the last consumed element
+func (self state) touching_last_remove() bool {
 	return self.comp.Valid && len(self.items)-1 == self.currentIdx.OrDefault(math.MaxInt)
 }
 
-func (self *State) comp_mut() (*Complete, bool) {
+func (self *state) comp_mut() (*Complete, bool) {
 	return &self.comp.Value, self.comp.Valid
 }
 
-func (self *State) swap_comps_with(comps *[]Comp) {
+func (self *state) swap_comps_with(comps *[]comp) {
 	if self.comp.Valid {
 		*comps, self.comp.Value.comps = self.comp.Value.comps, *comps
 	}
@@ -321,7 +321,7 @@ func (self *State) swap_comps_with(comps *[]Comp) {
 // Get a short or long flag: `-f` / `--flag`
 //
 // Returns false if value isn't present
-func (self *State) takeBoolFlag(named NamedArg) bool {
+func (self *state) takeBoolFlag(named NamedArg) bool {
 	var (
 		ix int
 		ok bool
@@ -344,11 +344,11 @@ func (self *State) takeBoolFlag(named NamedArg) bool {
 //
 // Returns Invalid() if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
-func (self *State) takeFlag(
+func (self *state) takeFlag(
 	named NamedArg,
 	adjacent bool,
 	metavar Metavar,
-) (Option[string], Error) {
+) (Opt[string], parseError) {
 	var (
 		idx int
 		ok  bool
@@ -364,8 +364,8 @@ func (self *State) takeFlag(
 	}
 
 	ww, ok := self.get(idx + 1)
-	if !ok || ww.kind != ArgKindWord {
-		return Option[string]{}, ErrorNoArgument{idx, metavar}
+	if !ok || ww.kind != argKindWord {
+		return Opt[string]{}, errorNoArgument{idx, metavar}
 	}
 
 	self.currentIdx = Valid(idx + 1)
@@ -378,28 +378,28 @@ func (self *State) takeFlag(
 //
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
-func (self *State) takePositional(metavar Metavar) (int, bool, string, Error) {
+func (self *state) takePositional(metavar Metavar) (int, bool, string, parseError) {
 	iter := push2(self.items_iter())
 	for i, arg := range iter {
-		if fun.Contains(arg.kind, ArgKindWord, ArgKindPositional) {
-			strict := arg.kind == ArgKindPositional
+		if fun.Contains(arg.kind, argKindWord, argKindPositional) {
+			strict := arg.kind == argKindPositional
 			self.currentIdx = Valid(i)
 			self.remove(i)
 			return i, strict, arg.str, nil
 		}
 	}
-	return 0, false, "", ErrorMissing([]MissingItem{{
-		item:     Item{Invalid[Doc](), ItemPositional{metavar}},
+	return 0, false, "", errorMissing([]missingItem{{
+		item:     item{Invalid[Doc](), itemPositional{metavar}},
 		position: self.scope.start(),
 		scope:    self.scope,
 	}})
 }
 
 // take a static string argument from the first present argument
-func (self *State) takeCmd(cmd string) bool {
+func (self *state) takeCmd(cmd string) bool {
 	ix, a, ok := self.items_iter()()
 	if ok && a.str == cmd &&
-		(fun.Contains(a.kind, ArgKindShortFlag, ArgKindWord) || a.kind == ArgKindLongFlag && !a.isAdjacent) {
+		(fun.Contains(a.kind, argKindShortFlag, argKindWord) || a.kind == argKindLongFlag && !a.isAdjacent) {
 		self.currentIdx = Valid(ix)
 		self.remove(ix)
 		return true
