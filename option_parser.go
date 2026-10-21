@@ -33,31 +33,120 @@ type OptionParser[T any] struct {
 //		.descr("Takes verbosity flag and does nothing else")
 //	var verbosity int = verbosity().Run()
 func (self OptionParser[T]) Run(args []string) T {
+	t, err := self.RunE(args)
+	if err == nil {
+		return t
+	}
+
+	failure := err.(FailureError) // RunE only ever returns FailureError on failure
+
+	// Prints a message to `stdout` or `stderr` appropriate to the failure.
+	color := Colordefault
+	switch f := failure.failure.(type) {
+	case ParseFailureStdout:
+		fmt.Println(f.msg.render_console(f.full, color, self.info.max_width))
+	case ParseFailureCompletion:
+		fmt.Print(string(f))
+	case ParseFailureStderr:
+		fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "Error: ")+Doc(f).render_console(true, color, self.info.max_width))
+	}
+
+	// matches Rust's behavior: exit with the code (info.rs:94)
+	os.Exit(failure.ExitCode())
+	return t
+}
+
+// Execute the [OptionParser], extract a parsed value or return a [FailureError] without
+// printing anything and without exiting the process
+//
+// This is the embeddable counterpart of [Run]: use it when the parser is a part of a bigger
+// application or when the parser needs to be tested from outside of this package.
+//
+// `args` is the same as for [Run]: the first element is the program name, usually `os.Args`.
+//
+// # Usage
+//
+//	t, err := parser.RunE(os.Args)
+//	if err != nil {
+//		var failure cli.FailureError
+//		if errors.As(err, &failure) {
+//			out := os.Stdout
+//			if failure.IsError() {
+//				out = os.Stderr
+//			}
+//			fmt.Fprintln(out, failure.Error())
+//			os.Exit(failure.ExitCode())
+//		}
+//	}
+func (self OptionParser[T]) RunE(args []string) (T, error) {
 	current_args := Args{
 		items: args[1:],
 		name:  Valid(filepath.Base(args[0])),
 		comp:  Invalid[uint](),
 	}
 
-	t, err := self.run(current_args)
-	if err != nil {
-		// Prints a message to `stdout` or `stderr` appropriate to the failure.
-		color := Colordefault
-		switch err := err.(type) {
-		case ParseFailureStdout:
-			fmt.Println(err.msg.render_console(err.full, color, self.info.max_width))
-		case ParseFailureCompletion:
-			fmt.Print(string(err))
-		case ParseFailureStderr:
-			fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "Error: ")+Doc(err).render_console(true, color, self.info.max_width))
-		}
-
-		_, ok := err.(ParseFailureStderr)
-		exitCode := fun.IF(ok, 1, 0)
-		// matches Rust's behavior: exit with the code (info.rs:94)
-		os.Exit(exitCode)
+	t, failure := self.run(current_args)
+	if failure != nil {
+		return *new(T), FailureError{failure: failure, maxWidth: self.info.max_width}
 	}
-	return t
+
+	return t, nil
+}
+
+// Diagnostic produced by a failed [OptionParser.RunE] call, this is the same thing
+// [OptionParser.Run] prints before exiting
+//
+// The diagnostic is one of:
+//   - help or version message: belongs on `stdout`, [FailureError.ExitCode] is 0
+//   - shell completion script: belongs on `stdout`, [FailureError.ExitCode] is 0
+//   - error message: belongs on `stderr`, [FailureError.ExitCode] is 1
+type FailureError struct {
+	failure  ParseFailure
+	maxWidth uint
+}
+
+// Rendered diagnostic message, without the `Error: ` prefix and without a trailing newline
+func (self FailureError) Error() string {
+	color := Colordefault
+	switch f := self.failure.(type) {
+	case ParseFailureStdout:
+		return f.msg.render_console(f.full, color, self.maxWidth)
+	case ParseFailureCompletion:
+		return string(f)
+	case ParseFailureStderr:
+		return Doc(f).render_console(true, color, self.maxWidth)
+	default:
+		return ""
+	}
+}
+
+// IsError reports whether the diagnostic is an error message: it belongs on `stderr` and
+// [FailureError.ExitCode] is 1. Otherwise it is help, version or completion output which
+// belongs on `stdout` and [FailureError.ExitCode] is 0.
+func (self FailureError) IsError() bool {
+	_, ok := self.failure.(ParseFailureStderr)
+	return ok
+}
+
+// Exit code [OptionParser.Run] uses for this diagnostic, see [FailureError.IsError]
+func (self FailureError) ExitCode() int {
+	return fun.IF(self.IsError(), 1, 0)
+}
+
+// Check the invariants the parser relies on for normal operations
+//
+// Takes a parameter whether to check for cosmetic invariants or not
+// (max help width exceeding 120 symbols, etc), currently not in use
+//
+// Best used as part of your test suite:
+//
+//	parser.ToOptions().CheckInvariants(false)
+//
+// # Panics
+//
+// CheckInvariants indicates problems with panic.
+func (self OptionParser[T]) CheckInvariants(bool) {
+	positional_invariant_check(self.inner.meta, true)
 }
 
 // Execute the [OptionParser] and produce a values for unit tests or manual processing
