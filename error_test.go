@@ -162,7 +162,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
 	a := Short('a').Switch()
-	b := ParseSomeParser(Positional("B", parseUint).Parser().Some("Want B", false))
+	b := Some(Positional("B", parseUint), "Want B", false)
 	parser := Pair(a, b).Parser().ToOptions()
 
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")

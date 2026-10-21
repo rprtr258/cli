@@ -884,7 +884,7 @@ func TestManyDoesntPanic(t *testing.T) {
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Map(ParseSomeParser(Short('a').Switch().Parser().Some("", false)), Len).ToOptions()
+	parser := Map(Some(Short('a').Switch(), "", false), Len).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
@@ -1122,7 +1122,7 @@ func TestParse_many_errors_positional(t *testing.T) {
 }
 
 func TestParse_collect_flag(t *testing.T) {
-	p := ParseCollectParser(Argument(Short('p'), "N", parseUint32).Parser().Collect(false)).ToOptions()
+	p := Collect(Argument(Short('p'), "N", parseUint32), false).ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "-p", "1", "-p", "x")
@@ -1268,12 +1268,11 @@ func TestParse_some_catch(t *testing.T) {
 	}
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
-	a1 := ParseSomeParser(Map(Argument(Short('a'),
+	a1 := Some(Map(Argument(Short('a'),
 		"N", parseUint32).Parser(),
-		AU32).
-		Some("A", true)).
+		AU32), "A", true).
 		Hide()
-	a2 := ParseSomeParser(Map(Argument(Short('a'), "S", parseString).Parser(), AS).Some("A", true)).Hide()
+	a2 := Some(Map(Argument(Short('a'), "S", parseString).Parser(), AS), "A", true).Hide()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
@@ -1358,10 +1357,9 @@ func TestEnv_hidden_flag(t *testing.T) {
 
 func TestSome_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := ParseSomeParser(Argument(Short('v').
+	parser := Some(Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString).Parser().
-		Some("a", false)).
+		"USER", parseString), "a", false).
 		ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
@@ -1383,9 +1381,8 @@ func TestOption_requires_other_option2(t *testing.T) {
 }
 
 func TestDefault_for_some(t *testing.T) {
-	parser := ParseSomeParser(Positional[uint32]("ROOTS", parseUint32).Parser().
-		Some("msg", false)).
-		FallbackWith(func() ([]uint32, Error) { return []uint32{1, 2, 3}, nil }).Parser().
+	parser := Some(Positional[uint32]("ROOTS", parseUint32), "msg", false).
+		FallbackWith(func() ([]uint32, Error) { return []uint32{1, 2, 3}, nil }).
 		ToOptions()
 
 	assertSuccess(t, []uint32{1, 2, 3}, parser)
@@ -1401,10 +1398,9 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 }
 
 func TestFallback_for_some(t *testing.T) {
-	parser := ParseSomeParser(Argument(Short('a'),
-		"ARG", parseUint32).Parser().
-		Some("potatoes", false)).
-		Fallback([]uint32{1, 2, 3}).Parser().ToOptions()
+	parser := Some(Argument(Short('a'),
+		"ARG", parseUint32), "potatoes", false).
+		Fallback([]uint32{1, 2, 3}).ToOptions()
 
 	assertSuccess(t, []uint32{1}, parser, "-a", "1")
 	assertSuccess(t, []uint32{1, 2, 3}, parser)

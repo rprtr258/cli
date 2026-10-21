@@ -3,23 +3,12 @@ package cli
 import "math"
 
 // Apply inner parser several times and collect results into `Vec`, created with
-// [some](Parsersome), requires for at least one item to be available to succeed.
-// Implements [catch](ParseManycatch)
-type ParseSome[T any] struct {
-	inner   Parser[T]
-	message string
-	catch   bool
-}
-
-func ParseSomeParser[T any](self ParseSome[T]) Parser[[]T] {
-	return Parser[[]T]{self.eval, MetaMany{MetaRequired{self.inner.meta}}}
-}
-
-func (self ParseSome[T]) eval(state *State) ([]T, Error) {
+// [Parser.Some], requires for at least one item to be available to succeed.
+func some_eval[T any](inner Parser[T], message string, catch bool, state *State) ([]T, Error) {
 	res := []T{}
 	lenn := uint(math.MaxUint)
 	for {
-		val, err := parse_option(self.inner, &lenn, state, self.catch)
+		val, err := parse_option(inner, &lenn, state, catch)
 		if err != nil {
 			break
 		}
@@ -30,7 +19,7 @@ func (self ParseSome[T]) eval(state *State) ([]T, Error) {
 		}
 	}
 	if len(res) == 0 {
-		return nil, ErrorParseFail(self.message)
+		return nil, ErrorParseFail(message)
 	}
 
 	return res, nil
@@ -54,7 +43,8 @@ func (self ParseSome[T]) eval(state *State) ([]T, Error) {
 // [many](Parsermany) also collects results to a vector but succeeds with
 // no matching values. [collect](Parsercollect) collects results into a [FromIterator]
 // structure
-func (self Parser[T]) Some(
+func Some[T any, P parser[T]](
+	self P,
 	message string,
 	// Handle parse failures
 	//
@@ -62,14 +52,15 @@ func (self Parser[T]) Some(
 	// When parser succeeds - `catch` version would return a value as usual
 	// if it fails - `catch` would restore all the consumed values and return Invalid().
 	//
-	// There's several structures that implement this attribute: [ParseOptional], [ParseMany]
-	// and [ParseSome], behavior should be identical for all of them.
-	// #[cfg_attr(not(doctest), doc = include_str!("docs2/some_catch.md"))]
+	// There's several structures that implement this attribute: [Optional], [Many]
+	// and [Some], behavior should be identical for all of them.
 	catch bool,
-) ParseSome[T] {
-	return ParseSome[T]{
-		inner:   self,
-		message: message,
-		catch:   catch,
+) Parser[[]T] {
+	// free function, not a Parser method: Go forbids methods on Parser[T]
+	// that instantiate Parser[[]T] (generic instantiation cycle)
+	inner := self.Parser()
+	return Parser[[]T]{
+		eval: func(state *State) ([]T, Error) { return some_eval(inner, message, catch, state) },
+		meta: MetaMany{MetaRequired{inner.meta}},
 	}
 }

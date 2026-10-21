@@ -2,82 +2,60 @@ package cli
 
 import "os"
 
-// Parser for a named switch, created with [NamedArgflag] or [NamedArgswitch]
-type ParseFlag[T any] struct {
-	present T
-	absent  Option[T]
-	named   NamedArg
-}
-
-func (self ParseFlag[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.meta()}
-}
-
-func (self ParseFlag[T]) eval(state *State) (T, Error) {
-	if state.takeBoolFlag(self.named) || func() bool {
-		_, ok := find_map(self.named.env, os.LookupEnv)
-		return ok
-	}() {
-		if state.touching_last_remove() {
-			state.push_flag(self.named)
+// Parser for a named switch, created with [NamedArg.Switch], [Flag] or [ReqFlag].
+//
+// This is an unexported constructor shared by all flag parsers; the fluent
+// combinators continue on the returned [Parser].
+func flagParser[T any](present T, absent Option[T], named NamedArg) Parser[T] {
+	eval := func(state *State) (T, Error) {
+		if state.takeBoolFlag(named) || func() bool {
+			_, ok := find_map(named.env, os.LookupEnv)
+			return ok
+		}() {
+			if state.touching_last_remove() {
+				state.push_flag(named)
+			}
+			return present, nil
 		}
-		return self.present, nil
-	} else {
-		state.push_flag(self.named)
-		if ok, okk := self.absent.Unpack(); okk {
+		state.push_flag(named)
+		if ok, okk := absent.Unpack(); okk {
 			return ok, nil
 		}
 
-		if item, ok := self.named.flag_item(); ok {
+		if item, ok := named.flag_item(); ok {
 			missing := MissingItem{
 				item:     item,
 				position: state.scope.start(),
 				scope:    state.scope,
 			}
 			return *new(T), ErrorMissing([]MissingItem{missing})
-		} else if len(self.named.env) > 0 {
-			return *new(T), ErrorNoEnv(self.named.env[0])
+		} else if len(named.env) > 0 {
+			return *new(T), ErrorNoEnv(named.env[0])
 		} else {
 			panic(`todo!("no key!")`)
 		}
 	}
-}
 
-func (self ParseFlag[T]) meta() Meta {
-	if item, ok := self.named.flag_item(); ok {
-		return item.required(!self.absent.Valid)
-	} else {
-		return MetaSkip{}
+	meta := Meta(MetaSkip{})
+	if item, ok := named.flag_item(); ok {
+		meta = item.required(!absent.Valid)
 	}
-}
-
-// Add a Help message to `flag`
-//
-// See [NamedArghelp]
-func (self ParseFlag[T]) Help(help Doc) ParseFlag[T] {
-	self.named.help = Valid(help)
-	return self
+	return Parser[T]{eval, meta}
 }
 
 // Flag with custom present/absent values
 //
-// More generic version of [switch](NamedArgswitch) that can use arbitrary type instead of
+// More generic version of [NamedArg.Switch] that can use arbitrary type instead of
 // [bool].
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/Flag.md"))]
-func Flag[T any](self NamedArg, present, absent T) ParseFlag[T] {
-	return ParseFlag[T]{present, Valid(absent), self}
+func Flag[T any](self NamedArg, present, absent T) Parser[T] {
+	return flagParser(present, Valid(absent), self)
 }
 
 // Required flag with custom value
 //
-// Similar to [flag](NamedArgflag) takes no Option arguments, but would only
+// Similar to [Flag] takes no Option arguments, but would only
 // succeed if user specifies its name on a command line.
 // Works best in combination with other parsers.
-//
-// In derive style API `bpaf` would transform field-less enum variants into a parser
-// that accepts one of it's variant names as `ReqFlag`. Additionally `bpaf` handles `()`
-// fields as `ReqFlag`.
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/ReqFlag.md"))]
-func ReqFlag[T any](self NamedArg, present T) ParseFlag[T] {
-	return ParseFlag[T]{present, Invalid[T](), self}
+func ReqFlag[T any](self NamedArg, present T) Parser[T] {
+	return flagParser(present, Invalid[T](), self)
 }

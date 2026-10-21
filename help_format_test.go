@@ -10,7 +10,7 @@ import (
 )
 
 func TestHelp_after_switch(t *testing.T) {
-	parser := Short('a').Switch().Help(NewDoc("this is help")).Parser().ToOptions()
+	parser := Short('a').Help("this is help").Switch().ToOptions()
 	const expected = "Usage: [-a]\n\nAvailable options:\n    -a          this is help\n    -h, --help  Prints help information\n"
 	assertHelp(t, parser, expected)
 }
@@ -315,9 +315,8 @@ func TestFallback_display_simple_arg(t *testing.T) {
 	parser := Argument(Long("a").
 		Help("help for a"),
 		"NUM", parseUint).
-		Parser().Fallback(42).
-		DisplayFallback().
-		Parser().ToOptions()
+		Parser().FallbackDisplay(42).
+		ToOptions()
 
 	const expected = `Usage: [--a=NUM]
 
@@ -333,9 +332,8 @@ Available options:
 func TestFallback_display_simple_pos(t *testing.T) {
 	parser := Positional("NUM", parseUint).
 		Help("help for pos").
-		Parser().Fallback(42).
-		DisplayFallback().
-		Parser().ToOptions()
+		Parser().FallbackDisplay(42).
+		ToOptions()
 
 	const expected = `Usage: [NUM]
 
@@ -360,9 +358,7 @@ func TestFallback_display_tuple(t *testing.T) {
 	a := Argument(Long("a").Help("help for a"), "NUM", parseUint)
 	b := Argument(Long("b").Help("help for b"), "NUM", parseUint)
 	parser := Map(Pair(a, b).Parser(), func(ab fun.Pair[uint, uint]) Pair2 { return Pair2{uint32(ab.K), uint32(ab.V)} }).
-		Parser().Fallback(Pair2{42, 333}).
-		DisplayFallback().
-		Parser().ToOptions()
+		Parser().FallbackDisplay(Pair2{42, 333}).ToOptions()
 
 	const expected = `Usage: [--a=NUM --b=NUM]
 
@@ -379,9 +375,8 @@ Available options:
 func TestFallback_display_no_help(t *testing.T) {
 	parser := Argument(Long("a"),
 		"NUM", parseUint).
-		Parser().Fallback(42).
-		DisplayFallback().
-		Parser().ToOptions()
+		Parser().FallbackDisplay(42).
+		ToOptions()
 
 	const expected = `Usage: [--a=NUM]
 

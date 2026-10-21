@@ -1,25 +1,15 @@
 package cli
 
-// Parser fails with a message if check returns false, created with [guard](Parserguard).
-type ParseGuard[T any] struct {
-	inner   Parser[T]
-	check   func(T) bool
-	message string
-}
-
-func (self ParseGuard[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.inner.meta}
-}
-
-func (self ParseGuard[T]) eval(state *State) (T, Error) {
-	t, err := self.inner.eval(state)
+// Parser fails with a message if check returns false, created with [Parser.Guard].
+func guard_eval[T any](inner Parser[T], check func(T) bool, message string, state *State) (T, Error) {
+	t, err := inner.eval(state)
 	if err != nil {
 		return *new(T), err
 	}
-	if self.check(t) {
+	if check(t) {
 		return t, nil
 	} else {
-		return *new(T), ErrorGuardFailed{state.currentIdx, self.message}
+		return *new(T), ErrorGuardFailed{state.currentIdx, message}
 	}
 }
 
@@ -32,10 +22,10 @@ func (self ParseGuard[T]) eval(state *State) (T, Error) {
 // clean. The second argument can be either a string literal or a constant name for a static [str].
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Guard.md"))]
-func (self Parser[T]) Guard(check func(T) bool, message string) ParseGuard[T] {
-	return ParseGuard[T]{
-		inner:   self,
-		check:   check,
-		message: message,
+func (self Parser[T]) Guard(check func(T) bool, message string) Parser[T] {
+	inner := self
+	return Parser[T]{
+		eval: func(state *State) (T, Error) { return guard_eval(inner, check, message, state) },
+		meta: inner.meta,
 	}
 }

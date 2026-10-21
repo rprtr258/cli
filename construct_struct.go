@@ -344,7 +344,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		if cfg.def.Valid {
 			panic(fmt.Sprintf("cli.Construct: field %q: cli.Count field cannot have a default", name))
 		}
-		p := ReqFlag[struct{}](na, struct{}{}).Parser().Count().Parser()
+		p := ReqFlag[struct{}](na, struct{}{}).Parser().Count()
 		return fieldPart{ix: ix, named: true, meta: p.meta, eval: func(state *State) (reflect.Value, Error) {
 			n, err := p.eval(state)
 			if err != nil {
@@ -378,7 +378,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		if cfg.def.Valid {
 			panic(fmt.Sprintf("cli.Construct: field %q: bool field cannot have a default", name))
 		}
-		p := na.Switch().Parser()
+		p := na.Switch()
 		return wrapTyped(ix, ft, p, named, isSlice, isOption)
 	}
 
@@ -406,7 +406,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		if err != nil {
 			panic(fmt.Sprintf("cli.Construct: field %q: bad default value %q: %v", name, cfg.def.Value, err))
 		}
-		p = p.Fallback(dv).DisplayFallback().Parser()
+		p = p.FallbackDisplay(dv)
 	}
 	return wrapAny(ix, ft, p, named, isSlice, isOption)
 }
@@ -426,7 +426,7 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 	}
 	switch {
 	case isSlice:
-		pm := Many(p, false).Parser()
+		pm := Many(p, false)
 		return wrapEval(func(state *State) (reflect.Value, Error) {
 			xs, err := pm.eval(state)
 			if err != nil {
@@ -439,7 +439,7 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 			return res, nil
 		}, pm.meta)
 	case isOption:
-		pm := Optional(p, false).Parser()
+		pm := Optional(p, false)
 		return wrapEval(func(state *State) (reflect.Value, Error) {
 			v, err := pm.eval(state)
 			if err != nil {
@@ -469,7 +469,7 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 	}
 	switch {
 	case isSlice:
-		pm := Many(p, false).Parser()
+		pm := Many(p, false)
 		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *State) (reflect.Value, Error) {
 			xs, err := pm.eval(state)
 			if err != nil {
@@ -482,7 +482,7 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 			return res, nil
 		}}
 	case isOption:
-		pm := Optional(p, false).Parser()
+		pm := Optional(p, false)
 		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *State) (reflect.Value, Error) {
 			v, err := pm.eval(state)
 			if err != nil {

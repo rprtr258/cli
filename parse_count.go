@@ -3,20 +3,12 @@ package cli
 import "math"
 
 // Apply inner parser as many times as it succeeds while consuming something and return this number
-type ParseCount[T any] struct {
-	inner Parser[T]
-}
-
-func (self ParseCount[T]) Parser() Parser[int] {
-	return Parser[int]{self.eval, MetaMany{MetaOptional{self.inner.meta}}}
-}
-
-func (self ParseCount[T]) eval(state *State) (int, Error) {
+func count_eval[T any](inner Parser[T], state *State) (int, Error) {
 	res := 0
 	current := state.len()
 	len := uint(math.MaxUint)
 	for {
-		vv, err := parse_option(self.inner, &len, state, false)
+		vv, err := parse_option(inner, &len, state, false)
 		if err != nil {
 			return 0, err
 		}
@@ -38,8 +30,10 @@ func (self ParseCount[T]) eval(state *State) (int, Error) {
 // anything from a command line - `bpaf` will Count first such success as well.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Count.md"))]
-func (self Parser[T]) Count() ParseCount[T] {
-	return ParseCount[T]{
-		inner: self,
+func (self Parser[T]) Count() Parser[int] {
+	inner := self
+	return Parser[int]{
+		eval: func(state *State) (int, Error) { return count_eval(inner, state) },
+		meta: MetaMany{MetaOptional{inner.meta}},
 	}
 }

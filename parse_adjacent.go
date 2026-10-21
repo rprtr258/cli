@@ -1,19 +1,11 @@
 package cli
 
-type ParseAdjacent[T any] struct {
-	inner Parser[T]
-}
-
-func (self ParseAdjacent[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, MetaAdjacent{self.inner.meta}}
-}
-
-func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
+func adjacent_eval[T any](inner Parser[T], state *State) (T, Error) {
 	original_scope := state.scope
 
 	var first_item Item
 	best_error := func() Error {
-		item, ok := Metafirst_item(self.inner.meta).Unpack()
+		item, ok := Metafirst_item(inner.meta).Unpack()
 		if !ok {
 			panic("bpaf usage BUG: adjacent should start with a required argument")
 		}
@@ -59,7 +51,7 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 			continue
 		}
 
-		_, _ = self.inner.eval(&scratch)
+		_, _ = inner.eval(&scratch)
 
 		if before == scratch.len() {
 			// failed to consume anything which means we don't start parsing at this point
@@ -76,7 +68,7 @@ func (self ParseAdjacent[T]) eval(state *State) (T, Error) {
 		}
 
 		for {
-			res, err := self.inner.eval(&this_arg)
+			res, err := inner.eval(&this_arg)
 			if err == nil {
 				// there's a smaller adjacent scope, we must try it before returning.
 				if adj_scope, ok := this_arg.adjacent_scope(*state); ok {

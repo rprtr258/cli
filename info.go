@@ -42,11 +42,11 @@ func (self Info) clone() Info {
 	}
 }
 
-func (self Info) mk_help_parser() ParseFlag[struct{}] {
+func (self Info) mk_help_parser() Parser[struct{}] {
 	return ReqFlag(self.help_arg, struct{}{})
 }
 
-func (self Info) mk_version_parser() ParseFlag[struct{}] {
+func (self Info) mk_version_parser() Parser[struct{}] {
 	return ReqFlag(self.version_arg, struct{}{})
 }
 
@@ -72,9 +72,9 @@ func (self Info) eval(state *State) (ExtraParams, Error) {
 }
 
 func (self Info) meta() Meta {
-	help := self.mk_help_parser().meta()
+	help := self.mk_help_parser().meta
 	if self.version.Valid {
-		return MetaAnd{help, self.mk_version_parser().meta()}
+		return MetaAnd{help, self.mk_version_parser().meta}
 	} else {
 		return help
 	}

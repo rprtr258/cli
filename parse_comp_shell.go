@@ -1,16 +1,7 @@
 package cli
 
 // Parser that inserts static shell completion into bpaf's dynamic shell completion
-type ParseCompShell[T any] struct {
-	inner Parser[T]
-	op    ShellComp
-}
-
-func (self ParseCompShell[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, self.inner.meta}
-}
-
-func (self ParseCompShell[T]) eval(state *State) (T, Error) {
+func compShell_eval[T any](inner Parser[T], op ShellComp, state *State) (T, Error) {
 	// same as with ParseComp the goal is to replace metavars added by inner parser
 	// with a completion that would call a bash script.
 	// unlike ParseComp we don't care if inner parser succeeds
@@ -19,7 +10,7 @@ func (self ParseCompShell[T]) eval(state *State) (T, Error) {
 	comp_items := []Comp{}
 	state.swap_comps_with(&comp_items)
 
-	res, err := self.inner.eval(state)
+	res, err := inner.eval(state)
 
 	// at this point comp_items contains values added by the inner parser
 	state.swap_comps_with(&comp_items)
@@ -28,7 +19,7 @@ func (self ParseCompShell[T]) eval(state *State) (T, Error) {
 	if comp, ok := state.comp_mut(); ok {
 		for _, ci := range comp_items {
 			if is_argument, ok := ci.is_metavar(); ok {
-				comp.push_shell(self.op, is_argument, depth)
+				comp.push_shell(op, is_argument, depth)
 			} else {
 				comp.push_comp(ci)
 			}
@@ -78,6 +69,10 @@ func (self ParseCompShell[T]) eval(state *State) (T, Error) {
 // ```
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.
-func (self Parser[T]) CompleteShell(op ShellComp) ParseCompShell[T] {
-	return ParseCompShell[T]{inner: self, op: op}
+func (self Parser[T]) CompleteShell(op ShellComp) Parser[T] {
+	inner := self
+	return Parser[T]{
+		eval: func(state *State) (T, Error) { return compShell_eval(inner, op, state) },
+		meta: inner.meta,
+	}
 }

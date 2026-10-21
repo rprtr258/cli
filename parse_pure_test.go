@@ -46,12 +46,12 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
-	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
+	user_seeds := Some(Positional("SEED", parseUint32), "at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds
 		return []uint32{3, 5, 7, 11}, nil
 	})
-	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser()).ToOptions()
+	seeds := Choice(user_seeds, last_seeds.Parser()).ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string
@@ -75,13 +75,13 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
-	user_seeds := Positional("SEED", parseUint32).Parser().Some("at least one required", false)
+	user_seeds := Some(Positional("SEED", parseUint32), "at least one required", false)
 	last_seeds := PureWith(func() ([]uint32, Error) {
 		// ~ trying to lookup the last used seeds but failing - parser fails, fallback works
 		return nil, ErrorParseFail("oh, no")
 	})
 	default_seeds := Pure([]uint32{1, 2})
-	seeds := Choice(ParseSomeParser(user_seeds), last_seeds.Parser(), default_seeds.Parser()).ToOptions()
+	seeds := Choice(user_seeds, last_seeds.Parser(), default_seeds.Parser()).ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string

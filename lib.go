@@ -364,10 +364,12 @@ type parser[T any] interface {
 // Suppose program accepts one of two mutually exclusive switches `-a` and `-b`
 // and both are present error message should point at the second flag
 // Deprecated: instead of a.or_else(b) you should use construct([a, b])
-func (self Parser[T]) OrElse(alt Parser[T]) ParseOrElse[T] {
-	return ParseOrElse[T]{
-		this: self,
-		that: alt,
+func (self Parser[T]) OrElse(alt Parser[T]) Parser[T] {
+	return Parser[T]{
+		eval: func(state *State) (T, Error) {
+			return or_else_eval(self, alt, state)
+		},
+		meta: or(self.meta, alt.meta),
 	}
 }
 
@@ -378,8 +380,20 @@ func (self Parser[T]) OrElse(alt Parser[T]) ParseOrElse[T] {
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/Hide.md"))]
 func (self Parser[T]) Hide() Parser[T] {
-	p := ParseHide[T]{inner: self}
-	return Parser[T]{p.eval, MetaSkip{}}
+	inner := self
+	return Parser[T]{
+		eval: func(state *State) (T, Error) {
+			var comps []Comp
+			state.swap_comps_with(&comps)
+			res, err := inner.eval(state)
+			state.swap_comps_with(&comps)
+			if _, ok := err.(ErrorMissing); err != nil && ok {
+				return *new(T), ErrorMissing(nil)
+			}
+			return res, err
+		},
+		meta: MetaSkip{},
+	}
 }
 
 // GroupHelp Attach a help message to a complex parser
@@ -388,18 +402,31 @@ func (self Parser[T]) Hide() Parser[T] {
 // from the inner parser and an empty line after the block.
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/GroupHelp.md"))]
-func (self Parser[T]) GroupHelp(message string) ParseGroupHelp[T] {
-	return ParseGroupHelp[T]{
-		inner:   self,
-		message: NewDoc(message),
+func (self Parser[T]) GroupHelp(message string) Parser[T] {
+	inner := self
+	buf := NewDoc(message)
+	return Parser[T]{
+		eval: func(state *State) (T, Error) {
+			comp_items := []Comp(nil)
+			state.swap_comps_with(&comp_items)
+			res, err := inner.eval(state)
+			state.swap_comps_with(&comp_items)
+			state.push_with_group(buf.to_completion(), &comp_items)
+			return res, err
+		},
+		meta: MetaSubsection{inner.meta, buf},
 	}
 }
 
 // Make a help message for a complex parser from its [Meta]
 //
 // #[cfg_attr(not(doctest), doc = include_str!("docs2/WithGroupHelp.md"))]
-func (self Parser[T]) WithGroupHelp(f func(Meta) Doc) ParseWithGroupHelp[T] {
-	return ParseWithGroupHelp[T]{inner: self, f: f}
+func (self Parser[T]) WithGroupHelp(f func(Meta) Doc) Parser[T] {
+	inner := self
+	return Parser[T]{
+		eval: inner.eval,
+		meta: MetaSubsection{inner.meta, f(inner.meta)},
+	}
 }
 
 // Transform `Parser` into [OptionParser] to get ready to [run](OptionParserrun) it

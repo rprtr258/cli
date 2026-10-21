@@ -10,18 +10,13 @@ func fallbackMeta(innerMeta Meta, value_str string) Meta {
 	return m
 }
 
-// Parser that substitutes missing value but not parse failure, created with [fallback](Parserfallback).
-type ParseFallback[T any] struct {
-	inner     Parser[T]
-	value     T
-	value_str string
-}
-
-func (self ParseFallback[T]) eval(state *State) (T, Error) {
-	ok, e := self.inner.eval(state)
+// Parser that substitutes missing value but not parse failure, created with
+// [Parser.Fallback] and [Parser.FallbackDisplay].
+func fallback_eval[T any](inner Parser[T], value T, state *State) (T, Error) {
+	ok, e := inner.eval(state)
 	if e != nil {
 		if can_catch(Error(e)) {
-			return self.value, nil
+			return value, nil
 		} else {
 			return *new(T), Error(e)
 		}
@@ -29,57 +24,18 @@ func (self ParseFallback[T]) eval(state *State) (T, Error) {
 	return ok, nil
 }
 
-func (self ParseFallback[T]) Parser() Parser[T] {
-	meta := fallbackMeta(self.inner.meta, self.value_str)
-	return Parser[T]{self.eval, meta}
-}
-
-// Show [fallback](Parserfallback) value in `--help` using [Display](stdfmtDisplay) representation
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-func (self ParseFallback[T]) DisplayFallback() ParseFallback[T] {
-	self.value_str = fmt.Sprintf("[default: %v]", self.value)
-	return self
-}
-
-// Use this value as default if the value isn't present on a command line
-//
-// # Parser would still fail if the value is present but failure comes from some transformation
-//
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback.md"))]
-//
-// # See also
-// [fallback_with](Parserfallback_with) would allow to try to Fallback to a value that
-// comes from a failing computation such as reading a file. By default Fallback value will
-// not be shown in the `--help` output, you can change that by using
-// [display_fallback](ParseFallbackdisplay_fallback) and
-// [debug_fallback](ParseFallbackdebug_fallback).
-func (self Parser[T]) Fallback(value T) ParseFallback[T] {
-	return ParseFallback[T]{
-		inner:     self,
-		value:     value,
-		value_str: "",
-	}
-}
-
 // Parser that substitutes missing value with a function results but not parser
-// failure, created with [fallback_with](Parserfallback_with).
-type ParseFallbackWith[T any] struct {
-	inner     Parser[T]
-	fallback  func() (T, Error)
-	value_str string
-}
-
-func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
+// failure, created with [Parser.FallbackWith] and [Parser.FallbackWithDisplay].
+func fallback_with_eval[T any](inner Parser[T], fallback func() (T, Error), state *State) (T, Error) {
 	clone := state.clone()
-	ok, e := self.inner.eval(&clone)
+	ok, e := inner.eval(&clone)
 	if e == nil {
 		*state, clone = clone, *state
 		return ok, nil
 	} else {
 		*state, clone = clone, *state
 		if can_catch(Error(e)) {
-			ok, e := self.fallback()
+			ok, e := fallback()
 			if e != nil {
 				return *new(T), ErrorPureFailed(errorToString(e))
 			}
@@ -90,39 +46,60 @@ func (self ParseFallbackWith[T]) eval(state *State) (T, Error) {
 	}
 }
 
-func (self ParseFallbackWith[T]) Parser() Parser[T] {
-	meta := fallbackMeta(self.inner.meta, self.value_str)
-	return Parser[T]{self.eval, meta}
+func fallbackParser[T any](inner Parser[T], eval func(*State) (T, Error), value_str string) Parser[T] {
+	return Parser[T]{eval, fallbackMeta(inner.meta, value_str)}
 }
 
-// Show [fallback_with](Parserfallback_with) value in `--help` using [Display](stdfmtDisplay)
-// representation
+// Use this value as default if the value isn't present on a command line
 //
-// # If fallback function fails - no value will show up
+// # Parser would still fail if the value is present but failure comes from some transformation
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-func (self ParseFallbackWith[T]) DisplayFallback() ParseFallbackWith[T] {
-	if val, err := self.fallback(); err == nil {
-		self.value_str = fmt.Sprintf("[default: %v]", val)
-	}
-	return self
+// # See also
+// [Parser.FallbackWith] would allow to Fallback to a value that
+// comes from a failing computation such as reading a file. By default Fallback value will
+// not be shown in the `--help` output, use [Parser.FallbackDisplay] to change that.
+func (self Parser[T]) Fallback(value T) Parser[T] {
+	inner := self
+	return fallbackParser(inner, func(state *State) (T, Error) {
+		return fallback_eval(inner, value, state)
+	}, "")
+}
+
+// Use this value as default if the value isn't present on a command line
+// and show it in `--help` using the representation of the value
+func (self Parser[T]) FallbackDisplay(value T) Parser[T] {
+	inner := self
+	return fallbackParser(inner, func(state *State) (T, Error) {
+		return fallback_eval(inner, value, state)
+	}, fmt.Sprintf("[default: %v]", value))
 }
 
 // Use value produced by this function as default if the value isn't present
 //
 // # Would still fail if the value is present but failure comes from some earlier transformation
 //
-// #[cfg_attr(not(doctest), doc = include_str!("docs2/dis_fallback_with.md"))]
-//
 // # See also
-// [fallback](Parserfallback) implements similar logic expect that failures aren't expected.
-// By default fallback value will not be shown in the `--help` output, you can change that by using
-// [display_fallback](ParseFallbackWithdisplay_fallback) and
-// [debug_fallback](ParseFallbackWithdebug_fallback).
-func (self Parser[T]) FallbackWith(fallback func() (T, Error)) ParseFallbackWith[T] {
-	return ParseFallbackWith[T]{
-		inner:     self,
-		fallback:  fallback,
-		value_str: "",
+// [Parser.Fallback] implements similar logic expect that failures aren't expected.
+// By default fallback value will not be shown in the `--help` output, use
+// [Parser.FallbackWithDisplay] to change that.
+func (self Parser[T]) FallbackWith(fallback func() (T, Error)) Parser[T] {
+	inner := self
+	return fallbackParser(inner, func(state *State) (T, Error) {
+		return fallback_with_eval(inner, fallback, state)
+	}, "")
+}
+
+// Use value produced by this function as default if the value isn't present
+// and show the computed default in `--help` output
+//
+// # If fallback function fails - no value will show up
+func (self Parser[T]) FallbackWithDisplay(fallback func() (T, Error)) Parser[T] {
+	inner := self
+	value_str := ""
+	if val, err := fallback(); err == nil {
+		value_str = fmt.Sprintf("[default: %v]", val)
 	}
+	return fallbackParser(inner, func(state *State) (T, Error) {
+		return fallback_with_eval(inner, fallback, state)
+	}, value_str)
 }

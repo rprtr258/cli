@@ -41,8 +41,7 @@ func Basic() {
 			Help("Set speed"), "SPEED", func(s string) (float64, error) {
 			return strconv.ParseFloat(s, 64)
 		}).Parser(). // you can specify a type to parse
-				Fallback(42.0).
-				DisplayFallback()
+				FallbackDisplay(42.0)
 
 		output := cli.Argument[string](cli.Short('o').
 			Long("output").
@@ -60,8 +59,7 @@ func Basic() {
 				return uint32(u), err
 			}).
 			Parser().
-			Fallback(1).
-			DisplayFallback()
+			FallbackDisplay(1)
 
 		// a parser that consumes one argument
 		// you can build the inner parser in one go or as multiple steps giving each step a name

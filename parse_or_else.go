@@ -6,14 +6,61 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Parser that tries to either of two parsers and uses one that succeeeds, created with [Parseror_else].
-type ParseOrElse[T any] struct {
-	this Parser[T]
-	that Parser[T]
-}
+// Parser that tries to either of two parsers and uses one that succeeeds, created with [Parser.OrElse].
+func or_else_eval[T any](self Parser[T], alt Parser[T], state *State) (T, Error) {
+	var comp_items []Comp
 
-func (self ParseOrElse[T]) Parser() Parser[T] {
-	return Parser[T]{self.eval, or(self.this.meta, self.that.meta)}
+	state.swap_comps_with(&comp_items)
+
+	// create forks for both branches
+	// if they both fail - fallback to the original arguments
+	// if they both succed - pick the one that consumes left, remember the second one
+	// if one succeeds - pick that, forget the remaining one unless we are doing completion
+	args_a := state.clone()
+	args_b := state.clone()
+
+	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
+	// so that code that does a bunch of comparing logic can be shared across
+	// all invocations of parsers rather than being inlined into each one.
+
+	ok, err := self.eval(&args_a)
+	var (
+		res_a Option[T]
+		err_a Option[Error]
+	)
+	if err != nil {
+		res_a, err_a = Invalid[T](), Valid(err)
+	} else {
+		res_a, err_a = Valid(ok), Invalid[Error]()
+	}
+
+	ok, err = alt.eval(&args_b)
+	var (
+		res_b Option[T]
+		err_b Option[Error]
+	)
+	if err != nil {
+		res_b, err_b = Invalid[T](), Valid(err)
+	} else {
+		res_b, err_b = Valid(ok), Invalid[Error]()
+	}
+
+	zalupa, err := this_or_that_picks_first(
+		err_a,
+		err_b,
+		state,
+		&args_a,
+		&args_b,
+		&comp_items,
+	)
+	if err != nil {
+		return *new(T), err
+	}
+	if zalupa {
+		return res_a.unwrap(), nil
+	} else {
+		return res_b.unwrap(), nil
+	}
 }
 
 // Given two possible errors along with to sets of arguments produce a new error or an instruction
@@ -157,62 +204,6 @@ func this_or_that_picks_first(
 	return res.K, nil
 }
 
-func (self ParseOrElse[T]) eval(state *State) (T, Error) {
-	var comp_items []Comp
-
-	state.swap_comps_with(&comp_items)
-
-	// create forks for both branches
-	// if they both fail - fallback to the original arguments
-	// if they both succed - pick the one that consumes left, remember the second one
-	// if one succeeds - pick that, forget the remaining one unless we are doing completion
-	args_a := state.clone()
-	args_b := state.clone()
-
-	// run both parsers, expand Result[T, Error] into Option[T] + fun.Option[Error]
-	// so that code that does a bunch of comparing logic can be shared across
-	// all invocations of parsers rather than being inlined into each one.
-
-	ok, err := self.this.eval(&args_a)
-	var (
-		res_a Option[T]
-		err_a Option[Error]
-	)
-	if err != nil {
-		res_a, err_a = Invalid[T](), Valid(err)
-	} else {
-		res_a, err_a = Valid(ok), Invalid[Error]()
-	}
-
-	ok, err = self.that.eval(&args_b)
-	var (
-		res_b Option[T]
-		err_b Option[Error]
-	)
-	if err != nil {
-		res_b, err_b = Invalid[T](), Valid(err)
-	} else {
-		res_b, err_b = Valid(ok), Invalid[Error]()
-	}
-
-	zalupa, err := this_or_that_picks_first(
-		err_a,
-		err_b,
-		state,
-		&args_a,
-		&args_b,
-		&comp_items,
-	)
-	if err != nil {
-		return *new(T), err
-	}
-	if zalupa {
-		return res_a.unwrap(), nil
-	} else {
-		return res_b.unwrap(), nil
-	}
-}
-
 // Choose between several parsers specified at runtime
 //
 // You can use this function to create multiple parsers that produce the same type of value at a runtime
@@ -226,10 +217,9 @@ func Choice[T any](parsers ...parser[T]) Parser[T] {
 		return Parser[T]{p.eval, MetaSkip{}}
 	}
 
-	this := parsers[0]
+	this := parsers[0].Parser()
 	for _, that := range parsers[1:] {
-		p := ParseOrElse[T]{this.Parser(), that.Parser()}
-		this = Parser[T]{p.eval, or(p.this.meta, p.that.meta)}
+		this = this.OrElse(that.Parser())
 	}
-	return this.Parser()
+	return this
 }

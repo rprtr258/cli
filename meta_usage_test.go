@@ -24,7 +24,7 @@ func TestSensors_many(t *testing.T) {
 func TestSensors_some(t *testing.T) {
 	a := Argument(Short('a'), "A", parseString)
 	b := Argument(Short('b'), "B", parseString)
-	parser := ParseSomeParser(Pair(a, b).Parser().Some("want some sensors", false)).ToOptions()
+	parser := Some(Pair(a, b), "want some sensors", false).ToOptions()
 	assert_usage(t, parser, "(-a=A -b=B)...")
 }
 
@@ -34,7 +34,7 @@ func TestMany_arg(t *testing.T) {
 }
 
 func TestSome_arg(t *testing.T) {
-	parser := ParseSomeParser(Argument(Short('a'), "A", parseString).Parser().Some("ARG", false)).ToOptions()
+	parser := Some(Argument(Short('a'), "A", parseString), "ARG", false).ToOptions()
 	assert_usage(t, parser, "(-a=A)...")
 }
 
@@ -45,7 +45,7 @@ func TestMany_switch(t *testing.T) {
 
 func TestSome_switch(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := ParseSomeParser(Short('a').Switch().Parser().Some("ARG", false)).ToOptions()
+	parser := Some(Short('a').Switch(), "ARG", false).ToOptions()
 	assert_usage(t, parser, "[-a]...")
 }
 
@@ -193,7 +193,7 @@ func TestA_or_b(t *testing.T) {
 
 func TestSome_req_flag(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := ParseSomeParser(ReqFlag(Short('a'), struct{}{}).Parser().Some("some", false)).ToOptions()
+	parser := Some(ReqFlag(Short('a'), struct{}{}), "some", false).ToOptions()
 	assert_usage(t, parser, "-a...")
 }
 

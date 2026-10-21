@@ -22,6 +22,22 @@ func (self ParseCon[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
+// Map - Apply a pure transformation to a contained value
+//
+// Fluent continuation for [ParseCon] results like [Pair] and [Triple]:
+//
+//	Pair(a, b).Map(f) instead of a.Pair(b).Parser().Map(f)
+func (self ParseCon[T]) Map[R any](fn func(T) R) Parser[R] {
+	return self.Parser().Map(fn)
+}
+
+// Parse - Apply a failing transformation to a contained value
+//
+// Fluent continuation for [ParseCon] results like [Pair] and [Triple].
+func (self ParseCon[T]) Parse[R any](f func(T) (R, error)) Parser[R] {
+	return self.Parser().Parse(f)
+}
+
 func (self ParseCon[T]) eval(state *State) (T, Error) {
 	res, err := self.inner(self.failfast, state)
 	state.currentIdx = Invalid[int]()
@@ -86,9 +102,13 @@ func (self ParseCon[T]) eval(state *State) (T, Error) {
 // There's also similar method [Adjacent](crateparsersParseArgument) that allows to restrict argument
 // parser to work only for arguments where both key and a value are in the same shell word:
 // `-f=bar` or `-fbar`, but not `-f bar`.
-func (self ParseCon[T]) Adjacent() ParseAdjacent[T] {
+func (self ParseCon[T]) Adjacent() Parser[T] {
 	self.failfast = true
-	return ParseAdjacent[T]{inner: Parser[T]{self.eval, self.meta}}
+	inner := Parser[T]{self.eval, self.meta}
+	return Parser[T]{
+		eval: func(state *State) (T, Error) { return adjacent_eval(inner, state) },
+		meta: MetaAdjacent{inner.meta},
+	}
 }
 
 func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {

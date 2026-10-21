@@ -456,7 +456,7 @@ func TestMany_does_not_duplicate_metadata(t *testing.T) {
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
-	parser := ParseSomeParser(Positional("D", parseString).Parser().Some("", false)).ToOptions()
+	parser := Some(Positional("D", parseString), "", false).ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
