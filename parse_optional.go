@@ -14,7 +14,7 @@ func optional_eval[T any](inner Parser[T], catch bool, state *state) (Opt[T], pa
 // Optional produces an [Opt] with the parsed value or
 // nothing if the parser fails softly, without consuming input.
 // See [OptionalCatch] for the variant that also catches consumed-input failures.
-func Optional[T any, P parser[T]](self P) Parser[Opt[T]] {
+func Optional[T any](self parser[T]) Parser[Opt[T]] {
 	inner := self.Parser()
 	return Parser[Opt[T]]{
 		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, false, state) },
@@ -26,7 +26,7 @@ func Optional[T any, P parser[T]](self P) Parser[Opt[T]] {
 // consumed values and yields nothing if the inner parser fails.
 //
 // This is the behavior [Construct] applies to fields with an Opt[T] type.
-func OptionalCatch[T any, P parser[T]](self P) Parser[Opt[T]] {
+func OptionalCatch[T any](self parser[T]) Parser[Opt[T]] {
 	inner := self.Parser()
 	return Parser[Opt[T]]{
 		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, true, state) },

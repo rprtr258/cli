@@ -22,16 +22,15 @@ func Rectangle() {
 
 	width := cli.Argument[uint](cli.Short('w').
 		Long("width").
-		Help("Width of the rectangle"),
-		"PX", parseUint).Parser()
+		Help("Width of the rectangle"), "PX", parseUint)
 
 	height := cli.Argument[uint](cli.Short('h').
 		Long("height").
-		Help("Height of the rectangle"),
-		"PX", parseUint).Parser()
+		Help("Height of the rectangle"), "PX", parseUint)
 
-	rect := cli.Optional(cli.Map(cli.Pair(width, height).Parser(), func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
-		GroupHelp("Rectangle is defined by width and height in meters").Parser()).Parser()
+	rect := cli.Optional(cli.Pair(width, height).
+		Map(func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
+		GroupHelp("Rectangle is defined by width and height in meters"))
 
 	verbose := cli.
 		Short('v').
@@ -39,7 +38,7 @@ func Rectangle() {
 		Help("Print computation steps").
 		Switch()
 
-	opt := cli.Map(cli.Pair(verbose, rect).Parser(), func(x fun.Pair[bool, cli.Opt[Rect]]) Out { return Out{x.V, x.K} }).
+	opt := cli.Pair(verbose, rect).Map(func(x fun.Pair[bool, cli.Opt[Rect]]) Out { return Out{x.V, x.K} }).
 		ToOptions().
 		Description("This program calculates rectangle's area").
 		Header("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv").

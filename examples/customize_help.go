@@ -13,7 +13,7 @@ import (
 func CustomizeHelp() {
 	opt := cli.Short('d').
 		Help("Release the dragon").
-		Switch().Parser().
+		Switch().
 		ToOptions().
 		Description("I am a program and I do things").
 		Header("Sometimes they even work.").

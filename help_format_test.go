@@ -355,8 +355,9 @@ func (self Pair2) String() string {
 func TestFallback_display_tuple(t *testing.T) {
 	a := Argument(Long("a").Help("help for a"), "NUM", parseUint)
 	b := Argument(Long("b").Help("help for b"), "NUM", parseUint)
-	parser := Map(Pair(a, b).Parser(), func(ab fun.Pair[uint, uint]) Pair2 { return Pair2{uint32(ab.K), uint32(ab.V)} }).
-		Parser().FallbackDisplay(Pair2{42, 333}).ToOptions()
+	parser := Pair(a, b).
+		Map(func(ab fun.Pair[uint, uint]) Pair2 { return Pair2{uint32(ab.K), uint32(ab.V)} }).
+		FallbackDisplay(Pair2{42, 333}).ToOptions()
 
 	const expected = `Usage: [--a=NUM --b=NUM]
 

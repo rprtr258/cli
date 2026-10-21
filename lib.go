@@ -41,8 +41,8 @@
 //	    height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", strconv.Atoi).
 //	        Parser().
 //	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    return cli.Map(cli.Pair(width, height).Parser(),
-//	        func(wh fun.Pair[int, int]) Rectangle {
+//	    return cli.Pair(width, height).
+//	        Map(func(wh fun.Pair[int, int]) Rectangle {
 //	            return Rectangle{Width: wh.K, Height: wh.V}
 //	        }).
 //	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
@@ -63,7 +63,7 @@
 // # Transforming parsers
 //
 // Each combinator returns a new parser without changing the original:
-// [Map] and [Parse] convert values, [Parser.Guard] validates them,
+// [Parser.Map] and [Parse] convert values, [Parser.Guard] validates them,
 // [Parser.Fallback] and [Parser.FallbackWith] provide defaults,
 // [Optional] makes a parser optional, [Many] and [Some] collect repeated
 // items, [Collect] fills any slice, [Count] counts occurrences.
@@ -153,8 +153,8 @@ package cli
 //	    height := cli.Argument[uint32](cli.Long("height"), "PX", parseUint32).
 //	        Help("Height of the rectangle").
 //	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    return cli.Map(cli.Pair(width.Parser(), height.Parser()).Parser(),
-//	        func(wh fun.Pair[uint32, uint32]) Rectangle {
+//	    return cli.Pair(width, height).
+//	        Map(func(wh fun.Pair[uint32, uint32]) Rectangle {
 //	            return Rectangle{Width: wh.K, Height: wh.V}
 //	        }).
 //	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)

@@ -25,10 +25,8 @@ type OptionParser[T any] struct {
 // # Usage
 //
 //	// Parses the number of repetitions of -v on a command line
-//	verbosity := cli.Map(
-//	    cli.Many(cli.Short('v').Switch()),
-//	    func(vs []struct{}) int { return len(vs) },
-//	).Parser().
+//	verbosity := cli.Many(cli.Short('v').Switch()).
+//	    Map(func(vs []struct{}) int { return len(vs) }).
 //	    ToOptions().
 //	    Description("Takes verbosity flag and does nothing else")
 //	var verbosityCount int = verbosity.Run(os.Args)

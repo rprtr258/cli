@@ -18,9 +18,9 @@ func EnvVariable() {
 		Help("access key to use"),
 		"KEY", func(s string) (string, error) {
 			return s, nil
-		}).Parser()
+		})
 
-	opts := cli.Map(key, func(key string) Opts { return Opts{key} }).ToOptions().Run(os.Args)
+	opts := key.Map(func(key string) Opts { return Opts{key} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }

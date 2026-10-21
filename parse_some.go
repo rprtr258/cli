@@ -40,7 +40,7 @@ func some_eval[T any](inner Parser[T], message string, catch bool, state *state)
 // # See also
 // [Many] also collects results to a slice but succeeds with
 // no matching values; [Collect] collects results into a slice
-func Some[T any, P parser[T]](self P, message string) Parser[[]T] {
+func Some[T any](self parser[T], message string) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return some_eval(inner, message, false, state) },
@@ -51,7 +51,7 @@ func Some[T any, P parser[T]](self P, message string) Parser[[]T] {
 // SomeCatch collects one or more items; if none are present it fails with
 // `message`. Stops at the first inner parser failure, keeping the values
 // collected so far.
-func SomeCatch[T any, P parser[T]](self P, message string) Parser[[]T] {
+func SomeCatch[T any](self parser[T], message string) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return some_eval(inner, message, true, state) },

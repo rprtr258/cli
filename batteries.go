@@ -24,15 +24,15 @@ func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
 		struct{}{})).Parser()
-	verbose := Map(Parser[[]struct{}]{vp.eval, vp.meta}, lenOf)
+	verbose := Parser[[]struct{}]{vp.eval, vp.meta}.Map(lenOf)
 
 	qp := Many(ReqFlag(Short('q').
 		Long("quiet").
 		Help("Decrease output verbosity, can be used several times"),
 		struct{}{})).Parser()
-	quiet := Map(Parser[[]struct{}]{qp.eval, qp.meta}, lenOf)
+	quiet := Parser[[]struct{}]{qp.eval, qp.meta}.Map(lenOf)
 
-	return Map(Pair(verbose, quiet).Parser(), func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
+	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
 }
 
 // `--verbose` and `--quiet` flags with results chosen from a slice of values
@@ -45,8 +45,8 @@ func verbose_by_slice[T any](
 	offset int,
 	items []T,
 ) Parser[T] {
-	pp := Map(verbose_and_quiet_by_number(offset, 0, len(items)-1),
-		func(i int) T { return items[i] })
+	pp := verbose_and_quiet_by_number(offset, 0, len(items)-1).
+		Map(func(i int) T { return items[i] })
 	return Parser[T]{pp.eval, pp.meta}
 }
 
@@ -90,9 +90,7 @@ func toggle_flag[T interface{ ~bool }](
 ) Parser[Opt[T]] {
 	pa := ReqFlag(a, val_a)
 	pb := ReqFlag(b, val_b)
-	return Map(
-		Many(Choice(pa, pb)).Parser(),
-		last)
+	return Many(Choice(pa, pb)).Map(last)
 }
 
 // Get usage for a parser

@@ -29,10 +29,10 @@ func Basic() {
 
 		// number of occurrences of the v/verbose flag capped at 3 with an error here but you can also
 		// use `max` inside `map`
-		verbose := cli.Map(cli.Many(cli.ReqFlag(cli.Short('v').
+		verbose := cli.Many(cli.ReqFlag(cli.Short('v').
 			Long("verbose").
-			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).Parser()).Parser(),
-			func(xs []struct{}) uint { return uint(len(xs)) }).
+			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{})).
+			Map(func(xs []struct{}) uint { return uint(len(xs)) }).
 			Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
 		// an argument, parsed and with default value
@@ -71,36 +71,35 @@ func Basic() {
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
 
-		files_to_process := cli.Many(file_to_proces.Parser())
+		files_to_process := cli.Many(file_to_proces)
 
 		// packing things in a struct assumes parser for each field is in scope.
 		// TODO: codgen on Out struct
-		return cli.Map(
+		return cli.Pair(
 			cli.Pair(
 				cli.Pair(
-					cli.Pair(
-						debug,
-						verbose.Parser(),
-					).Parser(),
-					cli.Pair(
-						speed.Parser(),
-						output.Parser(),
-					).Parser(),
-				).Parser(),
+					debug,
+					verbose,
+				),
 				cli.Pair(
-					nb_cars.Parser(),
-					files_to_process,
-				).Parser(),
-			).Parser(), func(x fun.Pair[fun.Pair[fun.Pair[bool, uint], fun.Pair[float64, string]], fun.Pair[uint32, []string]]) Out {
-				return Out{
-					debug:            x.K.K.K,
-					verbose:          x.K.K.V,
-					speed:            x.K.V.K,
-					output:           x.K.V.V,
-					nb_cars:          x.V.K,
-					files_to_process: x.V.V,
-				}
-			}).
+					speed,
+					output,
+				),
+			),
+			cli.Pair(
+				nb_cars,
+				files_to_process,
+			),
+		).Map(func(x fun.Pair[fun.Pair[fun.Pair[bool, uint], fun.Pair[float64, string]], fun.Pair[uint32, []string]]) Out {
+			return Out{
+				debug:            x.K.K.K,
+				verbose:          x.K.K.V,
+				speed:            x.K.V.K,
+				output:           x.K.V.V,
+				nb_cars:          x.V.K,
+				files_to_process: x.V.V,
+			}
+		}).
 			ToOptions().
 			Description("This is a description")
 	}

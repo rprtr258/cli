@@ -90,7 +90,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 func TestAdjacent_is_adjacent(t *testing.T) {
 	var a = ReqFlag(Short('a'), struct{}{})
 	var b = Positional("B", parseUint)
-	var parser = Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V })).Parser().ToOptions()
+	var parser = Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V })).ToOptions()
 
 	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
 
@@ -100,9 +100,9 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 func TestAdjacent_with_switch(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("B", parseUint)
-	ab := Many(Map(Pair(a, b).Adjacent().Parser(), func(t fun.Pair[struct{}, uint]) uint { return t.V }))
+	ab := Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }))
 	c := Short('c').Switch()
-	parser := Pair(ab, c).Parser().ToOptions()
+	parser := Pair(ab, c).ToOptions()
 
 	type R = fun.Pair[[]uint, bool]
 	assertSuccess(t, R{[]uint{10}, true}, parser, "-a", "10", "-c")

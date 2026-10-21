@@ -14,8 +14,8 @@ package cli
 // is more concise.
 //
 // This is a most general of transforming parsers and you can express
-// [Map] and [Guard] in terms of it.
-func Parse[T, R any, P parser[T]](self P, f func(T) (R, error)) Parser[R] {
+// [Parser.Map] and [Parser.Guard] in terms of it.
+func Parse[T, R any](self parser[T], f func(T) (R, error)) Parser[R] {
 	return Parser[R]{
 		eval: func(state *state) (R, parseError) {
 			t, err := self.Parser().eval(state)

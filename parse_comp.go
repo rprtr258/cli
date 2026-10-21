@@ -13,6 +13,12 @@ func (self ParseComp[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.inner.meta}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self ParseComp[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the parsed value, see [Parser.Map].
+func (self ParseComp[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 // Attach group name to parsed values
 func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	self.group = Valid(group)

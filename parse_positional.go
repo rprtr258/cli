@@ -36,6 +36,12 @@ func (self *ParsePositional[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, meta}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self *ParsePositional[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the parsed value, see [Parser.Map].
+func (self *ParsePositional[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 // Changes positional parser to be a "Strict" positional
 //
 // Usually positional items can appear anywhere on a command line:

@@ -19,6 +19,12 @@ func (self parseArgument[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, meta}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self parseArgument[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the parsed value, see [Parser.Map].
+func (self parseArgument[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 // Add a help message to an `argument`
 //
 // See [NamedArghelp]

@@ -36,12 +36,12 @@ func TestGet_any_many2(t *testing.T) {
 }
 
 func TestGet_any_magic(t *testing.T) {
-	parser := Map(OptionalCatch(Argument(Short('b'),
+	parser := OptionalCatch(Argument(Short('b'),
 		"anana", parseString).
-		Adjacent().Parser().
-		Guard(func(b string) bool { return b == "anana" }, "not anana").Parser()).
-		Parser(),
-		func(b Opt[string]) bool { return b.Valid }).
+		Adjacent().
+		Parser().
+		Guard(func(b string) bool { return b == "anana" }, "not anana")).
+		Map(func(b Opt[string]) bool { return b.Valid }).
 		ToOptions()
 
 	// -b anana - isn't a -banana

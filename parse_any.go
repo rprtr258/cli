@@ -15,6 +15,12 @@ func (self ParseAny[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, metaItem(self.item())}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self ParseAny[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the parsed value, see [Parser.Map].
+func (self ParseAny[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 func (self ParseAny[T]) item() item {
 	return item{self.help, itemAny{self.metavar, self.anywhere}}
 }

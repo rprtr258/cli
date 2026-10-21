@@ -31,13 +31,12 @@ func NumericPrefix() {
 			u, err := strconv.ParseUint(s, 10, 64)
 			return uint(u), err
 		}).
-			Help("Optional numeric command prefix").Parser()).
-			Parser()
+			Help("Optional numeric command prefix"))
 		command := cli.Positional("COMMAND", func(s string) (string, error) {
 			return s, nil
-		}).Help("Required command name").Parser()
+		}).Help("Required command name")
 
-		return cli.Map(cli.Pair(prefix, command).Parser(), func(x fun.Pair[cli.Opt[uint], string]) Options { return Options{x.K, x.V} })
+		return cli.Pair(prefix, command).Map(func(x fun.Pair[cli.Opt[uint], string]) Options { return Options{x.K, x.V} })
 	}()
 
 	fmt.Println(options.ToOptions().Run(os.Args))

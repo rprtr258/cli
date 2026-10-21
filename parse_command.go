@@ -98,6 +98,12 @@ func (self ParseCommand[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, metaItem(self.item())}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self ParseCommand[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the parsed command value, see [Parser.Map].
+func (self ParseCommand[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 func (self ParseCommand[T]) eval(state *state) (T, parseError) {
 	// used to avoid allocations for short names
 	tmp := ""

@@ -25,16 +25,16 @@ func TopToBottom() {
 		Short('d').
 		Long("debug").
 		Help("Activate debug mode").
-		Switch().Parser()
+		Switch()
 
 	// number of occurrences of the v/verbose flag capped at 3
 	var verbose cli.Parser[uint] = cli.
-		Map(cli.Many(cli.ReqFlag(cli.Short('v').
+		Many(cli.ReqFlag(cli.Short('v').
 			Long("verbose").
 			Help("Increase the verbosity\nYou can specify it up to 3 times\neither as -v -v -v or as -vvv"),
-			struct{}{}).Parser()).Parser(), func(xs []struct{}) uint { return uint(len(xs)) }).
-		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this").
-		Parser()
+			struct{}{})).
+		Map(func(xs []struct{}) uint { return uint(len(xs)) }).
+		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
 	// an argument, parsed and with default value
 	var speed cli.Parser[float64] = cli.
@@ -44,8 +44,7 @@ func TopToBottom() {
 			return strconv.ParseFloat(s, 64)
 		}).
 		Parser().
-		Fallback(42.0).
-		Parser()
+		Fallback(42.0)
 
 	var output cli.Parser[string] = cli.
 		Argument(cli.Short('o').
@@ -67,7 +66,7 @@ func TopToBottom() {
 	var files_to_process cli.Parser[[]string] = cli.
 		Many(cli.Argument(cli.Short('f').
 			Long("file").
-			Help("File to process"), "FILE", parseString).Parser()).Parser()
+			Help("File to process"), "FILE", parseString))
 	// packing things in a struct assumes parser for each field is in scope.
 	opt := (cli.Map6(
 		debug,

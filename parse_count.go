@@ -31,7 +31,7 @@ func count_eval[T any](inner Parser[T], state *state) (int, parseError) {
 //
 // # Example
 //
-//	count := cli.Short('v').Switch().Parser().Count() // -vvv -> 3
+//	count := cli.Short('v').Switch().Count() // -vvv -> 3
 func (self Parser[T]) Count() Parser[int] {
 	inner := self
 	return Parser[int]{

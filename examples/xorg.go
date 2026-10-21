@@ -33,24 +33,22 @@ func Xorg() {
 	}
 
 	// matches literal +ext and -ext followed by extension name
-	extension := cli.
-		Map(cli.Pair(cli.Any("(+|-)ext", func(s string) (bool, bool) {
-			return s == "+ext", s == "-ext" || s == "+ext"
-		}, true).
-			Parser(), cli.Positional("EXT", func(s string) (string, error) { return s, nil }).
-			Help("Extension to enable or disable, see documentation for the full list").Parser()).Adjacent().Parser(),
-			func(ab fun.Pair[bool, string]) fun.Pair[string, bool] {
-				return fun.Pair[string, bool]{K: ab.V, V: ab.K}
-			})
+	extension := cli.Pair(cli.Any("(+|-)ext", func(s string) (bool, bool) {
+		return s == "+ext", s == "-ext" || s == "+ext"
+	}, true), cli.Positional("EXT", func(s string) (string, error) { return s, nil }).
+		Help("Extension to enable or disable, see documentation for the full list")).Adjacent().
+		Map(func(ab fun.Pair[bool, string]) fun.Pair[string, bool] {
+			return fun.Pair[string, bool]{K: ab.V, V: ab.K}
+		})
 
 	options := cli.Map4(
 		cli.Short('t').
 			Long("turbo").
 			Help("Engage the turbo mode").
-			Switch().Parser(),
-		toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false).Parser(),
-		toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true).Parser(),
-		cli.Many(extension).Parser(),
+			Switch(),
+		toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false),
+		toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true),
+		cli.Many(extension),
 		func(turbo bool, backing bool, xinerama bool, extensions []fun.Pair[string, bool]) Options {
 			return Options{turbo, backing, xinerama, extensions}
 		},

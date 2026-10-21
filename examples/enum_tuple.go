@@ -30,16 +30,16 @@ func EnumTuple() {
 		Help("some bar command"),
 		"BAR", func(s string) (string, error) {
 			return s, nil
-		}).Parser()).Parser()
+		}))
 
-	bar_cmd := cli.Map(bar, func(bar cli.Opt[string]) Foo { return Foo{bar} }).
+	bar_cmd := bar.Map(func(bar cli.Opt[string]) Foo { return Foo{bar} }).
 		ToOptions().
 		Description("This command will try to do foo given a bar argument")
 
-	opt := cli.Map(bar_cmd.
+	opt := bar_cmd.
 		Command("foo").
-		Help("command for doing foo").Parser(),
-		CommandFoo).
+		Help("command for doing foo").
+		Map(CommandFoo).
 		ToOptions().Run(os.Args)
 
 	fmt.Println(opt)

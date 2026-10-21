@@ -30,7 +30,7 @@ func Csample() {
 		return s, nil
 	}).Parser().
 		Complete(complete_calculator)
-	parser := cli.Pair(cli.Pair(a, b).Parser(), cli.Pair(bb, c.Parser()).Parser()).Parser().
+	parser := cli.Pair(cli.Pair(a, b), cli.Pair(bb, c)).
 		ToOptions().
 		Description("Dynamic autocomplete example").
 		Footer(`This library supports dynamic autocompletion for a few shells, make sure your binary is in $PATH and try using one of those; this output should go into a file that depends on your shell:

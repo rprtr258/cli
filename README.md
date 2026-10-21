@@ -39,8 +39,8 @@ func rectangle() cli.Parser[Rectangle] {
 	height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", parseInt).
 		Parser().
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	return cli.Map(cli.Pair(width, height).Parser(),
-		func(wh fun.Pair[int, int]) Rectangle {
+	return cli.Pair(width, height).
+		Map(func(wh fun.Pair[int, int]) Rectangle {
 			return Rectangle{Width: wh.K, Height: wh.V}
 		}).
 		Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
@@ -73,7 +73,7 @@ type Out struct {
 	Verbose cli.Count `cli:"short=v,long=verbose"`
 }
 
-out := cli.Construct[Out]().Parser().ToOptions().Run(os.Args)
+out := cli.Construct[Out]().ToOptions().Run(os.Args)
 ```
 
 Field types choose the consumers: `bool` - a switch, primitives - an argument
@@ -95,7 +95,7 @@ optional, `cli.Count` - number of repeats.
 
 ## Transforming parsers
 
-- `Map` / `Parse` - convert the produced value
+- `Parser.Map` / `Parse` - convert the produced value
 - `Guard` - validate the value with a custom check and error message
 - `Optional` / `OptionalCatch` - make a parser optional
 - `Many` / `Some` / `ManyCatch` / `SomeCatch` - collect repeated items into a slice

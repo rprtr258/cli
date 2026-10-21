@@ -45,10 +45,10 @@ func Verbose() {
 	// case before falling back to Trim:Off.
 	// If both --trim and --no-trim are given trim_off succeeds, trim_off never runs and --trim
 	// remains unused - parser fails
-	trim := cli.Choice(trim_off.Parser(), trim_on.Parser())
+	trim := cli.Choice(trim_off, trim_on)
 
-	parser := cli.Pair(verbose.Parser(), trim)
+	parser := cli.Pair(verbose, trim)
 
-	opt := parser.Parser().ToOptions().Run(os.Args)
+	opt := parser.ToOptions().Run(os.Args)
 	fmt.Println(opt)
 }

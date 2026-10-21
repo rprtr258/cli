@@ -36,7 +36,7 @@ func many_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseErro
 // # See also
 // [Some] also collects results to a slice but requires at least one
 // element to succeed; [Collect] collects results into a slice
-func Many[T any, P parser[T]](self P) Parser[[]T] {
+func Many[T any](self parser[T]) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return many_eval(inner, false, state) },
@@ -46,7 +46,7 @@ func Many[T any, P parser[T]](self P) Parser[[]T] {
 
 // ManyCatch collects zero or more items, stopping at the first inner parser
 // failure and keeping the values collected so far.
-func ManyCatch[T any, P parser[T]](self P) Parser[[]T] {
+func ManyCatch[T any](self parser[T]) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return many_eval(inner, true, state) },

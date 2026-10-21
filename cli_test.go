@@ -876,23 +876,23 @@ Available commands:
 }
 
 func TestManyDoesntPanic(t *testing.T) {
-	parser := Map(Many(Short('a').Switch()).Parser(), lenOf).ToOptions()
+	parser := Many(Short('a').Switch()).Map(lenOf).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Map(Some(Short('a').Switch(), ""), lenOf).ToOptions()
+	parser := Some(Short('a').Switch(), "").Map(lenOf).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestCommandResetsLeftHeadState(t *testing.T) {
 	type Foo fun.Option[uint32]
 
-	a := Argument(Short('a'), "A", parseUint32).Parser().Fallback(0).Parser()
-	b := ReqFlag(Short('b'), struct{}{}).Parser()
+	a := Argument(Short('a'), "A", parseUint32).Parser().Fallback(0)
+	b := ReqFlag(Short('b'), struct{}{})
 
-	p1 := Map(a, func(a uint32) Foo { return Foo{a, true} })
-	p2 := Map(b, func(struct{}) Foo { return Foo{0, false} })
+	p1 := a.Map(func(a uint32) Foo { return Foo{a, true} })
+	p2 := b.Map(func(struct{}) Foo { return Foo{0, false} })
 	cmd := Choice(p1, p2).
 		ToOptions().
 		Command("cmd").Parser().
@@ -1189,14 +1189,12 @@ func TestCatch_works(t *testing.T) {
 	}
 	ANum := func(a uint) A { return A{true, a, ""} }
 	AStr := func(s string) A { return A{false, 0, s} }
-	a_n := OptionalCatch(Map(Argument(Short('a'),
-		"A", parseUint).Parser(),
-		ANum))
-	a_s := Optional(Map(Argument(Short('a'),
-		"A", parseString).Parser(),
-		AStr).
+	a_n := OptionalCatch(Argument(Short('a'),
+		"A", parseUint).Map(ANum))
+	a_s := Optional(Argument(Short('a'),
+		"A", parseString).Map(AStr).
 		Hide())
-	parser := Choice(a_n.Parser(), a_s.Parser()).ToOptions()
+	parser := Choice(a_n, a_s).ToOptions()
 
 	assertSuccess(t, Valid(AStr("x1")), parser, "-a", "x1")
 	assertSuccess(t, Valid(ANum(1)), parser, "-a", "1")
@@ -1209,18 +1207,18 @@ func TestSneaky_command(t *testing.T) {
 	}
 	CmdA := func(x bool) Cmd { return Cmd{true, x} }
 	CmdB := func(x bool) Cmd { return Cmd{false, x} }
-	cmd := Map(Short('f').
-		Switch().Parser().
+	cmd := Short('f').
+		Switch().
 		ToOptions().
-		Command("hello").Parser(),
-		CmdA)
-	b := Map(Short('f').Switch().Parser(), CmdB)
+		Command("hello").
+		Map(CmdA)
+	b := Short('f').Switch().Map(CmdB)
 
 	sneaky := true // TODO: ???
 
 	maybe_cmd := cmd
 	if !sneaky {
-		maybe_cmd = Fail[Cmd]("no sneaky").Parser()
+		maybe_cmd = Fail[Cmd]("no sneaky")
 	}
 	parser := Choice(maybe_cmd, b).ToOptions()
 
@@ -1228,8 +1226,8 @@ func TestSneaky_command(t *testing.T) {
 }
 
 func TestDefault_for_many(t *testing.T) {
-	parser := Map(Many(Positional("ROOTS", parseString)).Parser(),
-		func(items []string) []string {
+	parser := Many(Positional("ROOTS", parseString)).
+		Map(func(items []string) []string {
 			if len(items) == 0 {
 				return []string{"."}
 			}
@@ -1248,9 +1246,9 @@ func TestParse_option_catch(t *testing.T) {
 	}
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
-	a1 := OptionalCatch(Map(Argument(Short('a'), "N", parseUint32).Parser(), AU32))
-	a2 := OptionalCatch(Map(Argument(Short('a'), "S", parseString).Parser(), AS))
-	parser := Choice(a1.Parser(), a2.Parser()).ToOptions()
+	a1 := OptionalCatch(Argument(Short('a'), "N", parseUint32).Map(AU32))
+	a2 := OptionalCatch(Argument(Short('a'), "S", parseString).Map(AS))
+	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, Valid(AU32(10)), parser, "-a", "10")
 	assertSuccess(t, Valid(AS("x")), parser, "-a", "x")
@@ -1265,11 +1263,10 @@ func TestParse_some_catch(t *testing.T) {
 	}
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
-	a1 := SomeCatch(Map(Argument(Short('a'),
-		"N", parseUint32).Parser(),
-		AU32), "A").
+	a1 := SomeCatch(Argument(Short('a'),
+		"N", parseUint32).Map(AU32), "A").
 		Hide()
-	a2 := SomeCatch(Map(Argument(Short('a'), "S", parseString).Parser(), AS), "A").Hide()
+	a2 := SomeCatch(Argument(Short('a'), "S", parseString).Map(AS), "A").Hide()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
@@ -1295,7 +1292,7 @@ func TestStrange_short_option(t *testing.T) {
 }
 
 func TestOptional_bool_states(t *testing.T) {
-	parser := Optional(Short('a').Switch().Parser()).Parser().ToOptions()
+	parser := Optional(Short('a').Switch()).ToOptions()
 	assertSuccess(t, Valid(true), parser, "-a")
 	assertSuccess(t, Valid(false), parser)
 }
@@ -1303,11 +1300,11 @@ func TestOptional_bool_states(t *testing.T) {
 func TestFancy_negative(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Any("A", func(s string) (int32, bool) { res, err := strconv.ParseInt(s, 10, 32); return int32(res), err == nil }, false)
-	ab := Map(Pair(a, b).Adjacent().Parser(), func(x fun.Pair[struct{}, int32]) int32 { return x.V })
+	ab := Pair(a, b).Adjacent().Map(func(x fun.Pair[struct{}, int32]) int32 { return x.V })
 
 	c := Argument(Short('c'), "C", parseUint).Parser().Fallback(42)
 
-	parser := Pair(ab, c).Parser().ToOptions()
+	parser := Pair(ab, c).ToOptions()
 
 	assertSuccess(t, PPair[int32, uint](-10, 42), parser, "-a", "-10")
 	assertSuccess(t, PPair[int32, uint](-20, 110), parser, "-a=-20", "-c", "110")

@@ -12,7 +12,7 @@ type Poly[T any] struct {
 
 func poly[T any](name string, parse func(string) (T, error)) Parser[Poly[T]] {
 	field := Argument(Long(name), "ARG", parse)
-	return Map(field.Parser(), func(a T) Poly[T] { return Poly[T]{a} })
+	return field.Map(func(a T) Poly[T] { return Poly[T]{a} })
 }
 
 func TestGeneric_argument_field(t *testing.T) {

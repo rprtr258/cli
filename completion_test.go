@@ -765,8 +765,8 @@ func TestGenerate_unparseable_items(t *testing.T) {
 	two := Pure(struct{}{}).Parser().ToOptions().Command("ctwo")
 	e := Short('e').Switch()
 
-	one_e := Map(Pair(e, one).Parser(), func(x fun.Pair[bool, struct{}]) struct{} { return x.V })
-	parser := Choice(one_e, two).Parser().ToOptions()
+	one_e := Pair(e, one).Map(func(x fun.Pair[bool, struct{}]) struct{} { return x.V })
+	parser := Choice(one_e, two).ToOptions()
 
 	// passing -e restricts branch with cmd_two
 	assertCompletion(t, parser, "cone", "-e", "")

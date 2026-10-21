@@ -29,7 +29,7 @@ func collect_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseE
 // Collect will collect at most one result that does not consume anything from the
 // argument list, allowing its use in combination with parsers with a fallback. After
 // the first one, it keeps collecting the results as long as they consume something.
-func Collect[T any, P parser[T]](self P) Parser[[]T] {
+func Collect[T any](self parser[T]) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return collect_eval(inner, false, state) },
@@ -39,7 +39,7 @@ func Collect[T any, P parser[T]](self P) Parser[[]T] {
 
 // CollectCatch collects zero or more items, stopping at the first inner parser
 // failure and keeping the values collected so far.
-func CollectCatch[T any, P parser[T]](self P) Parser[[]T] {
+func CollectCatch[T any](self parser[T]) Parser[[]T] {
 	inner := self.Parser()
 	return Parser[[]T]{
 		eval: func(state *state) ([]T, parseError) { return collect_eval(inner, true, state) },

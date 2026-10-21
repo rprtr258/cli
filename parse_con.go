@@ -22,6 +22,12 @@ func (self ParseCon[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, self.meta}
 }
 
+// ToOptions prepares the parser for running, see [Parser.ToOptions].
+func (self ParseCon[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
+
+// Map applies a pure transformation to the composed value, see [Parser.Map].
+func (self ParseCon[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
 func (self ParseCon[T]) eval(state *state) (T, parseError) {
 	res, err := self.inner(self.failfast, state)
 	state.currentIdx = Invalid[int]()

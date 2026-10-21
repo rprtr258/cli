@@ -19,7 +19,7 @@ func TestFluentChaining(t *testing.T) {
 		Hide()
 	rest := Optional(Positional[string]("REST", parseString))
 
-	parser := Map(Pair(verbose, Pair(speed, rest)), func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
+	parser := Pair(verbose, Pair(speed, rest)).Map(func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
 		res := ""
 		for range x.K {
 			res += "v"
@@ -74,10 +74,10 @@ func TestFluentFallbackDisplay(t *testing.T) {
 
 // Adjacent on a constructed pair chains into further combinators.
 func TestFluentAdjacent(t *testing.T) {
-	parser := Map(Pair(
-		Argument[uint32](Short('w'), "W", parseUint32).Parser(),
-		Argument[uint32](Short('h'), "H", parseUint32).Parser(),
-	).Adjacent().Hide(), func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).ToOptions()
+	parser := Pair(
+		Argument[uint32](Short('w'), "W", parseUint32),
+		Argument[uint32](Short('h'), "H", parseUint32),
+	).Adjacent().Hide().Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-w", "2", "-h", "3"})
 	require.NoError(t, err)
@@ -103,33 +103,30 @@ func strconvItoa(x int) string {
 	return res
 }
 
-// Map and Parse are free generic functions: they accept any parser, including
+// Parse is a free generic function: it accepts any parser, including
 // ParseCon results from Pair.
 func TestFluentGenericMethods(t *testing.T) {
-	parser := Map(
-		Some(Positional[uint32]("N", parseUint32), "want N"),
-		func(xs []uint32) uint32 {
+	parser := Some(Positional[uint32]("N", parseUint32), "want N").
+		Map(func(xs []uint32) uint32 {
 			res := uint32(0)
 			for _, x := range xs {
 				res += x
 			}
 			return res
 		}).
-		Parser().
 		ToOptions()
 	assertSuccess(t, uint32(3), parser, "1", "2")
 
-	parser2 := Map(
-		Pair(Positional[uint32]("W", parseUint32), Positional[uint32]("H", parseUint32)).Parser(),
-		func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).
-		Parser().
+	parser2 := Pair(
+		Positional[uint32]("W", parseUint32),
+		Positional[uint32]("H", parseUint32)).
+		Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).
 		ToOptions()
 	assertSuccess(t, uint32(20), parser2, "4", "5")
 
 	parser3 := Parse(
-		Positional[uint32]("N", parseUint32).Parser(),
+		Positional[uint32]("N", parseUint32),
 		func(x uint32) (string, error) { return strconvItoa(int(x)), nil }).
-		Parser().
 		ToOptions()
 	assertSuccess(t, "42", parser3, "42")
 }
