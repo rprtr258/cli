@@ -1,0 +1,34 @@
+// Non derive version for positional arguments
+package examples
+
+import (
+	"fmt"
+	"os"
+	"strconv"
+
+	"github.com/rprtr258/cli"
+	"github.com/rprtr258/fun"
+)
+
+func ExPositional() {
+	type Options struct {
+		value uint32
+		files []string
+	}
+
+	value := cli.Argument[uint32](cli.Long("value").
+		Help("Mysterious value"),
+		"VAL", func(s string) (uint32, error) {
+			u, err := strconv.ParseUint(s, 10, 32)
+			return uint32(u), err
+		}).
+		Parser().
+		Fallback(42).
+		Parser()
+	files := cli.Many(cli.Positional("FILE", func(s string) (string, error) {
+		return s, nil
+	}).Parser(), false)
+	opts := cli.Map(cli.Pair(value, files).Parser(), func(x fun.Pair[uint32, []string]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
+
+	fmt.Println(opts)
+}
