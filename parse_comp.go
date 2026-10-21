@@ -19,6 +19,57 @@ func (self ParseComp[T]) ToOptions() *OptionParser[T] { return self.Parser().ToO
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self ParseComp[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
+// Hide this parser from help generation, see [Parser.Hide].
+func (self ParseComp[T]) Hide() Parser[T] { return self.Parser().Hide() }
+
+// Hide this parser from the usage line, see [Parser.HideUsage].
+func (self ParseComp[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
+
+// CustomUsage overrides the usage line, see [Parser.CustomUsage].
+func (self ParseComp[T]) CustomUsage(usage Doc) Parser[T] { return self.Parser().CustomUsage(usage) }
+
+// GroupHelp attaches a help message to this parser, see [Parser.GroupHelp].
+func (self ParseComp[T]) GroupHelp(message string) Parser[T] { return self.Parser().GroupHelp(message) }
+
+// Guard validates the parsed value, see [Parser.Guard].
+func (self ParseComp[T]) Guard(check func(T) bool, message string) Parser[T] {
+	return self.Parser().Guard(check, message)
+}
+
+// Fallback provides a default value, see [Parser.Fallback].
+func (self ParseComp[T]) Fallback(value T) Parser[T] { return self.Parser().Fallback(value) }
+
+// FallbackDisplay provides a default value shown in help, see [Parser.FallbackDisplay].
+func (self ParseComp[T]) FallbackDisplay(value T) Parser[T] {
+	return self.Parser().FallbackDisplay(value)
+}
+
+// FallbackWith provides a lazily computed default value, see [Parser.FallbackWith].
+func (self ParseComp[T]) FallbackWith(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWith(fallback)
+}
+
+// FallbackWithDisplay provides a lazily computed default value shown in help, see [Parser.FallbackWithDisplay].
+func (self ParseComp[T]) FallbackWithDisplay(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWithDisplay(fallback)
+}
+
+// Last keeps only the last matched value, see [Parser.Last].
+func (self ParseComp[T]) Last() Parser[T] { return self.Parser().Last() }
+
+// Count the number of matches, see [Parser.Count].
+func (self ParseComp[T]) Count() Parser[int] { return self.Parser().Count() }
+
+// Complete adds custom shell completion, see [Parser.Complete].
+func (self ParseComp[T]) Complete(op func(T) iter.Seq2[string, Opt[string]]) ParseComp[T] {
+	return self.Parser().Complete(op)
+}
+
+// CompleteShell adds file or directory shell completion, see [Parser.CompleteShell].
+func (self ParseComp[T]) CompleteShell(op ShellComp) Parser[T] {
+	return self.Parser().CompleteShell(op)
+}
+
 // Attach group name to parsed values
 func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	self.group = Valid(group)

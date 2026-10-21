@@ -122,7 +122,7 @@ package cli
 // value as it is consumed while `b` first collects and then validates the whole slice. The
 // former approach is usually more readable:
 //
-//	a := Argument[uint32](Short('a'), "N", parseUint32).Parser().
+//	a := Argument[uint32](Short('a'), "N", parseUint32).
 //	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
 //	collectA := Many(a)
 //

@@ -10,7 +10,7 @@ func TestTest_adjacent(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Short('b').Switch()
 	c := Short('c').Switch()
-	parser := Many(Triple(a.Parser(), b, c).Adjacent()).Parser().ToOptions()
+	parser := Many(Triple(a, b, c).Adjacent()).ToOptions()
 
 	type R = Tuple[struct{}, bool, bool]
 	assertSuccess(t, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}}, parser, "-a", "-c", "-a", "-b", "-a", "-b", "-c")
@@ -24,9 +24,9 @@ func TestTest_adjacent_prefix(t *testing.T) {
 	type R = fun.Pair[Opt[P], bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("X", parseUint)
-	ab := Optional(Pair(a, b).Adjacent().Parser())
+	ab := Optional(Pair(a, b).Adjacent())
 	c := Short('c').Switch()
-	parser := Pair(ab, c).Parser().ToOptions()
+	parser := Pair(ab, c).ToOptions()
 
 	assertSuccess(t, R{Invalid[P](), true}, parser, "-c")
 	assertSuccess(t, R{Valid(P{struct{}{}, 1}), false}, parser, "-a", "1")
@@ -40,7 +40,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
 	adj := Triple(a, b, c).Adjacent()
-	parser := Pair(adj, d).Parser().ToOptions()
+	parser := Pair(adj, d).ToOptions()
 
 	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
 }
@@ -48,7 +48,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 func TestAdjacent_error_message_arg_single0(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Argument(Short('b'), "B", parseUint)
-	parser := Pair(a, b).Adjacent().Parser().ToOptions()
+	parser := Pair(a, b).Adjacent().ToOptions()
 
 	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
 }
@@ -59,7 +59,7 @@ func TestAdjacent_error_message_arg_single(t *testing.T) {
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
 	adj := Triple(a, b, c).Adjacent()
-	parser := Pair(adj, d).Parser().ToOptions()
+	parser := Pair(adj, d).ToOptions()
 
 	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
 }
@@ -70,7 +70,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
 	adj := Many(Triple(a, b, c).Adjacent())
-	parser := Pair(adj, d).Parser().ToOptions()
+	parser := Pair(adj, d).ToOptions()
 
 	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
 }
@@ -81,7 +81,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
 	adj := Many(Triple(a, b, c).Adjacent())
-	parser := Pair(adj, d).Parser().ToOptions()
+	parser := Pair(adj, d).ToOptions()
 
 	// this should ask for -b or -c and complain on 10...
 	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
@@ -111,23 +111,21 @@ func TestAdjacent_with_switch(t *testing.T) {
 }
 
 func TestAdjacent_limits_commands(t *testing.T) {
-	x := Pure(struct{}{}).Parser().ToOptions().Command("a").Adjacent()
+	x := Pure(struct{}{}).ToOptions().Command("a").Adjacent()
 	s := Short('s').Switch()
-	parser := Pair(s, x).Parser().ToOptions()
+	parser := Pair(s, x).ToOptions()
 
 	assertSuccess(t, PPair(true, struct{}{}), parser, "a", "-s")
 }
 
 func TestCommands_and_adjacent(t *testing.T) {
-	eat := Positional("FOOD", parseString).Parser().
-		ToOptions().
+	eat := Positional("FOOD", parseString).ToOptions().
 		Command("eat").
 		Help("eat something").
 		Adjacent()
 
 	sleep := Argument(Long("time"),
-		"HOURS", parseString).Parser().
-		ToOptions().
+		"HOURS", parseString).ToOptions().
 		Command("sleep").
 		Help("sleep for a bit").
 		Adjacent()
@@ -135,7 +133,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 	cmds := Choice(eat, sleep)
 	switch_ := Short('s').Switch()
 
-	var parser = Pair(switch_, cmds).Parser().ToOptions()
+	var parser = Pair(switch_, cmds).ToOptions()
 
 	assertSuccess(t, PPair(true, "12"), parser, "sleep", "--time", "12", "-s")
 
@@ -158,7 +156,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	y := Argument(Short('y'), "Y", parseInt)
 	c := Short('c').Switch()
 	point := Pair(x, y).Adjacent()
-	parser := Pair(point, c).Parser().ToOptions()
+	parser := Pair(point, c).ToOptions()
 
 	assertSuccess(t, PPair(PPair(3, 4), true), parser, "-x", "3", "-y", "4", "-c")
 	{

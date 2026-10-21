@@ -26,7 +26,7 @@ func TestConstructBasic(t *testing.T) {
 		Speed  float64 `cli:"long=speed,metavar=SPEED,default=42"`
 		Output string  `cli:"short=o,long=output,metavar=FILE"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	AssertSuccess(t, Out{Debug: true, Speed: 3.14, Output: "out.txt"}, parser,
 		"-d", "--speed", "3.14", "-o", "out.txt")
@@ -41,7 +41,7 @@ func TestConstructPositionalBeforeNamed(t *testing.T) {
 		Dst   string // positional
 		Force bool   `cli:"short=f,long=force"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	AssertSuccess(t, Out{Src: "a", Dst: "b", Force: true}, parser, "-f", "a", "b")
 }
@@ -52,7 +52,7 @@ func TestConstructMany(t *testing.T) {
 		Tags  []string `cli:"long=tag,metavar=TAG"`
 		Nums  []int    `cli:"short=n"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	AssertSuccess(t,
 		Out{Files: []string{"a", "b"}, Tags: []string{"x", "y"}, Nums: []int{1, 2}},
@@ -65,7 +65,7 @@ func TestConstructOptional(t *testing.T) {
 		Speed Opt[float64] `cli:"long=speed"`
 		Name  Opt[string]  // optional positional
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	AssertSuccess(t, Out{}, parser)
 	AssertSuccess(t,
@@ -81,7 +81,7 @@ func TestConstructCount(t *testing.T) {
 	type Out struct {
 		Verbose Count `cli:"short=v,long=verbose"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	for _, args := range [][]string{{"-v", "-v", "-v"}, {"-vvv"}, {"--verbose", "--verbose", "--verbose"}} {
 		AssertSuccess(t, Out{Verbose: 3}, parser, args...)
@@ -93,7 +93,7 @@ func TestConstructEnv(t *testing.T) {
 	type Out struct {
 		Home string `cli:"long=home,env=CLI_CONSTRUCT_TEST_HOME"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	t.Setenv("CLI_CONSTRUCT_TEST_HOME", "/tmp/x")
 	AssertSuccess(t, Out{Home: "/tmp/x"}, parser)
@@ -105,7 +105,7 @@ func TestConstructMissingAggregated(t *testing.T) {
 		Aaa string `cli:"long=aaa,metavar=A"`
 		Bbb string `cli:"long=bbb,metavar=B"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	_, err := parser.RunInner(newArgList())
 	require.NotNil(t, err)
@@ -118,7 +118,7 @@ func TestConstructParseError(t *testing.T) {
 	type Out struct {
 		N int `cli:"short=n"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	_, err := parser.RunInner(newArgList("-n", "12x"))
 	require.NotNil(t, err)
@@ -131,7 +131,7 @@ func TestConstructTextUnmarshaler(t *testing.T) {
 		Timeout  time.Duration     `cli:"long=timeout,default=10s"`
 		Deadline time.Duration     `cli:"long=deadline"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	AssertSuccess(t,
 		Out{Port: 8080, Timeout: 10 * time.Second, Deadline: 90 * time.Second},
@@ -147,7 +147,7 @@ func TestConstructAdjacentStructGroup(t *testing.T) {
 		Width  float64 `cli:"long=width,metavar=W"`
 		Height float64 `cli:"long=height,metavar=H"`
 	}
-	parser := Construct[Rect]().Adjacent().Parser().ToOptions()
+	parser := Construct[Rect]().Adjacent().ToOptions()
 
 	AssertSuccess(t, Rect{Rect: true, Width: 10, Height: 20}, parser,
 		"--rect", "--width", "10", "--height", "20")
@@ -162,7 +162,7 @@ func TestConstructSkipAndUntagged(t *testing.T) {
 		Skip  int    `cli:"-"`
 		Extra string // untagged: required positional
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 	AssertSuccess(t, Out{Extra: "hello"}, parser, "hello")
 }
 
@@ -172,7 +172,7 @@ func TestConstructHelp(t *testing.T) {
 		Speed float64 `cli:"long=speed,metavar=SPEED,default=42"`
 		Src   string
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 
 	_, err := parser.RunInner(newArgList("--help"))
 	require.NotNil(t, err)
@@ -257,6 +257,6 @@ func TestConstructQuotedHelp(t *testing.T) {
 	type Out struct {
 		Speed float64 `cli:"long=speed,help='Set speed, m/s'"`
 	}
-	parser := Construct[Out]().Parser().ToOptions()
+	parser := Construct[Out]().ToOptions()
 	AssertSuccess(t, Out{Speed: 5}, parser, "--speed", "5")
 }

@@ -23,7 +23,7 @@ func guard_eval[T any](inner Parser[T], check func(T) bool, message string, stat
 //
 // # Example
 //
-//	collectA := cli.Argument[uint32](cli.Short('a'), "N", parseUint32).Parser().
+//	collectA := cli.Argument[uint32](cli.Short('a'), "N", parseUint32).
 //	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
 func (self Parser[T]) Guard(check func(T) bool, message string) Parser[T] {
 	inner := self

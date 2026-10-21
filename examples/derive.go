@@ -26,7 +26,7 @@ type Opts struct {
 }
 
 func Main() {
-	parser := cli.Construct[Opts]().Parser().ToOptions()
+	parser := cli.Construct[Opts]().ToOptions()
 	opts := parser.Run(os.Args)
 	fmt.Println(opts)
 }

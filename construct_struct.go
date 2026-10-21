@@ -347,7 +347,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 		if cfg.def.Valid {
 			panic(fmt.Sprintf("cli.Construct: field %q: cli.Count field cannot have a default", name))
 		}
-		p := ReqFlag[struct{}](na, struct{}{}).Parser().Count()
+		p := ReqFlag[struct{}](na, struct{}{}).Count()
 		return fieldPart{ix: ix, named: true, meta: p.meta, eval: func(state *state) (reflect.Value, parseError) {
 			n, err := p.eval(state)
 			if err != nil {

@@ -79,8 +79,8 @@ func parseBool(s string) (bool, error) {
 // 2. It's okay if it's missing
 // 3. And don't show anything to the user in `--help` or completion
 // 4. Parse this word and then everything else as a tuple, return that second item.
-func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
-	skip := Optional(Literal(cmd)).Parser().Hide()
+func cargo_helper[T any](cmd string, parser parser[T]) Parser[T] {
+	skip := Optional(Literal(cmd)).Hide()
 	return Map2(skip, parser, func(_ Opt[struct{}], x T) T { return x })
 }
 

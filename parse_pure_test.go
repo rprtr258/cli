@@ -14,7 +14,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	a := Argument(Short('t'), "N", parseUint32)
 	b := PureWith(func() (uint32, error) { return 42, nil })
 
-	opts := Choice(a.Parser(), b.Parser()).ToOptions()
+	opts := Choice(a, b).ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string
@@ -41,7 +41,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	a := Argument(Short('t'), "N", parseUint32)
 	b := PureWith(func() (uint32, error) { return 0, errors.New("some-err") })
 
-	opts := Choice(a.Parser(), b.Parser()).ToOptions()
+	opts := Choice(a, b).ToOptions()
 	assertFailure(t, opts, "some-err")
 }
 
@@ -51,7 +51,7 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 		// ~ trying to lookup the last used seeds
 		return []uint32{3, 5, 7, 11}, nil
 	})
-	seeds := Choice(user_seeds, last_seeds.Parser()).ToOptions()
+	seeds := Choice(user_seeds, last_seeds).ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string
@@ -81,7 +81,7 @@ func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
 		return nil, errors.New("oh, no")
 	})
 	default_seeds := Pure([]uint32{1, 2})
-	seeds := Choice(user_seeds, last_seeds.Parser(), default_seeds.Parser()).ToOptions()
+	seeds := Choice(user_seeds, last_seeds, default_seeds).ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string

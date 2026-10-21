@@ -1,6 +1,10 @@
 package cli
 
-import "github.com/rprtr258/fun"
+import (
+	"iter"
+
+	"github.com/rprtr258/fun"
+)
 
 // Builder structure for a subcommand parser
 //
@@ -104,6 +108,59 @@ func (self ParseCommand[T]) ToOptions() *OptionParser[T] { return self.Parser().
 // Map applies a pure transformation to the parsed command value, see [Parser.Map].
 func (self ParseCommand[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
+// Hide this parser from help generation, see [Parser.Hide].
+func (self ParseCommand[T]) Hide() Parser[T] { return self.Parser().Hide() }
+
+// Hide this parser from the usage line, see [Parser.HideUsage].
+func (self ParseCommand[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
+
+// CustomUsage overrides the usage line, see [Parser.CustomUsage].
+func (self ParseCommand[T]) CustomUsage(usage Doc) Parser[T] { return self.Parser().CustomUsage(usage) }
+
+// GroupHelp attaches a help message to this parser, see [Parser.GroupHelp].
+func (self ParseCommand[T]) GroupHelp(message string) Parser[T] {
+	return self.Parser().GroupHelp(message)
+}
+
+// Guard validates the parsed value, see [Parser.Guard].
+func (self ParseCommand[T]) Guard(check func(T) bool, message string) Parser[T] {
+	return self.Parser().Guard(check, message)
+}
+
+// Fallback provides a default value, see [Parser.Fallback].
+func (self ParseCommand[T]) Fallback(value T) Parser[T] { return self.Parser().Fallback(value) }
+
+// FallbackDisplay provides a default value shown in help, see [Parser.FallbackDisplay].
+func (self ParseCommand[T]) FallbackDisplay(value T) Parser[T] {
+	return self.Parser().FallbackDisplay(value)
+}
+
+// FallbackWith provides a lazily computed default value, see [Parser.FallbackWith].
+func (self ParseCommand[T]) FallbackWith(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWith(fallback)
+}
+
+// FallbackWithDisplay provides a lazily computed default value shown in help, see [Parser.FallbackWithDisplay].
+func (self ParseCommand[T]) FallbackWithDisplay(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWithDisplay(fallback)
+}
+
+// Last keeps only the last matched value, see [Parser.Last].
+func (self ParseCommand[T]) Last() Parser[T] { return self.Parser().Last() }
+
+// Count the number of matches, see [Parser.Count].
+func (self ParseCommand[T]) Count() Parser[int] { return self.Parser().Count() }
+
+// Complete adds custom shell completion, see [Parser.Complete].
+func (self ParseCommand[T]) Complete(op func(T) iter.Seq2[string, Opt[string]]) ParseComp[T] {
+	return self.Parser().Complete(op)
+}
+
+// CompleteShell adds file or directory shell completion, see [Parser.CompleteShell].
+func (self ParseCommand[T]) CompleteShell(op ShellComp) Parser[T] {
+	return self.Parser().CompleteShell(op)
+}
+
 func (self ParseCommand[T]) eval(state *state) (T, parseError) {
 	// used to avoid allocations for short names
 	tmp := ""
@@ -187,8 +244,8 @@ func (self ParseCommand[T]) item() item {
 //
 // For example for a non-positional `nonPos` and a command `command` parsers:
 //
-//	valid := cli.Pair(nonPos, command.Parser())
-//	invalid := cli.Pair(command.Parser(), nonPos)
+//	valid := cli.Pair(nonPos, command)
+//	invalid := cli.Pair(command, nonPos)
 //
 // **The library panics during help generation if this restriction is violated.**
 //

@@ -1,6 +1,10 @@
 package cli
 
-import "github.com/rprtr258/fun"
+import (
+	"iter"
+
+	"github.com/rprtr258/fun"
+)
 
 // Consume an arbitrary value that satisfies a condition, created with [Any],
 // optionally in "anywhere" mode.
@@ -20,6 +24,55 @@ func (self ParseAny[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOp
 
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self ParseAny[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
+// Hide this parser from help generation, see [Parser.Hide].
+func (self ParseAny[T]) Hide() Parser[T] { return self.Parser().Hide() }
+
+// Hide this parser from the usage line, see [Parser.HideUsage].
+func (self ParseAny[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
+
+// CustomUsage overrides the usage line, see [Parser.CustomUsage].
+func (self ParseAny[T]) CustomUsage(usage Doc) Parser[T] { return self.Parser().CustomUsage(usage) }
+
+// GroupHelp attaches a help message to this parser, see [Parser.GroupHelp].
+func (self ParseAny[T]) GroupHelp(message string) Parser[T] { return self.Parser().GroupHelp(message) }
+
+// Guard validates the parsed value, see [Parser.Guard].
+func (self ParseAny[T]) Guard(check func(T) bool, message string) Parser[T] {
+	return self.Guard(check, message)
+}
+
+// Fallback provides a default value, see [Parser.Fallback].
+func (self ParseAny[T]) Fallback(value T) Parser[T] { return self.Parser().Fallback(value) }
+
+// FallbackDisplay provides a default value shown in help, see [Parser.FallbackDisplay].
+func (self ParseAny[T]) FallbackDisplay(value T) Parser[T] {
+	return self.Parser().FallbackDisplay(value)
+}
+
+// FallbackWith provides a lazily computed default value, see [Parser.FallbackWith].
+func (self ParseAny[T]) FallbackWith(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWith(fallback)
+}
+
+// FallbackWithDisplay provides a lazily computed default value shown in help, see [Parser.FallbackWithDisplay].
+func (self ParseAny[T]) FallbackWithDisplay(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWithDisplay(fallback)
+}
+
+// Last keeps only the last matched value, see [Parser.Last].
+func (self ParseAny[T]) Last() Parser[T] { return self.Parser().Last() }
+
+// Count the number of matches, see [Parser.Count].
+func (self ParseAny[T]) Count() Parser[int] { return self.Parser().Count() }
+
+// Complete adds custom shell completion, see [Parser.Complete].
+func (self ParseAny[T]) Complete(op func(T) iter.Seq2[string, Opt[string]]) ParseComp[T] {
+	return self.Parser().Complete(op)
+}
+
+// CompleteShell adds file or directory shell completion, see [Parser.CompleteShell].
+func (self ParseAny[T]) CompleteShell(op ShellComp) Parser[T] { return self.Parser().CompleteShell(op) }
 
 func (self ParseAny[T]) item() item {
 	return item{self.help, itemAny{self.metavar, self.anywhere}}

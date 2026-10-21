@@ -28,8 +28,7 @@ func Csample() {
 	c := cli.Argument[string](cli.Long("calculator").
 		Help("calculator expression"), "EXPR", func(s string) (string, error) {
 		return s, nil
-	}).Parser().
-		Complete(complete_calculator)
+	}).Complete(complete_calculator)
 	parser := cli.Pair(cli.Pair(a, b), cli.Pair(bb, c)).
 		ToOptions().
 		Description("Dynamic autocomplete example").

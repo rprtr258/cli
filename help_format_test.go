@@ -38,7 +38,7 @@ func TestFallback_to_usage_nested(t *testing.T) {
 func TestFancy_meta(t *testing.T) {
 	a := Argument(Long("trailing-comma"), "all|es5|none", parseString)
 	b := Argument(Long("stdin-file-path"), "PATH", parseString)
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	const expected = `Usage: --trailing-comma=<all|es5|none> --stdin-file-path=PATH
 
@@ -87,7 +87,7 @@ func TestVery_long_switch(t *testing.T) {
 		Help("this is help for megapotato"),
 		"MEGAPOTATO", parseUint)
 	b := Short('b').Long("batman").Help("help for batman").Switch()
-	p := Pair(a, b).Parser().ToOptions()
+	p := Pair(a, b).ToOptions()
 
 	const expected = `Usage: -p=MEGAPOTATO [-b]
 
@@ -106,7 +106,7 @@ func TestDuplicate_items_same_help(t *testing.T) {
 	c2 := Short('c').Help("c").Switch()
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
-	parser := Choice(ac, bc).Parser().ToOptions()
+	parser := Choice(ac, bc).ToOptions()
 
 	const expected = `Usage: (-a [-c] | -b [-c])
 
@@ -127,7 +127,7 @@ func TestDuplicate_items_dif_help(t *testing.T) {
 	c2 := Short('c').Help("c2").Switch()
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
-	parser := Choice(ac, bc).Parser().ToOptions()
+	parser := Choice(ac, bc).ToOptions()
 
 	const expected = `Usage: (-a [-c] | -b [-c])
 
@@ -149,7 +149,7 @@ func TestDuplicate_pos_items_same_help(t *testing.T) {
 	c2 := Positional("C", parseString).Help("C")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
-	parser := Choice(ac, bc).Parser().ToOptions()
+	parser := Choice(ac, bc).ToOptions()
 
 	const expected = `Usage: (-a C | -b C)
 
@@ -172,7 +172,7 @@ func TestDuplicate_pos_items_diff_help(t *testing.T) {
 	c2 := Positional("C", parseString).Help("C2")
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
-	parser := Choice(ac, bc).Parser().ToOptions()
+	parser := Choice(ac, bc).ToOptions()
 
 	const expected = `Usage: (-a C | -b C)
 
@@ -238,7 +238,7 @@ Available options:
 
 //     a := Short('a').help("help for a").Switch();
 //     b := Short('b').help("help for b").Switch();
-//     parser := Pair(a, fooo(), b).Parser().ToOptions();
+//     parser := Pair(a, fooo(), b).ToOptions();
 
 //     const expected=`// Usage: [-a] --tag NAME VAL [-b]
 
@@ -260,16 +260,16 @@ Available options:
 // }
 
 func TestMulti_arg_help(t *testing.T) {
-	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{}).Parser()
+	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{})
 	b := Short('e').Long("extra").Help("extra strange").Switch()
-	c := Positional("NAME", parseString).Help("pos1 help").Parser()
-	d := Positional("STATE", parseBool).Help("pos2 help").Parser()
-	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent().Parser()).Parser()
-	verbose := Short('v').Long("verbose").Help("verbose").Switch().Parser()
-	detailed := Long("detailed").Short('d').Help("detailed").Switch().Parser()
+	c := Positional("NAME", parseString).Help("pos1 help")
+	d := Positional("STATE", parseBool).Help("pos2 help")
+	combo := Optional(Pair(Pair(a, b), Pair(c, d)).Adjacent())
+	verbose := Short('v').Long("verbose").Help("verbose").Switch()
+	detailed := Long("detailed").Short('d').Help("detailed").Switch()
 	parser := Map3(verbose, combo, detailed, func(_ bool, _ Opt[fun.Pair[fun.Pair[struct{}, bool], fun.Pair[string, bool]]], _ bool) struct{} {
 		return struct{}{}
-	}).Parser().ToOptions()
+	}).ToOptions()
 
 	const expected = `Usage: [-v] [-f [-e] NAME STATE] [-d]
 
@@ -293,7 +293,7 @@ func TestMulti_pos_help(t *testing.T) {
 	b := Positional("VAL", parseString).Help("val help")
 	combo := Pair(a, b).Adjacent()
 	verbose := Short('v').Long("verbose").Switch()
-	parser := Pair(verbose, combo).Parser().ToOptions()
+	parser := Pair(verbose, combo).ToOptions()
 
 	const expected = `Usage: [-v] NAME VAL
 
@@ -392,13 +392,13 @@ func TestEnv_fallback_visible(t *testing.T) {
 	fonts_dir := Optional(Argument(Long("fonts").
 		Env("OIKOS_FONTS").
 		Help("Load fonts from this directory"),
-		"DIR", parseString).Parser())
+		"DIR", parseString))
 
 	system_fonts := Long("system-fonts").
 		Env("OIKOS_SYSTEM_FONTS").
 		Help("Search for additional fonts in system directories").
 		Switch()
-	parser := Pair(fonts_dir, system_fonts).Parser().ToOptions()
+	parser := Pair(fonts_dir, system_fonts).ToOptions()
 
 	const expected = `Usage: [--fonts=DIR] [--system-fonts]
 
@@ -413,10 +413,10 @@ Available options:
 }
 
 func TestNested_group_help(t *testing.T) {
-	a := Short('a').Switch().Parser().GroupHelp("inner")
+	a := Short('a').Switch().GroupHelp("inner")
 	b := Short('b').Switch()
 
-	parser := Pair(a, b).Parser().GroupHelp("outer").Parser().ToOptions()
+	parser := Pair(a, b).GroupHelp("outer").ToOptions()
 
 	const expected = `Usage: [-a] [-b]
 
@@ -440,8 +440,8 @@ func TestWith_group_help(t *testing.T) {
 		b.Emphasis("Uses either of those ")
 		b.meta(meta, false)
 		return b
-	}).Parser()
-	parser := Pair(ab, c).Parser().ToOptions()
+	})
+	parser := Pair(ab, c).ToOptions()
 
 	{
 		const expected = `Usage: [-a] [-b] [-c]
@@ -465,7 +465,7 @@ func TestCustom_help_and_version(t *testing.T) {
 	h := Short('H').Long("halp").Help("halps you")
 	v := Short('v').Long("release").Help("prints release id")
 	a := Short('a').Switch()
-	parser := a.Parser().ToOptions().HelpParser(h).VersionParser(v)
+	parser := a.ToOptions().HelpParser(h).VersionParser(v)
 
 	assertFailure(t, parser, "`--help` is not expected in this context", "--help")
 
@@ -541,7 +541,7 @@ Available options:
 	}
 
 	{
-		parser := Short('a').Switch().Parser().ToOptions().Version("1")
+		parser := Short('a').Switch().ToOptions().Version("1")
 
 		assertHelp(t, parser, "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
 

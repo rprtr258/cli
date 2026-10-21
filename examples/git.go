@@ -52,7 +52,7 @@ func Git() {
 	all := cli.Long("all").Switch()
 	repository := cli.Positional("SRC", func(s string) (string, error) {
 		return s, nil
-	}).Parser().Fallback("origin").Parser()
+	}).Fallback("origin")
 	fetch := cli.Pair(cli.Pair(dry_run, all), repository).Map(func(x fun.Pair[fun.Pair[bool, bool], string]) Opt { return OptFetch(x.K.K, x.K.V, x.V) }).
 		ToOptions().
 		Description("fetches branches from remote repository")

@@ -23,7 +23,7 @@ func TestThis_or_that_odd(t *testing.T) {
 func TestNo_argument(t *testing.T) {
 	a := Argument(Short('a'), "N", parseInt32)
 	b := Short('2').Switch()
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	assertSuccess(t, PPair(int32(-42), false), parser, "-a", "-42")
 
@@ -97,14 +97,14 @@ func TestGuard_message(t *testing.T) {
 
 func TestStrict_positional_argument(t *testing.T) {
 	a := Argument(Short('a'), "N", parseUint)
-	parser := a.Parser().ToOptions()
+	parser := a.ToOptions()
 
 	assertFailure(t, parser, "`-a` requires an argument `N`", "-a", "--", "10")
 }
 
 func TestNot_expected_at_all(t *testing.T) {
 	a := Short('a').Switch()
-	parser := a.Parser().ToOptions()
+	parser := a.ToOptions()
 
 	assertFailure(t, parser, "`--megapotato` is not expected in this context", "--megapotato")
 
@@ -114,7 +114,7 @@ func TestNot_expected_at_all(t *testing.T) {
 func TestCannot_be_used_twice(t *testing.T) {
 	a := Short('a').Switch()
 	b := Many(Short('b').Switch())
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-a", "-b", "-a")
 
@@ -125,8 +125,8 @@ func TestCannot_be_used_twice(t *testing.T) {
 
 func TestShould_not_split_adjacent_options(t *testing.T) {
 	a := ReqFlag(Short('a'), 0)
-	b := Pure(struct{}{}).Parser().ToOptions().Command("hello")
-	parser := Pair(a, b).Parser().ToOptions()
+	b := Pure(struct{}{}).ToOptions().Command("hello")
+	parser := Pair(a, b).ToOptions()
 	// can probably suggest splitting here too: `-a` `hello`
 	const expected = "no such flag: `-ahello`, did you mean `hello`?"
 	assertFailure(t, parser, expected, "-ahello")
@@ -136,8 +136,8 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	a1 := ReqFlag[uint](Short('a'), 0)
 	a2 := Argument(Short('a'), "x", parseUint)
 	a := Choice(a2, a1)
-	c := Pure(struct{}{}).Parser().ToOptions().Command("hello")
-	parser := Pair(a, c).Parser().ToOptions()
+	c := Pure(struct{}{}).ToOptions().Command("hello")
+	parser := Pair(a, c).ToOptions()
 
 	// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
 	assertSuccess(t, fun.Pair[uint, struct{}]{0, struct{}{}}, parser, "-a=hello")
@@ -153,7 +153,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 }
 
 func TestAdjacent_option_complains_to(t *testing.T) {
-	parser := Argument(Short('a'), "A", parseUint).Parser().ToOptions()
+	parser := Argument(Short('a'), "A", parseUint).ToOptions()
 
 	// TODO - this should point to the whole "-ayam" thing
 	assertFailure(t, parser, "couldn't parse `yam`: invalid digit found in string", "-ayam")
@@ -162,7 +162,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 func TestSome_pos_with_invalid_flag(t *testing.T) {
 	a := Short('a').Switch()
 	b := Some(Positional("B", parseUint), "Want B")
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
 
@@ -170,9 +170,9 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseUint).Parser())
+	a := Optional(Argument(Short('a'), "A", parseUint))
 	b := Positional("B", parseUint)
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
 
@@ -184,13 +184,13 @@ func TestPos_with_invalid_arg(t *testing.T) {
 }
 
 func TestStrictly_positional_help(t *testing.T) {
-	parser := Long("hhhh").Switch().Parser().ToOptions()
+	parser := Long("hhhh").Switch().ToOptions()
 
 	assertFailure(t, parser, "`--help` is not expected in this context", "--", "--help")
 }
 
 func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
-	parser := ReqFlag(Short('a'), struct{}{}).Parser().Hide().ToOptions()
+	parser := ReqFlag(Short('a'), struct{}{}).Hide().ToOptions()
 
 	assertFailure(t, parser, "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 }
@@ -207,14 +207,14 @@ func TestGuard_on_fallback(t *testing.T) {
 func TestTwo_required_fields_first_missing(t *testing.T) {
 	a := Argument(Long("a"), "A", parseUint32)
 	b := Argument(Long("b"), "B", parseUint32)
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 	assertFailure(t, parser, "expected `--a=A`, pass `--help` for usage information", "--b", "1")
 }
 
 func TestUsed_only_once_is_more_important_error(t *testing.T) {
-	format := Long("format").Switch().Parser()
-	sort := Long("sort").Switch().Parser()
-	filter := Long("filter").Switch().Parser()
+	format := Long("format").Switch()
+	sort := Long("sort").Switch()
+	filter := Long("filter").Switch()
 	opts := Map3(format, sort, filter, func(format, sort, filter bool) struct{} { return struct{}{} }).ToOptions()
 
 	assertFailure(t, opts, "argument `--filter` cannot be used multiple times in this context", "--filter", "--filter")

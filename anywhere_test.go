@@ -11,7 +11,7 @@ func TestParse_anywhere_positional(t *testing.T) {
 		Help("all the things")
 
 	b := Short('b').Help("batch mode").Switch()
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	const expected = `Usage: X [-b]
 
@@ -31,7 +31,7 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 	b := Positional("X", parseUint)
 	ab := Pair(a, b).Adjacent()
 	c := Short('c').Switch()
-	parser := Pair(ab, c).Parser().ToOptions()
+	parser := Pair(ab, c).ToOptions()
 
 	// Usage: -a <x> [-c],
 
@@ -47,9 +47,9 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := OptionalCatch(Pair(a, b).Adjacent().Parser())
+	ab := OptionalCatch(Pair(a, b).Adjacent())
 	bc := Short('a').Switch()
-	parser := Pair(ab, bc).Parser().ToOptions()
+	parser := Pair(ab, bc).ToOptions()
 
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Opt[P], bool]
@@ -63,7 +63,7 @@ func TestAnywhere_catch_many(t *testing.T) {
 	b := Positional("x", parseUint)
 	ab := ManyCatch(Pair(a, b).Adjacent())
 	bc := Short('a').Switch()
-	parser := Pair(ab, bc).Parser().ToOptions()
+	parser := Pair(ab, bc).ToOptions()
 
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]fun.Pair[struct{}, uint], bool]
@@ -77,9 +77,9 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 	type R = fun.Pair[P, bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := Pair(a, b).Adjacent().Parser().Fallback(P{struct{}{}, 10})
+	ab := Pair(a, b).Adjacent().Fallback(P{struct{}{}, 10})
 	bc := Short('a').Switch()
-	parser := Pair(ab, bc).Parser().ToOptions()
+	parser := Pair(ab, bc).ToOptions()
 
 	assertSuccess(t, R{P{struct{}{}, 12}, false}, parser, "-a", "12")
 	assertSuccess(t, R{P{struct{}{}, 10}, false}, parser, "-a")
@@ -92,9 +92,9 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
-	ab := OptionalCatch(Pair(a, b).Adjacent().Parser())
+	ab := OptionalCatch(Pair(a, b).Adjacent())
 	c := Short('c').Switch()
-	parser := Pair(ab, c).Parser().ToOptions()
+	parser := Pair(ab, c).ToOptions()
 
 	assertFailure(t, parser, "`-a` is not expected in this context", "-a", "221b")
 	assertFailure(t, parser, "`3` is not expected in this context", "3", "-a")
@@ -116,7 +116,7 @@ func TestAnywhere_literal(t *testing.T) {
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]P, bool]
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-b", "-mode", "12")
 	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-mode", "12", "-b")

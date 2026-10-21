@@ -11,7 +11,7 @@ func some(s string) (string, bool) { return s, true }
 func TestGet_any_simple(t *testing.T) {
 	a := Short('a').Switch()
 	b := Any("REST", some, false).Help("any help")
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, string]
 	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
@@ -22,7 +22,7 @@ func TestGet_any_simple(t *testing.T) {
 func TestGet_any_many(t *testing.T) {
 	a := Short('a').Switch()
 	b := Many(Any("REST", some, false).Help("any help"))
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, []string]
 	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
@@ -31,7 +31,7 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	parser := Many(Any("REST", some, false)).Parser().ToOptions()
+	parser := Many(Any("REST", some, false)).ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
@@ -54,16 +54,15 @@ func TestGet_any_magic(t *testing.T) {
 }
 
 func TestFrom_str_works_with_parse(t *testing.T) {
-	parser := Parse(Positional("A", parseString).Parser(),
-		parseUint).Parser().
-		ToOptions()
+	parser := Parse(Positional("A", parseString),
+		parseUint).ToOptions()
 	assertSuccess(t, uint(42), parser, "42")
 }
 
 func TestSquashed_short_names(t *testing.T) {
 	a := Short('a').Switch()
 	b := Argument(Short('b'), "B", parseString)
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, string]
 	// For now instead of supporting I parse "-Obits=2048" instead as "-O" with "bits=2048" body

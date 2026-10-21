@@ -1,5 +1,7 @@
 package cli
 
+import "iter"
+
 type posKind uint8
 
 const (
@@ -41,6 +43,61 @@ func (self *ParsePositional[T]) ToOptions() *OptionParser[T] { return self.Parse
 
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self *ParsePositional[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
+
+// Hide this parser from help generation, see [Parser.Hide].
+func (self *ParsePositional[T]) Hide() Parser[T] { return self.Parser().Hide() }
+
+// Hide this parser from the usage line, see [Parser.HideUsage].
+func (self *ParsePositional[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
+
+// CustomUsage overrides the usage line, see [Parser.CustomUsage].
+func (self *ParsePositional[T]) CustomUsage(usage Doc) Parser[T] {
+	return self.Parser().CustomUsage(usage)
+}
+
+// GroupHelp attaches a help message to this parser, see [Parser.GroupHelp].
+func (self *ParsePositional[T]) GroupHelp(message string) Parser[T] {
+	return self.Parser().GroupHelp(message)
+}
+
+// Guard validates the parsed value, see [Parser.Guard].
+func (self *ParsePositional[T]) Guard(check func(T) bool, message string) Parser[T] {
+	return self.Parser().Guard(check, message)
+}
+
+// Fallback provides a default value, see [Parser.Fallback].
+func (self *ParsePositional[T]) Fallback(value T) Parser[T] { return self.Parser().Fallback(value) }
+
+// FallbackDisplay provides a default value shown in help, see [Parser.FallbackDisplay].
+func (self *ParsePositional[T]) FallbackDisplay(value T) Parser[T] {
+	return self.Parser().FallbackDisplay(value)
+}
+
+// FallbackWith provides a lazily computed default value, see [Parser.FallbackWith].
+func (self *ParsePositional[T]) FallbackWith(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWith(fallback)
+}
+
+// FallbackWithDisplay provides a lazily computed default value shown in help, see [Parser.FallbackWithDisplay].
+func (self *ParsePositional[T]) FallbackWithDisplay(fallback func() (T, error)) Parser[T] {
+	return self.Parser().FallbackWithDisplay(fallback)
+}
+
+// Last keeps only the last matched value, see [Parser.Last].
+func (self *ParsePositional[T]) Last() Parser[T] { return self.Parser().Last() }
+
+// Count the number of matches, see [Parser.Count].
+func (self *ParsePositional[T]) Count() Parser[int] { return self.Parser().Count() }
+
+// Complete adds custom shell completion, see [Parser.Complete].
+func (self *ParsePositional[T]) Complete(op func(T) iter.Seq2[string, Opt[string]]) ParseComp[T] {
+	return self.Parser().Complete(op)
+}
+
+// CompleteShell adds file or directory shell completion, see [Parser.CompleteShell].
+func (self *ParsePositional[T]) CompleteShell(op ShellComp) Parser[T] {
+	return self.Parser().CompleteShell(op)
+}
 
 // Changes positional parser to be a "Strict" positional
 //

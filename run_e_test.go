@@ -10,7 +10,7 @@ import (
 
 // RunE must not print or exit, so it has to be usable from external packages.
 func TestRunEReturnsParsedValue(t *testing.T) {
-	parser := Long("verbose").Switch().Parser().ToOptions()
+	parser := Long("verbose").Switch().ToOptions()
 
 	verbose, err := parser.RunE([]string{"app", "--verbose"})
 
@@ -19,7 +19,7 @@ func TestRunEReturnsParsedValue(t *testing.T) {
 }
 
 func TestRunEUsesDefaults(t *testing.T) {
-	parser := Long("verbose").Switch().Parser().ToOptions()
+	parser := Long("verbose").Switch().ToOptions()
 
 	verbose, err := parser.RunE([]string{"app"})
 
@@ -28,7 +28,7 @@ func TestRunEUsesDefaults(t *testing.T) {
 }
 
 func TestRunEParsesArgument(t *testing.T) {
-	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).ToOptions()
 
 	number, err := parser.RunE([]string{"app", "--number", "42"})
 
@@ -37,7 +37,7 @@ func TestRunEParsesArgument(t *testing.T) {
 }
 
 func TestRunEErrorInsteadOfExit(t *testing.T) {
-	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).ToOptions()
 
 	// If RunE behaved like Run and called os.Exit, this test would terminate here.
 	_, err := parser.RunE([]string{"app", "--number", "not-a-number"})
@@ -51,7 +51,7 @@ func TestRunEErrorInsteadOfExit(t *testing.T) {
 }
 
 func TestRunEHelpIsNotAnErrorDiagnostic(t *testing.T) {
-	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).ToOptions()
 
 	_, err := parser.RunE([]string{"app", "--help"})
 
@@ -64,7 +64,7 @@ func TestRunEHelpIsNotAnErrorDiagnostic(t *testing.T) {
 
 // The program name passed as args[0] must show up in the usage line.
 func TestRunEUsageContainsProgramName(t *testing.T) {
-	parser := Argument(Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+	parser := Argument(Long("number"), "N", strconv.Atoi).ToOptions()
 
 	_, err := parser.RunE([]string{"app", "--help"})
 

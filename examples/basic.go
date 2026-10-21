@@ -40,8 +40,8 @@ func Basic() {
 			Long("speed").
 			Help("Set speed"), "SPEED", func(s string) (float64, error) {
 			return strconv.ParseFloat(s, 64)
-		}).Parser(). // you can specify a type to parse
-				FallbackDisplay(42.0)
+		}). // you can specify a type to parse
+			FallbackDisplay(42.0)
 
 		output := cli.Argument[string](cli.Short('o').
 			Long("output").

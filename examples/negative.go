@@ -13,7 +13,7 @@ import (
 func Negative() {
 	age := cli.Argument[int64](cli.Long("age"), "AGE", func(s string) (int64, error) {
 		return strconv.ParseInt(s, 10, 64)
-	}).Parser()
+	})
 	msg := `To pass a value that starts with a dash requres one one of two special syntaxes:
 
 This will pass '-1' to '--age' handler and leave remaining arguments as is

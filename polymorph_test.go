@@ -18,7 +18,7 @@ func poly[T any](name string, parse func(string) (T, error)) Parser[Poly[T]] {
 func TestGeneric_argument_field(t *testing.T) {
 	a := Optional(poly("uint", parseUint))
 	b := Optional(poly("uint32", parseUint32))
-	parser := Pair(a, b).Parser().ToOptions()
+	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[Opt[Poly[uint]], Opt[Poly[uint32]]]
 	assertSuccess(t, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()}, parser, "--uint", "12")
