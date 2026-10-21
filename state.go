@@ -137,15 +137,15 @@ LOOP:
 		}
 	}
 
-	name, ok := args.name.Unpack()
+	name, name_ok := args.name.Unpack()
 
-	comp, ok := comp_scanner.done()
+	comp, comp_ok := comp_scanner.done()
 	return State{
 		items,
 		item_state,
 		Invalid[int](),
-		fun.IF(ok, []string{name}, []string{}),
-		Option[Complete]{comp, ok},
+		fun.IF(name_ok, []string{name}, []string{}),
+		Option[Complete]{comp, comp_ok},
 		Range{0, len(items)},
 	}, err
 }

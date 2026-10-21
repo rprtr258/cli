@@ -1,6 +1,7 @@
 package cli_test
 
 import (
+	"errors"
 	"strconv"
 	"testing"
 
@@ -43,8 +44,8 @@ func TestRunEErrorInsteadOfExit(t *testing.T) {
 	_, err := parser.RunE([]string{"app", "--number", "not-a-number"})
 
 	require.Error(t, err)
-	var failure cli.FailureError
-	require.ErrorAs(t, err, &failure)
+	failure, ok := errors.AsType[cli.FailureError](err)
+	require.True(t, ok)
 	require.True(t, failure.IsError())
 	require.Equal(t, 1, failure.ExitCode())
 	require.Contains(t, failure.Error(), "couldn't parse `not-a-number`")
@@ -55,9 +56,20 @@ func TestRunEHelpIsNotAnErrorDiagnostic(t *testing.T) {
 
 	_, err := parser.RunE([]string{"app", "--help"})
 
-	var failure cli.FailureError
-	require.ErrorAs(t, err, &failure)
+	failure, ok := errors.AsType[cli.FailureError](err)
+	require.True(t, ok)
 	require.False(t, failure.IsError())
 	require.Equal(t, 0, failure.ExitCode())
 	require.Contains(t, failure.Error(), "Usage")
+}
+
+// The program name passed as args[0] must show up in the usage line.
+func TestRunEUsageContainsProgramName(t *testing.T) {
+	parser := cli.Argument(cli.Long("number"), "N", strconv.Atoi).Parser().ToOptions()
+
+	_, err := parser.RunE([]string{"app", "--help"})
+
+	failure, ok := errors.AsType[cli.FailureError](err)
+	require.True(t, ok)
+	require.Contains(t, failure.Error(), "Usage: app --number=N")
 }

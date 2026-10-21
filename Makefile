@@ -1,6 +1,6 @@
 .PHONY: lint
 lint:
-	gocritic check -enableAll ./...
+	golangci-lint run ./...
 
 .PHONY: test
 test:
