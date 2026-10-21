@@ -3,8 +3,6 @@ package cli_test
 import (
 	"testing"
 
-	"github.com/stretchr/testify/require"
-
 	. "github.com/rprtr258/cli"
 	"github.com/rprtr258/fun"
 )
@@ -20,9 +18,7 @@ func TestThis_or_that_odd(t *testing.T) {
 	)
 	parser := Choice(ab, cd).ToOptions()
 
-	_, res := parser.RunInner(NewArgs("-a", "-b", "-c"))
-
-	require.Equal(t, UnwrapStderr(res), "`-c` cannot be used at the same time as `-b`")
+	assertFailure(t, parser, "`-c` cannot be used at the same time as `-b`", "-a", "-b", "-c")
 }
 
 func TestNo_argument(t *testing.T) {
@@ -30,11 +26,7 @@ func TestNo_argument(t *testing.T) {
 	b := Short('2').Switch()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		r, err := parser.RunInner(NewArgs("-a", "-42"))
-		require.Nil(t, err)
-		require.Equal(t, PPair(int32(-42), false), r)
-	}
+	assertSuccess(t, PPair(int32(-42), false), parser, "-a", "-42")
 
 	{
 		//    r, err := parser.RunInner(newArgs("-a", "-4"]))
@@ -42,12 +34,9 @@ func TestNo_argument(t *testing.T) {
 		//    require.Equal(t, r, (-4, flse));
 	}
 
-	{
-		_, r := parser.RunInner(NewArgs("-a", "-2"))
-		// can we restore this?
-		// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
-		require.Equal(t, UnwrapStderr(r), "`-a` requires an argument `N`")
-	}
+	// can we restore this?
+	// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
+	assertFailure(t, parser, "`-a` requires an argument `N`", "-a", "-2")
 }
 
 func TestCannot_be_used_partial_arg(t *testing.T) {
@@ -55,16 +44,10 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 	b := Argument(Short('b'), "ARG", parseUint)
 	parser := Choice(a, b).ToOptions()
 
-	{
-		// TODO - error message can be improved...
-		_, res := parser.RunInner(NewArgs("-b", "-a"))
-		require.Equal(t, UnwrapStderr(res), "`-b` is not expected in this context")
-	}
+	// TODO - error message can be improved...
+	assertFailure(t, parser, "`-b` is not expected in this context", "-b", "-a")
 
-	{
-		_, res := parser.RunInner(NewArgs("-a", "-b"))
-		require.Equal(t, UnwrapStderr(res), "`-b` is not expected in this context")
-	}
+	assertFailure(t, parser, "`-b` is not expected in this context", "-a", "-b")
 }
 
 // func TestBetter_error_with_enum(t*testing.T) {
@@ -110,31 +93,23 @@ func TestGuard_message(t *testing.T) {
 		Parser().Guard(func(n uint32) bool { return n <= 10 }, "too high").
 		Parser().ToOptions()
 
-	_, res := parser.RunInner(NewArgs("-a", "30"))
-	require.Equal(t, UnwrapStderr(res), "`30`: too high")
+	assertFailure(t, parser, "`30`: too high", "-a", "30")
 }
 
 func TestStrict_positional_argument(t *testing.T) {
 	a := Argument(Short('a'), "N", parseUint)
 	parser := a.Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("-a", "--", "10"))
-	require.Equal(t, UnwrapStderr(r), "`-a` requires an argument `N`")
+	assertFailure(t, parser, "`-a` requires an argument `N`", "-a", "--", "10")
 }
 
 func TestNot_expected_at_all(t *testing.T) {
 	a := Short('a').Switch()
 	parser := a.Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("--megapotato"))
-		require.Equal(t, UnwrapStderr(r), "`--megapotato` is not expected in this context")
-	}
+	assertFailure(t, parser, "`--megapotato` is not expected in this context", "--megapotato")
 
-	{
-		_, r := parser.RunInner(NewArgs("megapotato"))
-		require.Equal(t, UnwrapStderr(r), "`megapotato` is not expected in this context")
-	}
+	assertFailure(t, parser, "`megapotato` is not expected in this context", "megapotato")
 }
 
 func TestCannot_be_used_twice(t *testing.T) {
@@ -142,30 +117,20 @@ func TestCannot_be_used_twice(t *testing.T) {
 	b := Many(Short('b').Switch(), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("-a", "-b", "-a"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-a", "-b", "-a")
 
-	{
-		_, r := parser.RunInner(NewArgs("-a", "-a"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-a", "-a")
 
-	{
-		_, r := parser.RunInner(NewArgs("-abba"))
-		require.Equal(t, "argument `-a` cannot be used multiple times in this context", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-abba")
 }
 
 func TestShould_not_split_adjacent_options(t *testing.T) {
 	a := ReqFlag(Short('a'), 0)
 	b := Pure(struct{}{}).Parser().ToOptions().Command("hello")
 	parser := Pair(a, b).Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("-ahello"))
 	// can probably suggest splitting here too: `-a` `hello`
 	const expected = "no such flag: `-ahello`, did you mean `hello`?"
-	require.Equal(t, UnwrapStderr(r), expected)
+	assertFailure(t, parser, expected, "-ahello")
 }
 
 func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
@@ -175,34 +140,24 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	c := Pure(struct{}{}).Parser().ToOptions().Command("hello")
 	parser := Pair(a, c).Parser().ToOptions()
 
-	{
-		r, err := parser.RunInner(NewArgs("-a=hello"))
-		// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
-		require.Nil(t, err)
-		require.Equal(t, fun.Pair[uint, struct{}]{0, struct{}{}}, r)
-	}
+	// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
+	assertSuccess(t, fun.Pair[uint, struct{}]{0, struct{}{}}, parser, "-a=hello")
 
 	{
-		_, r := parser.RunInner(NewArgs("-ahello"))
 		const expected = "app supports `-a` as both an option and an option-argument, try to split `-ahello` into individual\noptions (-a -h ..) or use `-a=hello` syntax to disambiguate"
-		require.Equal(t, expected, UnwrapStderr(r))
+		assertFailure(t, parser, expected, "-ahello")
 	}
 
-	{
-		// this one is okay, try to parse -a as argument - it fails because "hello" is not a number, then
-		// try to parse -a as a flag - this works
-		r, err := parser.RunInner(NewArgs("-a", "hello"))
-		require.Nil(t, err)
-		require.Equal(t, PPair(uint(0), struct{}{}), r)
-	}
+	// this one is okay, try to parse -a as argument - it fails because "hello" is not a number, then
+	// try to parse -a as a flag - this works
+	assertSuccess(t, PPair(uint(0), struct{}{}), parser, "-a", "hello")
 }
 
 func TestAdjacent_option_complains_to(t *testing.T) {
 	parser := Argument(Short('a'), "A", parseUint).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("-ayam"))
 	// TODO - this should point to the whole "-ayam" thing
-	require.Equal(t, UnwrapStderr(r), "couldn't parse `yam`: invalid digit found in string")
+	assertFailure(t, parser, "couldn't parse `yam`: invalid digit found in string", "-ayam")
 }
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
@@ -210,15 +165,9 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 	b := ParseSomeParser(Positional("B", parseUint).Parser().Some("Want B", false))
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("-c", "12"))
-		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
-	}
+	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
 
-	{
-		_, r := parser.RunInner(NewArgs("12", "-c"))
-		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
-	}
+	assertFailure(t, parser, "`-c` is not expected in this context", "12", "-c")
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
@@ -226,39 +175,25 @@ func TestPos_with_invalid_arg(t *testing.T) {
 	b := Positional("B", parseUint)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("-c", "12"))
-		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
-	}
+	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
 
-	{
-		_, r := parser.RunInner(NewArgs("12", "-c"))
-		require.Equal(t, UnwrapStderr(r), "`-c` is not expected in this context")
-	}
+	assertFailure(t, parser, "`-c` is not expected in this context", "12", "-c")
 
-	{
-		_, r := parser.RunInner(NewArgs("-c", "t"))
-		require.Equal(t, UnwrapStderr(r), "couldn't parse `t`: invalid digit found in string")
-	}
+	assertFailure(t, parser, "couldn't parse `t`: invalid digit found in string", "-c", "t")
 
-	{
-		_, r := parser.RunInner(NewArgs("t", "-c"))
-		require.Equal(t, UnwrapStderr(r), "couldn't parse `t`: invalid digit found in string")
-	}
+	assertFailure(t, parser, "couldn't parse `t`: invalid digit found in string", "t", "-c")
 }
 
 func TestStrictly_positional_help(t *testing.T) {
 	parser := Long("hhhh").Switch().Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--", "--help"))
-	require.Equal(t, UnwrapStderr(r), "`--help` is not expected in this context")
+	assertFailure(t, parser, "`--help` is not expected in this context", "--", "--help")
 }
 
 func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
 	parser := ReqFlag(Short('a'), struct{}{}).Parser().Hide().ToOptions()
 
-	_, r := parser.RunInner(NewArgs())
-	require.Equal(t, UnwrapStderr(r), "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
+	assertFailure(t, parser, "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 }
 
 func TestGuard_on_fallback(t *testing.T) {
@@ -267,16 +202,14 @@ func TestGuard_on_fallback(t *testing.T) {
 		Parser().Fallback(10).
 		Parser().Guard(func(a uint) bool { return a < 10 }, "too big").
 		Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs())
-	require.Equal(t, UnwrapStderr(r), "check failed: too big")
+	assertFailure(t, parser, "check failed: too big")
 }
 
 func TestTwo_required_fields_first_missing(t *testing.T) {
 	a := Argument(Long("a"), "A", parseUint32)
 	b := Argument(Long("b"), "B", parseUint32)
 	parser := Pair(a, b).Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("--b", "1"))
-	require.Equal(t, UnwrapStderr(r), "expected `--a=A`, pass `--help` for usage information")
+	assertFailure(t, parser, "expected `--a=A`, pass `--help` for usage information", "--b", "1")
 }
 
 func TestUsed_only_once_is_more_important_error(t *testing.T) {
@@ -285,19 +218,7 @@ func TestUsed_only_once_is_more_important_error(t *testing.T) {
 	filter := Long("filter").Switch().Parser()
 	opts := Map3(format, sort, filter, func(format, sort, filter bool) struct{} { return struct{}{} }).ToOptions()
 
-	{
-		_, err := opts.RunInner(NewArgs("--filter", "--filter"))
-		require.Equal(t,
-			UnwrapStderr(err),
-			"argument `--filter` cannot be used multiple times in this context",
-		)
-	}
+	assertFailure(t, opts, "argument `--filter` cannot be used multiple times in this context", "--filter", "--filter")
 
-	{
-		_, err := opts.RunInner(NewArgs("--sort", "--sort"))
-		require.Equal(t,
-			UnwrapStderr(err),
-			"argument `--sort` cannot be used multiple times in this context",
-		)
-	}
+	assertFailure(t, opts, "argument `--sort` cannot be used multiple times in this context", "--sort", "--sort")
 }

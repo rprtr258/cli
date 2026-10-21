@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/rprtr258/cli"
 )
@@ -24,19 +23,7 @@ func TestGeneric_argument_field(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[Option[Poly[uint]], Option[Poly[uint32]]]
-	{
-		r, err := parser.RunInner(NewArgs("--uint", "12"))
-		require.Nil(t, err)
-		require.Equal(t, r, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()})
-	}
-	{
-		r, err := parser.RunInner(NewArgs("--uint32", "12"))
-		require.Nil(t, err)
-		require.Equal(t, r, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})})
-	}
-	{
-		r, err := parser.RunInner(NewArgs("--uint32", "12", "--uint", "24"))
-		require.Nil(t, err)
-		require.Equal(t, r, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})})
-	}
+	assertSuccess(t, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()}, parser, "--uint", "12")
+	assertSuccess(t, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})}, parser, "--uint32", "12")
+	assertSuccess(t, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})}, parser, "--uint32", "12", "--uint", "24")
 }

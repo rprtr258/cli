@@ -109,20 +109,14 @@ func TestSimpleTwoOptionalFlags(t *testing.T) {
 	decorated := x.Parser().ToOptions().Descr("this is a test")
 
 	t.Run("no version information given - no version field generated", func(t *testing.T) {
-		_, err := decorated.RunInner(NewArgs("-a", "-V"))
-		require.Equal(t, "`-V` is not expected in this context", UnwrapStderr(err))
+		assertFailure(t, decorated, "`-V` is not expected in this context", "-a", "-V")
 	})
 
 	t.Run("accept only one copy of -a", func(t *testing.T) {
-		_, err := decorated.RunInner(NewArgs("-a", "-a"))
-		require.Equal(t,
-			"argument `-a` cannot be used multiple times in this context",
-			UnwrapStderr(err),
-		)
+		assertFailure(t, decorated, "argument `-a` cannot be used multiple times in this context", "-a", "-a")
 	})
 
 	t.Run("help", func(t *testing.T) {
-		_, err := decorated.RunInner(NewArgs("-h"))
 		const expected_help = `this is a test
 
 Usage: [-a] [-b]
@@ -132,7 +126,7 @@ Available options:
     -b
     -h, --help   Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(err))
+		assertHelp(t, decorated, expected_help, "-h")
 	})
 }
 
@@ -142,22 +136,12 @@ func TestSimpleTwoOptionalFlagsWithOneHidden(t *testing.T) {
 	decorated := Pair(a, b).Parser().ToOptions().Descr("this is a test")
 
 	// no version information given - no version field generated
-	{
-		_, err := decorated.RunInner(NewArgs("-a", "-V"))
-		require.Equal(t, "`-V` is not expected in this context", UnwrapStderr(err))
-	}
+	assertFailure(t, decorated, "`-V` is not expected in this context", "-a", "-V")
 
 	// accepts only one copy of -a
-	{
-		_, err := decorated.RunInner(NewArgs("-a", "-a"))
-		require.Equal(t,
-			"argument `-a` cannot be used multiple times in this context",
-			UnwrapStderr(err),
-		)
-	}
+	assertFailure(t, decorated, "argument `-a` cannot be used multiple times in this context", "-a", "-a")
 
 	{
-		_, err := decorated.RunInner(NewArgs("-h"))
 		const expected_help = `this is a test
 
 Usage: [-a]
@@ -166,7 +150,7 @@ Available options:
     -a, --AAAAA
     -h, --help   Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(err))
+		assertHelp(t, decorated, expected_help, "-h")
 	}
 }
 
@@ -178,14 +162,10 @@ func TestEitherOfThreeRequiredFlags(t *testing.T) {
 	decorated := p.ToOptions().Version("1.0")
 
 	// version help requires version meta
-	{
-		_, ver := decorated.RunInner(NewArgs("-V"))
-		require.Equal(t, "Version: 1.0\n", UnwrapStdout(ver))
-	}
+	assertHelp(t, decorated, "Version: 1.0\n", "-V")
 
 	// help is always generated
 	{
-		_, help := decorated.RunInner(NewArgs("-h"))
 		const expected_help = `Usage: (-a | -b | -c)
 
 Available options:
@@ -195,17 +175,11 @@ Available options:
     -h, --help     Prints help information
     -V, --version  Prints version information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, decorated, expected_help, "-h")
 	}
 
 	// must specify one of the required flags
-	{
-		_, err := decorated.RunInner(NewArgs())
-		require.Equal(t,
-			"expected `-a`, `-b`, or more, pass `--help` for usage information",
-			UnwrapStderr(err),
-		)
-	}
+	assertFailure(t, decorated, "expected `-a`, `-b`, or more, pass `--help` for usage information")
 }
 
 func TestEitherOfThreeRequiredFlags2(t *testing.T) {
@@ -215,11 +189,9 @@ func TestEitherOfThreeRequiredFlags2(t *testing.T) {
 	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
 
-	_, ver := decorated.RunInner(NewArgs("-V"))
-	require.Equal(t, "Version: 1.0\n", UnwrapStdout(ver))
+	assertHelp(t, decorated, "Version: 1.0\n", "-V")
 
 	// help is always generated
-	_, help := decorated.RunInner(NewArgs("-h"))
 	const expected_help = `Usage: (-a | -b | -c)
 
 Available options:
@@ -229,14 +201,10 @@ Available options:
     -h, --help     Prints help information
     -V, --version  Prints version information
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, decorated, expected_help, "-h")
 
 	// must specify one of the required flags
-	_, err := decorated.RunInner(NewArgs())
-	require.Equal(t,
-		"expected `-a`, `-b`, or more, pass `--help` for usage information",
-		UnwrapStderr(err),
-	)
+	assertFailure(t, decorated, "expected `-a`, `-b`, or more, pass `--help` for usage information")
 }
 
 func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
@@ -246,11 +214,9 @@ func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
 	p := a.OrElse(b).Parser().OrElse(c.Parser()).Parser()
 	decorated := p.ToOptions().Version("1.0")
 
-	_, ver := decorated.RunInner(NewArgs("-V"))
-	require.Equal(t, "Version: 1.0\n", UnwrapStdout(ver))
+	assertHelp(t, decorated, "Version: 1.0\n", "-V")
 
 	// help is always generated
-	_, help := decorated.RunInner(NewArgs("-h"))
 	const expected_help = `Usage: (-a | -b | [-c])
 
 Available options:
@@ -260,7 +226,7 @@ Available options:
     -h, --help     Prints help information
     -V, --version  Prints version information
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, decorated, expected_help, "-h")
 
 	// fallback to default
 	res, err := decorated.RunInner(NewArgs())
@@ -274,17 +240,9 @@ func TestFallbackWithOk(t *testing.T) {
 		FallbackWith(func() (uint32, Error) { return 10, nil }).Parser().
 		ToOptions()
 
-	{
-		r, err := parser.RunInner(NewArgs("-a", "1"))
-		require.Nil(t, err)
-		require.Equal(t, uint32(1), r)
-	}
+	assertSuccess(t, uint32(1), parser, "-a", "1")
 
-	{
-		r, err := parser.RunInner(NewArgs())
-		require.Nil(t, err)
-		require.Equal(t, uint32(10), r)
-	}
+	assertSuccess(t, uint32(10), parser)
 }
 
 func TestFallbackWithErr(t *testing.T) {
@@ -293,21 +251,11 @@ func TestFallbackWithErr(t *testing.T) {
 		FallbackWith(func() (uint32, Error) { return 0, ErrorParseFail("nope") }).Parser().
 		ToOptions()
 
-	{
-		r, err := parser.RunInner(NewArgs("-a", "1"))
-		require.Nil(t, err)
-		require.Equal(t, uint32(1), r)
-	}
+	assertSuccess(t, uint32(1), parser, "-a", "1")
 
-	{
-		_, r := parser.RunInner(NewArgs("-a", "x"))
-		require.Equal(t, "couldn't parse `x`: invalid digit found in string", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "couldn't parse `x`: invalid digit found in string", "-a", "x")
 
-	{
-		_, r := parser.RunInner(NewArgs())
-		require.Equal(t, "nope", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "nope")
 }
 
 func TestDefaultArguments(t *testing.T) {
@@ -315,26 +263,23 @@ func TestDefaultArguments(t *testing.T) {
 	decorated := a.ToOptions()
 
 	{
-		_, help := decorated.RunInner(NewArgs("-h"))
 		const expected_help = `Usage: [-a=ARG]
 
 Available options:
     -a=ARG
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, decorated, expected_help, "-h")
 	}
 
 	{
-		_, err := decorated.RunInner(NewArgs("-a", "x12"))
 		const expected_err = "couldn't parse `x12`: invalid digit found in string"
-		require.Equal(t, expected_err, UnwrapStderr(err))
+		assertFailure(t, decorated, expected_err, "-a", "x12")
 	}
 
 	{
-		_, err := decorated.RunInner(NewArgs("-a"))
 		const expected_err = "`-a` requires an argument `ARG`"
-		require.Equal(t, expected_err, UnwrapStderr(err))
+		assertFailure(t, decorated, expected_err, "-a")
 	}
 }
 
@@ -342,35 +287,31 @@ func TestParseErrors(t *testing.T) {
 	decorated := Argument(Short('a'), "ARG", parseInt32).Parser().ToOptions()
 
 	{
-		_, err := decorated.RunInner(NewArgs("-a", "123x"))
 		const expected_err = "couldn't parse `123x`: invalid digit found in string"
-		require.Equal(t, expected_err, UnwrapStderr(err))
+		assertFailure(t, decorated, expected_err, "-a", "123x")
 	}
 
 	{
-		_, err := decorated.RunInner(NewArgs("-b", "123x"))
 		const expected_err = "expected `-a=ARG`, got `-b`. Pass `--help` for usage information"
-		require.Equal(t, expected_err, UnwrapStderr(err))
+		assertFailure(t, decorated, expected_err, "-b", "123x")
 	}
 
 	{
-		_, err := decorated.RunInner(NewArgs("-a", "123", "-b"))
 		const expected_err = "`-b` is not expected in this context"
-		require.Equal(t, expected_err, UnwrapStderr(err))
+		assertFailure(t, decorated, expected_err, "-a", "123", "-b")
 	}
 }
 
 func TestCustomUsage(t *testing.T) {
 	a := Argument(Short('a').Long("long"), "ARG", parseString).Parser()
 	parser := a.ToOptions().Usage(NewDoc("Usage: -a <ARG> or --long <ARG>"))
-	_, help := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: -a <ARG> or --long <ARG>
 
 Available options:
     -a, --long=ARG
     -h, --help      Prints help information
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestLongUsageString(t *testing.T) {
@@ -395,8 +336,6 @@ func TestLongUsageString(t *testing.T) {
 
 	parser := Pair(Pair(Pair(Pair(Pair(a, b), c), d), e), f).Parser().ToOptions()
 
-	_, help := parser.RunInner(NewArgs("--help"))
-
 	const expected_help = `Usage: -a=ARG -b=ARG -c=ARG -d=ARG -e=ARG -f=ARG
 
 Available options:
@@ -409,12 +348,8 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected_help, UnwrapStdout(help))
-	_, err := parser.RunInner(NewArgs("-a", "-b"))
-	require.Equal(t,
-		"`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument",
-		UnwrapStderr(err),
-	)
+	assertHelp(t, parser, expected_help)
+	assertFailure(t, parser, "`-a` requires an argument `ARG`, got a flag `-b`, try `-a=-b` to use it as an argument", "-a", "-b")
 }
 
 func TestGroupHelpArgs(t *testing.T) {
@@ -424,7 +359,6 @@ func TestGroupHelpArgs(t *testing.T) {
 	ab := Pair(a, b).Parser().GroupHelp("Explanation applicable for both A and B:")
 	parser := Pair(ab, c).Parser().ToOptions()
 
-	_, help := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: [-a] [-b] [-c]
 
 Explanation applicable for both A and B:
@@ -435,7 +369,7 @@ Available options:
     -c          flag C, unrelated
     -h, --help  Prints help information
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestGroupHelpCommands(t *testing.T) {
@@ -456,7 +390,6 @@ func TestGroupHelpCommands(t *testing.T) {
 		Help("command that does C").Parser()
 	parser := Choice(Choice(a, b).GroupHelp("Explanation applicable for both A and B:").Parser(), c).Parser().ToOptions()
 
-	_, help := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: COMMAND ...
 
 Explanation applicable for both A and B:
@@ -469,7 +402,7 @@ Available options:
 Available commands:
     cmd_c       command that does C
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
@@ -478,20 +411,15 @@ func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
 	c := ReqFlag(Short('c'), struct{}{}).Parser()
 	parser := Choice(a, b, c).ToOptions()
 
-	_, err1 := parser.RunInner(NewArgs("-a", "-b"))
-	require.Equal(t, UnwrapStderr(err1), "`-b` cannot be used at the same time as `-a`")
+	assertFailure(t, parser, "`-b` cannot be used at the same time as `-a`", "-a", "-b")
 
-	_, err2 := parser.RunInner(NewArgs("-b", "-a"))
-	require.Equal(t, UnwrapStderr(err2), "`-a` cannot be used at the same time as `-b`")
+	assertFailure(t, parser, "`-a` cannot be used at the same time as `-b`", "-b", "-a")
 
-	_, err3 := parser.RunInner(NewArgs("-c", "-a"))
-	require.Equal(t, UnwrapStderr(err3), "`-a` cannot be used at the same time as `-c`")
+	assertFailure(t, parser, "`-a` cannot be used at the same time as `-c`", "-c", "-a")
 
-	_, err4 := parser.RunInner(NewArgs("-a", "-c"))
-	require.Equal(t, UnwrapStderr(err4), "`-c` cannot be used at the same time as `-a`")
+	assertFailure(t, parser, "`-c` cannot be used at the same time as `-a`", "-a", "-c")
 
-	_, err5 := parser.RunInner(NewArgs("-c", "-b", "-a"))
-	require.Equal(t, UnwrapStderr(err5), "`-b` cannot be used at the same time as `-c`")
+	assertFailure(t, parser, "`-b` cannot be used at the same time as `-c`", "-c", "-b", "-a")
 }
 
 func TestSubcommands(t *testing.T) {
@@ -500,7 +428,6 @@ func TestSubcommands(t *testing.T) {
 	parser := bar_cmd.Parser().ToOptions().Descr("This is global info")
 
 	{
-		_, help := parser.RunInner(NewArgs("bar", "--help"))
 		const expected_help = `This is local info
 
 Usage: bar [-b]
@@ -509,11 +436,10 @@ Available options:
     -b
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help, "bar", "--help")
 	}
 
 	{
-		_, help := parser.RunInner(NewArgs("--help"))
 		const expected_help = `This is global info
 
 Usage: COMMAND ...
@@ -524,7 +450,7 @@ Available options:
 Available commands:
     bar         This is local info
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help)
 	}
 }
 
@@ -532,14 +458,13 @@ func TestMultipleAliases(t *testing.T) {
 	a := ReqFlag(Short('a').Short('b').Short('c'), struct{}{}).Parser()
 	parser := a.ToOptions()
 
-	_, help := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: -a
 
 Available options:
     -a
     -h, --help  Prints help information
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 
 	{
 		_, err := parser.RunInner(NewArgs("-a"))
@@ -627,11 +552,7 @@ func TestGit(t *testing.T) {
 
 	t.Run("no_command", func(t *testing.T) {
 		const expected_err = "expected `COMMAND ...`, pass `--help` for usage information"
-		_, err := parser.RunInner(NewArgs())
-		require.Equal(t,
-			expected_err,
-			UnwrapStderr(err),
-		)
+		assertFailure(t, parser, expected_err)
 	})
 
 	t.Run("root_help", func(t *testing.T) {
@@ -647,11 +568,7 @@ Available commands:
     add         add files to the staging area
 `
 
-		_, err := parser.RunInner(NewArgs("--help"))
-		require.Equal(t,
-			expected_help,
-			UnwrapStdout(err),
-		)
+		assertHelp(t, parser, expected_help)
 	})
 
 	t.Run("fetch_help", func(t *testing.T) {
@@ -664,11 +581,7 @@ Available options:
     --all
     -h, --help  Prints help information
 `
-		_, err := parser.RunInner(NewArgs("fetch", "--help"))
-		require.Equal(t,
-			expected_help,
-			UnwrapStdout(err),
-		)
+		assertHelp(t, parser, expected_help, "fetch", "--help")
 	})
 
 	t.Run("add_help", func(t *testing.T) {
@@ -681,11 +594,7 @@ Available options:
     --all
     -h, --help  Prints help information
 `
-		_, err := parser.RunInner(NewArgs("add", "--help"))
-		require.Equal(t,
-			expected_help,
-			UnwrapStdout(err),
-		)
+		assertHelp(t, parser, expected_help, "add", "--help")
 	})
 }
 
@@ -757,17 +666,9 @@ func TestSimpleCargoHelper(t *testing.T) {
 	// cargo simple variant
 	assertSuccess(t, PPair(false, true), decorated, "simple", "-b")
 
-	{
-		_, err := decorated.
-			RunInner(NewArgs("-a", "-a"))
-		require.Equal(t,
-			"argument `-a` cannot be used multiple times in this context",
-			UnwrapStderr(err),
-		)
-	}
+	assertFailure(t, decorated, "argument `-a` cannot be used multiple times in this context", "-a", "-a")
 
 	{
-		_, help := decorated.RunInner(NewArgs("-h"))
 		const expected_help = `this is a test
 
 Usage: [-a] [-b]
@@ -777,7 +678,7 @@ Available options:
     -b
     -h, --help   Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, decorated, expected_help, "-h")
 	}
 }
 
@@ -797,7 +698,6 @@ func TestHiddenEnv(t *testing.T) {
 	hidden := Argument(Env(name), "KEY", parseString).Parser()
 	parser := Choice(visible, hidden).ToOptions()
 
-	_, help := parser.RunInner(NewArgs("-h"))
 	const expected = `Usage: --key=KEY
 
 Available options:
@@ -805,10 +705,9 @@ Available options:
                 two lines
     -h, --help  Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(help))
+	assertHelp(t, parser, expected, "-h")
 
-	_, r := parser.RunInner(NewArgs())
-	require.Equal(t, "environment variable `BPAF_SECRET_API_KEY2` is not set", UnwrapStderr(r))
+	assertFailure(t, parser, "environment variable `BPAF_SECRET_API_KEY2` is not set")
 }
 
 func TestEnvVariable(t *testing.T) {
@@ -820,7 +719,6 @@ func TestEnvVariable(t *testing.T) {
 		ToOptions()
 
 	{
-		_, help := parser.RunInner(NewArgs("-h"))
 		const expected_help = `Usage: --key=KEY
 
 Available options:
@@ -828,12 +726,11 @@ Available options:
                 [env:BPAF_SECRET_API_KEY: N/A]
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help, "-h")
 	}
 	t.Setenv(name, "top s3cr3t")
 
 	{
-		_, help := parser.RunInner(NewArgs("-h"))
 		const expected_help = `Usage: --key=KEY
 
 Available options:
@@ -841,7 +738,7 @@ Available options:
                 [env:BPAF_SECRET_API_KEY = "top s3cr3t"]
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help, "-h")
 	}
 
 	assertSuccess(t, "secret", parser, "--key", "secret")
@@ -865,7 +762,6 @@ func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
 	parser := cmd.ToOptions().Descr("outer")
 
 	{
-		_, help := parser.RunInner(NewArgs("foo", "--help"))
 		const expected_help = `inner
 
 Usage: foo
@@ -873,11 +769,10 @@ Usage: foo
 Available options:
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help, "foo", "--help")
 	}
 
 	{
-		_, help := parser.RunInner(NewArgs("--help"))
 		const expected_help = `outer
 
 Usage: [COMMAND ...]
@@ -888,7 +783,7 @@ Available options:
 Available commands:
     foo         foo
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help)
 	}
 }
 
@@ -898,7 +793,6 @@ func TestCommandWithAliases(t *testing.T) {
 	parser := cmd.Parser().ToOptions().Descr("outer")
 
 	{
-		_, help := parser.RunInner(NewArgs("--help"))
 		const expected_help = `outer
 
 Usage: COMMAND ...
@@ -909,12 +803,10 @@ Available options:
 Available commands:
     foo, f      inner descr
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help)
 	}
 
 	{
-		_, help := parser.
-			RunInner(NewArgs("f", "--help"))
 		const expected_help = `inner descr
 
 Usage: foo
@@ -922,7 +814,7 @@ Usage: foo
 Available options:
     -h, --help  Prints help information
 `
-		require.Equal(t, expected_help, UnwrapStdout(help))
+		assertHelp(t, parser, expected_help, "f", "--help")
 	}
 
 	// hidden and visible aliases are working
@@ -945,7 +837,6 @@ func TestHelpForOptions(t *testing.T) {
 		Env("ccccCCccc").
 		Help("help for\nccc"), "CCC", parseString).Parser()
 	parser := Triple(a, b, c).Parser().ToOptions()
-	_, help := parser.RunInner(NewArgs("--help"))
 
 	const expected_help = `Usage: [-a] -c=B --bbbbb=CCC
 
@@ -958,7 +849,7 @@ Available options:
     -h, --help   Prints help information
 `
 
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestHelpForCommands(t *testing.T) {
@@ -973,7 +864,6 @@ func TestHelpForCommands(t *testing.T) {
 		Help("help for e\ntwo lines").Parser()
 	h := Pure(struct{}{}).Parser().ToOptions().Command("thing_h").Parser()
 	parser := Choice(d, e, h).ToOptions()
-	_, help := parser.RunInner(NewArgs("--help"))
 
 	const expected_help = `Usage: COMMAND ...
 
@@ -985,7 +875,7 @@ Available commands:
     thing_e, e  help for e two lines
     thing_h
 `
-	require.Equal(t, expected_help, UnwrapStdout(help))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestManyDoesntPanic(t *testing.T) {
@@ -1031,10 +921,7 @@ func TestOptional_error_handling(t *testing.T) {
 
 	assertSuccess(t, Invalid[uint32](), p)
 	assertSuccess(t, Valid[uint32](3), p, "-p", "3")
-	{
-		_, res := p.RunInner(NewArgs("-p", "pi"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `pi`: invalid digit found in string")
-	}
+	assertFailure(t, p, "couldn't parse `pi`: invalid digit found in string", "-p", "pi")
 }
 
 func TestMany_error_handling(t *testing.T) {
@@ -1042,10 +929,7 @@ func TestMany_error_handling(t *testing.T) {
 
 	assertSuccess(t, []uint32{}, p)
 	assertSuccess(t, []uint32{3}, p, "-p", "3")
-	{
-		_, res := p.RunInner(NewArgs("-p", "pi"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `pi`: invalid digit found in string")
-	}
+	assertFailure(t, p, "couldn't parse `pi`: invalid digit found in string", "-p", "pi")
 }
 
 func TestFailure_is_not_stupid_1(t *testing.T) {
@@ -1053,8 +937,7 @@ func TestFailure_is_not_stupid_1(t *testing.T) {
 	b := Parse(Pure(struct{}{}).Parser(), func(struct{}) (string, error) { return "", errors.New("nope") })
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, res := parser.RunInner(NewArgs("-a", "42"))
-	require.Equal(t, UnwrapStderr(res), "couldn't parse: nope")
+	assertFailure(t, parser, "couldn't parse: nope", "-a", "42")
 }
 
 func TestFailure_is_not_stupid_2(t *testing.T) {
@@ -1062,8 +945,7 @@ func TestFailure_is_not_stupid_2(t *testing.T) {
 	b := Argument(Short('b'), "B", parseUint32)
 	parser := Parse(Pair(a, b).Parser(), func(fun.Pair[uint32, uint32]) (string, error) { return "", errors.New("nope") }).Parser().ToOptions()
 
-	_, res := parser.RunInner(NewArgs("-a", "42", "-b", "42"))
-	require.Equal(t, UnwrapStderr(res), "couldn't parse: nope")
+	assertFailure(t, parser, "couldn't parse: nope", "-a", "42", "-b", "42")
 }
 
 func TestNo_fallback_out_of_command_parser(t *testing.T) {
@@ -1071,10 +953,7 @@ func TestNo_fallback_out_of_command_parser(t *testing.T) {
 	alt2 := Pure("")
 	parser := Choice(alt1.Parser(), alt2.Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("cmd"))
-		require.Equal(t, UnwrapStderr(res), "expected `NAME`, pass `--help` for usage information")
-	}
+	assertFailure(t, parser, "expected `NAME`, pass `--help` for usage information", "cmd")
 
 	assertSuccess(t, "a", parser, "cmd", "a")
 	assertSuccess(t, "", parser)
@@ -1085,45 +964,26 @@ func TestDid_you_mean_switch(t *testing.T) {
 	b := Short('p').Long("plag").Switch()
 	parser := Choice(a.Parser(), b.Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 
-	{
-		_, res := parser.RunInner(NewArgs("flag"))
-		require.Equal(t, UnwrapStderr(res), "no such command or positional: `flag`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such command or positional: `flag`, did you mean `--flag`?", "flag")
 
-	{
-		_, res := parser.RunInner(NewArgs("--pla"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--pla`, did you mean `--plag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--pla`, did you mean `--plag`?", "--pla")
 
-	{
-		_, res := parser.RunInner(NewArgs("--p"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--p` (with two dashes), did you mean `-p`?")
-	}
+	assertFailure(t, parser, "no such flag: `--p` (with two dashes), did you mean `-p`?", "--p")
 }
 
 func TestDid_you_mean_req_flag(t *testing.T) {
 	parser := ReqFlag(Long("flag"), struct{}{}).Parser().ToOptions()
-	_, res := parser.RunInner(NewArgs("--fla"))
-	require.Equal(t, UnwrapStderr(res), "no such flag: `--fla`, did you mean `--flag`?")
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 }
 
 func TestDid_you_mean_argument(t *testing.T) {
 	parser := Argument(Long("flag"), "VAL", parseString).Parser().ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("--flg=hellop"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--flg`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--flg`, did you mean `--flag`?", "--flg=hellop")
 
-	{
-		_, res := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 }
 
 func TestDid_you_mean_command(t *testing.T) {
@@ -1133,15 +993,9 @@ func TestDid_you_mean_command(t *testing.T) {
 		Short('c').Parser().
 		ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("comman"))
-		require.Equal(t, UnwrapStderr(res), "no such command or positional: `comman`, did you mean `command`?")
-	}
+	assertFailure(t, parser, "no such command or positional: `comman`, did you mean `command`?", "comman")
 
-	{
-		_, res := parser.RunInner(NewArgs("--comman"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--comman`, did you mean `command`?")
-	}
+	assertFailure(t, parser, "no such flag: `--comman`, did you mean `command`?", "--comman")
 }
 
 func TestDid_you_mean_two_and_arguments(t *testing.T) {
@@ -1149,25 +1003,13 @@ func TestDid_you_mean_two_and_arguments(t *testing.T) {
 	b := Long("parameter").Switch()
 	parser := cargo_helper("cmd", Pair(a, b).Parser()).ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("--flag", "--parametr"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--parametr`, did you mean `--parameter`?", "--flag", "--parametr")
 
-	{
-		_, r := parser.RunInner(NewArgs("--flag", "--paramet=value"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--paramet`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--paramet`, did you mean `--parameter`?", "--flag", "--paramet=value")
 
-	{
-		_, r := parser.RunInner(NewArgs("--parameter", "--flg"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--flg`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--flg`, did you mean `--flag`?", "--parameter", "--flg")
 
-	{
-		_, r := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 }
 
 func TestDid_you_mean_two_or_arguments(t *testing.T) {
@@ -1175,30 +1017,15 @@ func TestDid_you_mean_two_or_arguments(t *testing.T) {
 	b := Long("parameter").Switch()
 	parser := cargo_helper("cmd", Choice(a, b)).ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 
-	{
-		_, r := parser.RunInner(NewArgs("--flag", "--parametr"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--parametr`, did you mean `--parameter`?", "--flag", "--parametr")
 
-	{
-		_, r := parser.RunInner(NewArgs("--parametr", "--flag"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--parametr`, did you mean `--parameter`?", "--parametr", "--flag")
 
-	{
-		_, r := parser.RunInner(NewArgs("--parameter", "--flag"))
-		require.Equal(t, UnwrapStderr(r), "`--flag` cannot be used at the same time as `--parameter`")
-	}
+	assertFailure(t, parser, "`--flag` cannot be used at the same time as `--parameter`", "--parameter", "--flag")
 
-	{
-		_, r := parser.RunInner(NewArgs("--flag", "--parameter"))
-		require.Equal(t, UnwrapStderr(r), "`--parameter` cannot be used at the same time as `--flag`")
-	}
+	assertFailure(t, parser, "`--parameter` cannot be used at the same time as `--flag`", "--flag", "--parameter")
 }
 
 // problematic steps look something like this:
@@ -1216,15 +1043,9 @@ func TestCargo_show_asm_issue_guard(t *testing.T) {
 	inner := Pair(target_dir, verbosity)
 	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("asm", "-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "`x`: nope")
-	}
+	assertFailure(t, parser, "`x`: nope", "asm", "-t", "x")
 
-	{
-		_, res := parser.RunInner(NewArgs("-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "`x`: nope")
-	}
+	assertFailure(t, parser, "`x`: nope", "-t", "x")
 }
 
 func TestCargo_show_asm_issue_from_str(t *testing.T) {
@@ -1233,15 +1054,9 @@ func TestCargo_show_asm_issue_from_str(t *testing.T) {
 	inner := Pair(target_dir, verbosity)
 	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("asm", "-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `x`: invalid digit found in string")
-	}
+	assertFailure(t, parser, "couldn't parse `x`: invalid digit found in string", "asm", "-t", "x")
 
-	{
-		_, res := parser.RunInner(NewArgs("-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `x`: invalid digit found in string")
-	}
+	assertFailure(t, parser, "couldn't parse `x`: invalid digit found in string", "-t", "x")
 }
 
 func TestCargo_show_asm_issue_parse(t *testing.T) {
@@ -1252,15 +1067,9 @@ func TestCargo_show_asm_issue_parse(t *testing.T) {
 	inner := Pair(target_dir, verbosity)
 	parser := cargo_helper("asm", inner.Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("asm", "-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `x`: nope")
-	}
+	assertFailure(t, parser, "couldn't parse `x`: nope", "asm", "-t", "x")
 
-	{
-		_, res := parser.RunInner(NewArgs("-t", "x"))
-		require.Equal(t, UnwrapStderr(res), "couldn't parse `x`: nope")
-	}
+	assertFailure(t, parser, "couldn't parse `x`: nope", "-t", "x")
 }
 
 // problematic case looks something like this:
@@ -1274,15 +1083,9 @@ func TestCargo_show_asm_issue_unknown_switch(t *testing.T) {
 	verbosity := Short('v').Switch()
 	parser := cargo_helper("asm", Pair(target, verbosity).Parser()).ToOptions()
 
-	{
-		_, res := parser.RunInner(NewArgs("asm", "--fla"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "asm", "--fla")
 
-	{
-		_, res := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(res), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 }
 
 func TestDid_you_mean_inside_command(t *testing.T) {
@@ -1290,35 +1093,17 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 	b := Long("parameter").Switch()
 	parser := Choice(a, b).ToOptions().Command("cmd").Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("--fla"))
-		require.Equal(t, UnwrapStderr(r), "expected `COMMAND ...`, got `--fla`. Pass `--help` for usage information")
-	}
+	assertFailure(t, parser, "expected `COMMAND ...`, got `--fla`. Pass `--help` for usage information", "--fla")
 
-	{
-		_, r := parser.RunInner(NewArgs("cmd", "--fla"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--fla`, did you mean `--flag`?")
-	}
+	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "cmd", "--fla")
 
-	{
-		_, r := parser.RunInner(NewArgs("cmd", "--flag", "--parametr"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--parametr`, did you mean `--parameter`?", "cmd", "--flag", "--parametr")
 
-	{
-		_, r := parser.RunInner(NewArgs("cmd", "--parametr", "--flag"))
-		require.Equal(t, UnwrapStderr(r), "no such flag: `--parametr`, did you mean `--parameter`?")
-	}
+	assertFailure(t, parser, "no such flag: `--parametr`, did you mean `--parameter`?", "cmd", "--parametr", "--flag")
 
-	{
-		_, r := parser.RunInner(NewArgs("cmd", "--parameter", "--flag"))
-		require.Equal(t, UnwrapStderr(r), "`--flag` cannot be used at the same time as `--parameter`")
-	}
+	assertFailure(t, parser, "`--flag` cannot be used at the same time as `--parameter`", "cmd", "--parameter", "--flag")
 
-	{
-		_, r := parser.RunInner(NewArgs("cmd", "--flag", "--parameter"))
-		require.Equal(t, UnwrapStderr(r), "`--parameter` cannot be used at the same time as `--flag`")
-	}
+	assertFailure(t, parser, "`--parameter` cannot be used at the same time as `--flag`", "cmd", "--flag", "--parameter")
 }
 
 func TestCombine_flags_by_order(t *testing.T) {
@@ -1332,10 +1117,7 @@ func TestCombine_flags_by_order(t *testing.T) {
 func TestParse_many_errors_positional(t *testing.T) {
 	p := Many(Positional("N", parseUint32), false).Parser().ToOptions()
 
-	{
-		_, r := p.RunInner(NewArgs("1", "2", "x"))
-		require.Equal(t, UnwrapStderr(r), "couldn't parse `x`: invalid digit found in string") // TODO: replace `x` with %q
-	}
+	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "1", "2", "x") // TODO: replace `x` with %q // TODO: replace `x` with %q
 	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 }
 
@@ -1343,20 +1125,14 @@ func TestParse_collect_flag(t *testing.T) {
 	p := ParseCollectParser(Argument(Short('p'), "N", parseUint32).Parser().Collect(false)).ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
-	{
-		_, r := p.RunInner(NewArgs("-p", "1", "-p", "x"))
-		require.Equal(t, UnwrapStderr(r), "couldn't parse `x`: invalid digit found in string")
-	}
+	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "-p", "1", "-p", "x")
 }
 
 func TestParse_many_errors_flag(t *testing.T) {
 	p := Many(Argument(Short('p'), "N", parseUint32), false).Parser().ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
-	{
-		_, r := p.RunInner(NewArgs("-p", "1", "-p", "x"))
-		require.Equal(t, UnwrapStderr(r), "couldn't parse `x`: invalid digit found in string")
-	}
+	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "-p", "1", "-p", "x")
 }
 
 func TestCommand_with_req_parameters(t *testing.T) {
@@ -1366,27 +1142,17 @@ func TestCommand_with_req_parameters(t *testing.T) {
 		Fallback("").Parser().
 		ToOptions()
 
-	_, r := p.RunInner(NewArgs("cmd"))
-	require.Equal(t, UnwrapStderr(r), "expected `X`, pass `--help` for usage information")
+	assertFailure(t, p, "expected `X`, pass `--help` for usage information", "cmd")
 }
 
 func TestSuggestion_for_equals_1(t *testing.T) {
 	parser := Argument(Short('p').Long("par"), "P", parseString).Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("-p", "--bar"))
-		require.Equal(t, UnwrapStderr(r), "`-p` requires an argument `P`, got a flag `--bar`, try `-p=--bar` to use it as an argument")
-	}
+	assertFailure(t, parser, "`-p` requires an argument `P`, got a flag `--bar`, try `-p=--bar` to use it as an argument", "-p", "--bar")
 
-	{
-		_, r := parser.RunInner(NewArgs("--par", "--bar"))
-		require.Equal(t, UnwrapStderr(r), "`--par` requires an argument `P`, got a flag `--bar`, try `--par=--bar` to use it as an argument")
-	}
+	assertFailure(t, parser, "`--par` requires an argument `P`, got a flag `--bar`, try `--par=--bar` to use it as an argument", "--par", "--bar")
 
-	{
-		_, r := parser.RunInner(NewArgs("--par", "--bar=baz"))
-		require.Equal(t, UnwrapStderr(r), "`--par` requires an argument `P`, got a flag `--bar=baz`, try `--par=--bar=baz` to use it as an\nargument")
-	}
+	assertFailure(t, parser, "`--par` requires an argument `P`, got a flag `--bar=baz`, try `--par=--bar=baz` to use it as an\nargument", "--par", "--bar=baz")
 }
 
 func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
@@ -1399,17 +1165,13 @@ func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
 func TestReject_fbar(t *testing.T) {
 	parser := Argument(Short('f'), "F", parseString).Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("-fbar", "baz"))
-		require.Equal(t, UnwrapStderr(r), "`baz` is not expected in this context")
-	}
+	assertFailure(t, parser, "`baz` is not expected in this context", "-fbar", "baz")
 	assertSuccess(t, "bar", parser, "-fbar")
 }
 
 func TestCustom_usage_override_fixed(t *testing.T) {
 	parser := Short('p').Switch().Parser().ToOptions().Usage(NewDoc("Usage: hey [-p]"))
-	_, r := parser.RunInner(NewArgs("--help"))
-	require.Equal(t, UnwrapStdout(r), "Usage: hey [-p]\n\nAvailable options:\n    -p\n    -h, --help  Prints help information\n")
+	assertHelp(t, parser, "Usage: hey [-p]\n\nAvailable options:\n    -p\n    -h, --help  Prints help information\n")
 }
 
 func TestCustom_usage_override_with_fn(t *testing.T) {
@@ -1419,8 +1181,7 @@ func TestCustom_usage_override_with_fn(t *testing.T) {
 		buf.Doc(b)
 		return buf
 	})
-	_, r := parser.RunInner(NewArgs("--help"))
-	require.Equal(t, UnwrapStdout(r), "Usage: hey [-p]\n\nAvailable options:\n    -p\n    -h, --help  Prints help information\n")
+	assertHelp(t, parser, "Usage: hey [-p]\n\nAvailable options:\n    -p\n    -h, --help  Prints help information\n")
 }
 
 func TestCatch_works(t *testing.T) {
@@ -1517,10 +1278,7 @@ func TestParse_some_catch(t *testing.T) {
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
 	assertSuccess(t, []A{AS("x")}, parser, "-a", "x")
-	{
-		_, r := parser.RunInner(NewArgs())
-		require.Equal(t, UnwrapStderr(r), "A")
-	}
+	assertFailure(t, parser, "A")
 }
 
 func TestEmpty_struct(t *testing.T) {
@@ -1528,14 +1286,11 @@ func TestEmpty_struct(t *testing.T) {
 	parser := Pure(Foo{}).Parser().ToOptions()
 
 	assertSuccess(t, Foo{}, parser)
-	{
-		_, r := parser.RunInner(NewArgs("--help"))
-		require.Equal(t, UnwrapStdout(r), `Usage:
+	assertHelp(t, parser, `Usage:
 
 Available options:
     -h, --help  Prints help information
 `)
-	}
 }
 
 func TestStrange_short_option(t *testing.T) {
@@ -1561,7 +1316,6 @@ func TestFancy_negative(t *testing.T) {
 	assertSuccess(t, PPair[int32, uint](-10, 42), parser, "-a", "-10")
 	assertSuccess(t, PPair[int32, uint](-20, 110), parser, "-a=-20", "-c", "110")
 	{
-		_, r := parser.RunInner(NewArgs("--help"))
 		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
 		const expected = `Usage: -a A [-c=C]
 
@@ -1571,7 +1325,7 @@ Available options:
     -c=C
     -h, --help  Prints help information
 `
-		require.Equal(t, expected, UnwrapStdout(r))
+		assertHelp(t, parser, expected)
 	}
 }
 
@@ -1617,8 +1371,7 @@ func TestOption_requires_other_option1(t *testing.T) {
 	b := Argument(Short('b'), "B", parseString)
 	parser := Optional(Pair(a, b).Parser(), false).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("-a"))
-	require.Equal(t, UnwrapStderr(r), "expected `-b=B`, pass `--help` for usage information")
+	assertFailure(t, parser, "expected `-b=B`, pass `--help` for usage information", "-a")
 }
 
 func TestOption_requires_other_option2(t *testing.T) {
@@ -1626,8 +1379,7 @@ func TestOption_requires_other_option2(t *testing.T) {
 	b := Argument(Short('b'), "B", parseString)
 	parser := Optional(Pair(b, a).Parser(), false).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("-a"))
-	require.Equal(t, UnwrapStderr(r), "expected `-b=B`, pass `--help` for usage information")
+	assertFailure(t, parser, "expected `-b=B`, pass `--help` for usage information", "-a")
 }
 
 func TestDefault_for_some(t *testing.T) {
@@ -1667,14 +1419,12 @@ func TestFlag_like_commands(t *testing.T) {
 	assertSuccess(t, 2, parser, "remove", "-b")
 
 	{
-		_, r := parser.RunInner(NewArgs("--help"))
 		const expected = "Usage: COMMAND ...\n\nAvailable options:\n    -h, --help  Prints help information\n\nAvailable commands:\n    --add\n    remove\n"
-		require.Equal(t, UnwrapStdout(r), expected)
+		assertHelp(t, parser, expected)
 	}
 
 	{
-		_, r := parser.RunInner(NewArgs("--add", "--help"))
 		const expected = "Usage: --add -a\n\nAvailable options:\n    -a\n    -h, --help  Prints help information\n"
-		require.Equal(t, UnwrapStdout(r), expected)
+		assertHelp(t, parser, expected, "--add", "--help")
 	}
 }

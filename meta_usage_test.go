@@ -1,21 +1,10 @@
 package cli_test
 
 import (
-	"strings"
 	"testing"
-
-	"github.com/stretchr/testify/require"
 
 	. "github.com/rprtr258/cli"
 )
-
-func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
-	t.Helper()
-
-	_, output := parser.RunInner(NewArgs("--help"))
-	usage := strings.TrimPrefix(strings.Split(UnwrapStdout(output), "\n")[0], "Usage: ")
-	require.Equal(t, expected, usage)
-}
 
 func TestOptional_group_meta(t *testing.T) {
 	a := Argument(Short('a'), "A", parseString)
@@ -192,11 +181,7 @@ func TestNo_actual_arguments_also_works(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	parser := Pure(true).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-	require.Equal(t,
-		UnwrapStdout(r),
-		"Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n",
-	)
+	assertHelp(t, parser, "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n")
 }
 
 func TestA_or_b(t *testing.T) {

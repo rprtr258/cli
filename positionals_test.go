@@ -14,7 +14,6 @@ func TestPositional_with_help(t *testing.T) {
 	api := Positional("API_KEY", parseString).Help("api key to use")
 	parser := Pair(user, api).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("--help"))
 	const expected_help = `Usage: USER API_KEY
 
 Available positional items:
@@ -24,14 +23,13 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 `
-	require.Equal(t, expected_help, UnwrapStdout(err))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestHelp_for_positional(t *testing.T) {
 	c := Positional("C", parseString).Help("help for\nc")
 	d := Positional("DDD", parseString).Help("help for\nddd")
 	parser := Pair(c, d).Parser().ToOptions()
-	_, err := parser.RunInner(NewArgs("--help"))
 
 	const expected_help = `Usage: C DDD
 
@@ -42,15 +40,13 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 `
-	require.Equal(t, expected_help, UnwrapStdout(err))
+	assertHelp(t, parser, expected_help)
 }
 
 func TestDash_is_positional(t *testing.T) {
 	a := Positional("FILE", parseString)
 	parser := a.Parser().ToOptions()
-	res, err := parser.RunInner(NewArgs("-"))
-	require.Nil(t, err)
-	require.Equal(t, "-", res)
+	assertSuccess(t, "-", parser, "-")
 }
 
 func TestHelpful_error_message(t *testing.T) {
@@ -58,8 +54,7 @@ func TestHelpful_error_message(t *testing.T) {
 		Parser().Some("you need to specify at least one FOO", false)).
 		ToOptions()
 
-	_, err := parser.RunInner(NewArgs())
-	require.Equal(t, "you need to specify at least one FOO", UnwrapStderr(err))
+	assertFailure(t, parser, "you need to specify at least one FOO")
 }
 
 func TestPositional_argument(t *testing.T) {
@@ -67,8 +62,6 @@ func TestPositional_argument(t *testing.T) {
 		Help("file name").
 		Parser().GroupHelp("File to process")
 	parser := p.Parser().ToOptions()
-
-	_, err := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: FILE
 
@@ -79,25 +72,11 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(err))
-}
-
-func usePanic[T any](t *testing.T, f func()) (res T) {
-	t.Helper()
-
-	defer func() {
-		if r := recover(); r != nil {
-			res = r.(T)
-		} else {
-			t.FailNow()
-		}
-	}()
-	f()
-	return
+	assertHelp(t, parser, expected)
 }
 
 func TestPositional_help_complain_1(t *testing.T) {
-	v := usePanic[string](t, func() {
+	v := catchPanic[string](t, func() {
 		a := Positional("a", parseString)
 		b := Short('b').Switch()
 		parser := Pair(a, b).Parser().ToOptions()
@@ -109,7 +88,7 @@ func TestPositional_help_complain_1(t *testing.T) {
 }
 
 func TestPositional_help_complain_2(t *testing.T) {
-	v := usePanic[string](t, func() {
+	v := catchPanic[string](t, func() {
 		a := Positional("a", parseString)
 		b := Short('b').Switch()
 		ba := Pair(b, a)
@@ -123,7 +102,7 @@ func TestPositional_help_complain_2(t *testing.T) {
 }
 
 func TestPositional_help_complain_3(t *testing.T) {
-	v := usePanic[string](t, func() {
+	v := catchPanic[string](t, func() {
 		a := Positional("a", parseString)
 		b := Argument(Short('b'), "B", parseString)
 		ba := Choice(b, a)
@@ -148,52 +127,23 @@ func TestPositional_help_complain_4(t *testing.T) {
 func TestStrictly_positional(t *testing.T) {
 	parser := Positional("A", parseString).Strict().Parser().ToOptions()
 
-	{
-		_, r := parser.RunInner(NewArgs("--help"))
-		require.Equal(t,
-			"Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n",
-			UnwrapStdout(r),
-		)
-	}
+	assertHelp(t, parser, "Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n")
 
-	{
-		_, r := parser.RunInner(NewArgs("a"))
-		require.Equal(t, "expected `A` to be on the right side of `--`", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a")
 
-	{
-		r, err := parser.RunInner(NewArgs("--", "a"))
-		require.Nil(t, err)
-		require.Equal(t, "a", r)
-	}
+	assertSuccess(t, "a", parser, "--", "a")
 
-	{
-		_, r := parser.RunInner(NewArgs("a", "--"))
-		require.Equal(t, "expected `A` to be on the right side of `--`", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a", "--")
 
-	{
-		_, r := parser.RunInner(NewArgs("--"))
-		require.Equal(t, "expected `A`, pass `--help` for usage information", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "expected `A`, pass `--help` for usage information", "--")
 }
 
 func TestNon_strictly_positional(t *testing.T) {
 	parser := Positional("A", parseString).NonStrict().Parser().ToOptions()
 
-	{
-		r, err := parser.RunInner(NewArgs("a"))
-		require.Nil(t, err)
-		require.Equal(t, r, "a")
-	}
+	assertSuccess(t, "a", parser, "a")
 
-	{
-		_, r := parser.RunInner(NewArgs("--", "a"))
-		require.Equal(t, "expected `A` to be on the left side of `--`", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "expected `A` to be on the left side of `--`", "--", "a")
 
-	{
-		_, r := parser.RunInner(NewArgs("--"))
-		require.Equal(t, "expected `A`, pass `--help` for usage information", UnwrapStderr(r))
-	}
+	assertFailure(t, parser, "expected `A`, pass `--help` for usage information", "--")
 }

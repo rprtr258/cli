@@ -5,16 +5,14 @@ import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/rprtr258/cli"
 )
 
 func TestHelp_after_switch(t *testing.T) {
 	parser := Short('a').Switch().Help(NewDoc("this is help")).Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("--help"))
 	const expected = "Usage: [-a]\n\nAvailable options:\n    -a          this is help\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestFallback_to_usage(t *testing.T) {
@@ -23,9 +21,8 @@ func TestFallback_to_usage(t *testing.T) {
 		Parser().ToOptions().
 		FallbackToUsage()
 
-	_, r := a.RunInner(NewArgs())
 	const expected = "Usage: -a=A\n\nAvailable options:\n    -a=A\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, a, expected)
 }
 
 func TestFallback_to_usage_nested(t *testing.T) {
@@ -36,17 +33,14 @@ func TestFallback_to_usage_nested(t *testing.T) {
 		Command("cmd").
 		Parser().ToOptions()
 
-	_, r := a.RunInner(NewArgs("cmd"))
 	const expected = "Usage: cmd -a=A\n\nAvailable options:\n    -a=A\n    -h, --help  Prints help information\n"
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, a, expected, "cmd")
 }
 
 func TestFancy_meta(t *testing.T) {
 	a := Argument(Long("trailing-comma"), "all|es5|none", parseString)
 	b := Argument(Long("stdin-file-path"), "PATH", parseString)
 	parser := Pair(a, b).Parser().ToOptions()
-
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: --trailing-comma=<all|es5|none> --stdin-file-path=PATH
 
@@ -55,7 +49,7 @@ Available options:
     --stdin-file-path=PATH
     -h, --help              Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestDecorations(t *testing.T) {
@@ -68,8 +62,6 @@ func TestDecorations(t *testing.T) {
 		Footer("footer\n footer").
 		Version("version").
 		Usage(NewDoc("custom usage"))
-
-	_, r := p.RunInner(NewArgs("--help"))
 
 	const expected = `descr
 descr
@@ -88,7 +80,7 @@ footer
 footer
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, p, expected)
 }
 
 func TestVery_long_switch(t *testing.T) {
@@ -99,7 +91,6 @@ func TestVery_long_switch(t *testing.T) {
 	b := Short('b').Long("batman").Help("help for batman").Switch()
 	p := Pair(a, b).Parser().ToOptions()
 
-	_, r := p.RunInner(NewArgs("--help"))
 	const expected = `Usage: -p=MEGAPOTATO [-b]
 
 Available options:
@@ -107,7 +98,7 @@ Available options:
     -b, --batman  help for batman
     -h, --help    Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, p, expected)
 }
 
 func TestDuplicate_items_same_help(t *testing.T) {
@@ -119,8 +110,6 @@ func TestDuplicate_items_same_help(t *testing.T) {
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-
 	const expected = `Usage: (-a [-c] | -b [-c])
 
 Available options:
@@ -130,7 +119,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestDuplicate_items_dif_help(t *testing.T) {
@@ -142,8 +131,6 @@ func TestDuplicate_items_dif_help(t *testing.T) {
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-
 	const expected = `Usage: (-a [-c] | -b [-c])
 
 Available options:
@@ -154,7 +141,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestDuplicate_pos_items_same_help(t *testing.T) {
@@ -165,8 +152,6 @@ func TestDuplicate_pos_items_same_help(t *testing.T) {
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
-
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: (-a C | -b C)
 
@@ -179,7 +164,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
@@ -190,8 +175,6 @@ func TestDuplicate_pos_items_diff_help(t *testing.T) {
 	ac := Pair(a, c1)
 	bc := Pair(b, c2)
 	parser := Choice(ac, bc).Parser().ToOptions()
-
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: (-a C | -b C)
 
@@ -205,7 +188,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 // TODO: fix
@@ -290,8 +273,6 @@ func TestMulti_arg_help(t *testing.T) {
 		return struct{}{}
 	}).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-
 	const expected = `Usage: [-v] [-f [-e] NAME STATE] [-d]
 
 Available options:
@@ -306,7 +287,7 @@ Available options:
     -h, --help      Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestMulti_pos_help(t *testing.T) {
@@ -315,7 +296,6 @@ func TestMulti_pos_help(t *testing.T) {
 	combo := Pair(a, b).Adjacent()
 	verbose := Short('v').Long("verbose").Switch()
 	parser := Pair(verbose, combo).Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: [-v] NAME VAL
 
@@ -328,7 +308,7 @@ Available options:
     -v, --verbose
     -h, --help     Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestFallback_display_simple_arg(t *testing.T) {
@@ -339,7 +319,6 @@ func TestFallback_display_simple_arg(t *testing.T) {
 		DisplayFallback().
 		Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
 	const expected = `Usage: [--a=NUM]
 
 Available options:
@@ -348,7 +327,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestFallback_display_simple_pos(t *testing.T) {
@@ -357,8 +336,6 @@ func TestFallback_display_simple_pos(t *testing.T) {
 		Parser().Fallback(42).
 		DisplayFallback().
 		Parser().ToOptions()
-
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: [NUM]
 
@@ -370,7 +347,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 type Pair2 fun.Pair[uint32, uint32]
@@ -387,8 +364,6 @@ func TestFallback_display_tuple(t *testing.T) {
 		DisplayFallback().
 		Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-
 	const expected = `Usage: [--a=NUM --b=NUM]
 
 Available options:
@@ -398,7 +373,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestFallback_display_no_help(t *testing.T) {
@@ -408,7 +383,6 @@ func TestFallback_display_no_help(t *testing.T) {
 		DisplayFallback().
 		Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
 	const expected = `Usage: [--a=NUM]
 
 Available options:
@@ -417,7 +391,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestEnv_fallback_visible(t *testing.T) {
@@ -432,8 +406,6 @@ func TestEnv_fallback_visible(t *testing.T) {
 		Switch()
 	parser := Pair(fonts_dir, system_fonts).Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
-
 	const expected = `Usage: [--fonts=DIR] [--system-fonts]
 
 Available options:
@@ -443,7 +415,7 @@ Available options:
                     [env:OIKOS_SYSTEM_FONTS: not set]
     -h, --help      Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestNested_group_help(t *testing.T) {
@@ -452,7 +424,6 @@ func TestNested_group_help(t *testing.T) {
 
 	parser := Pair(a, b).Parser().GroupHelp("outer").Parser().ToOptions()
 
-	_, r := parser.RunInner(NewArgs("--help"))
 	const expected = `Usage: [-a] [-b]
 
 outer
@@ -462,7 +433,7 @@ outer
 Available options:
     -h, --help  Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestWith_group_help(t *testing.T) {
@@ -479,7 +450,6 @@ func TestWith_group_help(t *testing.T) {
 	parser := Pair(ab, c).Parser().ToOptions()
 
 	{
-		_, r := parser.RunInner(NewArgs("--help"))
 		const expected = `Usage: [-a] [-b] [-c]
 
 Uses either of those
@@ -491,14 +461,10 @@ Available options:
     -h, --help  Prints help information
 `
 
-		require.Equal(t, expected, UnwrapStdout(r))
+		assertHelp(t, parser, expected)
 	}
 
-	{
-		r, err := parser.RunInner(NewArgs("-a", "-c"))
-		require.Nil(t, err)
-		require.Equal(t, r, PPair(PPair(true, false), true))
-	}
+	assertSuccess(t, PPair(PPair(true, false), true), parser, "-a", "-c")
 }
 
 func TestCustom_help_and_version(t *testing.T) {
@@ -507,15 +473,11 @@ func TestCustom_help_and_version(t *testing.T) {
 	a := Short('a').Switch()
 	parser := a.Parser().ToOptions().HelpParser(h).VersionParser(v)
 
-	{
-		_, r := parser.RunInner(NewArgs("--help"))
-		require.Equal(t, UnwrapStderr(r), "`--help` is not expected in this context")
-	}
+	assertFailure(t, parser, "`--help` is not expected in this context", "--help")
 
 	{
-		_, r := parser.RunInner(NewArgs("--halp"))
 		const expected = "Usage: [-a]\n\nAvailable options:\n    -a\n    -H, --halp  halps you\n"
-		require.Equal(t, expected, UnwrapStdout(r))
+		assertHelp(t, parser, expected, "--halp")
 	}
 }
 
@@ -525,7 +487,6 @@ func TestVarious_name_lengths_under(t *testing.T) {
 		Help("A").
 		Switch().
 		Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: [-a]
 
@@ -533,7 +494,7 @@ Available options:
     -a, --123456789012345  A
     -h, --help             Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestVarious_name_lengths_at(t *testing.T) {
@@ -542,7 +503,6 @@ func TestVarious_name_lengths_at(t *testing.T) {
 		Help("A").
 		Switch().
 		Parser().ToOptions()
-	_, r := parser.RunInner(NewArgs("--help"))
 
 	const expected = `Usage: [-a]
 
@@ -550,7 +510,7 @@ Available options:
     -a, --1234567890123456  A
     -h, --help              Prints help information
 `
-	require.Equal(t, expected, UnwrapStdout(r))
+	assertHelp(t, parser, expected)
 }
 
 func TestVarious_name_lengths_over1(t *testing.T) {
@@ -560,7 +520,6 @@ func TestVarious_name_lengths_over1(t *testing.T) {
 			Help("A").
 			Switch().
 			Parser().ToOptions()
-		_, r := parser.RunInner(NewArgs("--help"))
 
 		const expected = `Usage: [-a]
 
@@ -568,7 +527,7 @@ Available options:
     -a, --12345678901234567  A
     -h, --help               Prints help information
 `
-		require.Equal(t, expected, UnwrapStdout(r))
+		assertHelp(t, parser, expected)
 	}
 
 	{
@@ -577,7 +536,6 @@ Available options:
 			Help("A").
 			Switch().
 			Parser().ToOptions()
-		_, r := parser.RunInner(NewArgs("--help"))
 
 		const expected = `Usage: [-a]
 
@@ -585,20 +543,14 @@ Available options:
     -a, --1234567890123456789  A
     -h, --help  Prints help information
 `
-		require.Equal(t, expected, UnwrapStdout(r))
+		assertHelp(t, parser, expected)
 	}
 
 	{
 		parser := Short('a').Switch().Parser().ToOptions().Version("1")
 
-		{
-			_, r := parser.RunInner(NewArgs("--help"))
-			require.Equal(t, UnwrapStdout(r), "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
-		}
+		assertHelp(t, parser, "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
 
-		{
-			_, r := parser.RunInner(NewArgs("--version"))
-			require.Equal(t, UnwrapStdout(r), "Version: 1\n")
-		}
+		assertHelp(t, parser, "Version: 1\n", "--version")
 	}
 }

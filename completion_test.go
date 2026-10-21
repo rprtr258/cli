@@ -1,7 +1,6 @@
 package cli_test
 
 import (
-	"iter"
 	stditer "iter"
 	"strconv"
 	"strings"
@@ -9,20 +8,9 @@ import (
 
 	"github.com/rprtr258/fun"
 	funiter "github.com/rprtr258/fun/iter"
-	"github.com/stretchr/testify/assert"
 
 	. "github.com/rprtr258/cli"
 )
-
-func zalupa12[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
-	return func(yield func(K, V) bool) {
-		for v := range seq {
-			if !yield(v.K, v.V) {
-				return
-			}
-		}
-	}
-}
 
 type PSOS = fun.Pair[string, Option[string]]
 type SSOS = stditer.Seq2[string, Option[string]]
@@ -41,7 +29,7 @@ func test_completer(input string) SSOS {
 func test_completer2(input string) SSOS {
 	items := []string{"auto", "mala"}
 
-	return zalupa12(
+	return seq2(
 		funiter.Map(
 			funiter.
 				FromMany(items...).
@@ -51,7 +39,7 @@ func test_completer2(input string) SSOS {
 
 func test_completer_descr(input string) SSOS {
 	items := []string{"alpha", "beta", "banana", "cat", "durian"}
-	return zalupa12(
+	return seq2(
 		funiter.Map(
 			funiter.
 				FromMany(items...).
@@ -61,17 +49,17 @@ func test_completer_descr(input string) SSOS {
 
 func complete_alpha(input string) SSOS {
 	if strings.HasPrefix("alpha", input) {
-		return zalupa12(funiter.FromMany(PSOS{"alpha", Valid("alpha description")}))
+		return seq2(funiter.FromMany(PSOS{"alpha", Valid("alpha description")}))
 	} else {
-		return zalupa12(funiter.FromNothing[PSOS]())
+		return seq2(funiter.FromNothing[PSOS]())
 	}
 }
 
 func complete_beta(input string) SSOS {
 	if strings.HasPrefix("beta", input) {
-		return zalupa12(funiter.FromMany(PSOS{"beta", Valid("beta description")}))
+		return seq2(funiter.FromMany(PSOS{"beta", Valid("beta description")}))
 	} else {
-		return zalupa12(funiter.FromNothing[PSOS]())
+		return seq2(funiter.FromNothing[PSOS]())
 	}
 }
 
@@ -82,44 +70,28 @@ func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 		Parser().Guard(func(s string) bool { return s != "" }, "unreachable").Parser(),
 		parseUint).Parser()
 
-	_, err := Choice(arg, pos).
-		Parser().ToOptions().
-		RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, "-b\t-b\t\tOption b\n\nFile { mask: None }\n", r)
+	assertCompletion(t, Choice(arg, pos).Parser().ToOptions(), "-b\t-b\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
 	arg := Argument(Short('b').Help("Option b"), "HELLO", parseUint).Parser()
 	pos := Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
 
-	_, err := Choice(arg, pos).
-		ToOptions().
-		RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n")
+	assertCompletion(t, Choice(arg, pos).ToOptions(), "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_3_flag_and_pos(t *testing.T) {
 	arg := ReqFlag(Short('b').Help("Option b"), uint(10)).Parser()
 	pos := Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
 
-	_, err := Pair(arg, pos).
-		Parser().ToOptions().
-		RunInner(NewArgs("").SetComp(0))
-	r1 := UnwrapStdout(err)
-	assert.Equal(t, r1, "-b\t-b\t\tOption b\n\nFile { mask: None }\n")
+	assertCompletion(t, Pair(arg, pos).Parser().ToOptions(), "-b\t-b\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_4_arg_and_pos(t *testing.T) {
 	arg := Argument(Short('b').Help("Option b"), "HELLO", parseUint).Parser()
 	pos := Positional("DISTANCE", parseUint).Parser().CompleteShell(ShellCompFile(Invalid[string]())).Parser()
 
-	_, err := Pair(arg, pos).
-		Parser().ToOptions().
-		RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n")
+	assertCompletion(t, Pair(arg, pos).Parser().ToOptions(), "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestStatic_complete_test_1(t *testing.T) {
@@ -133,54 +105,32 @@ func TestStatic_complete_test_1(t *testing.T) {
 	parser := Pair(Pair(a, b), Pair(bb, c)).Parser().ToOptions()
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--avocado\t--avocado\t\tUse avocado\n--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n--calculator\t--calculator=EXPR\t\tcalculator expression\n\n")
+		assertCompletion(t, parser, "--avocado\t--avocado\t\tUse avocado\n--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n--calculator\t--calculator=EXPR\t\tcalculator expression\n\n", "--")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("-b").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--banana")
-	}
+	assertCompletion(t, parser, "--banana", "-b")
 
 	// this used to be disambiguation, not anymore
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("-vvvv").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-vvvv\n")
+		assertCompletion(t, parser, "-vvvv\n", "-vvvv")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("-v").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-v\n")
+		assertCompletion(t, parser, "-v\n", "-v")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("--b").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, "--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n\n", r)
+		assertCompletion(t, parser, "--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n\n", "--b")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("--a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--avocado")
-	}
+	assertCompletion(t, parser, "--avocado", "--a")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("--banana").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n\n")
+		assertCompletion(t, parser, "--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n\n", "--banana")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("--bananan").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--bananananana")
-	}
+	assertCompletion(t, parser, "--bananananana", "--bananan")
 }
 
 func TestLong_and_short_arguments(t *testing.T) {
@@ -189,23 +139,11 @@ func TestLong_and_short_arguments(t *testing.T) {
 		"POTATO", parseString).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("-p").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--potato")
-	}
+	assertCompletion(t, parser, "--potato", "-p")
 
-	{
-		_, err := parser.RunInner(NewArgs("-p", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tPOTATO\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tPOTATO\t\t\n\n", "-p", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-p", "x").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tPOTATO\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tPOTATO\t\t\n\n", "-p", "x")
 }
 
 func TestShort_command_alias(t *testing.T) {
@@ -222,39 +160,21 @@ func TestShort_command_alias(t *testing.T) {
 		Short('b')
 	parser := Choice(a, b).ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cmd_a")
-	}
+	assertCompletion(t, parser, "cmd_a", "a")
 
-	{
-		_, err := parser.RunInner(NewArgs("cmd_a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cmd_a")
-	}
+	assertCompletion(t, parser, "cmd_a", "cmd_a")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("b", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--potato")
+		assertCompletion(t, parser, "--potato", "b", "")
 	})
 }
 
 func TestSingle_command_completes_to_full(t *testing.T) {
 	parser := Short('a').Switch().Parser().ToOptions().Command("cmd").Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("c").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cmd")
-	}
+	assertCompletion(t, parser, "cmd", "c")
 
-	{
-		_, err := parser.RunInner(NewArgs("cmd").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cmd")
-	}
+	assertCompletion(t, parser, "cmd", "cmd")
 }
 
 func TestStatic_complete_test_2(t *testing.T) {
@@ -281,46 +201,26 @@ func TestStatic_complete_test_2(t *testing.T) {
 	parser := Choice(a, b, c).ToOptions()
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("c").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, "check\tcheck\t\tcheck packages\nclean\tclean\t\tclean target dir\n\n", r)
+		assertCompletion(t, parser, "check\tcheck\t\tcheck packages\nclean\tclean\t\tclean target dir\n\n", "c")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("check", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--potato")
+		assertCompletion(t, parser, "--potato", "check", "")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("check").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "check")
-	}
+	assertCompletion(t, parser, "check", "check")
 
-	{
-		_, err := parser.RunInner(NewArgs("C", "--p").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--potato")
-	}
+	assertCompletion(t, parser, "--potato", "C", "--p")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("x").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "x\n")
+		assertCompletion(t, parser, "x\n", "x")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "check\tcheck\t\tcheck packages\nclean\tclean\t\tclean target dir\nbuild\tbuild\t\tbuild project\n\n")
+		assertCompletion(t, parser, "check\tcheck\t\tcheck packages\nclean\tclean\t\tclean target dir\nbuild\tbuild\t\tbuild project\n\n", "")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("ch").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "check")
-	}
+	assertCompletion(t, parser, "check", "ch")
 }
 
 func TestStatic_complete_test_3(t *testing.T) {
@@ -330,31 +230,13 @@ func TestStatic_complete_test_3(t *testing.T) {
 	c := Argument(Long("durian"), "D", parseString)
 	parser := Pair(ab, c).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
+	assertCompletion(t, parser, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n", "")
 
-		assert.Equal(t, r, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n")
-	}
+	assertCompletion(t, parser, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n", "-")
 
-	{
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
+	assertCompletion(t, parser, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n", "--")
 
-		assert.Equal(t, r, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n")
-	}
-
-	{
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n")
-	}
-
-	{
-		_, err := parser.RunInner(NewArgs("--d").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--durian")
-	}
+	assertCompletion(t, parser, "--durian", "--d")
 }
 
 func TestStatic_complete_test_4(t *testing.T) {
@@ -362,34 +244,22 @@ func TestStatic_complete_test_4(t *testing.T) {
 	b := Argument(Short('b'), "B", parseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tA\t\t\n\n", "-a", "")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
+		assertCompletion(t, parser, "-a", "-a")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n")
+		assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n")
+		assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "-")
 	})
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
+		assertCompletion(t, parser, "--\n", "--")
 	})
 }
 
@@ -403,45 +273,26 @@ func TestStatic_complete_test_5(t *testing.T) {
 	parser := Pair(ab, cd).Parser().ToOptions()
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("-a", "x", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-b\t-b=B\t\t\n-c\t-c=C\t\t\n-d\t-d=D\t\t\n\n")
+		assertCompletion(t, parser, "-b\t-b=B\t\t\n-c\t-c=C\t\t\n-d\t-d=D\t\t\n\n", "-a", "x", "")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tA\t\t\n\n", "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "-a")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n-c\t-c=C\t\t\n-d\t-d=D\t\t\n\n")
+		assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n-c\t-c=C\t\t\n-d\t-d=D\t\t\n\n", "")
 	})
 
-	{
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
-
-		assert.Equal(t, `-a	-a=A`+"\t\t"+`
+	assertCompletion(t, parser, `-a	-a=A`+"\t\t"+`
 -b	-b=B`+"\t\t"+`
 -c	-c=C`+"\t\t"+`
 -d	-d=D`+"\t\t"+`
 
-`, r)
-	}
+`, "-")
 
 	t.Run("wtf", func(t *testing.T) {
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
+		assertCompletion(t, parser, "--\n", "--")
 	})
 }
 
@@ -450,47 +301,19 @@ func TestStatic_complete_test_6(t *testing.T) {
 	b := Many(Argument(Short('b'), "B", parseString), false)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("-b", "x", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "-b", "x", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tA\t\t\n\n", "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "x", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-b")
-	}
+	assertCompletion(t, parser, "-b", "-a", "x", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "-a")
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-b", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tB\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tB\t\t\n\n", "-b", "")
 }
 
 func TestStatic_complete_test_7(t *testing.T) {
@@ -498,23 +321,11 @@ func TestStatic_complete_test_7(t *testing.T) {
 	b := Positional("FILE", parseString).Help("File to use")
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a\t\tswitch\n\tFILE\t\tFile to use\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a\t\tswitch\n\tFILE\t\tFile to use\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
-	}
+	assertCompletion(t, parser, "\tFILE\t\tFile to use\n\n", "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "x").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
-	}
+	assertCompletion(t, parser, "\tFILE\t\tFile to use\n\n", "-a", "x")
 }
 
 func TestStatic_complete_test_8(t *testing.T) {
@@ -525,29 +336,13 @@ func TestStatic_complete_test_8(t *testing.T) {
 		Command("nom").
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "nom")
-	}
+	assertCompletion(t, parser, "nom", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("nom", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--durian")
-	}
+	assertCompletion(t, parser, "--durian", "nom", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("nom", "-a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--durian")
-	}
+	assertCompletion(t, parser, "--durian", "nom", "-a")
 
-	{
-		_, err := parser.RunInner(NewArgs("nom", "-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\n")
-	}
+	assertCompletion(t, parser, "\n", "nom", "-a", "")
 }
 
 func TestJust_positional(t *testing.T) {
@@ -555,17 +350,9 @@ func TestJust_positional(t *testing.T) {
 		Help("File to use").
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
-	}
+	assertCompletion(t, parser, "\tFILE\t\tFile to use\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tFILE\t\tFile to use\n\n")
-	}
+	assertCompletion(t, parser, "\tFILE\t\tFile to use\n\n", "xxx")
 }
 
 func TestDynamic_complete_test_1(t *testing.T) {
@@ -574,44 +361,21 @@ func TestDynamic_complete_test_1(t *testing.T) {
 		Parser().Complete(test_completer).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "b").SetComp(0))
-		r := UnwrapStdout(err)
+	assertCompletion(t, parser, "\tARG\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\n\n", "-a", "b")
 
-		assert.Equal(t, r, "\tARG\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\n\n")
-	}
+	assertCompletion(t, parser, "beta", "-a", "be")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "be").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "beta")
-	}
+	assertCompletion(t, parser, "beta", "-a", "beta")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "beta").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "beta")
-	}
+	assertCompletion(t, parser, "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
-
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tARG\t\t\nalpha\talpha\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\ncat\tcat\t\t\ndurian\tdurian\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tARG\t\t\nalpha\talpha\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\ncat\tcat\t\t\ndurian\tdurian\t\t\n\n", "-a", "")
 }
 
 func TestDynamic_complete_test_2(t *testing.T) {
 	parser := Argument(Short('a'), "ARG", parseString).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("-a", "b").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "\tARG\t\t\n\n")
+	assertCompletion(t, parser, "\tARG\t\t\n\n", "-a", "b")
 }
 
 func TestDynamic_complete_test_3(t *testing.T) {
@@ -624,9 +388,7 @@ func TestDynamic_complete_test_3(t *testing.T) {
 		Parser().Complete(test_completer)
 	parser := Pair(Pair(a, b), Pair(bb, c)).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("--calculator", "").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "\tEXPR\t\tcalculator expression\nalpha\talpha\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\ncat\tcat\t\t\ndurian\tdurian\t\t\n\n")
+	assertCompletion(t, parser, "\tEXPR\t\tcalculator expression\nalpha\talpha\t\t\nbeta\tbeta\t\t\nbanana\tbanana\t\t\ncat\tcat\t\t\ndurian\tdurian\t\t\n\n", "--calculator", "")
 }
 
 func TestDynamic_complete_test_4(t *testing.T) {
@@ -635,17 +397,9 @@ func TestDynamic_complete_test_4(t *testing.T) {
 		Parser().Complete(test_completer_descr).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("--name", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tNAME\t\t\nalpha\talpha\t\talpha\nbeta\tbeta\t\tbeta\nbanana\tbanana\t\tbanana\ncat\tcat\t\tcat\ndurian\tdurian\t\tdurian\n\n")
-	}
+	assertCompletion(t, parser, "\tNAME\t\t\nalpha\talpha\t\talpha\nbeta\tbeta\t\tbeta\nbanana\tbanana\t\tbanana\ncat\tcat\t\tcat\ndurian\tdurian\t\tdurian\n\n", "--name", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("--name", "a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "--name", "a")
 }
 
 func TestStatic_with_hide(t *testing.T) {
@@ -653,9 +407,7 @@ func TestStatic_with_hide(t *testing.T) {
 	b := Short('b').Switch().Parser().Hide()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-a")
+	assertCompletion(t, parser, "-a", "")
 }
 
 func TestStatic_with_fallback_and_hide(t *testing.T) {
@@ -663,9 +415,7 @@ func TestStatic_with_fallback_and_hide(t *testing.T) {
 	b := Short('b').Switch().Parser().Hide()
 	parser := Pair(a, b).Parser().Fallback(fun.Pair[bool, bool]{false, false}).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-a")
+	assertCompletion(t, parser, "-a", "")
 }
 
 func TestCsample_mystery(t *testing.T) {
@@ -681,9 +431,7 @@ func TestCsample_mystery(t *testing.T) {
 		Descr("Dynamic autocomplete example").
 		Footer("footer")
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "--avocado\t--avocado\t\tUse avocado\n--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n--calculator\t--calculator=EXPR\t\tcalculator expression\n\n")
+	assertCompletion(t, parser, "--avocado\t--avocado\t\tUse avocado\n--banana\t--banana\t\tUse banana\n--bananananana\t--bananananana\t\tI'm Batman\n--calculator\t--calculator=EXPR\t\tcalculator expression\n\n", "")
 }
 
 func TestOnly_positionals_after_double_dash(t *testing.T) {
@@ -693,43 +441,23 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 	d := Positional("D", parseString)
 	parser := Pair(Pair(a, b), Pair(c, d)).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
-	}
+	assertCompletion(t, parser, "--\n", "-a", "--")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "-a")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-b\t-b\t\t\n-c\t-c\t\t\n\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-b\t-b\t\t\n-c\t-c\t\t\n\tD\t\t\n\n", "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tD\t\t\n\n", "--", "")
 }
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
 	parser := Many(Positional("D", parseString), false).Parser().ToOptions()
-	_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "\tD\t\t\n\n")
+	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
 	parser := ParseSomeParser(Positional("D", parseString).Parser().Some("", false)).ToOptions()
-	_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "\tD\t\t\n\n")
+	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestOnly_positionals_after_positionals(t *testing.T) {
@@ -737,29 +465,13 @@ func TestOnly_positionals_after_positionals(t *testing.T) {
 	d := Many(Positional("D", parseString), false)
 	parser := Pair(a, d).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a\t\t\n\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a\t\t\n\tD\t\t\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx", "yyy").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx", "yyy")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a\t\t\n\tD\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a\t\t\n\tD\t\t\n\n", "xxx", "")
 }
 
 func TestPositionals_complete_in_order(t *testing.T) {
@@ -767,41 +479,17 @@ func TestPositionals_complete_in_order(t *testing.T) {
 	b := Positional("B", parseString).Parser().Complete(complete_beta)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "a")
 
-	{
-		_, err := parser.RunInner(NewArgs("x").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tA\t\t\n\n", "x")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "beta")
-	}
+	assertCompletion(t, parser, "beta", "xxx", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx", "b").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "beta")
-	}
+	assertCompletion(t, parser, "beta", "xxx", "b")
 
-	{
-		_, err := parser.RunInner(NewArgs("xxx", "yyy").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tB\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tB\t\t\n\n", "xxx", "yyy")
 }
 
 func TestShould_be_able_to_suggest_positional_along_with_non_positionals_flags(t *testing.T) {
@@ -809,14 +497,12 @@ func TestShould_be_able_to_suggest_positional_along_with_non_positionals_flags(t
 	b := Positional("B", parseString).Parser().Complete(complete_beta)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-a\t-a=A\t\t\nbeta\tbeta\t\tbeta description\n\n")
+	assertCompletion(t, parser, "-a\t-a=A\t\t\nbeta\tbeta\t\tbeta description\n\n", "")
 }
 
 func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	c_b := func(string) SSOS {
-		return zalupa12(funiter.FromMany(PSOS{"--", Invalid[string]()}))
+		return seq2(funiter.FromMany(PSOS{"--", Invalid[string]()}))
 	}
 	a := Optional(Argument(Long("arg"),
 		"ARG", parseString).
@@ -825,17 +511,9 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	// parser := Pair(a).Parser().ToOptions()
 	parser := a.Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--arg")
-	}
+	assertCompletion(t, parser, "--arg", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("--arg", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--")
-	}
+	assertCompletion(t, parser, "--", "--arg", "")
 }
 
 func TestNon_strict_and_double_dash(t *testing.T) {
@@ -843,17 +521,9 @@ func TestNon_strict_and_double_dash(t *testing.T) {
 	b := Positional("B", parseString).NonStrict()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a\t\t\n\tB\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a\t\t\n\tB\t\t\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\n")
-	}
+	assertCompletion(t, parser, "\n", "--", "")
 }
 
 func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T) {
@@ -861,31 +531,13 @@ func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T)
 	b := Positional("B", parseString).Strict()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
+	assertCompletion(t, parser, "-a\t-a\t\t\n--\t--\t\tPositional only items after this token\n\n", "")
 
-		assert.Equal(t, r, "-a\t-a\t\t\n--\t--\t\tPositional only items after this token\n\n")
-	}
+	assertCompletion(t, parser, "-a\t-a\t\t\n--\t--\t\tPositional only items after this token\n\n", "-")
 
-	{
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
+	assertCompletion(t, parser, "--\n", "--")
 
-		assert.Equal(t, r, "-a\t-a\t\t\n--\t--\t\tPositional only items after this token\n\n")
-	}
-
-	{
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
-	}
-
-	{
-		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tB\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tB\t\t\n\n", "--", "")
 }
 
 func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
@@ -895,33 +547,17 @@ func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
 	c := Short('c').Switch()
 	parser := Pair(Pair(a, b), c).Parser().ToOptions()
 
-	{
-		// with no input the right behavior is to suggest all the switches
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a\t-a\t\t\n-b\t-b\t\t\n-c\t-c\t\t\n\n")
-	}
+	// with no input the right behavior is to suggest all the switches
+	assertCompletion(t, parser, "-a\t-a\t\t\n-b\t-b\t\t\n-c\t-c\t\t\n\n", "")
 
-	{
-		// with a single item present separately we should suggest the remaining two
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-b\t-b\t\t\n-c\t-c\t\t\n\n")
-	}
+	// with a single item present separately we should suggest the remaining two
+	assertCompletion(t, parser, "-b\t-b\t\t\n-c\t-c\t\t\n\n", "-a", "")
 
-	{
-		// trying to complete a pair of flags should dump current state
-		_, err := parser.RunInner(NewArgs("-ab").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-ab\n")
-	}
+	// trying to complete a pair of flags should dump current state
+	assertCompletion(t, parser, "-ab\n", "-ab")
 
-	{
-		// with a single valid item we should suggest it
-		_, err := parser.RunInner(NewArgs("-ab", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-c")
-	}
+	// with a single valid item we should suggest it
+	assertCompletion(t, parser, "-c", "-ab", "")
 
 	// should I change the representation for the completions? Knowing that somethnig is a
 	// flag with a short or long name is no longer necessary
@@ -938,39 +574,22 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 	a1 := Argument(Short('a'), "AAAAAA", parseInt)
 	parser := Choice(a0, a1).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
-	r := UnwrapStdout(err)
-
-	assert.Equal(t, r, "-aaa\n")
+	assertCompletion(t, parser, "-aaa\n", "-aaa")
 }
 
 func TestAmbiguity_to_flags(t *testing.T) {
 	parser := Many(Short('a').Switch(), false).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-aaa\n")
+	assertCompletion(t, parser, "-aaa\n", "-aaa")
 }
 
 func TestShort_argument_variants(t *testing.T) {
 	parser := Argument(Short('a'), "META", parseString).Parser().ToOptions()
-	{
-		_, err := parser.RunInner(NewArgs("-a=aa").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tMETA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tMETA\t\t\n\n", "-a=aa")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "aa").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tMETA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tMETA\t\t\n\n", "-a", "aa")
 
-	{
-		_, err := parser.RunInner(NewArgs("-aaa").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tMETA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tMETA\t\t\n\n", "-aaa")
 }
 
 func TestLong_argument_variants(t *testing.T) {
@@ -979,17 +598,9 @@ func TestLong_argument_variants(t *testing.T) {
 		Parser().Complete(complete_beta).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("--alpha=beta").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--alpha=beta")
-	}
+	assertCompletion(t, parser, "--alpha=beta", "--alpha=beta")
 
-	{
-		_, err := parser.RunInner(NewArgs("--alpha", "Regina").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tMETA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tMETA\t\t\n\n", "--alpha", "Regina")
 }
 
 func TestZsh_style_completion_visible(t *testing.T) {
@@ -1000,25 +611,15 @@ func TestZsh_style_completion_visible(t *testing.T) {
 	b := Argument(Short('b'), "BANANA", parseString)
 	parser := Pair(a, b).Parser().GroupHelp("items").Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "--argument\t--argument=ARG\titems\tthis is an argument\n-b\t-b=BANANA\titems\t\n\n")
+	assertCompletion(t, parser, "--argument\t--argument=ARG\titems\tthis is an argument\n-b\t-b=BANANA\titems\t\n\n", "")
 }
 
 func TestZsh_many_positionals(t *testing.T) {
 	parser := Many(Positional("POS", parseString), false).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tPOS\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tPOS\t\t\n\n", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("p").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tPOS\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tPOS\t\t\n\n", "p")
 }
 
 func TestZsh_help_single_line_only(t *testing.T) {
@@ -1026,9 +627,7 @@ func TestZsh_help_single_line_only(t *testing.T) {
 	b := Short('b').Help("hello from switch").Switch()
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "-a\t-a=X\t\thello world\n-b\t-b\t\thello from switch\n\n")
+	assertCompletion(t, parser, "-a\t-a=X\t\thello world\n-b\t-b\t\thello from switch\n\n", "")
 }
 
 func TestShell_help_single_line_only(t *testing.T) {
@@ -1036,10 +635,7 @@ func TestShell_help_single_line_only(t *testing.T) {
 	b := Argument(Short('b').Help("hello 2\n\nworld"), "Y", parseString)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-
-	assert.Equal(t, r, "-a\t-a=X\t\thello 1\n-b\t-b=Y\t\thello 2\n\n")
+	assertCompletion(t, parser, "-a\t-a=X\t\thello 1\n-b\t-b=Y\t\thello 2\n\n", "")
 }
 
 // TODO: get back
@@ -1089,30 +685,18 @@ func TestShell_help_single_line_only(t *testing.T) {
 
 func TestZsh_complete_info(t *testing.T) {
 	foo := func(string) SSOS {
-		return zalupa12(funiter.FromMany([]PSOS{{"hello", Valid("word")}, {"sample", Invalid[string]()}}...))
+		return seq2(funiter.FromMany([]PSOS{{"hello", Valid("word")}, {"sample", Invalid[string]()}}...))
 	}
 	parser := Argument(Short('a'),
 		"X", parseString).
 		Parser().Complete(foo).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "-")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tX\t\t\nhello\thello\t\tword\nsample\tsample\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tX\t\t\nhello\thello\t\tword\nsample\tsample\t\t\n\n", "-a", "")
 }
 
 func TestPair_of_positionals(t *testing.T) {
@@ -1121,17 +705,9 @@ func TestPair_of_positionals(t *testing.T) {
 	b := Positional("B", parseString).Parser().Complete(test_completer2)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "a")
 
-	{
-		_, err := parser.RunInner(NewArgs("alpha", "a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "auto")
-	}
+	assertCompletion(t, parser, "auto", "alpha", "a")
 }
 
 func TestDouble_dash_as_positional(t *testing.T) {
@@ -1140,89 +716,41 @@ func TestDouble_dash_as_positional(t *testing.T) {
 		Parser().Complete(test_completer).
 		Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("--", "a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "--", "a")
 
-	{
-		_, err := parser.RunInner(NewArgs("a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "alpha")
-	}
+	assertCompletion(t, parser, "alpha", "a")
 
-	{
-		_, err := parser.RunInner(NewArgs("-").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-\n")
-	}
+	assertCompletion(t, parser, "-\n", "-")
 
-	{
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
-	}
+	assertCompletion(t, parser, "--\n", "--")
 
-	{
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--\n")
-	}
+	assertCompletion(t, parser, "--\n", "--")
 
-	{
-		_, err := parser.RunInner(NewArgs("x").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tP\t\tHelp\n\n")
-	}
+	assertCompletion(t, parser, "\tP\t\tHelp\n\n", "x")
 }
 
 func TestStrict_positional_completion(t *testing.T) {
 	a := Long("arg").Switch()
 	p := Positional("S", parseString).
 		Strict().
-		Parser().Complete(func(string) SSOS { return zalupa12(funiter.FromMany(PSOS{"--hello", Invalid[string]()})) })
+		Parser().Complete(func(string) SSOS { return seq2(funiter.FromMany(PSOS{"--hello", Invalid[string]()})) })
 	parser := Pair(a, p).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("--").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--arg\t--arg\t\t\n--hello\t--hello\t\t\n\n")
-	}
+	assertCompletion(t, parser, "--arg\t--arg\t\t\n--hello\t--hello\t\t\n\n", "--")
 
-	{
-		_, err := parser.RunInner(NewArgs("--a").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--arg")
-	}
+	assertCompletion(t, parser, "--arg", "--a")
 
-	{
-		_, err := parser.RunInner(NewArgs("--", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--hello")
-	}
+	assertCompletion(t, parser, "--hello", "--", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("--", "--h").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "--hello")
-	}
+	assertCompletion(t, parser, "--hello", "--", "--h")
 }
 
 func TestAvoid_inserting_metavars(t *testing.T) {
 	parser := Argument(Short('a'), "A", parseString).Parser().ToOptions()
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-a")
-	}
+	assertCompletion(t, parser, "-a", "")
 
-	{
-		_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "\tA\t\t\n\n")
-	}
+	assertCompletion(t, parser, "\tA\t\t\n\n", "-a", "")
 }
 
 func TestShell_dir_completion(t *testing.T) {
@@ -1231,9 +759,7 @@ func TestShell_dir_completion(t *testing.T) {
 		Parser().CompleteShell(ShellCompDir(Invalid[string]())).
 		Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("-a", "").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, "\nDir { mask: None }\n")
+	assertCompletion(t, parser, "\nDir { mask: None }\n", "-a", "")
 }
 
 func TestGenerate_unparseable_items(t *testing.T) {
@@ -1244,25 +770,13 @@ func TestGenerate_unparseable_items(t *testing.T) {
 	one_e := Map(Pair(e, one).Parser(), func(x fun.Pair[bool, struct{}]) struct{} { return x.V })
 	parser := Choice(one_e, two).Parser().ToOptions()
 
-	{
-		// passing -e restricts branch with cmd_two
-		_, err := parser.RunInner(NewArgs("-e", "").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cone")
-	}
+	// passing -e restricts branch with cmd_two
+	assertCompletion(t, parser, "cone", "-e", "")
 
-	{
-		// passing -e restricts branch with cmd_two
-		_, err := parser.RunInner(NewArgs("-e", "c").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "cone")
-	}
+	// passing -e restricts branch with cmd_two
+	assertCompletion(t, parser, "cone", "-e", "c")
 
-	{
-		_, err := parser.RunInner(NewArgs("").SetComp(0))
-		r := UnwrapStdout(err)
-		assert.Equal(t, r, "-e\t-e\t\t\ncone\tcone\t\t\nctwo\tctwo\t\t\n\n")
-	}
+	assertCompletion(t, parser, "-e\t-e\t\t\ncone\tcone\t\t\nctwo\tctwo\t\t\n\n", "")
 }
 
 func TestComplete_with_fallback(t *testing.T) {
@@ -1276,16 +790,14 @@ func TestComplete_with_fallback(t *testing.T) {
 		Parser().Fallback(10).
 		Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("--name", "").SetComp(0))
-	r := UnwrapStdout(err)
-	assert.Equal(t, r, `	NAME`+"\t\t"+`
+	assertCompletion(t, parser, `	NAME`+"\t\t"+`
 alpha	alpha		alpha
 beta	beta		beta
 banana	banana		banana
 cat	cat		cat
 durian	durian		durian
 
-`)
+`, "--name", "")
 }
 
 func TestMix_of_options_and_positional_completions(t *testing.T) {
@@ -1299,10 +811,7 @@ func TestMix_of_options_and_positional_completions(t *testing.T) {
 		Parser().Complete(complete_beta)
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-
-	assert.Equal(t, r, "--arg\t--arg=ALPHA\t\tAlhpa argument\nbeta\tbeta\t\tbeta description\n\n")
+	assertCompletion(t, parser, "--arg\t--arg=ALPHA\t\tAlhpa argument\nbeta\tbeta\t\tbeta description\n\n", "")
 }
 
 func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
@@ -1314,8 +823,5 @@ func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
 
 	parser := Pair(a, b).Parser().ToOptions()
 
-	_, err := parser.RunInner(NewArgs("").SetComp(0))
-	r := UnwrapStdout(err)
-
-	assert.Equal(t, r, "--arg\t--arg=ALPHA\t\tAlhpa argument\n\tBETA\t\tBeta argument\n\n")
+	assertCompletion(t, parser, "--arg\t--arg=ALPHA\t\tAlhpa argument\n\tBETA\t\tBeta argument\n\n", "")
 }

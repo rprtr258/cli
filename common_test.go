@@ -2,10 +2,16 @@ package cli_test
 
 import (
 	"errors"
+	"iter"
 	"strconv"
+	"strings"
 	"testing"
 
-	"github.com/rprtr258/cli"
+	"github.com/rprtr258/fun"
+	funiter "github.com/rprtr258/fun/iter"
+	"github.com/stretchr/testify/require"
+
+	. "github.com/rprtr258/cli"
 )
 
 func map3[A, B, C any](A, B, C) struct{} {
@@ -75,16 +81,75 @@ func parseBool(s string) (bool, error) {
 // 2. It's okay if it's missing
 // 3. And don't show anything to the user in `--help` or completion
 // 4. Parse this word and then everything else as a tuple, return that second item.
-func cargo_helper[T any](cmd string, parser cli.Parser[T]) cli.Parser[T] {
-	skip := cli.Optional(cli.Literal(cmd), false).Parser().Hide()
-	return cli.Map2(skip, parser, func(_ cli.Option[struct{}], x T) T { return x })
+func cargo_helper[T any](cmd string, parser Parser[T]) Parser[T] {
+	skip := Optional(Literal(cmd), false).Parser().Hide()
+	return Map2(skip, parser, func(_ Option[struct{}], x T) T { return x })
 }
 
-func assertSuccess[T any](
-	t *testing.T,
-	expected T,
-	parser *cli.OptionParser[T],
-	args ...string,
-) {
-	cli.AssertSuccess(t, expected, parser, args...)
+// Adapt a sequence of pairs into a two-value sequence.
+func seq2[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
+	return func(yield func(K, V) bool) {
+		for v := range seq {
+			if !yield(v.K, v.V) {
+				return
+			}
+		}
+	}
+}
+
+func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], args ...string) {
+	t.Helper()
+
+	AssertSuccess(t, expected, parser, args...)
+}
+
+// Parser must fail with the given stderr message for the given args.
+func assertFailure[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+	t.Helper()
+
+	_, err := parser.RunInner(NewArgs(args...))
+	require.Equal(t, expected, UnwrapStderr(err))
+}
+
+// Parser must print the expected stdout for the given args, `--help` by default.
+func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+	t.Helper()
+
+	if len(args) == 0 {
+		args = []string{"--help"}
+	}
+	_, err := parser.RunInner(NewArgs(args...))
+	require.Equal(t, expected, UnwrapStdout(err))
+}
+
+// Parser must produce the expected completion output for the given args.
+func assertCompletion[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+	t.Helper()
+
+	_, err := parser.RunInner(NewArgs(args...).SetComp(0))
+	require.Equal(t, expected, UnwrapStdout(err))
+}
+
+// First line of `--help` output without the `Usage: ` prefix must be the expected usage.
+func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
+	t.Helper()
+
+	_, output := parser.RunInner(NewArgs("--help"))
+	usage := strings.TrimPrefix(strings.Split(UnwrapStdout(output), "\n")[0], "Usage: ")
+	require.Equal(t, expected, usage)
+}
+
+// Catch a panic raised inside f and return its value, fail the test if f returns normally.
+func catchPanic[T any](t *testing.T, f func()) (res T) {
+	t.Helper()
+
+	defer func() {
+		if r := recover(); r != nil {
+			res = r.(T)
+		} else {
+			t.FailNow()
+		}
+	}()
+	f()
+	return
 }

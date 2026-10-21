@@ -4,7 +4,6 @@ import (
 	"testing"
 
 	"github.com/rprtr258/fun"
-	"github.com/stretchr/testify/require"
 
 	. "github.com/rprtr258/cli"
 )
@@ -17,9 +16,9 @@ func TestGet_any_simple(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, string]
-	AssertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
-	AssertSuccess(t, R{true, "-b"}, parser, "-b", "-a")
-	AssertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo", "-a")
+	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
+	assertSuccess(t, R{true, "-b"}, parser, "-b", "-a")
+	assertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo", "-a")
 }
 
 func TestGet_any_many(t *testing.T) {
@@ -28,14 +27,14 @@ func TestGet_any_many(t *testing.T) {
 	parser := Pair(a, b).Parser().ToOptions()
 
 	type R = fun.Pair[bool, []string]
-	AssertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
-	AssertSuccess(t, R{true, []string{"-b"}}, parser, "-b", "-a")
-	AssertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b", "-a", "-b")
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-b", "-a")
+	assertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b", "-a", "-b")
 }
 
 func TestGet_any_many2(t *testing.T) {
 	parser := Many(Any("REST", some, false), false).Parser().ToOptions()
-	AssertSuccess(t, []string{"-vvv"}, parser, "-vvv")
+	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 
 func TestGet_any_magic(t *testing.T) {
@@ -48,20 +47,19 @@ func TestGet_any_magic(t *testing.T) {
 		ToOptions()
 
 	// -b anana - isn't a -banana
-	_, r := parser.RunInner(NewArgs("-b", "anana"))
-	require.Equal(t, UnwrapStderr(r), "`-b` is not expected in this context")
+	assertFailure(t, parser, "`-b` is not expected in this context", "-b", "anana")
 
 	// close enough :)
-	AssertSuccess(t, true, parser, "-b=anana")
-	AssertSuccess(t, true, parser, "-banana")
-	AssertSuccess(t, false, parser)
+	assertSuccess(t, true, parser, "-b=anana")
+	assertSuccess(t, true, parser, "-banana")
+	assertSuccess(t, false, parser)
 }
 
 func TestFrom_str_works_with_parse(t *testing.T) {
 	parser := Parse(Positional("A", parseString).Parser(),
 		parseUint).Parser().
 		ToOptions()
-	AssertSuccess(t, uint(42), parser, "42")
+	assertSuccess(t, uint(42), parser, "42")
 }
 
 func TestSquashed_short_names(t *testing.T) {
@@ -77,13 +75,13 @@ func TestSquashed_short_names(t *testing.T) {
 	// require.Equal(t,r.V, "foo");
 
 	// an odd one, short flag a is squashed with short argument b
-	AssertSuccess(t, R{true, "foo"}, parser, "-ab", "foo")
+	assertSuccess(t, R{true, "foo"}, parser, "-ab", "foo")
 
 	// same, but body for b is adjacent as well
-	AssertSuccess(t, R{true, "foo"}, parser, "-abfoo")
+	assertSuccess(t, R{true, "foo"}, parser, "-abfoo")
 
 	// normal
-	AssertSuccess(t, R{true, "foo"}, parser, "-a", "-bfoo")
+	assertSuccess(t, R{true, "foo"}, parser, "-a", "-bfoo")
 }
 
 // func Testcommand_alias(t *testing.T) {

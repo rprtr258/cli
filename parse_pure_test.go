@@ -42,8 +42,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	b := PureWith(func() (uint32, Error) { return 0, ErrorParseFail("some-err") })
 
 	opts := Choice(a.Parser(), b.Parser()).ToOptions()
-	_, err := opts.RunInner(NewArgs())
-	require.Equal(t, "some-err", UnwrapStderr(err))
+	assertFailure(t, opts, "some-err")
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
