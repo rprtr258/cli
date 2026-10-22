@@ -88,9 +88,9 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 }
 
 func TestAdjacent_is_adjacent(t *testing.T) {
-	var a = ReqFlag(Short('a'), struct{}{})
-	var b = Positional("B", parseUint)
-	var parser = Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V })).ToOptions()
+	a := ReqFlag(Short('a'), struct{}{})
+	b := Positional("B", parseUint)
+	parser := Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V })).ToOptions()
 
 	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
 
@@ -133,7 +133,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 	cmds := Choice(eat, sleep)
 	switch_ := Short('s').Switch()
 
-	var parser = Pair(switch_, cmds).ToOptions()
+	parser := Pair(switch_, cmds).ToOptions()
 
 	assertSuccess(t, PPair(true, "12"), parser, "sleep", "--time", "12", "-s")
 

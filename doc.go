@@ -283,6 +283,7 @@ func (s *skip) push() {
 		*s++
 	}
 }
+
 func (s *skip) pop() {
 	if *s > 0 {
 		*s--

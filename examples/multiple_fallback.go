@@ -24,7 +24,7 @@ func MultipleFallback() {
 
 	// Here this is a constant but it can be OnceCell from `once_cell`
 	// that reads the config and deals with substituting missing falues with defaults
-	var DEFAULT_CONFIG = Config{
+	DEFAULT_CONFIG := Config{
 		field1: 42,
 		field2: 10,
 	}

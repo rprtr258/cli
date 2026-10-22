@@ -189,12 +189,10 @@ func suggest_zalupa(state state, meta meta, return_ func(int, suggestion, bool))
 						return_(ix, suggestionMissingDash(long), true)
 					}
 				}
-
 			},
 		)
 		return_(ix, suggestionVariant(best_match), true)
 	}
-
 }
 
 func suggest(state state, meta meta) (a int, b suggestion, c bool) {

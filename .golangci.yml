@@ -3,8 +3,14 @@ version: "2"
 linters:
   default: none
   enable:
+    - govet
     - gocritic
   settings:
+    govet:
+      disable:
+        # Unkeyed struct literals are fine in this codebase (internal
+        # positional construction); do not flag them.
+        - composites
     gocritic:
       disable-all: true
       enabled-tags:
@@ -13,3 +19,7 @@ linters:
         - performance
         - experimental
         - opinionated
+
+formatters:
+  enable:
+    - gofumpt

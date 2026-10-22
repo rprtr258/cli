@@ -36,8 +36,10 @@ import (
 // margin sets the minimal offset for any new text and retained until new margin is set:
 // "hello" [margin 8] "world" is rendered as "hello   world"
 
-const maxTab = 24
-const maxRenderWidth = 100
+const (
+	maxTab         = 24
+	maxRenderWidth = 100
+)
 
 // Default to dull color if colors are enabled,
 type color uint8

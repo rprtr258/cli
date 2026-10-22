@@ -145,7 +145,7 @@ func errorToString(self parseError) string {
 	case errorPureFailed:
 		return string(self)
 	case errorMissing:
-		return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string]((missingItem).String, self...), ", "))
+		return fmt.Sprintf("Missing(%s)", strings.Join(fun.Map[string](missingItem.String, self...), ", "))
 	case errorParseFailure:
 		return fmt.Sprintf("parseFailure(%#v)", self.e)
 	case errorStrictPos:

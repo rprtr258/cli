@@ -68,6 +68,7 @@ var itemStateParsed = itemState{kind: itemStateKindParsed}
 func (self itemState) parsed() bool {
 	return self.kind == itemStateKindParsed
 }
+
 func disambiguate_short(
 	os string,
 	short string,

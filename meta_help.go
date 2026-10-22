@@ -13,11 +13,13 @@ import (
 // Metavar is a placeholder for a value shown in help output, e.g. "FILE" or "N".
 type Metavar string
 
-type helpItem interface{ isHelpItem() }
-type helpItemDecorSuffix struct {
-	help Doc
-	ty   hiTy
-}
+type (
+	helpItem            interface{ isHelpItem() }
+	helpItemDecorSuffix struct {
+		help Doc
+		ty   hiTy
+	}
+)
 
 func (helpItemDecorSuffix) isHelpItem() {}
 
@@ -314,6 +316,7 @@ func (self *helpItems) append_meta(mm meta) {
 	}
 	GO(mm, false)
 }
+
 func (self helpItems) find_group() (rng, bool) {
 	start, end := -1, -1
 	for i, x := range self {

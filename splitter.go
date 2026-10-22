@@ -23,11 +23,15 @@ func chunkRaw(code string, code_type uint) chunk {
 	return chunk{code, int(code_type)}
 }
 
-var chunkParagraph = chunk{"", -1}
-var chunkLineBreak = chunk{"", -2}
+var (
+	chunkParagraph = chunk{"", -1}
+	chunkLineBreak = chunk{"", -2}
+)
 
-const chunkCode = 1_000_000
-const chunkTickedCode = 1_000_001
+const (
+	chunkCode       = 1_000_000
+	chunkTickedCode = 1_000_001
+)
 
 // Split payload into chunks annotated with character width and containing no newlines according
 // to text formatting rules

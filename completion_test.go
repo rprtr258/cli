@@ -10,8 +10,10 @@ import (
 	funiter "github.com/rprtr258/fun/iter"
 )
 
-type PSOS = fun.Pair[string, Opt[string]]
-type SSOS = stditer.Seq2[string, Opt[string]]
+type (
+	PSOS = fun.Pair[string, Opt[string]]
+	SSOS = stditer.Seq2[string, Opt[string]]
+)
 
 func test_completer(input string) SSOS {
 	vec := test_completer_descr(input)

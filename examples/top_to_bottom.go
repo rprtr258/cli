@@ -68,7 +68,7 @@ func TopToBottom() {
 			Long("file").
 			Help("File to process"), "FILE", parseString))
 	// packing things in a struct assumes parser for each field is in scope.
-	opt := (cli.Map6(
+	opt := cli.Map6(
 		debug,
 		verbose,
 		speed,
@@ -77,6 +77,6 @@ func TopToBottom() {
 		files_to_process,
 		func(debug bool, verbose uint, speed float64, output string, nb_cars uint32, files_to_process []string) Out {
 			return Out{debug, verbose, speed, output, nb_cars, files_to_process}
-		})).ToOptions().Run(os.Args)
+		}).ToOptions().Run(os.Args)
 	fmt.Println(opt)
 }

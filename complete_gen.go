@@ -116,7 +116,7 @@ func (self *state) push_flag(named NamedArg) {
 				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  optFlatMap(named.help, (Doc).to_completion),
+					help:  optFlatMap(named.help, Doc.to_completion),
 				},
 				name,
 			))
@@ -133,7 +133,7 @@ func (self *state) push_argument(named NamedArg, metavar Metavar) {
 				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  optFlatMap(named.help, (Doc).to_completion),
+					help:  optFlatMap(named.help, Doc.to_completion),
 				},
 				name,
 				metavar,
@@ -156,7 +156,7 @@ func (self *state) push_metavar(
 		extra := compExtra{
 			depth: depth,
 			group: Invalid[string](),
-			help:  optFlatMap(help, (Doc).to_completion),
+			help:  optFlatMap(help, Doc.to_completion),
 		}
 
 		comp.comps = append(comp.comps, compMetavariable(extra, meta, is_argument))
@@ -175,7 +175,7 @@ func (self *state) push_command(
 			compExtra{
 				depth: depth,
 				group: Invalid[string](),
-				help:  optFlatMap(help, (Doc).to_completion),
+				help:  optFlatMap(help, Doc.to_completion),
 			},
 			name,
 			short,
@@ -318,6 +318,7 @@ func prefixShort(s byte) prefix {
 		}
 	}
 }
+
 func prefixLong(s string) prefix {
 	return func(_ func(), _ func(byte), f func(string)) {
 		if f != nil {

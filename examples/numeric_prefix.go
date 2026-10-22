@@ -26,7 +26,7 @@ func NumericPrefix() {
 		command string
 	}
 
-	var options = func() cli.Parser[Options] {
+	options := func() cli.Parser[Options] {
 		prefix := cli.OptionalCatch(cli.Positional("PREFIX", func(s string) (uint, error) {
 			u, err := strconv.ParseUint(s, 10, 64)
 			return uint(u), err

@@ -1,8 +1,9 @@
 package cli
 
 import (
-	"github.com/rprtr258/fun"
 	"iter"
+
+	"github.com/rprtr258/fun"
 )
 
 // A composed parser over several inner parsers, created with [Pair], [Triple] or [Construct]
