@@ -40,7 +40,7 @@ package cli
 // the user needs to pass values for all the fields, in the order they are declared.
 // Field names are chosen with `cli` struct tags, for example
 // `Height int `cli:"long=height"` `. Optional fields have types such as Opt[T] or
-// []T parsed with [Optional] and [Many] respectively.
+// []T parsed with [Parser.Optional] and [Parser.Many] respectively.
 //
 // To represent multiple alternatives with [Construct] define a field per
-// alternative and wrap each one in [Optional].
+// alternative and wrap each one in [Parser.Optional].

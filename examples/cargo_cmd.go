@@ -24,7 +24,7 @@ func CargoCmd() {
 	height := cli.Argument(cli.Short('h'), "HEIGHT", parseUint).Fallback(10)
 	parser := cli.Pair(width, height).Map(func(x fun.Pair[uint, uint]) Opts { return Opts{x.K, x.V} })
 
-	cmd := cli.Optional(cli.Literal("cmd")).Hide()
+	cmd := cli.Literal("cmd").Optional().Hide()
 	combined_parser := cli.Pair(cmd, parser).Map(func(x fun.Pair[cli.Opt[struct{}], Opts]) Opts { return x.V })
 
 	opts := combined_parser.ToOptions().Run(os.Args)

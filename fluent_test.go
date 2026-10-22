@@ -17,7 +17,7 @@ func TestFluentChaining(t *testing.T) {
 		Guard(func(x int) bool { return x < 1000 }, "too fast").
 		GroupHelp("Speed settings").
 		Hide()
-	rest := Optional(Positional[string]("REST", parseString))
+	rest := Positional[string]("REST", parseString).Parser().Optional()
 
 	parser := Pair(verbose, Pair(speed, rest)).Map(func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
 		res := ""

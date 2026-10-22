@@ -297,7 +297,7 @@ func TestStatic_complete_test_5(t *testing.T) {
 }
 
 func TestStatic_complete_test_6(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseString))
+	a := Argument(Short('a'), "A", parseString).Parser().Optional()
 	b := Argument(Short('b'), "B", parseString).Parser().Many()
 	parser := Pair(a, b).ToOptions()
 
@@ -504,9 +504,11 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 	c_b := func(string) SSOS {
 		return seq2(funiter.FromMany(PSOS{"--", Invalid[string]()}))
 	}
-	a := Optional(Argument(Long("arg"),
+	a := Argument(Long("arg"),
 		"ARG", parseString).
-		Parser().Complete(c_b))
+		Parser().Complete(c_b).
+		Parser().
+		Optional()
 
 	// parser := Pair(a).ToOptions()
 	parser := a.ToOptions()

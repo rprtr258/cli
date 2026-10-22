@@ -253,7 +253,7 @@ func (self ParseCommand[T]) item() item {
 // using [ParseCommand.Short] and [ParseCommand.Long] methods.
 //
 // To represent multiple possible commands with [Construct] define a field per command in the
-// struct and make each one [Optional].
+// struct and make each one [Parser.Optional].
 func (self OptionParser[T]) Command(name string) *ParseCommand[T] {
 	return &ParseCommand[T]{
 		longs:     []string{name},

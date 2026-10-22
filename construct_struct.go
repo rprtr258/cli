@@ -442,7 +442,7 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 			return res, nil
 		}, pm.meta)
 	case isOption:
-		pm := Optional(p)
+		pm := p.Optional()
 		return wrapEval(func(state *state) (reflect.Value, parseError) {
 			v, err := pm.eval(state)
 			if err != nil {
@@ -485,7 +485,7 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 			return res, nil
 		}}
 	case isOption:
-		pm := Optional(p)
+		pm := p.Optional()
 		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *state) (reflect.Value, parseError) {
 			v, err := pm.eval(state)
 			if err != nil {

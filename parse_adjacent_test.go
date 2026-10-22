@@ -58,7 +58,7 @@ func TestAdjacentPrefix(t *testing.T) {
 		u, err := strconv.ParseUint(s, 10, 32)
 		return uint(u), err
 	})
-	ab := Optional(Pair(a, b).Adjacent())
+	ab := Pair(a, b).Adjacent().Optional()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
 

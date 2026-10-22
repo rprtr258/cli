@@ -170,7 +170,7 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Optional(Argument(Short('a'), "A", parseUint))
+	a := Argument(Short('a'), "A", parseUint).Parser().Optional()
 	b := Positional("B", parseUint)
 	parser := Pair(a, b).ToOptions()
 

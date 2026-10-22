@@ -4,7 +4,7 @@ package cli
 // Apply a failing transformation to a contained value
 //
 // Transformation preserves the present/absent state of the value: to transform an optional value you
-// can either first try to `Parse` it and then mark it as [Optional] or first
+// can either first try to `Parse` it and then mark it as [Parser.Optional] or first
 // deal with the optionality first and then transform the value wrapped in [Opt]. In most cases
 // the former approach is more concise.
 //

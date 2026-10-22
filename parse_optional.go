@@ -3,21 +3,25 @@ package cli
 import "math"
 
 // Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-// and return `None` if any are missing. Created with [Optional].
+// and return `None` if any are missing. Created with [Parser.Optional] or
+// [Parser.OptionalCatch].
 func optional_eval[T any](inner Parser[T], catch bool, state *state) (Opt[T], parseError) {
 	len := uint(math.MaxUint)
 	return parse_option(inner, &len, state, catch)
 }
 
-// Make a parser optional
+// Optional makes a parser optional
 //
 // Optional produces an [Opt] with the parsed value or
 // nothing if the parser fails softly, without consuming input.
-// See [OptionalCatch] for the variant that also catches consumed-input failures.
-func Optional[T any](self parser[T]) Parser[Opt[T]] {
+// See [Parser.OptionalCatch] for the variant that also catches consumed-input failures.
+func (self Parser[T]) Optional[R Opt[T]]() Parser[R] {
 	inner := self.Parser()
-	return Parser[Opt[T]]{
-		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, false, state) },
+	return Parser[R]{
+		eval: func(state *state) (R, parseError) {
+			x, err := optional_eval(inner, false, state)
+			return R(x), err
+		},
 		meta: metaOptional{inner.meta},
 	}
 }
@@ -26,10 +30,13 @@ func Optional[T any](self parser[T]) Parser[Opt[T]] {
 // consumed values and yields nothing if the inner parser fails.
 //
 // This is the behavior [Construct] applies to fields with an Opt[T] type.
-func OptionalCatch[T any](self parser[T]) Parser[Opt[T]] {
+func (self Parser[T]) OptionalCatch[R Opt[T]]() Parser[R] {
 	inner := self.Parser()
-	return Parser[Opt[T]]{
-		eval: func(state *state) (Opt[T], parseError) { return optional_eval(inner, true, state) },
+	return Parser[R]{
+		eval: func(state *state) (R, parseError) {
+			x, err := optional_eval(inner, true, state)
+			return R(x), err
+		},
 		meta: metaOptional{inner.meta},
 	}
 }

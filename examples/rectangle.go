@@ -28,9 +28,10 @@ func Rectangle() {
 		Long("height").
 		Help("Height of the rectangle"), "PX", parseUint)
 
-	rect := cli.Optional(cli.Pair(width, height).
+	rect := cli.Pair(width, height).
 		Map(func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
-		GroupHelp("Rectangle is defined by width and height in meters"))
+		GroupHelp("Rectangle is defined by width and height in meters").
+		Optional()
 
 	verbose := cli.
 		Short('v').

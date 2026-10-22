@@ -65,7 +65,7 @@
 // Each combinator returns a new parser without changing the original:
 // [Parser.Map] and [Parse] convert values, [Parser.Guard] validates them,
 // [Parser.Fallback] and [Parser.FallbackWith] provide defaults,
-// [Optional] makes a parser optional, [Parser.Many] and [Parser.Some] collect repeated
+// [Parser.Optional] makes a parser optional, [Parser.Many] and [Parser.Some] collect repeated
 // items, [Parser.Collect] fills any slice, [Parser.Count] counts occurrences.
 //
 // # Combining parsers

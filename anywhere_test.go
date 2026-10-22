@@ -47,7 +47,7 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := OptionalCatch(Pair(a, b).Adjacent())
+	ab := Pair(a, b).Adjacent().OptionalCatch()
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
 
@@ -92,7 +92,7 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
-	ab := OptionalCatch(Pair(a, b).Adjacent())
+	ab := Pair(a, b).Adjacent().OptionalCatch()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
 

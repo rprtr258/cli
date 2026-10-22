@@ -7,7 +7,7 @@ import (
 func TestOptional_group_meta(t *testing.T) {
 	a := Argument(Short('a'), "A", parseString)
 	b := Argument(Short('b'), "B", parseString)
-	parser := Optional(Pair(a, b)).ToOptions()
+	parser := Pair(a, b).Parser().Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a=A -b=B]")
 }
@@ -51,14 +51,14 @@ func TestOptional_req_select(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	parser := Optional(Choice(a, b)).ToOptions()
+	parser := Choice(a, b).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a | -b]")
 }
 
 func TestSingle_optional_req_select(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	parser := Optional(Choice(a)).ToOptions()
+	parser := Choice(a).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a]")
 }
@@ -83,7 +83,7 @@ func TestOptional_argument_select(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Argument(Short('a'), "A", parseString)
 	b := Argument(Short('b'), "B", parseString)
-	parser := Optional(Choice(a, b)).ToOptions()
+	parser := Choice(a, b).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a=A | -b=B]")
 }
@@ -157,7 +157,7 @@ func TestOptional_one_many(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
-	parser := Optional(Pair(a, b)).Many().ToOptions()
+	parser := Pair(a, b).Parser().Optional().Many().ToOptions()
 	assert_usage(t, parser, "[-a -b]...")
 }
 
@@ -208,7 +208,7 @@ func TestA_or_b_opt(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Argument(Short('a').Long("aaa"), "A", parseString)
 	b := Argument(Short('b').Long("bbb"), "B", parseString)
-	parser := Optional(Choice(a, b)).ToOptions()
+	parser := Choice(a, b).Optional().ToOptions()
 	assert_usage(t, parser, "[-a=A | -b=B]")
 }
 
@@ -216,7 +216,7 @@ func TestA_or_b_opt_and_c(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Argument(Short('a').Long("aaa"), "A", parseString)
 	b := Argument(Short('b').Long("bbb"), "B", parseString)
-	ab := Optional(Choice(a, b))
+	ab := Choice(a, b).Optional()
 	c := Positional("C", parseString)
 	parser := Pair(ab, c).ToOptions()
 	assert_usage(t, parser, "[-a=A | -b=B] C")
@@ -293,7 +293,7 @@ func TestDouble_strict(t *testing.T) {
 
 func TestOptional_strict(t *testing.T) {
 	t.SkipNow() // TODO: fix
-	parser := Optional(Positional("A", parseUint).Strict()).ToOptions()
+	parser := Positional("A", parseUint).Strict().Parser().Optional().ToOptions()
 	assert_usage(t, parser, "-- [A]")
 }
 

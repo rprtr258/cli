@@ -24,7 +24,7 @@ func TestTest_adjacent_prefix(t *testing.T) {
 	type R = fun.Pair[Opt[P], bool]
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("X", parseUint)
-	ab := Optional(Pair(a, b).Adjacent())
+	ab := Pair(a, b).Adjacent().Optional()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
 

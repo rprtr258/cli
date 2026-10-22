@@ -18,9 +18,10 @@ import (
 func Cat() {
 	run := func() error {
 		file := cli.Parse(
-			cli.Optional(
-				cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
-					Help("File name to concatenate, with no FILE or when FILE is -, read standard input")),
+			cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
+				Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
+				Parser().
+				Optional(),
 			func(pathOpt cli.Opt[string]) (*os.File, error) {
 				path, ok := pathOpt.Unpack()
 				if !ok {
