@@ -40,6 +40,7 @@ func some_eval[T any](inner Parser[T], message string, catch bool, state *state)
 // # See also
 // [Parser.Many] also collects results to a slice but succeeds with
 // no matching values; [Parser.Collect] collects results into a slice
+// See [Parser.Many] for why this method takes an [R []T] type parameter.
 func (self Parser[T]) Some[R []T](message string) Parser[R] {
 	inner := self.Parser()
 	return Parser[R]{
@@ -51,6 +52,7 @@ func (self Parser[T]) Some[R []T](message string) Parser[R] {
 // SomeCatch collects one or more items; if none are present it fails with
 // `message`. Stops at the first inner parser failure, keeping the values
 // collected so far.
+// See [Parser.Many] for why this method takes an [R []T] type parameter.
 func (self Parser[T]) SomeCatch[R []T](message string) Parser[R] {
 	inner := self.Parser()
 	return Parser[R]{

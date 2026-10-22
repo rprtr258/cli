@@ -28,7 +28,7 @@ func TestSimple(t *testing.T) {
 	user := Argument(Long("user").
 		Env("USER").
 		Help("Log in as this user"),
-		"USER", parseString)
+		"USER", ParseString)
 
 	options := Pair(kraken, user).
 		Parser().ToOptions().
@@ -50,7 +50,7 @@ func TestNested(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	a := Argument(Short('d').
 		Help("dragon"),
-		"y", parseString).
+		"y", ParseString).
 		Parser().ToOptions().
 		Description("I am a program and I do things").
 		Header("Sometimes they even work. 1").
@@ -59,7 +59,7 @@ func TestNested(t *testing.T) {
 
 	b := Argument(Short('k').
 		Help("kraken"),
-		"x", parseString).
+		"x", ParseString).
 		Parser().ToOptions().
 		Description("I am a program and I do things 2").
 		Header("Sometimes they even work. 2").
@@ -67,12 +67,12 @@ func TestNested(t *testing.T) {
 		Command("dmc").
 		Short('d')
 
-	c := Positional("C", parseString).Help("Mystery file")
+	c := Positional("C", ParseString).Help("Mystery file")
 
 	d := Argument(Short('d').
 		Long("ddd").
 		Help("mystery arg"),
-		"D", parseString)
+		"D", ParseString)
 
 	// e := Short('e').Long("eee").help("the e in the room").argument::<String>("E");
 	a_or_b := Choice(a, b)
@@ -97,7 +97,7 @@ func TestVery_nested(t *testing.T) {
 	t.SkipNow() // TODO: fix
 	options := Argument(Short('k').
 		Help("Unleash the Kraken"),
-		"NAME", parseString).
+		"NAME", ParseString).
 		Parser().ToOptions().
 		Description("lvl 4 description").
 		Command("lvl4").

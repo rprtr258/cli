@@ -166,7 +166,9 @@ func (self parseArgument[T]) eval(state *state) (T, parseError) {
 // from the flag with `=`. For short flags the value can follow immediately: `-fbar`.
 //
 // The type parameter is the parsed value type, the `parse` function converts the raw
-// string into it. For types with custom parsing logic pass a custom function.
+// string into it. Ready-made converters for common types are available: [ParseString],
+// [ParseInt], [ParseUint], [ParseFloat], [ParseBool], [ParseDuration]. For types with
+// custom parsing logic pass a custom function.
 //
 // For `metavar` you should pick something short and descriptive about the parameter,
 // usually in capital letters. For example for an abstract file parameter it could be

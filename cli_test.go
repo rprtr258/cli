@@ -297,7 +297,7 @@ func TestParseErrors(t *testing.T) {
 }
 
 func TestCustomUsage(t *testing.T) {
-	a := Argument(Short('a').Long("long"), "ARG", parseString)
+	a := Argument(Short('a').Long("long"), "ARG", ParseString)
 	parser := a.ToOptions().Usage(NewDoc("Usage: -a <ARG> or --long <ARG>"))
 	const expected_help = `Usage: -a <ARG> or --long <ARG>
 
@@ -311,22 +311,22 @@ Available options:
 func TestLongUsageString(t *testing.T) {
 	a := Argument(Short('a').
 		Long("a-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 	b := Argument(Short('b').
 		Long("b-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 	c := Argument(Short('c').
 		Long("c-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 	d := Argument(Short('d').
 		Long("d-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 	e := Argument(Short('e').
 		Long("e-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 	f := Argument(Short('f').
 		Long("f-very-long-flag-with"),
-		"ARG", parseString)
+		"ARG", ParseString)
 
 	parser := Pair(Pair(Pair(Pair(Pair(a, b), c), d), e), f).ToOptions()
 
@@ -521,7 +521,7 @@ func TestGit(t *testing.T) {
 		fetch := Map3(
 			Long("dry_run").Switch(),
 			Long("all").Switch(),
-			Positional("SRC", parseString).Fallback("origin"),
+			Positional("SRC", ParseString).Fallback("origin"),
 			OptFetch)
 		fetch_inner := fetch.
 			ToOptions().
@@ -531,7 +531,7 @@ func TestGit(t *testing.T) {
 		add := Map3(
 			Short('i').Switch(),
 			Long("all").Switch(),
-			Positional("FILE", parseString).Parser().Many(),
+			Positional("FILE", ParseString).Parser().Many(),
 			OptAdd)
 		add_inner := add.ToOptions().Description("add files to the staging area")
 		add_cmd := add_inner.Command("add")
@@ -610,7 +610,7 @@ func TestArg_bench(t *testing.T) {
 		Help("Sets width"),
 		"width", parseUint32).Guard(func(n uint32) bool { return n > 0 }, "Width must be positive").Fallback(10)
 
-	input := Positional("INPUT", parseString).Parser().Many()
+	input := Positional("INPUT", ParseString).Parser().Many()
 
 	parser := Map4(
 		number,
@@ -683,8 +683,8 @@ func TestHiddenEnv(t *testing.T) {
 	name := "BPAF_SECRET_API_KEY2"
 	visible := Argument(Long("key").
 		Help("use this secret key\n two lines"),
-		"KEY", parseString)
-	hidden := Argument(Env(name), "KEY", parseString)
+		"KEY", ParseString)
+	hidden := Argument(Env(name), "KEY", ParseString)
 	parser := Choice(visible, hidden).ToOptions()
 
 	const expected = `Usage: --key=KEY
@@ -703,7 +703,7 @@ func TestEnvVariable(t *testing.T) {
 	const name = "BPAF_SECRET_API_KEY"
 	parser := Argument(Long("key").
 		Env(name).
-		Help("use this secret key\ntwo lines"), "KEY", parseString).
+		Help("use this secret key\ntwo lines"), "KEY", ParseString).
 		Parser().
 		ToOptions()
 
@@ -819,10 +819,10 @@ func TestHelpForOptions(t *testing.T) {
 	a := Short('a').Help("help for\na").Switch()
 	b := Argument(Short('c').
 		Env("BbBbB").
-		Help("help for\nb"), "B", parseString)
+		Help("help for\nb"), "B", ParseString)
 	c := Argument(Long("bbbbb").
 		Env("ccccCCccc").
-		Help("help for\nccc"), "CCC", parseString)
+		Help("help for\nccc"), "CCC", ParseString)
 	parser := Triple(a, b, c).ToOptions()
 
 	const expected_help = `Usage: [-a] -c=B --bbbbb=CCC
@@ -933,7 +933,7 @@ func TestFailure_is_not_stupid_2(t *testing.T) {
 }
 
 func TestNo_fallback_out_of_command_parser(t *testing.T) {
-	alt1 := Positional("NAME", parseString).ToOptions().Command("cmd")
+	alt1 := Positional("NAME", ParseString).ToOptions().Command("cmd")
 	alt2 := Pure("")
 	parser := Choice(alt1, alt2).ToOptions()
 
@@ -963,7 +963,7 @@ func TestDid_you_mean_req_flag(t *testing.T) {
 }
 
 func TestDid_you_mean_argument(t *testing.T) {
-	parser := Argument(Long("flag"), "VAL", parseString).ToOptions()
+	parser := Argument(Long("flag"), "VAL", ParseString).ToOptions()
 
 	assertFailure(t, parser, "no such flag: `--flg`, did you mean `--flag`?", "--flg=hellop")
 
@@ -1020,7 +1020,7 @@ func TestDid_you_mean_two_or_arguments(t *testing.T) {
 // parse/guard failures should "taint" the arguments and disable the suggestion logic
 
 func TestCargo_show_asm_issue_guard(t *testing.T) {
-	target_dir := Argument(Short('t'), "T", parseString).Guard(func(string) bool { return false }, "nope")
+	target_dir := Argument(Short('t'), "T", ParseString).Guard(func(string) bool { return false }, "nope")
 	verbosity := Short('v').Switch()
 	inner := Pair(target_dir, verbosity)
 	parser := cargo_helper("asm", inner).ToOptions()
@@ -1031,18 +1031,18 @@ func TestCargo_show_asm_issue_guard(t *testing.T) {
 }
 
 func TestCargo_show_asm_issue_from_str(t *testing.T) {
-	target_dir := Argument(Short('t'), "T", parseUint)
+	target_dir := Argument(Short('t'), "T", ParseUint)
 	verbosity := Short('v').Switch()
 	inner := Pair(target_dir, verbosity)
 	parser := cargo_helper("asm", inner).ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `x`: invalid digit found in string", "asm", "-t", "x")
+	assertFailure(t, parser, "couldn't parse `x`: invalid syntax", "asm", "-t", "x")
 
-	assertFailure(t, parser, "couldn't parse `x`: invalid digit found in string", "-t", "x")
+	assertFailure(t, parser, "couldn't parse `x`: invalid syntax", "-t", "x")
 }
 
 func TestCargo_show_asm_issue_parse(t *testing.T) {
-	target_dir := Parse(Argument(Short('t'), "T", parseString),
+	target_dir := Parse(Argument(Short('t'), "T", ParseString),
 		func(string) (struct{}, error) { return struct{}{}, errors.New("nope") })
 
 	verbosity := Short('v').Switch()
@@ -1118,14 +1118,14 @@ func TestParse_many_errors_flag(t *testing.T) {
 }
 
 func TestCommand_with_req_parameters(t *testing.T) {
-	p := Positional("X", parseString).ToOptions().
+	p := Positional("X", ParseString).ToOptions().
 		Command("cmd").Fallback("").ToOptions()
 
 	assertFailure(t, p, "expected `X`, pass `--help` for usage information", "cmd")
 }
 
 func TestSuggestion_for_equals_1(t *testing.T) {
-	parser := Argument(Short('p').Long("par"), "P", parseString).ToOptions()
+	parser := Argument(Short('p').Long("par"), "P", ParseString).ToOptions()
 
 	assertFailure(t, parser, "`-p` requires an argument `P`, got a flag `--bar`, try `-p=--bar` to use it as an argument", "-p", "--bar")
 
@@ -1135,14 +1135,14 @@ func TestSuggestion_for_equals_1(t *testing.T) {
 }
 
 func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
-	parser := Positional("POS", parseString).Parser().Many().ToOptions()
+	parser := Positional("POS", ParseString).Parser().Many().ToOptions()
 
 	assertSuccess(t, []string{}, parser, "--")
 	assertSuccess(t, []string{"--"}, parser, "--", "--")
 }
 
 func TestReject_fbar(t *testing.T) {
-	parser := Argument(Short('f'), "F", parseString).ToOptions()
+	parser := Argument(Short('f'), "F", ParseString).ToOptions()
 
 	assertFailure(t, parser, "`baz` is not expected in this context", "-fbar", "baz")
 	assertSuccess(t, "bar", parser, "-fbar")
@@ -1172,10 +1172,10 @@ func TestCatch_works(t *testing.T) {
 	ANum := func(a uint) A { return A{true, a, ""} }
 	AStr := func(s string) A { return A{false, 0, s} }
 	a_n := Argument(Short('a'),
-		"A", parseUint).Map(ANum).
+		"A", ParseUint).Map(ANum).
 		OptionalCatch()
 	a_s := Argument(Short('a'),
-		"A", parseString).Map(AStr).
+		"A", ParseString).Map(AStr).
 		Hide().
 		Optional()
 	parser := Choice(a_n, a_s).ToOptions()
@@ -1210,7 +1210,7 @@ func TestSneaky_command(t *testing.T) {
 }
 
 func TestDefault_for_many(t *testing.T) {
-	parser := Positional("ROOTS", parseString).Parser().Many().
+	parser := Positional("ROOTS", ParseString).Parser().Many().
 		Map(func(items []string) []string {
 			if len(items) == 0 {
 				return []string{"."}
@@ -1231,7 +1231,7 @@ func TestParse_option_catch(t *testing.T) {
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
 	a1 := Argument(Short('a'), "N", parseUint32).Map(AU32).OptionalCatch()
-	a2 := Argument(Short('a'), "S", parseString).Map(AS).OptionalCatch()
+	a2 := Argument(Short('a'), "S", ParseString).Map(AS).OptionalCatch()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, Valid(AU32(10)), parser, "-a", "10")
@@ -1250,7 +1250,7 @@ func TestParse_some_catch(t *testing.T) {
 	a1 := Argument(Short('a'),
 		"N", parseUint32).Map(AU32).SomeCatch("A").
 		Hide()
-	a2 := Argument(Short('a'), "S", parseString).Map(AS).SomeCatch("A").Hide()
+	a2 := Argument(Short('a'), "S", ParseString).Map(AS).SomeCatch("A").Hide()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
@@ -1271,7 +1271,7 @@ Available options:
 }
 
 func TestStrange_short_option(t *testing.T) {
-	parser := Argument(Short('O'), "ARG", parseString).ToOptions()
+	parser := Argument(Short('O'), "ARG", ParseString).ToOptions()
 	assertSuccess(t, "bits=2048", parser, "-Obits=2048")
 }
 
@@ -1286,7 +1286,7 @@ func TestFancy_negative(t *testing.T) {
 	b := Any("A", func(s string) (int32, bool) { res, err := strconv.ParseInt(s, 10, 32); return int32(res), err == nil }, false)
 	ab := Pair(a, b).Adjacent().Map(func(x fun.Pair[struct{}, int32]) int32 { return x.V })
 
-	c := Argument(Short('c'), "C", parseUint).Fallback(42)
+	c := Argument(Short('c'), "C", ParseUint).Fallback(42)
 
 	parser := Pair(ab, c).ToOptions()
 
@@ -1310,13 +1310,13 @@ func TestMany_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString).Parser().Many().ToOptions()
+		"USER", ParseString).Parser().Many().ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
 
 func TestEnv_hidden_arg(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := Argument(Env("USER1"), "USER", parseString).ToOptions()
+	parser := Argument(Env("USER1"), "USER", ParseString).ToOptions()
 	assertSuccess(t, "top s3cr3t", parser)
 }
 
@@ -1336,14 +1336,14 @@ func TestSome_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
 	parser := Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString).Parser().Some("a").
+		"USER", ParseString).Parser().Some("a").
 		ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
 
 func TestOption_requires_other_option1(t *testing.T) {
 	a := Short('a').Switch()
-	b := Argument(Short('b'), "B", parseString)
+	b := Argument(Short('b'), "B", ParseString)
 	parser := Pair(a, b).Parser().Optional().ToOptions()
 
 	assertFailure(t, parser, "expected `-b=B`, pass `--help` for usage information", "-a")
@@ -1351,7 +1351,7 @@ func TestOption_requires_other_option1(t *testing.T) {
 
 func TestOption_requires_other_option2(t *testing.T) {
 	a := Short('a').Switch()
-	b := Argument(Short('b'), "B", parseString)
+	b := Argument(Short('b'), "B", ParseString)
 	parser := Pair(b, a).Parser().Optional().ToOptions()
 
 	assertFailure(t, parser, "expected `-b=B`, pass `--help` for usage information", "-a")

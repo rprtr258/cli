@@ -36,6 +36,9 @@ func many_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseErro
 // # See also
 // [Parser.Some] also collects results to a slice but requires at least one
 // element to succeed; [Parser.Collect] collects results into a slice
+// The [R []T] parameter works around a Go type-checker limitation: a method on
+// Parser[T] cannot declare return type Parser[[]T] ("instantiation cycle: T instantiated
+// as []T"). Constraint inference fills R with []T, so call sites can just write `.Many()`.
 func (self Parser[T]) Many[R []T]() Parser[R] {
 	inner := self.Parser()
 	return Parser[R]{
@@ -46,6 +49,7 @@ func (self Parser[T]) Many[R []T]() Parser[R] {
 
 // ManyCatch collects zero or more items, stopping at the first inner parser
 // failure and keeping the values collected so far.
+// See [Parser.Many] for why this method takes an [R []T] type parameter.
 func (self Parser[T]) ManyCatch[R []T]() Parser[R] {
 	inner := self.Parser()
 	return Parser[R]{

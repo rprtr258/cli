@@ -22,11 +22,11 @@ func Rectangle() {
 
 	width := cli.Argument[uint](cli.Short('w').
 		Long("width").
-		Help("Width of the rectangle"), "PX", parseUint)
+		Help("Width of the rectangle"), "PX", cli.ParseUint)
 
 	height := cli.Argument[uint](cli.Short('h').
 		Long("height").
-		Help("Height of the rectangle"), "PX", parseUint)
+		Help("Height of the rectangle"), "PX", cli.ParseUint)
 
 	rect := cli.Pair(width, height).
 		Map(func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).

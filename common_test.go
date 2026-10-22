@@ -35,38 +35,6 @@ func parseInt32(s string) (int32, error) {
 	return int32(u), nil
 }
 
-// TODO: move similar funcs to batteries and use
-func parseUint(s string) (uint, error) {
-	u, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		return 0, errors.New("invalid digit found in string")
-	}
-	return uint(u), nil
-}
-
-// TODO: move similar funcs to batteries and use
-func parseString(s string) (string, error) {
-	return s, nil
-}
-
-// TODO: move similar funcs to batteries and use
-func parseInt(s string) (int, error) {
-	u, err := strconv.Atoi(s)
-	if err != nil {
-		return 0, errors.New("invalid digit found in string")
-	}
-	return u, nil
-}
-
-// TODO: move similar funcs to batteries and use
-func parseBool(s string) (bool, error) {
-	b, err := strconv.ParseBool(s)
-	if err != nil {
-		return false, err
-	}
-	return b, nil
-}
-
 // Strip a command name if present at the front when used as a `cargo` command
 //
 // When implementing a cargo subcommand parser needs to be able to skip the first argument which

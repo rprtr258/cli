@@ -47,7 +47,7 @@ func Basic() {
 		output := cli.Argument[string](cli.Short('o').
 			Long("output").
 			Help("output file"),
-			"OUTPUT", parseString). // but it's optional when rustc can derive it
+			"OUTPUT", cli.ParseString). // but it's optional when rustc can derive it
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Invalid[string]()))
 
@@ -68,7 +68,7 @@ func Basic() {
 		file_to_proces := cli.Argument(cli.Short('f').
 			Long("file").
 			Help("File to process"),
-			"FILE", parseString).
+			"FILE", cli.ParseString).
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
 

@@ -28,7 +28,7 @@ Available options:
 
 func TestParse_anywhere_no_catch(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("X", parseUint)
+	b := Positional("X", ParseUint)
 	ab := Pair(a, b).Adjacent()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
@@ -37,16 +37,16 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 
 	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "3", "-a")
 	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-a")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid digit found in string", "-a", "221b")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a", "221b")
 	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-c", "-a")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid digit found in string", "-c", "-a", "221b")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-c", "-a", "221b")
 	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-a", "-c")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid digit found in string", "-a", "221b", "-c")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a", "221b", "-c")
 }
 
 func TestAnywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().OptionalCatch()
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
@@ -60,7 +60,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 
 func TestAnywhere_catch_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().ManyCatch()
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
@@ -76,7 +76,7 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[P, bool]
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().Fallback(P{struct{}{}, 10})
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
@@ -88,7 +88,7 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 
 func TestParse_anywhere_catch_optional(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Positional("x", parseUint)
+	b := Positional("x", ParseUint)
 
 	// optional + catch makes it so parser succeeds without consuming anything
 	// usually leaving `-a` untouched to be consumed by something else
@@ -111,7 +111,7 @@ func TestAnywhere_literal(t *testing.T) {
 		func(x string) (struct{}, bool) { return struct{}{}, x == "-mode" },
 		false,
 	)
-	mode := Positional("value", parseUint)
+	mode := Positional("value", ParseUint)
 	a := Pair(tag, mode).Adjacent().ManyCatch()
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]

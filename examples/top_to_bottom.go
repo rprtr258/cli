@@ -51,7 +51,7 @@ func TopToBottom() {
 		Argument(cli.Short('o').
 			Long("output").
 			Help("output file"),
-			"OUTPUT", parseString).
+			"OUTPUT", cli.ParseString).
 		Parser()
 
 	// no magical name transmogrifications.
@@ -67,7 +67,7 @@ func TopToBottom() {
 	var files_to_process cli.Parser[[]string] = cli.
 		Argument(cli.Short('f').
 			Long("file").
-			Help("File to process"), "FILE", parseString).
+			Help("File to process"), "FILE", cli.ParseString).
 		Parser().
 		Many()
 	// packing things in a struct assumes parser for each field is in scope.

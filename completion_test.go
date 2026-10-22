@@ -65,31 +65,31 @@ func complete_beta(input string) SSOS {
 
 func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
 	arg := ReqFlag(Short('b').Help("Option b"), uint(10))
-	pos := Parse(Positional("DISTANCE", parseString).
+	pos := Parse(Positional("DISTANCE", ParseString).
 		Parser().CompleteShell(ShellCompFile(Invalid[string]())).
 		Parser().Guard(func(s string) bool { return s != "" }, "unreachable"),
-		parseUint)
+		ParseUint)
 
 	assertCompletion(t, Choice(arg, pos).ToOptions(), "-b\t-b\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
-	arg := Argument(Short('b').Help("Option b"), "HELLO", parseUint)
-	pos := Positional("DISTANCE", parseUint).CompleteShell(ShellCompFile(Invalid[string]()))
+	arg := Argument(Short('b').Help("Option b"), "HELLO", ParseUint)
+	pos := Positional("DISTANCE", ParseUint).CompleteShell(ShellCompFile(Invalid[string]()))
 
 	assertCompletion(t, Choice(arg, pos).ToOptions(), "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_3_flag_and_pos(t *testing.T) {
 	arg := ReqFlag(Short('b').Help("Option b"), uint(10))
-	pos := Positional("DISTANCE", parseUint).CompleteShell(ShellCompFile(Invalid[string]()))
+	pos := Positional("DISTANCE", ParseUint).CompleteShell(ShellCompFile(Invalid[string]()))
 
 	assertCompletion(t, Pair(arg, pos).ToOptions(), "-b\t-b\t\tOption b\n\nFile { mask: None }\n", "")
 }
 
 func TestMixing_shell_and_positional_4_arg_and_pos(t *testing.T) {
-	arg := Argument(Short('b').Help("Option b"), "HELLO", parseUint)
-	pos := Positional("DISTANCE", parseUint).CompleteShell(ShellCompFile(Invalid[string]()))
+	arg := Argument(Short('b').Help("Option b"), "HELLO", ParseUint)
+	pos := Positional("DISTANCE", ParseUint).CompleteShell(ShellCompFile(Invalid[string]()))
 
 	assertCompletion(t, Pair(arg, pos).ToOptions(), "-b\t-b=HELLO\t\tOption b\n\nFile { mask: None }\n", "")
 }
@@ -100,7 +100,7 @@ func TestStatic_complete_test_1(t *testing.T) {
 	bb := Long("bananananana").Help("I'm Batman").Switch()
 	c := Argument(Long("calculator").
 		Help("calculator expression"),
-		"EXPR", parseString)
+		"EXPR", ParseString)
 
 	parser := Pair(Pair(a, b), Pair(bb, c)).ToOptions()
 
@@ -136,7 +136,7 @@ func TestStatic_complete_test_1(t *testing.T) {
 func TestLong_and_short_arguments(t *testing.T) {
 	parser := Argument(Short('p').
 		Long("potato"),
-		"POTATO", parseString).
+		"POTATO", ParseString).
 		Parser().ToOptions()
 
 	assertCompletion(t, parser, "--potato", "-p")
@@ -148,13 +148,13 @@ func TestLong_and_short_arguments(t *testing.T) {
 
 func TestShort_command_alias(t *testing.T) {
 	a := Argument(Long("potato"),
-		"A", parseString).
+		"A", ParseString).
 		Parser().ToOptions().
 		Command("cmd_a").
 		Short('a')
 
 	b := Argument(Long("potato"),
-		"A", parseString).
+		"A", ParseString).
 		Parser().ToOptions().
 		Command("cmd_b").
 		Short('b')
@@ -179,20 +179,20 @@ func TestSingle_command_completes_to_full(t *testing.T) {
 
 func TestStatic_complete_test_2(t *testing.T) {
 	a := Argument(Long("potato"),
-		"SHAPE", parseString).
+		"SHAPE", ParseString).
 		Parser().ToOptions().
 		Command("check").
 		Short('C').
 		Help("check packages")
 
 	b := Argument(Long("megapotato"),
-		"MEGA", parseString).
+		"MEGA", ParseString).
 		Parser().ToOptions().
 		Command("clean").
 		Help("clean target dir")
 
 	c := Argument(Long("makan"),
-		"BKT", parseString).
+		"BKT", ParseString).
 		Parser().ToOptions().
 		Command("build").
 		Short('b').
@@ -224,10 +224,10 @@ func TestStatic_complete_test_2(t *testing.T) {
 }
 
 func TestStatic_complete_test_3(t *testing.T) {
-	a := Argument(Long("potato").Help("po"), "P", parseString)
-	b := Argument(Long("banana").Help("ba"), "B", parseString)
+	a := Argument(Long("potato").Help("po"), "P", ParseString)
+	b := Argument(Long("banana").Help("ba"), "B", ParseString)
 	ab := Pair(a, b)
-	c := Argument(Long("durian"), "D", parseString)
+	c := Argument(Long("durian"), "D", ParseString)
 	parser := Pair(ab, c).ToOptions()
 
 	assertCompletion(t, parser, "--potato\t--potato=P\t\tpo\n--banana\t--banana=B\t\tba\n--durian\t--durian=D\t\t\n\n", "")
@@ -240,8 +240,8 @@ func TestStatic_complete_test_3(t *testing.T) {
 }
 
 func TestStatic_complete_test_4(t *testing.T) {
-	a := Argument(Short('a'), "A", parseString)
-	b := Argument(Short('b'), "B", parseString)
+	a := Argument(Short('a'), "A", ParseString)
+	b := Argument(Short('b'), "B", ParseString)
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "\tA\t\t\n\n", "-a", "")
@@ -264,10 +264,10 @@ func TestStatic_complete_test_4(t *testing.T) {
 }
 
 func TestStatic_complete_test_5(t *testing.T) {
-	a := Argument(Short('a'), "A", parseString)
-	b := Argument(Short('b'), "B", parseString)
-	c := Argument(Short('c'), "C", parseString)
-	d := Argument(Short('d'), "D", parseString)
+	a := Argument(Short('a'), "A", ParseString)
+	b := Argument(Short('b'), "B", ParseString)
+	c := Argument(Short('c'), "C", ParseString)
+	d := Argument(Short('d'), "D", ParseString)
 	ab := Pair(a, b)
 	cd := Pair(c, d)
 	parser := Pair(ab, cd).ToOptions()
@@ -297,8 +297,8 @@ func TestStatic_complete_test_5(t *testing.T) {
 }
 
 func TestStatic_complete_test_6(t *testing.T) {
-	a := Argument(Short('a'), "A", parseString).Parser().Optional()
-	b := Argument(Short('b'), "B", parseString).Parser().Many()
+	a := Argument(Short('a'), "A", ParseString).Parser().Optional()
+	b := Argument(Short('b'), "B", ParseString).Parser().Many()
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "-b", "x", "")
@@ -318,7 +318,7 @@ func TestStatic_complete_test_6(t *testing.T) {
 
 func TestStatic_complete_test_7(t *testing.T) {
 	a := Short('a').Help("switch").Switch()
-	b := Positional("FILE", parseString).Help("File to use")
+	b := Positional("FILE", ParseString).Help("File to use")
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\tswitch\n\tFILE\t\tFile to use\n\n", "")
@@ -346,7 +346,7 @@ func TestStatic_complete_test_8(t *testing.T) {
 }
 
 func TestJust_positional(t *testing.T) {
-	parser := Positional("FILE", parseString).
+	parser := Positional("FILE", ParseString).
 		Help("File to use").
 		Parser().ToOptions()
 
@@ -357,7 +357,7 @@ func TestJust_positional(t *testing.T) {
 
 func TestDynamic_complete_test_1(t *testing.T) {
 	parser := Argument(Short('a'),
-		"ARG", parseString).
+		"ARG", ParseString).
 		Parser().Complete(test_completer).
 		Parser().ToOptions()
 
@@ -373,7 +373,7 @@ func TestDynamic_complete_test_1(t *testing.T) {
 }
 
 func TestDynamic_complete_test_2(t *testing.T) {
-	parser := Argument(Short('a'), "ARG", parseString).ToOptions()
+	parser := Argument(Short('a'), "ARG", ParseString).ToOptions()
 
 	assertCompletion(t, parser, "\tARG\t\t\n\n", "-a", "b")
 }
@@ -384,7 +384,7 @@ func TestDynamic_complete_test_3(t *testing.T) {
 	bb := Long("bananananana").Help("I'm Batman").Switch()
 	c := Argument(Long("calculator").
 		Help("calculator expression"),
-		"EXPR", parseString).
+		"EXPR", ParseString).
 		Parser().Complete(test_completer)
 	parser := Pair(Pair(a, b), Pair(bb, c)).ToOptions()
 
@@ -393,7 +393,7 @@ func TestDynamic_complete_test_3(t *testing.T) {
 
 func TestDynamic_complete_test_4(t *testing.T) {
 	parser := Argument(Long("name"),
-		"NAME", parseString).
+		"NAME", ParseString).
 		Parser().Complete(test_completer_descr).
 		Parser().ToOptions()
 
@@ -424,7 +424,7 @@ func TestCsample_mystery(t *testing.T) {
 	bb := Long("bananananana").Help("I'm Batman").Switch()
 	c := Argument(Long("calculator").
 		Help("calculator expression"),
-		"EXPR", parseString).
+		"EXPR", ParseString).
 		Parser().Complete(test_completer)
 	parser := Pair(Pair(a, b), Pair(bb, c)).
 		Parser().ToOptions().
@@ -438,7 +438,7 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 	a := Short('a').Switch()
 	b := Short('b').Switch()
 	c := Short('c').Switch()
-	d := Positional("D", parseString)
+	d := Positional("D", ParseString)
 	parser := Pair(Pair(a, b), Pair(c, d)).ToOptions()
 
 	assertCompletion(t, parser, "--\n", "-a", "--")
@@ -451,18 +451,18 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 }
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
-	parser := Positional("D", parseString).Parser().Many().ToOptions()
+	parser := Positional("D", ParseString).Parser().Many().ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
-	parser := Positional("D", parseString).Parser().Some("").ToOptions()
+	parser := Positional("D", ParseString).Parser().Some("").ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestOnly_positionals_after_positionals(t *testing.T) {
 	a := Short('a').Switch()
-	d := Positional("D", parseString).Parser().Many()
+	d := Positional("D", ParseString).Parser().Many()
 	parser := Pair(a, d).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\t\n\tD\t\t\n\n", "")
@@ -475,8 +475,8 @@ func TestOnly_positionals_after_positionals(t *testing.T) {
 }
 
 func TestPositionals_complete_in_order(t *testing.T) {
-	a := Positional("A", parseString).Complete(complete_alpha)
-	b := Positional("B", parseString).Complete(complete_beta)
+	a := Positional("A", ParseString).Complete(complete_alpha)
+	b := Positional("B", ParseString).Complete(complete_beta)
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "alpha", "")
@@ -493,8 +493,8 @@ func TestPositionals_complete_in_order(t *testing.T) {
 }
 
 func TestShould_be_able_to_suggest_positional_along_with_non_positionals_flags(t *testing.T) {
-	a := Argument(Short('a'), "A", parseString).Complete(complete_alpha)
-	b := Positional("B", parseString).Complete(complete_beta)
+	a := Argument(Short('a'), "A", ParseString).Complete(complete_alpha)
+	b := Positional("B", ParseString).Complete(complete_beta)
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a=A\t\t\nbeta\tbeta\t\tbeta description\n\n", "")
@@ -505,7 +505,7 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 		return seq2(funiter.FromMany(PSOS{"--", Invalid[string]()}))
 	}
 	a := Argument(Long("arg"),
-		"ARG", parseString).
+		"ARG", ParseString).
 		Parser().Complete(c_b).
 		Parser().
 		Optional()
@@ -520,7 +520,7 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 
 func TestNon_strict_and_double_dash(t *testing.T) {
 	a := Short('a').Switch()
-	b := Positional("B", parseString).NonStrict()
+	b := Positional("B", ParseString).NonStrict()
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\t\n\tB\t\t\n\n", "")
@@ -530,7 +530,7 @@ func TestNon_strict_and_double_dash(t *testing.T) {
 
 func TestSuggest_double_dash_automatically_for_strictly_positional(t *testing.T) {
 	a := Short('a').Switch()
-	b := Positional("B", parseString).Strict()
+	b := Positional("B", ParseString).Strict()
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\t\n--\t--\t\tPositional only items after this token\n\n", "")
@@ -573,7 +573,7 @@ func TestMultiple_adjacent_single_letter_vals(t *testing.T) {
 
 func TestAmbiguity_no_resolve(t *testing.T) {
 	a0 := Short('a').Switch().Count()
-	a1 := Argument(Short('a'), "AAAAAA", parseInt)
+	a1 := Argument(Short('a'), "AAAAAA", ParseInt)
 	parser := Choice(a0, a1).ToOptions()
 
 	assertCompletion(t, parser, "-aaa\n", "-aaa")
@@ -586,7 +586,7 @@ func TestAmbiguity_to_flags(t *testing.T) {
 }
 
 func TestShort_argument_variants(t *testing.T) {
-	parser := Argument(Short('a'), "META", parseString).ToOptions()
+	parser := Argument(Short('a'), "META", ParseString).ToOptions()
 	assertCompletion(t, parser, "\tMETA\t\t\n\n", "-a=aa")
 
 	assertCompletion(t, parser, "\tMETA\t\t\n\n", "-a", "aa")
@@ -596,7 +596,7 @@ func TestShort_argument_variants(t *testing.T) {
 
 func TestLong_argument_variants(t *testing.T) {
 	parser := Argument(Long("alpha"),
-		"META", parseString).
+		"META", ParseString).
 		Parser().Complete(complete_beta).
 		Parser().ToOptions()
 
@@ -609,15 +609,15 @@ func TestZsh_style_completion_visible(t *testing.T) {
 	a := Argument(Short('a').
 		Long("argument").
 		Help("this is an argument"),
-		"ARG", parseString)
-	b := Argument(Short('b'), "BANANA", parseString)
+		"ARG", ParseString)
+	b := Argument(Short('b'), "BANANA", ParseString)
 	parser := Pair(a, b).GroupHelp("items").ToOptions()
 
 	assertCompletion(t, parser, "--argument\t--argument=ARG\titems\tthis is an argument\n-b\t-b=BANANA\titems\t\n\n", "")
 }
 
 func TestZsh_many_positionals(t *testing.T) {
-	parser := Positional("POS", parseString).Parser().Many().ToOptions()
+	parser := Positional("POS", ParseString).Parser().Many().ToOptions()
 
 	assertCompletion(t, parser, "\tPOS\t\t\n\n", "")
 
@@ -625,7 +625,7 @@ func TestZsh_many_positionals(t *testing.T) {
 }
 
 func TestZsh_help_single_line_only(t *testing.T) {
-	a := Argument(Short('a').Help("hello world"), "X", parseString)
+	a := Argument(Short('a').Help("hello world"), "X", ParseString)
 	b := Short('b').Help("hello from switch").Switch()
 	parser := Pair(a, b).ToOptions()
 
@@ -633,8 +633,8 @@ func TestZsh_help_single_line_only(t *testing.T) {
 }
 
 func TestShell_help_single_line_only(t *testing.T) {
-	a := Argument(Short('a').Help("hello 1\n\nworld"), "X", parseString)
-	b := Argument(Short('b').Help("hello 2\n\nworld"), "Y", parseString)
+	a := Argument(Short('a').Help("hello 1\n\nworld"), "X", ParseString)
+	b := Argument(Short('b').Help("hello 2\n\nworld"), "Y", ParseString)
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a=X\t\thello 1\n-b\t-b=Y\t\thello 2\n\n", "")
@@ -690,7 +690,7 @@ func TestZsh_complete_info(t *testing.T) {
 		return seq2(funiter.FromMany([]PSOS{{"hello", Valid("word")}, {"sample", Invalid[string]()}}...))
 	}
 	parser := Argument(Short('a'),
-		"X", parseString).
+		"X", ParseString).
 		Parser().Complete(foo).
 		Parser().ToOptions()
 
@@ -703,8 +703,8 @@ func TestZsh_complete_info(t *testing.T) {
 
 func TestPair_of_positionals(t *testing.T) {
 	// with Positional items only current item should make suggestions, not both...
-	a := Positional("A", parseString).Complete(test_completer)
-	b := Positional("B", parseString).Complete(test_completer2)
+	a := Positional("A", ParseString).Complete(test_completer)
+	b := Positional("B", ParseString).Complete(test_completer2)
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "alpha", "a")
@@ -713,7 +713,7 @@ func TestPair_of_positionals(t *testing.T) {
 }
 
 func TestDouble_dash_as_positional(t *testing.T) {
-	parser := Positional("P", parseString).
+	parser := Positional("P", ParseString).
 		Help("Help").
 		Parser().Complete(test_completer).
 		Parser().ToOptions()
@@ -733,7 +733,7 @@ func TestDouble_dash_as_positional(t *testing.T) {
 
 func TestStrict_positional_completion(t *testing.T) {
 	a := Long("arg").Switch()
-	p := Positional("S", parseString).
+	p := Positional("S", ParseString).
 		Strict().
 		Parser().Complete(func(string) SSOS { return seq2(funiter.FromMany(PSOS{"--hello", Invalid[string]()})) })
 	parser := Pair(a, p).ToOptions()
@@ -748,7 +748,7 @@ func TestStrict_positional_completion(t *testing.T) {
 }
 
 func TestAvoid_inserting_metavars(t *testing.T) {
-	parser := Argument(Short('a'), "A", parseString).ToOptions()
+	parser := Argument(Short('a'), "A", ParseString).ToOptions()
 
 	assertCompletion(t, parser, "-a", "")
 
@@ -757,7 +757,7 @@ func TestAvoid_inserting_metavars(t *testing.T) {
 
 func TestShell_dir_completion(t *testing.T) {
 	parser := Argument(Short('a'),
-		"FILE", parseString).
+		"FILE", ParseString).
 		Parser().CompleteShell(ShellCompDir(Invalid[string]())).
 		Parser().ToOptions()
 
@@ -783,7 +783,7 @@ func TestGenerate_unparseable_items(t *testing.T) {
 
 func TestComplete_with_fallback(t *testing.T) {
 	parser := Parse(Argument(Long("name"),
-		"NAME", parseString).
+		"NAME", ParseString).
 		Parser().Complete(test_completer_descr),
 		func(x string) (uint16, error) {
 			u, err := strconv.ParseUint(x, 10, 16)
@@ -806,9 +806,9 @@ func TestMix_of_options_and_positional_completions(t *testing.T) {
 	a := Argument(Short('a').
 		Long("arg").
 		Help("Alhpa argument"),
-		"ALPHA", parseString).
+		"ALPHA", ParseString).
 		Parser().Complete(complete_alpha)
-	b := Positional("BETA", parseString).
+	b := Positional("BETA", ParseString).
 		Help("Beta argument").
 		Parser().Complete(complete_beta)
 	parser := Pair(a, b).ToOptions()
@@ -820,8 +820,8 @@ func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
 	a := Argument(Short('a').
 		Long("arg").
 		Help("Alhpa argument"),
-		"ALPHA", parseString)
-	b := Positional("BETA", parseString).Help("Beta argument")
+		"ALPHA", ParseString)
+	b := Positional("BETA", ParseString).Help("Beta argument")
 
 	parser := Pair(a, b).ToOptions()
 

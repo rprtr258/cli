@@ -176,10 +176,11 @@ func (self ParsePositional[T]) eval(state *state) (T, parseError) {
 // a different order.
 //
 // The type parameter is the parsed value type, the `parse` function converts the raw string
-// into it:
+// into it; ready-made converters [ParseString], [ParseInt], [ParseUint], [ParseFloat],
+// [ParseBool] and [ParseDuration] cover the common types:
 //
 //	func parsePos() cli.Parser[uint] {
-//	    return cli.Positional[uint]("POS", parseUint)
+//	    return cli.Positional("POS", cli.ParseUint)
 //	}
 //
 // # Important restriction

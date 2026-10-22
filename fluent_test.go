@@ -11,13 +11,13 @@ import (
 // anywhere in the chain, and builders compose into combinators directly.
 func TestFluentChaining(t *testing.T) {
 	verbose := Short('v').Long("verbose").Switch().Many()
-	speed := Argument[int](Short('s').Long("speed"), "SPEED", parseInt).
+	speed := Argument[int](Short('s').Long("speed"), "SPEED", ParseInt).
 		Parser().
 		FallbackDisplay(42).
 		Guard(func(x int) bool { return x < 1000 }, "too fast").
 		GroupHelp("Speed settings").
 		Hide()
-	rest := Positional[string]("REST", parseString).Parser().Optional()
+	rest := Positional[string]("REST", ParseString).Parser().Optional()
 
 	parser := Pair(verbose, Pair(speed, rest)).Map(func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
 		res := ""
@@ -61,7 +61,7 @@ func TestFluentCountSome(t *testing.T) {
 
 // FallbackDisplay shows the default in help output.
 func TestFluentFallbackDisplay(t *testing.T) {
-	parser := Argument[int](Short('s'), "SPEED", parseInt).
+	parser := Argument[int](Short('s'), "SPEED", ParseInt).
 		Parser().
 		FallbackDisplay(42).
 		ToOptions()

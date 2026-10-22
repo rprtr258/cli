@@ -33,9 +33,9 @@ type Rectangle struct {
 func rectangle() cli.Parser[Rectangle] {
 	invalidSize := "Sides of a rectangle must be 1..20 units long"
 	invalidArea := "Area of a rectangle must not exceed 200 units square"
-	width := cli.Argument[int](cli.Long("width").Help("Width of the rectangle"), "PX", parseInt).
+	width := cli.Argument(cli.Long("width").Help("Width of the rectangle"), "PX", cli.ParseInt).
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", parseInt).
+	height := cli.Argument(cli.Long("height").Help("Height of the rectangle"), "PX", cli.ParseInt).
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
 	return cli.Pair(width, height).
 		Map(func(wh fun.Pair[int, int]) Rectangle {
@@ -90,6 +90,10 @@ optional, `cli.Count` - number of repeats.
 | `Positional` | a free-standing value | `Parser[T]` |
 | `Any` | any unconsumed item | `Parser[T]` |
 | `Command("cmd")` | a subcommand | independent subparser |
+
+`Argument` and `Positional` take a `func(string) (T, error)` to convert the raw
+text. Ready-made adapters for common types are provided: `ParseString`,
+`ParseInt`, `ParseUint`, `ParseFloat`, `ParseBool`, `ParseDuration`.
 
 ## Transforming parsers
 

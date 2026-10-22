@@ -8,7 +8,6 @@ package examples
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/rprtr258/cli"
 )
@@ -34,10 +33,6 @@ func Travel() {
 		}
 	}
 
-	parseFloat64 := func(s string) (float64, error) {
-		return strconv.ParseFloat(s, 64)
-	}
-
 	// Suppose we want to calcualte a total time of a travel, where parts of
 	// a travel can be given either as pairs of speed and distance or just by time.
 	// Speed can be given by KPH or MPH. Distance - either miles or km.
@@ -45,25 +40,25 @@ func Travel() {
 	// parsers for speeds. Both speeds are converted to the same units
 	mph := cli.Argument(cli.Long("mph").
 		Help("speed in MPH"),
-		"SPEED", parseFloat64).
+		"SPEED", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
-	kph := cli.Argument(cli.Long("kph").Help("Speed in KPH"), "SPEED", parseFloat64)
+	kph := cli.Argument(cli.Long("kph").Help("Speed in KPH"), "SPEED", cli.ParseFloat)
 
 	// speed is either kph or mph, conversion to mph is handled by the parser
 	speed := cli.Choice(mph, kph)
 
 	// parsers for distances, both are converted to the same units
-	km := cli.Argument(cli.Long("km").Help("Distance in KM"), "KMs", parseFloat64)
+	km := cli.Argument(cli.Long("km").Help("Distance in KM"), "KMs", cli.ParseFloat)
 	mi := cli.Argument(cli.Long("mi").
 		Help("distance in miles"),
-		"MILES", parseFloat64).
+		"MILES", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
 	dist := cli.Choice(mi, km)
 
 	// time, presumably in seconds
 	time := cli.Argument(cli.Long("time").
 		Help("Travel time in hours"),
-		"TIME", parseFloat64)
+		"TIME", cli.ParseFloat)
 
 	// parsed time is trivially converted to time segment
 	segment_time := time.Map(SegmentTime)
