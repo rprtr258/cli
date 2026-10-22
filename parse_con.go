@@ -141,8 +141,9 @@ func (self ParseCon[T]) Adjacent() Parser[T] {
 
 // Combine two parsers into one producing a [fun.Pair] of their results
 //
-// Both parsers must succeed for the combined parser to succeed. See also [Triple]
-// for three parsers and [Construct] for struct composition.
+// Both parsers must succeed for the combined parser to succeed. Usually [Map2]
+// is more convenient since it produces the combined value directly. See also
+// [Triple] for three parsers and [Construct] for struct composition.
 func Pair[A, B any](ppa parser[A], ppb parser[B]) *ParseCon[fun.Pair[A, B]] {
 	pa := ppa.Parser()
 	pb := ppb.Parser()
@@ -175,7 +176,8 @@ type Tuple[A, B, C any] struct {
 
 // Combine three parsers into one producing a [Tuple] of their results
 //
-// All three parsers must succeed for the combined parser to succeed.
+// All three parsers must succeed for the combined parser to succeed. Usually
+// [Map3] is more convenient since it produces the combined value directly.
 func Triple[A, B, C any](ppa parser[A], ppb parser[B], ppc parser[C]) *ParseCon[Tuple[A, B, C]] {
 	pa, pb, pc := ppa.Parser(), ppb.Parser(), ppc.Parser()
 	meta := metaAnd{pa.meta, pb.meta, pc.meta}

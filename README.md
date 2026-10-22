@@ -23,7 +23,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 type Rectangle struct {
@@ -37,10 +36,9 @@ func rectangle() cli.Parser[Rectangle] {
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
 	height := cli.Argument(cli.Long("height").Help("Height of the rectangle"), "PX", cli.ParseInt).
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	return cli.Pair(width, height).
-		Map(func(wh fun.Pair[int, int]) Rectangle {
-			return Rectangle{Width: wh.K, Height: wh.V}
-		}).
+	return cli.Map2(width, height, func(w, h int) Rectangle {
+		return Rectangle{Width: w, Height: h}
+	}).
 		Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
 }
 
@@ -107,9 +105,10 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 
 ## Composing parsers
 
-- `Pair` / `Triple` - sequential composition of two or three parsers
-- `Choice` - parallel composition: the first parser that consumes the leftmost value wins
+- `Map2`-`Map6` - sequential composition: combine 2 to 6 parsers into the value their function returns
 - `Construct` - struct composition from `cli` tags
+- `Pair` / `Triple` - like `Map2`/`Map3`, but producing `fun.Pair`/`Tuple` values
+- `Choice` - parallel composition: the first parser that consumes the leftmost value wins
 - `Parser.Adjacent` - restrict a composed group to adjacent command line items
 
 ## Improving user experience

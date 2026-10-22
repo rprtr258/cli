@@ -10,7 +10,7 @@
 // # Overview
 //
 // It is best to think of a [Parser[T]] as a container with a value inside.
-// Containers are composed with [Pair], [Triple], [Choice] and [Construct];
+// Containers are composed with [Map2] through [Map6], [Choice] and [Construct];
 // the only way to extract the value is to finalize the parser with
 // [Parser.ToOptions] and run it with [OptionParser.Run] or
 // [OptionParser.RunE].
@@ -41,10 +41,9 @@
 //	    height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", strconv.Atoi).
 //	        Parser().
 //	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    return cli.Pair(width, height).
-//	        Map(func(wh fun.Pair[int, int]) Rectangle {
-//	            return Rectangle{Width: wh.K, Height: wh.V}
-//	        }).
+//	    return cli.Map2(width, height, func(w, h int) Rectangle {
+//	        return Rectangle{Width: w, Height: h}
+//	    }).
 //	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
 //	}
 //
@@ -70,10 +69,10 @@
 //
 // # Combining parsers
 //
-// [Pair] and [Triple] combine a fixed number of parsers, [Construct]
-// combines them into a struct, [Choice] and [Parser.OrElse] pick the first
-// parser that succeeds, [Parser.Adjacent] restricts a group to adjacent
-// command line items, [Any] consumes items at arbitrary positions.
+// [Map2] through [Map6] combine a fixed number of parsers into one value,
+// [Construct] combines them into a struct, [Choice] and [Parser.OrElse] pick
+// the first parser that succeeds, [Parser.Adjacent] restricts a group to
+// adjacent command line items, [Any] consumes items at arbitrary positions.
 //
 // # Improving user experience
 //
@@ -105,7 +104,7 @@ package cli
 // # Overview
 //
 // It's best to think of a [Parser[T]] as a container with a value inside that is composable
-// with other containers using [Pair], [Triple] or [Construct]; the only way to extract the
+// with other containers using [Map2] through [Map6] or [Construct]; the only way to extract the
 // value is by finalizing the parser with [Parser.ToOptions] and running it with
 // [OptionParser.Run] or [OptionParser.RunE]. At that point you either get your value out or
 // the library generates a message describing a problem (missing argument, validation
@@ -153,10 +152,9 @@ package cli
 //	    height := cli.Argument[uint32](cli.Long("height"), "PX", parseUint32).
 //	        Help("Height of the rectangle").
 //	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    return cli.Pair(width, height).
-//	        Map(func(wh fun.Pair[uint32, uint32]) Rectangle {
-//	            return Rectangle{Width: wh.K, Height: wh.V}
-//	        }).
+//	    return cli.Map2(width, height, func(w, h uint32) Rectangle {
+//	        return Rectangle{Width: w, Height: h}
+//	    }).
 //	        Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
 //	}
 //

@@ -16,6 +16,9 @@ func (self Parser[T]) Map[R any](fn func(T) R) Parser[R] {
 	}
 }
 
+// Map2 combines two parsers into one: both must succeed and the combined parser
+// produces the value f returns for their results. See also [Map3] through [Map6]
+// and [Construct] for struct composition.
 func Map2[A, B, R any](
 	pa parser[A],
 	pb parser[B],
@@ -24,6 +27,8 @@ func Map2[A, B, R any](
 	return Pair(pa, pb).Map(func(x fun.Pair[A, B]) R { return f(x.K, x.V) })
 }
 
+// Map3 combines three parsers into one: all must succeed and the combined parser
+// produces the value f returns for their results.
 func Map3[A, B, C, R any](
 	pa parser[A],
 	pb parser[B],
@@ -33,6 +38,8 @@ func Map3[A, B, C, R any](
 	return Pair(Pair(pa, pb), pc).Map(func(x fun.Pair[fun.Pair[A, B], C]) R { return f(x.K.K, x.K.V, x.V) })
 }
 
+// Map4 combines four parsers into one: all must succeed and the combined parser
+// produces the value f returns for their results.
 func Map4[A, B, C, D, R any](
 	pa parser[A],
 	pb parser[B],
@@ -47,6 +54,8 @@ func Map4[A, B, C, D, R any](
 	)
 }
 
+// Map5 combines five parsers into one: all must succeed and the combined parser
+// produces the value f returns for their results.
 func Map5[A, B, C, D, E, R any](
 	pa parser[A],
 	pb parser[B],
@@ -62,6 +71,8 @@ func Map5[A, B, C, D, E, R any](
 	)
 }
 
+// Map6 combines six parsers into one: all must succeed and the combined parser
+// produces the value f returns for their results.
 func Map6[A, B, C, D, E, F, R any](
 	pa parser[A],
 	pb parser[B],

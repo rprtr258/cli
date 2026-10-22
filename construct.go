@@ -4,7 +4,9 @@ package cli
 //
 // Go provides several composition tools:
 //
-//   - [Pair] and [Triple] combine two or three parsers into one that produces a
+//   - [Map2] through [Map6] combine two to six parsers into one producing the
+//     value their combining function returns.
+//   - [Pair] and [Triple] do the same while keeping the raw parts as a
 //     [fun.Pair] or [Tuple] value.
 //   - [Choice] picks the first parser that consumes the leftmost value.
 //   - [Construct] builds a parser for a struct type: every exported field with a
@@ -19,7 +21,9 @@ package cli
 //
 //	width := cli.Argument[uint32](cli.Short('w'), "W", parseUint32)
 //	height := cli.Argument[uint32](cli.Short('h'), "H", parseUint32)
-//	rect := cli.Pair(width, height)
+//	rect := cli.Map2(width, height, func(w, h uint32) Rectangle {
+//	    return Rectangle{Width: w, Height: h}
+//	})
 //
 // # Parallel composition
 //
