@@ -6,8 +6,8 @@ import "math"
 // and return `None` if any are missing. Created with [Parser.Optional] or
 // [Parser.OptionalCatch].
 func optional_eval[T any](inner Parser[T], catch bool, state *state) (Opt[T], parseError) {
-	len := uint(math.MaxUint)
-	return parse_option(inner, &len, state, catch)
+	maxlen := uint(math.MaxUint)
+	return parse_option(inner, &maxlen, state, catch)
 }
 
 // Optional makes a parser optional

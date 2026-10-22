@@ -194,7 +194,7 @@ func (self OptionParser[T]) run(args argList) (T, parseFailure) {
 	// this only handles disambiguation failure in construct
 	state, err := newState(args, short_flags, short_args)
 	if err != nil && !state.comp.Valid {
-		return *new(T), render(&err, state, self.inner.meta)
+		return *new(T), render(&err, &state, self.inner.meta)
 	}
 
 	return self.run_subparser(&state)
@@ -212,7 +212,7 @@ func (self OptionParser[T]) run_subparser(state *state) (T, parseFailure) {
 	if self.info.help_if_no_args && state.len() == 0 {
 		buffer := render_help(
 			state.path,
-			self.info,
+			&self.info,
 			self.inner.meta,
 			self.info.meta(),
 		)
@@ -238,14 +238,14 @@ func (self OptionParser[T]) run_subparser(state *state) (T, parseFailure) {
 	// handle --help and --version messages
 	extra, errInfo := self.info.eval(state)
 	if errInfo != nil {
-		return *new(T), render(&err, *state, self.inner.meta)
+		return *new(T), render(&err, state, self.inner.meta)
 	}
 
 	msg := func() Doc {
 		if extra.Help {
 			return render_help(
 				state.path,
-				self.info,
+				&self.info,
 				self.inner.meta,
 				self.info.meta(),
 			)
@@ -266,7 +266,7 @@ func (self OptionParser[T]) run_subparser(state *state) (T, parseFailure) {
 // Used internally to avoid duplicating description for [command].
 func (self OptionParser[T]) short_descr() Opt[Doc] {
 	return self.info.descr.and_then(func(d Doc) Opt[Doc] {
-		v, ok := Doc.first_line(d)
+		v, ok := d.first_line()
 		return Opt[Doc]{v, ok}
 	})
 }

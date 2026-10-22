@@ -33,22 +33,20 @@ func TestMany_arg(t *testing.T) {
 
 func TestSome_arg(t *testing.T) {
 	parser := Argument(Short('a'), "A", ParseString).Parser().Some("ARG").ToOptions()
-	assert_usage(t, parser, "(-a=A)...")
+	assert_usage(t, parser, "-a=A...")
 }
 
 func TestMany_switch(t *testing.T) {
 	parser := Short('a').Switch().Many().ToOptions()
-	assert_usage(t, parser, "-a...")
+	assert_usage(t, parser, "[-a]...")
 }
 
 func TestSome_switch(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := Short('a').Switch().Some("ARG").ToOptions()
 	assert_usage(t, parser, "[-a]...")
 }
 
 func TestOptional_req_select(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
 	parser := Choice(a, b).Optional().ToOptions()
@@ -64,7 +62,6 @@ func TestSingle_optional_req_select(t *testing.T) {
 }
 
 func TestFallback_req_select(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
 	parser := Choice(a, b).Fallback(struct{}{}).ToOptions()
@@ -80,7 +77,6 @@ func TestSingle_fallback_req_select(t *testing.T) {
 }
 
 func TestOptional_argument_select(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Argument(Short('a'), "A", ParseString)
 	b := Argument(Short('b'), "B", ParseString)
 	parser := Choice(a, b).Optional().ToOptions()
@@ -97,7 +93,6 @@ func TestCommands_no_fallback_meta(t *testing.T) {
 }
 
 func TestCommands_and_fallback_meta(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Pure(struct{}{}).ToOptions().Command("a")
 	b := Pure(struct{}{}).ToOptions().Command("b")
 	parser := Choice(a, b).Fallback(struct{}{}).ToOptions()
@@ -154,7 +149,6 @@ func TestRequired_one_many(t *testing.T) {
 }
 
 func TestOptional_one_many(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
 	parser := Pair(a, b).Parser().Optional().Many().ToOptions()
@@ -172,11 +166,10 @@ func TestRequired_or_many(t *testing.T) {
 	f := Pure(PPair(struct{}{}, struct{}{}))
 	ef := Choice(e, f)
 	parser := Choice(ab, cd, ef).Many().ToOptions()
-	assert_usage(t, parser, "-a -b | -c -d...")
+	assert_usage(t, parser, "[-a -b | -c -d]...")
 }
 
 func TestNo_actual_arguments_also_works(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := Pure(true).ToOptions()
 
 	assertHelp(t, parser, "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n")
@@ -190,7 +183,6 @@ func TestA_or_b(t *testing.T) {
 }
 
 func TestSome_req_flag(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := ReqFlag(Short('a'), struct{}{}).Some("some").ToOptions()
 	assert_usage(t, parser, "-a...")
 }
@@ -205,7 +197,6 @@ func TestA_or_b_and_c(t *testing.T) {
 }
 
 func TestA_or_b_opt(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Argument(Short('a').Long("aaa"), "A", ParseString)
 	b := Argument(Short('b').Long("bbb"), "B", ParseString)
 	parser := Choice(a, b).Optional().ToOptions()
@@ -213,7 +204,6 @@ func TestA_or_b_opt(t *testing.T) {
 }
 
 func TestA_or_b_opt_and_c(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Argument(Short('a').Long("aaa"), "A", ParseString)
 	b := Argument(Short('b').Long("bbb"), "B", ParseString)
 	ab := Choice(a, b).Optional()
@@ -243,7 +233,6 @@ func TestPositionals_in_branches_are_okay(t *testing.T) {
 }
 
 func TestOptional_last_of_many(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('b'), false)
 	ab := Choice(a, b).Last().Fallback(false)
@@ -283,7 +272,6 @@ func TestCustom_usage(t *testing.T) {
 }
 
 func TestDouble_strict(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict()
 	c := Positional("C", ParseUint).Strict()
@@ -292,13 +280,11 @@ func TestDouble_strict(t *testing.T) {
 }
 
 func TestOptional_strict(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	parser := Positional("A", ParseUint).Strict().Parser().Optional().ToOptions()
 	assert_usage(t, parser, "-- [A]")
 }
 
 func TestMany_strict(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict().Parser().Many()
 	parser := Pair(a, b).ToOptions()
@@ -306,7 +292,6 @@ func TestMany_strict(t *testing.T) {
 }
 
 func TestQuadruple_strict(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict()
 	c := Positional("C", ParseUint).Strict()
@@ -322,7 +307,6 @@ func TestQuadruple_strict(t *testing.T) {
 }
 
 func TestQuadruple_strict_many(t *testing.T) {
-	t.SkipNow() // TODO: fix
 	a := Short('a').Switch()
 	b := Positional("B", ParseUint).Strict().Parser().Many()
 	ab := Pair(a, b)

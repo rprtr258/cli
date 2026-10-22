@@ -28,7 +28,7 @@ func newInfo() info {
 	}
 }
 
-func (self info) clone() info {
+func (self *info) clone() info {
 	return info{
 		self.version.clone(),
 		self.descr.clone(),
@@ -42,11 +42,11 @@ func (self info) clone() info {
 	}
 }
 
-func (self info) mk_help_parser() Parser[struct{}] {
+func (self *info) mk_help_parser() Parser[struct{}] {
 	return ReqFlag(self.help_arg, struct{}{})
 }
 
-func (self info) mk_version_parser() Parser[struct{}] {
+func (self *info) mk_version_parser() Parser[struct{}] {
 	return ReqFlag(self.version_arg, struct{}{})
 }
 
@@ -55,7 +55,7 @@ type extraParams struct {
 	Version Doc
 }
 
-func (self info) eval(state *state) (extraParams, parseError) {
+func (self *info) eval(state *state) (extraParams, parseError) {
 	help := self.mk_help_parser()
 	if _, err := help.eval(state); err == nil {
 		return extraParams{true, Doc{}}, nil
@@ -71,7 +71,7 @@ func (self info) eval(state *state) (extraParams, parseError) {
 	return extraParams{}, errorParseFail("not a version or help")
 }
 
-func (self info) meta() meta {
+func (self *info) meta() meta {
 	help := self.mk_help_parser().meta
 	if self.version.Valid {
 		return metaAnd{help, self.mk_version_parser().meta}

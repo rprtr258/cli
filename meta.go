@@ -281,7 +281,7 @@ func normalized(m meta, for_usage bool) meta {
 	normalize(&m, for_usage, &norm)
 	// strip outer () around meta unless inner
 	if i, ok := m.(metaRequired); ok {
-		m = i
+		m = i.m
 	}
 	if _, ok := m.(metaOr); ok {
 		m = metaRequired{m}
@@ -319,7 +319,26 @@ func metaFirstItem(meta meta) Opt[item] {
 	return Invalid[item]()
 }
 
+// flatten_and flattens directly nested and-groups into a flat element list.
+// Composition helpers like Map3 nest them, while the equivalent bpaf
+// construct! invocation produces a flat list; strict `--` bubbling and
+// rendering rely on the flat shape.
+func flatten_and(m meta) []meta {
+	if and, ok := m.(metaAnd); ok {
+		res := make([]meta, 0, len(and))
+		for _, x := range and {
+			res = append(res, flatten_and(x)...)
+		}
+		return res
+	}
+	return []meta{m}
+}
+
 // Normalize meta info for display as usage. Required propagates outwards
+//
+// wrapping it in a pointer to the interface is intentional here.
+//
+//nolint:gocritic // `self *meta` is written through and must stay a pointer,
 func normalize(self *meta, for_usage bool, norm *strictNorm) {
 	normalize_vec := func(
 		xs *[]meta,
@@ -336,7 +355,9 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 			// switch (*target, this_norm) {
 			case this_norm.IsPull() || target.IsStrip():
 			case target.IsPull() && this_norm.IsPush():
-				*self = metaStrict{*self}
+				// Strict bubbles up to one of the vec elements, the following
+				// elements with their own Strict merge into the same `--`.
+				(*xs)[i] = metaStrict{(*xs)[i]}
 				*target = StrictNormStrip
 			default:
 				*target = this_norm
@@ -350,9 +371,7 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 		case 0:
 			return metaSkip{}, true
 		case 1:
-			res := (*xs)[0]
-			*xs = (*xs)[1:]
-			return res, true
+			return (*xs)[0], true
 		default:
 			return nil, false
 		}
@@ -360,8 +379,15 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 
 	switch m := (*self).(type) {
 	case metaAnd:
+		flat := make([]meta, 0, len(m))
+		for _, x := range m {
+			flat = append(flat, flatten_and(x)...)
+		}
+		m = metaAnd(flat)
 		if replacement, ok := normalize_vec((*[]meta)(&m), for_usage, norm, false); ok {
 			*self = replacement
+		} else {
+			*self = m
 		}
 	// or should have either () or [] around it
 	case metaOr:
@@ -381,41 +407,45 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 				*self = metaSkip{}
 			case 1:
 				*self = m[0]
-				m = m[1:]
 			default:
 				*self = metaRequired{m}
 			}
 		}
 	case metaOptional:
 		normalize(&m.m, for_usage, norm)
-		// *self = m
+		*self = m // sync normalized inner into the stored value
 		switch mm := m.m.(type) {
 		case metaOptional:
-			*self = mm.m
+			// Optional(Optional(m)) => Optional(m)
+			*self = metaOptional{mm.m}
 		case metaRequired:
-			*self = mm.m
+			// Optional(Required(m)) => Optional(m)
+			*self = metaOptional{mm.m}
 		case metaMany:
+			// Optional(Many(Required(m))) => Many(Optional(m))
 			if x, ok := mm.m.(metaRequired); ok {
-				*self = metaMany(metaOptional(x))
+				*self = metaMany{metaOptional{x.m}}
 			}
 		case metaSkip:
+			// Optional(Skip) => Skip
 			*self = metaSkip{}
 		}
 	case metaRequired:
 		normalize(&m.m, for_usage, norm)
+		*self = m // sync normalized inner into the stored value
 		switch {
 		case isSkip(m.m):
-			// Required(skip)skip
+			// Required(Skip) => Skip
 			*self = metaSkip{}
-		case isAnd(m) || isOr(m):
+		case isAnd(m.m) || isOr(m.m):
 			// keep () around composite parsers
 		default:
 			// and strip them elsewhere
-			*self = m
+			*self = m.m
 		}
 	case metaMany:
 		normalize(&m.m, for_usage, norm)
-		*self = m
+		*self = m // sync normalized inner into the stored value
 		if isSkip(m.m) {
 			*self = metaSkip{}
 		}
@@ -426,14 +456,19 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 		// nothing to do with items and skip just bubbles upwards
 	case metaCustomUsage:
 		normalize(&m.m, for_usage, norm)
+		*self = m // sync normalized inner into the stored value
 		// strip CustomUsage if we are not in usage so writer can simply render it
 		if for_usage {
-			*self = m
-		} else if m.doc.is_empty() {
-			*self = metaSkip{}
+			// empty custom usage doc hides the parser from the usage line
+			if m.doc.is_empty() {
+				*self = metaSkip{}
+			}
+		} else {
+			*self = m.m
 		}
 	case metaStrict:
 		normalize(&m.m, for_usage, norm)
+		*self = m // sync normalized inner into the stored value
 		norm.push()
 		*self = m.m
 	case metaAdjacent:
@@ -477,7 +512,7 @@ func or(self, other meta) meta {
 }
 
 // collect different kinds of short names for disambiguation
-func collect_shorts(self meta, flags *[]byte, args *[]byte) {
+func collect_shorts(self meta, flags, args *[]byte) {
 	switch self := self.(type) {
 	case metaAnd:
 		for _, x := range self {

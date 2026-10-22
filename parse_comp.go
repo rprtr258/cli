@@ -99,7 +99,8 @@ func (self ParseComp[T]) eval(state *state) (T, parseError) {
 	// that `res` must contain a parsed value
 	depth := state.depth()
 	if comp, ok := state.comp_mut(); ok {
-		for _, ci := range comp_items {
+		for i := range comp_items {
+			ci := &comp_items[i]
 			if is_arg, ok := ci.is_metavar(); ok {
 				type suggestion struct {
 					replacement string

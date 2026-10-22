@@ -260,9 +260,6 @@ func (self Doc) render_console(full bool, color color, max_width uint) string {
 			}
 		default:
 			block := token.block
-			// if testing.Testing() && (len(stack) == 0 || stack[len(stack)-1] != block) {
-			// 	panic("assert")
-			// }
 
 			if len(margins) > 0 {
 				margins = margins[:len(margins)-1]
@@ -293,16 +290,8 @@ func (self Doc) render_console(full bool, color color, max_width uint) string {
 		res += "\n"
 	}
 
-	{ // TODO: kalishe
-		for i := strings.Index(res, " \n"); i != -1; i = strings.Index(res, " \n") {
-			res = strings.ReplaceAll(res, " \n", "\n")
-		}
-		for i := strings.Index(res, "\n\n\n"); i != -1; i = strings.Index(res, "\n\n") {
-			res = strings.ReplaceAll(res, "\n\n\n", "\n\n")
-		}
+	for i := strings.Index(res, "\n\n\n"); i != -1; i = strings.Index(res, "\n\n") {
+		res = strings.ReplaceAll(res, "\n\n\n", "\n\n")
 	}
-	// if testing.Testing() && len(stack) != 0 {
-	// 	panic("assert")
-	// }
 	return res
 }

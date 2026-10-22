@@ -1,163 +1,293 @@
+// Package roff implements a faithful port of bpaf's ROFF document composer
+//
+// [ROFF] is a family of Unix text-formatting languages, implemented
+// by the `nroff`, `troff`, and `groff` programs, among others. This
+// structure is an abstract representation of a document in ROFF format.
+// It is meant for writing code to generate ROFF documents, such as
+// manual pages.
+//
+// [ROFF]: https://en.wikipedia.org/wiki/Roff_(software)
 package roff
 
-import (
-	"bytes"
-	"fmt"
-	"strings"
-	"time"
-)
+// Apostrophes handling configuration
+//
+// To generate manpages you most likely want to have this in Handle state.
+// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65 for more details
+type Apostrophes uint8
 
 const (
-	// Title heading (Document structure macro)
-	TitleHeading = `.TH %[1]s %[2]d "%[4]s" "%[3]s" "%[5]s"`
-	// Paragraph macro
-	Paragraph = "\n.PP"
-	// Relative-indent start (Document structure macro)
-	Indent = "\n.RS"
-	// Relative-indent end (Document structure macro)
-	IndentEnd = "\n.RE"
-	// Indented paragraph
-	IndentedParagraph = "\n.IP"
-	// Section heading (Document structure macro)
-	SectionHeading = "\n.SH %s"
-	// Tagged paragraph
-	TaggedParagraph = "\n.TP"
-
-	// Bold escape
-	Bold = `\fB`
-	// Italic escape
-	Italic = `\fI`
-	// Return to previous font setting
-	PreviousFont = `\fP`
+	// Replace apostrophes with special code that
+	Handle Apostrophes = iota
+	// Leave apostrophes as is
+	DontHandle
 )
 
-// Document is a roff document.
-type Document struct {
-	B bytes.Buffer
-}
+// Replacement for apostrophes, if active
+//
+// https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65
+const apostrophe = `\*(Aq`
 
-// NewDocument returns a new roff Document.
-func NewDocument() *Document {
-	return &Document{}
-}
+// A preamble added to the start of rendered output.
+//
+// This defines a string variable that contains an apostrophe. For
+// historical reasons, there seems to be no other portable way to
+// represent apostrophes across various implementations of the ROFF
+// language. In implementations that produce output like PostScript
+// or PDF, an apostrophe gets typeset as a right single quote, which
+// looks different from an apostrophe. For terminal output ("ASCII"),
+// such as when using nroff, an apostrophe looks indistinguishable
+// from a right single quote. For manual pages, and similar content,
+// an apostrophe is more generally desired than the right single
+// quote, so we convert all apostrophe characters in input text into
+// a use of the string variable defined in the preamble.
+//
+// Used when apostrophe handle is enabled.
+//
+// See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65
+const APOSTROPHE_PREABMLE = `.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+`
 
-// write writes the given text to the internal buffer. Following the roff docs,
-// we prevent empty lines in its output, as that may mysteriously break some
-// roff renderers.
-func (tr *Document) writef(format string, args ...interface{}) {
-	if bytes.HasSuffix(tr.B.Bytes(), []byte("\n")) &&
-		strings.HasPrefix(format, "\n") {
-		// prevent empty lines in output
-		format = strings.TrimPrefix(format, "\n")
-	}
+// Escaping rules
+type Escape uint8
 
-	fmt.Fprintf(&tr.B, format, args...)
-}
+const (
+	// Insert a newline character unless on a new line already
+	EscapeUnescapedAtNewline Escape = iota
 
-func (tr *Document) writelnf(format string, args ...interface{}) {
-	tr.writef(format+"\n", args...)
-}
+	// Escape space characters (`' '`) and newlines (`'\n'`)
+	// This escape is used for control sequence arguments
+	EscapeSpaces
 
-// Heading writes the title heading of the document.
-func (tr *Document) Heading(section uint, title, description string, ts time.Time) {
-	tr.writef(TitleHeading, strings.ToUpper(title), section, title, ts.Format("2006-01-02"), description)
-}
+	// Escape characters roff considers special:
+	//   - `' '`, `'.'` and `'\''` at the beginning of the line,
+	//   - `'-'` and `'\\'` when inside the body
+	//   - replace `'\''` with APOSTROPHE if Apostrophes handling is enabled
+	EscapeSpecial
 
-// Paragraph starts a new paragraph.
-func (tr *Document) Paragraph() {
-	tr.writelnf(Paragraph)
-}
+	// Similar to [EscapeSpecial] but also replaces `'\n'` with `' '`
+	EscapeSpecialNoNewline
 
-// Indent increases the indentation level.
-func (tr *Document) Indent(n int) {
-	if n >= 0 {
-		tr.writelnf(Indent+" %d", n)
-	} else {
-		tr.writelnf(Indent)
-	}
-}
+	// Input is written as is
+	EscapeUnescaped
+)
 
-// IndentEnd decreases the indentation level.
-func (tr *Document) IndentEnd() {
-	tr.writelnf(IndentEnd)
-}
-
-// TaggedParagraph starts a new tagged paragraph.
-func (tr *Document) TaggedParagraph(indentation int) {
-	if indentation >= 0 {
-		tr.writelnf(TaggedParagraph+" %d", indentation)
-	} else {
-		tr.writelnf(TaggedParagraph)
-	}
-}
-
-// List writes a list item.
-func (tr *Document) List(text string) {
-	tr.writelnf(IndentedParagraph+" \\(bu 3\n%s", escapeText(strings.TrimSpace(text)))
-}
-
-// Section writes a section heading.
-func (tr *Document) Section(text string) {
-	tr.writelnf(SectionHeading, strings.ToUpper(text))
-}
-
-// EndSection ends the current section.
-func (tr *Document) EndSection() {
-	tr.writelnf("")
-}
-
-// Text writes text.
-func (tr *Document) Text(text string) {
-	inList := false
-	for i, s := range strings.Split(text, "\n") {
-		if i > 0 && !inList {
-			// start a new paragraph if we're not in a list
-			tr.Paragraph()
+// Escape a sequence of string slices according to escaping rules
+//
+// Writes results to out, result should be a valid utf8 string as long as out
+// starts empty or contains a valid utf8 sequence.
+func escapeSlice(payload string, labels []label, out *[]byte, ap Apostrophes) {
+	at_line_start := true
+	for _, l := range labels {
+		meta := l.kind
+		p := payload[l.start:l.end]
+		if !at_line_start && meta == EscapeUnescapedAtNewline {
+			*out = append(*out, '\n')
+			at_line_start = true
 		}
-
-		if strings.HasPrefix(s, "*") {
-			// list item
-			if !inList {
-				// start a new indented list if we're not in one
-				tr.Indent(-1)
-				inList = true
+		for i := 0; i < len(p); i++ {
+			c := p[i]
+			switch meta {
+			case EscapeSpaces:
+				if c == ' ' || c == '\n' {
+					*out = append(*out, '\\', ' ')
+				} else {
+					*out = append(*out, c)
+				}
+			case EscapeSpecial, EscapeSpecialNoNewline:
+				if at_line_start && (c == '.' || c == '\'') {
+					*out = append(*out, '\\', '&')
+				}
+				if c == '\\' || c == '-' {
+					*out = append(*out, '\\')
+				}
+				switch {
+				case ap == Handle && c == '\'':
+					*out = append(*out, apostrophe...)
+				case meta == EscapeSpecialNoNewline && c == '\n':
+					*out = append(*out, ' ')
+					at_line_start = false
+					continue
+				default:
+					*out = append(*out, c)
+				}
+			case EscapeUnescaped, EscapeUnescapedAtNewline:
+				*out = append(*out, c)
 			}
+			at_line_start = c == '\n'
+		}
+	}
+}
 
-			tr.List(s[1:])
+// label marks a byte range of payload with an escape kind
+type label struct {
+	start, end int
+	kind       Escape
+}
+
+// FreeMonoid on a set of annotated string slices: payload plus labels
+type freeMonoid struct {
+	payload string
+	labels  []label
+}
+
+func (self *freeMonoid) pushStr(kind Escape, payload string) {
+	start := len(self.payload)
+	self.payload += payload
+	// no squashing: control lines and font runs are kept separate like upstream
+	self.labels = append(self.labels, label{start, len(self.payload), kind})
+}
+
+func (self *freeMonoid) payloadSize() int {
+	return len(self.payload)
+}
+
+func (self *freeMonoid) iter() []label {
+	return self.labels
+}
+
+// Font selector
+type Font uint8
+
+const (
+	// Roman font - regular font that should be used for most of the text
+	Roman Font = iota
+
+	// Bold font
+	Bold
+
+	// Italic font
+	Italic
+)
+
+// Escape code needed to set this font
+func (self Font) escape() string {
+	switch self {
+	case Bold:
+		return `\fB`
+	case Italic:
+		return `\fI`
+	case Roman:
+		return `\fR`
+	}
+	panic("unreachable")
+}
+
+// Escape code used to return to the previous font
+const RESTORE_FONT = `\fP`
+
+// Roff is an abstract representation of a document in ROFF format.
+type Roff struct {
+	payload freeMonoid
+	// keep or strip newlines from inserted text
+	stripNewlines bool
+}
+
+// New creates a new raw Roff document
+func New() *Roff {
+	return &Roff{}
+}
+
+// Chainable setter for `stripNewlines` field
+//
+// `stripNewlines` specifies if [Roff.Render] should keep all the newline characters
+// inside added text newlines can come with a special meaning, for example adding a
+// section header relies, newlines are automatically stripped from [Roff.Control]
+// arguments.
+func (self *Roff) StripNewlines(state bool) *Roff {
+	self.stripNewlines = state
+	return self
+}
+
+// Insert a raw control sequence
+//
+// `name` should not contain initial `'.'`.
+// Arguments are escaped accordingly
+func (self *Roff) Control(name string, args ...string) *Roff {
+	self.payload.pushStr(EscapeUnescapedAtNewline, ".")
+	self.payload.pushStr(EscapeUnescaped, name)
+	for _, arg := range args {
+		// empty macro argument can be specified as "", mostly useful for TH macro
+		// which takes several arguments positionally
+		s := arg
+		if s == "" {
+			s = `""`
+		}
+		self.payload.pushStr(EscapeUnescaped, " ")
+		self.payload.pushStr(EscapeSpaces, s)
+	}
+	self.payload.pushStr(EscapeUnescapedAtNewline, "")
+	return self
+}
+
+// Control0 is a variant of Control that takes no parameters
+func (self *Roff) Control0(name string) *Roff {
+	self.payload.pushStr(EscapeUnescapedAtNewline, ".")
+	self.payload.pushStr(EscapeUnescaped, name)
+	self.payload.pushStr(EscapeUnescapedAtNewline, "")
+	return self
+}
+
+// RoffLinebreak inserts a line break in the Roff document source
+//
+// This will not show up in the output of the roff program.
+func (self *Roff) RoffLinebreak() *Roff {
+	self.payload.pushStr(EscapeUnescapedAtNewline, "")
+	return self
+}
+
+// Escape inserts a raw escape sequence
+//
+// You can use all the notations for the escapes, they will be copied into the
+// output stream as is without extra checks or escapes.
+func (self *Roff) Escape(arg string) *Roff {
+	self.payload.pushStr(EscapeUnescaped, arg)
+	return self
+}
+
+// Plaintext inserts a plain text string, special characters are escaped
+func (self *Roff) Plaintext(text string) *Roff {
+	if self.stripNewlines {
+		self.payload.pushStr(EscapeSpecialNoNewline, text)
+	} else {
+		self.payload.pushStr(EscapeSpecial, text)
+	}
+	return self
+}
+
+// Text inserts one or more string slices using custom font for each one
+func (self *Roff) Text(text ...FontText) *Roff {
+	var prev_font Font
+	var prev_set bool
+	for _, item := range text {
+		if prev_set && prev_font == item.Font {
+			self.Plaintext(item.Text)
 		} else {
-			// regular text
-			if inList {
-				// end the list if we're in one
-				tr.IndentEnd()
-				inList = false
-			}
-
-			tr.writef(escapeText(s))
+			self.Escape(item.Font.escape())
+			self.Plaintext(item.Text)
+			prev_font, prev_set = item.Font, true
 		}
 	}
+	if prev_set {
+		self.Escape(RESTORE_FONT)
+	}
+	return self
 }
 
-// TextBold writes text in bold.
-func (tr *Document) TextBold(text string) {
-	tr.writef(Bold)
-	tr.Text(text)
-	tr.writef(PreviousFont)
+// FontText is a text slice with the font to render it in
+type FontText struct {
+	Font Font
+	Text string
 }
 
-// TextItalic writes text in italic.
-func (tr *Document) TextItalic(text string) {
-	tr.writef(Italic)
-	tr.Text(text)
-	tr.writef(PreviousFont)
-}
-
-// String returns the roff document as a string.
-func (tr Document) String() string {
-	return tr.B.String()
-}
-
-func escapeText(s string) string {
-	s = strings.ReplaceAll(s, `\`, `\e`)
-	s = strings.ReplaceAll(s, ".", "\\&.")
-	return s
+// Render renders Roff document to a string
+//
+// This method creates a valid ROFF document which can be fed to a ROFF implementation
+func (self Roff) Render(ap Apostrophes) string {
+	res := make([]byte, 0, self.payload.payloadSize()*2)
+	if ap == Handle {
+		res = append(res, APOSTROPHE_PREABMLE...)
+	}
+	escapeSlice(self.payload.payload, self.payload.iter(), &res, ap)
+	return string(res)
 }

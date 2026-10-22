@@ -25,7 +25,7 @@ func last[T any](xs []T) Opt[T] {
 	return get(xs, len(xs)-1)
 }
 
-func strip_prefix(s string, prefix string) Opt[string] {
+func strip_prefix(s, prefix string) Opt[string] {
 	x, ok := strings.CutPrefix(s, prefix)
 	return Opt[string]{x, ok}
 }

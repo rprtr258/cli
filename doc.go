@@ -6,6 +6,17 @@ import (
 	"github.com/rprtr258/fun"
 )
 
+// String with styled segments.
+//
+// A [Doc] accumulates styled text via [Doc.Text], [Doc.Emphasis], [Doc.Literal] and
+// [Doc.Invalid] helpers and renders it into help messages and
+// usage lines. For the simplest possible results you can pass a plain string
+// wherever a [Doc] is required.
+type Doc struct {
+	payload string
+	tokens  []token
+}
+
 func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 	res := Doc{}
 	for _, v := range val {
@@ -146,7 +157,6 @@ func (self *Doc) write_meta_go(meta meta) {
 		self.write_meta_go(m.m)
 		self.write_str("...", StyleText)
 	case metaSkip:
-		// self.write_str("no parameters expected", StyleText)
 	case metaCustomUsage:
 		self.Doc(m.doc)
 	case metaStrict:
@@ -209,17 +219,6 @@ type token struct {
 func tokenText(bytes int, style Style) token { return token{isText: true, bytes: bytes, style: style} }
 func tokenBlockStart(block block) token      { return token{isStart: true, block: block} }
 func tokenBlockEnd(block block) token        { return token{isStart: false, block: block} }
-
-// String with styled segments.
-//
-// A [Doc] accumulates styled text via [Doc.Text], [Doc.Emphasis], [Doc.Literal] and
-// [Doc.Invalid] helpers and renders it into help messages and
-// usage lines. For the simplest possible results you can pass a plain string
-// wherever a [Doc] is required.
-type Doc struct {
-	payload string
-	tokens  []token
-}
 
 func (d Doc) clone() Doc {
 	return Doc{
@@ -322,24 +321,27 @@ func (self *Doc) write_char(c byte, style Style) {
 type docSection struct {
 	// Path name to the command name starting from the application
 	path []string
-	info info
+	info *info
 	meta meta
 }
 
 func extract_sections(
 	meta meta,
-	info info,
+	info *info,
 	path *[]string,
 	sections *[]docSection,
 ) {
-	*sections = append(*sections, docSection{*path, info, meta})
+	// clone the path: docSection must own its slice, otherwise the next
+	// append(path, ...) overwrites the backing array of previously pushed sections
+	p := make([]string, len(*path))
+	copy(p, *path)
+	*sections = append(*sections, docSection{p, info, meta})
 	hi := helpItems{}
 	hi.append_meta(meta)
 	for _, item := range hi {
-		switch item := item.(type) {
-		case helpItemCommand:
-			*path = append(*path, item.name)
-			extract_sections(item.meta, item.info, path, sections)
+		if cmd, ok := item.(helpItemCommand); ok {
+			*path = append(*path, cmd.name)
+			extract_sections(cmd.meta, &cmd.info, path, sections)
 			*path = (*path)[0 : len(*path)-1]
 		}
 	}

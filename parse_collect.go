@@ -4,10 +4,10 @@ import "math"
 
 // Apply inner parser several times and collect results, created with [Parser.Collect].
 func collect_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseError) {
-	len := uint(math.MaxUint)
+	maxlen := uint(math.MaxUint)
 	res := []T{}
 	for {
-		xx, err := parse_option(inner, &len, state, catch)
+		xx, err := parse_option(inner, &maxlen, state, catch)
 		if err != nil {
 			return nil, err
 		}

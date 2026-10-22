@@ -39,7 +39,7 @@ func (self state) clone() state {
 }
 
 // Check if item at ixth position is still present (was not parsed)
-func (self state) present(ix int) (bool, bool) {
+func (self state) present(ix int) (present, exact bool) {
 	inBounds := ix < len(self.item_state)
 	return inBounds && !self.item_state[ix].parsed(), inBounds
 }
@@ -100,8 +100,7 @@ LOOP:
 				break LOOP
 			}
 		case ok && argType == argTypeShort && a.Valid:
-			items = append(items, argShort(os, s[0], true))
-			items = append(items, a.Value)
+			items = append(items, argShort(os, s[0], true), a.Value)
 			// --key and --key=val
 		case ok && argType == argTypeLong:
 			items = append(items, argLong(os, s, a.Valid))
@@ -378,7 +377,7 @@ func (self *state) takeFlag(
 //
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
-func (self *state) takePositional(metavar Metavar) (int, bool, string, parseError) {
+func (self *state) takePositional(metavar Metavar) (ix int, strict bool, value string, err parseError) {
 	iter := push2(self.items_iter())
 	for i, arg := range iter {
 		if fun.Contains(arg.kind, argKindWord, argKindPositional) {

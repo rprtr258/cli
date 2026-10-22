@@ -159,15 +159,8 @@ func TestTwo_adjacent_args(t *testing.T) {
 	parser := Pair(point, c).ToOptions()
 
 	assertSuccess(t, PPair(PPair(3, 4), true), parser, "-x", "3", "-y", "4", "-c")
-	{
-		// they are adjacent to each other, but the way it is coded currently - they must be adjacent
-		// to the first element.
-		// Proper fix is to split "adjacent" into "adjacent to" and "adjacent block"
-
-		// TODO: get back
-		// r, err := parser.RunInner(newArgList("-y", "3", "-x", "4", "-c"))
-		// require.Nil(t, err)
-		// require.Equal(t, r, pair(pair(4, 3), true))
-	}
+	// NOTE: adjacent groups must currently be adjacent to the first element; a
+	// proper fix is to split "adjacent" into "adjacent to" and "adjacent block".
+	// TODO: get back to allowing "-y 3 -x 4 -c" here.
 	assertFailure(t, parser, "expected `-y=Y`, pass `--help` for usage information", "-y", "3", "-c", "-x", "4")
 }

@@ -567,9 +567,9 @@ Available commands:
 Usage: fetch [--dry_run] [--all] [SRC]
 
 Available options:
-    --dry_run
-    --all
-    -h, --help  Prints help information
+        --dry_run
+        --all
+    -h, --help     Prints help information
 `
 		assertHelp(t, parser, expected_help, "fetch", "--help")
 	})
@@ -581,7 +581,7 @@ Usage: add [-i] [--all] [FILE]...
 
 Available options:
     -i
-    --all
+        --all
     -h, --help  Prints help information
 `
 		assertHelp(t, parser, expected_help, "add", "--help")
@@ -690,9 +690,9 @@ func TestHiddenEnv(t *testing.T) {
 	const expected = `Usage: --key=KEY
 
 Available options:
-    --key=KEY   use this secret key
-                two lines
-    -h, --help  Prints help information
+        --key=KEY  use this secret key
+                   two lines
+    -h, --help     Prints help information
 `
 	assertHelp(t, parser, expected, "-h")
 
@@ -711,9 +711,9 @@ func TestEnvVariable(t *testing.T) {
 		const expected_help = `Usage: --key=KEY
 
 Available options:
-    --key=KEY   use this secret key two lines
-                [env:BPAF_SECRET_API_KEY: N/A]
-    -h, --help  Prints help information
+        --key=KEY  use this secret key two lines
+                   [env:BPAF_SECRET_API_KEY: N/A]
+    -h, --help     Prints help information
 `
 		assertHelp(t, parser, expected_help, "-h")
 	}
@@ -723,9 +723,9 @@ Available options:
 		const expected_help = `Usage: --key=KEY
 
 Available options:
-    --key=KEY   use this secret key two lines
-                [env:BPAF_SECRET_API_KEY = "top s3cr3t"]
-    -h, --help  Prints help information
+        --key=KEY  use this secret key two lines
+                   [env:BPAF_SECRET_API_KEY = "top s3cr3t"]
+    -h, --help     Prints help information
 `
 		assertHelp(t, parser, expected_help, "-h")
 	}
@@ -744,14 +744,14 @@ func TestDefaultPlaysNicelyWithCommand(t *testing.T) {
 	cmd := Pure(FooFoo).ToOptions().
 		Description("inner").
 		Command("foo").
-		Help("foo").Fallback(*new(Foo))
+		Help("foo").Fallback(Foo(false))
 
 	parser := cmd.ToOptions().Description("outer")
 
 	{
 		const expected_help = `inner
 
-Usage: foo
+Usage: foo 
 
 Available options:
     -h, --help  Prints help information
@@ -796,7 +796,7 @@ Available commands:
 	{
 		const expected_help = `inner descr
 
-Usage: foo
+Usage: foo 
 
 Available options:
     -h, --help  Prints help information
@@ -828,12 +828,12 @@ func TestHelpForOptions(t *testing.T) {
 	const expected_help = `Usage: [-a] -c=B --bbbbb=CCC
 
 Available options:
-    -a           help for a
-    -c=B         help for b
-                 [env:BbBbB: N/A]
-    --bbbbb=CCC  help for ccc
-                 [env:ccccCCccc: N/A]
-    -h, --help   Prints help information
+    -a               help for a
+    -c=B             help for b
+                     [env:BbBbB: N/A]
+        --bbbbb=CCC  help for ccc
+                     [env:ccccCCccc: N/A]
+    -h, --help       Prints help information
 `
 
 	assertHelp(t, parser, expected_help)
@@ -1263,7 +1263,7 @@ func TestEmpty_struct(t *testing.T) {
 	parser := Pure(Foo{}).ToOptions()
 
 	assertSuccess(t, Foo{}, parser)
-	assertHelp(t, parser, `Usage:
+	assertHelp(t, parser, `Usage: 
 
 Available options:
     -h, --help  Prints help information

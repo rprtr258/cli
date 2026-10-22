@@ -7,7 +7,7 @@ import (
 )
 
 // Parser that tries to either of two parsers and uses one that succeeeds, created with [Parser.OrElse].
-func or_else_eval[T any](self Parser[T], alt Parser[T], state *state) (T, parseError) {
+func or_else_eval[T any](self, alt Parser[T], state *state) (T, parseError) {
 	var comp_items []comp
 
 	state.swap_comps_with(&comp_items)

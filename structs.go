@@ -3,7 +3,7 @@ package cli
 // try to parse
 func parse_option[T any](
 	parser Parser[T],
-	len *uint,
+	maxlen *uint,
 	state *state,
 	catch bool,
 ) (Opt[T], parseError) {
@@ -34,8 +34,8 @@ func parse_option[T any](
 	}
 	// we keep including values for as long as we consume values from the argument
 	// list or at least one value
-	if lll := uint(state.len()); lll < *len {
-		*len = lll
+	if lll := uint(state.len()); lll < *maxlen {
+		*maxlen = lll
 		return Valid(val), nil
 	} else {
 		return Invalid[T](), nil

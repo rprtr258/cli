@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/rprtr258/fun"
@@ -66,7 +65,7 @@ func (self OptionParser[T]) RenderManpage(
 	root := self.inner.meta
 	path := []string{app}
 
-	extract_sections(root, self.info, &path, &sections)
+	extract_sections(root, &self.info, &path, &sections)
 
 	var buf Doc
 
@@ -140,25 +139,25 @@ func (self OptionParser[T]) RenderManpage(
 		}
 	}
 
-	manpage := roff.NewDocument()
-	fmt.Fprintf(&manpage.B,
-		"TH %s %s %s %s %s\n",
+	manpage := roff.New()
+	manpage.Control(
+		"TH",
 		app,
 		section.String(),
+		last_update_date.OrDefault("-"),
 		vendor.OrDefault("-"),
 		application_title.OrDefault(""),
-		last_update_date.OrDefault("-"),
 	)
 
 	return buf.render_roff(manpage)
 }
 
-type Font = string
+type Font = roff.Font
 
 func FontFrom(value Style) Font {
 	switch value {
 	case StyleText:
-		return ""
+		return roff.Roman
 	case StyleEmphasis, StyleLiteral:
 		return roff.Bold
 	case StyleMetavar, StyleInvalid:
@@ -167,7 +166,7 @@ func FontFrom(value Style) Font {
 	panic("unreachable")
 }
 
-func (self Doc) render_roff(roff *roff.Document) string {
+func (self Doc) render_roff(roffDoc *roff.Roff) string {
 	// sections and subsections are implemented with .SH and .SS
 	// control messages and it is easier to provide them right away
 	// We also strip styling from them and change sections to all caps
@@ -186,9 +185,9 @@ func (self Doc) render_roff(roff *roff.Document) string {
 				continue
 			} else {
 				if style == StyleEmphasis {
-					roff.B.WriteString("SS")
+					roffDoc.Control0("SS")
 				}
-				roff.Text(FontFrom(style) + input)
+				roffDoc.Text(roff.FontText{Font: FontFrom(style), Text: input})
 			}
 		case token.isStart:
 			block := token.block
@@ -196,15 +195,15 @@ func (self Doc) render_roff(roff *roff.Document) string {
 			case blockHeader, blockSection2, blockSection3:
 				capture.V = true
 			case blockItemTerm:
-				roff.B.WriteString("TP")
+				roffDoc.Control0("TP").StripNewlines(true)
 			case blockMono,
 				blockItemBody,
 				blockDefinitionList,
 				blockInlineBlock:
 			case blockBlock:
-				roff.Paragraph()
+				roffDoc.Control0("PP")
 			case blockMeta:
-				roff.B.WriteString("nf")
+				roffDoc.Control0("nf")
 			case blockTermRef:
 				// mirrors the upstream implementation: this block is unreachable,
 				// TermRef is only emitted by error rendering which never uses manpage
@@ -215,19 +214,19 @@ func (self Doc) render_roff(roff *roff.Document) string {
 			switch block {
 			case blockHeader:
 				capture.V = false
-				roff.Section(capture.K)
+				roffDoc.Control("SH", strings.ToUpper(capture.K))
 				capture.K = ""
 			case blockSection2, blockSection3:
 				capture.V = false
-				fmt.Fprint(&roff.B, "SS", []string{strings.ToUpper(capture.K)})
+				roffDoc.Control("SS", strings.ToUpper(capture.K))
 				capture.K = ""
 			case blockItemTerm:
-				fmt.Fprint(&roff.B, "\n")
+				roffDoc.RoffLinebreak().StripNewlines(false)
 			case blockItemBody:
-				roff.Paragraph()
+				roffDoc.Control0("PP").StripNewlines(false)
 			case blockMono, blockDefinitionList, blockBlock, blockInlineBlock:
 			case blockMeta:
-				fmt.Fprint(&roff.B, "fi")
+				roffDoc.Control0("fi")
 			case blockTermRef:
 				// mirrors the upstream implementation: this block is unreachable,
 				// TermRef is only emitted by error rendering which never uses manpage
@@ -236,5 +235,5 @@ func (self Doc) render_roff(roff *roff.Document) string {
 		}
 	}
 
-	return roff.String( /*ApostrophesHandle*/ )
+	return roffDoc.Render(roff.Handle)
 }

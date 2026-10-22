@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/rprtr258/fun"
-	funiter "github.com/rprtr258/fun/iter"
 )
 
 type compExtra struct {
@@ -246,8 +245,8 @@ func (self *Complete) push_value(
 	))
 }
 
-func (self *Complete) push_comp(comp comp) {
-	self.comps = append(self.comps, comp)
+func (self *Complete) push_comp(c *comp) {
+	self.comps = append(self.comps, *c)
 }
 
 func (self *Complete) extend_comps(comps []comp) {
@@ -255,14 +254,14 @@ func (self *Complete) extend_comps(comps []comp) {
 }
 
 // to avoid leaking items with higher depth into items with lower depth
-func (self comp) depth() int {
+func (self *comp) depth() int {
 	return self.extra.depth
 }
 
 // completer needs to replace meta placeholder with actual values - uses this
 //
 // value indicates if it's an argument or a positional meta
-func (self comp) is_metavar() (bool, bool) {
+func (self *comp) is_metavar() (is_argument, ok bool) {
 	if self.kind == compKindMetavariable {
 		return self.is_argument, true
 	}
@@ -330,7 +329,7 @@ func prefixLong(s string) prefix {
 // Generate completion from collected heads
 // before calling this method we run parser in "complete" mode and collect live heads inside
 // `self.comp`, this part goes over collected heads and generates possible completions from that
-func (self state) check_complete() (string, bool) {
+func (self *state) check_complete() (string, bool) {
 	comp, ok := self.comp.Unpack()
 	if !ok {
 		return "", false
@@ -440,7 +439,7 @@ func arg_matches(arg string, name shortLong) (string, bool) {
 	return "", false
 }
 
-func cmd_matches(arg string, name string, short Opt[byte]) (string, bool) {
+func cmd_matches(arg, name string, short Opt[byte]) (string, bool) {
 	// partial long name and exact short name switch anything
 	if strings.HasPrefix(name, arg) || map_or(short, false, func(s byte) bool {
 		// avoid allocations
@@ -453,7 +452,7 @@ func cmd_matches(arg string, name string, short Opt[byte]) (string, bool) {
 }
 
 // this completion should suppress anything else that is not a value
-func (self comp) only_value() bool {
+func (self *comp) only_value() bool {
 	switch self.kind {
 	case compKindValue, compKindMetavariable, compKindShell:
 		return self.is_argument
@@ -480,17 +479,20 @@ func (self Complete) complete(
 	prefix prefix,
 ) ([]ShowComp, []ShellComp) {
 	max_depth := 0
-	for _, c := range self.comps {
-		max_depth = max(max_depth, c.depth())
+	for i := range self.comps {
+		max_depth = max(max_depth, self.comps[i].depth())
 	}
 
 	only_values := false
 	items := []ShowComp{}
 	shell := []ShellComp{}
 F:
-	for item := range funiter.
-		FromMany(self.comps...).
-		Filter(func(c comp) bool { return c.depth() == max_depth && (!pos_only || c.is_pos()) }) {
+	for i := range self.comps {
+		c := &self.comps[i]
+		if c.depth() != max_depth || (pos_only && !c.is_pos()) {
+			continue F
+		}
+		item := c
 		switch {
 		case only_values == item.only_value():
 		case only_values:

@@ -17,7 +17,8 @@ func compShell_eval[T any](inner Parser[T], op ShellComp, state *state) (T, pars
 
 	depth := state.depth()
 	if comp, ok := state.comp_mut(); ok {
-		for _, ci := range comp_items {
+		for i := range comp_items {
+			ci := &comp_items[i]
 			if is_argument, ok := ci.is_metavar(); ok {
 				comp.push_shell(op, is_argument, depth)
 			} else {

@@ -6,9 +6,9 @@ import "math"
 func count_eval[T any](inner Parser[T], state *state) (int, parseError) {
 	res := 0
 	current := state.len()
-	len := uint(math.MaxUint)
+	maxlen := uint(math.MaxUint)
 	for {
-		vv, err := parse_option(inner, &len, state, false)
+		vv, err := parse_option(inner, &maxlen, state, false)
 		if err != nil {
 			return 0, err
 		}

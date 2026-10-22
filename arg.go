@@ -47,7 +47,7 @@ func argShort(str string, c byte, b bool) arg {
 	return arg{str: str, kind: argKindShortFlag, c: c, isAdjacent: b}
 }
 
-func argLong(str string, s string, b bool) arg {
+func argLong(str, s string, b bool) arg {
 	return arg{str: str, kind: argKindLongFlag, s: s, isAdjacent: b}
 }
 
@@ -157,12 +157,14 @@ func split_os_argument(input string) (argType, string, Opt[arg], bool) {
 	items = items[1:]
 
 	// second item may or may not be, but should be present
-	var ty argType
 	if len(items) == 0 {
 		return false, "", Invalid[arg](), false
-	} else if items[0] == DASH {
+	}
+	var ty argType
+	switch items[0] {
+	case DASH:
 		ty = argTypeLong
-	} else {
+	default:
 		ty = argTypeShort
 		name = append(name, items[0])
 	}

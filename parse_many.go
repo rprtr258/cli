@@ -5,10 +5,10 @@ import "math"
 // Repeatedly apply an inner parser and collect the results, created with
 // [Parser.Many] or [Parser.ManyCatch].
 func many_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseError) {
-	len := uint(math.MaxUint)
+	maxlen := uint(math.MaxUint)
 	res := []T{}
 	for {
-		vr, err := parse_option(inner, &len, state, catch)
+		vr, err := parse_option(inner, &maxlen, state, catch)
 		if err == nil && !vr.Valid {
 			break
 		}

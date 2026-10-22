@@ -43,9 +43,9 @@ func TestFancy_meta(t *testing.T) {
 	const expected = `Usage: --trailing-comma=<all|es5|none> --stdin-file-path=PATH
 
 Available options:
-    --trailing-comma=<all|es5|none>
-    --stdin-file-path=PATH
-    -h, --help              Prints help information
+        --trailing-comma=<all|es5|none>
+        --stdin-file-path=PATH
+    -h, --help  Prints help information
 `
 	assertHelp(t, parser, expected)
 }
@@ -319,9 +319,9 @@ func TestFallback_display_simple_arg(t *testing.T) {
 	const expected = `Usage: [--a=NUM]
 
 Available options:
-    --a=NUM     help for a
-                [default: 42]
-    -h, --help  Prints help information
+        --a=NUM  help for a
+                 [default: 42]
+    -h, --help   Prints help information
 `
 
 	assertHelp(t, parser, expected)
@@ -362,10 +362,10 @@ func TestFallback_display_tuple(t *testing.T) {
 	const expected = `Usage: [--a=NUM --b=NUM]
 
 Available options:
-    --a=NUM     help for a
-    --b=NUM     help for b
-                [default: Pair 42, 333]
-    -h, --help  Prints help information
+        --a=NUM  help for a
+        --b=NUM  help for b
+                 [default: Pair 42, 333]
+    -h, --help   Prints help information
 `
 
 	assertHelp(t, parser, expected)
@@ -380,9 +380,9 @@ func TestFallback_display_no_help(t *testing.T) {
 	const expected = `Usage: [--a=NUM]
 
 Available options:
-    --a=NUM
-                [default: 42]
-    -h, --help  Prints help information
+        --a=NUM
+                 [default: 42]
+    -h, --help   Prints help information
 `
 
 	assertHelp(t, parser, expected)
@@ -405,11 +405,11 @@ func TestEnv_fallback_visible(t *testing.T) {
 	const expected = `Usage: [--fonts=DIR] [--system-fonts]
 
 Available options:
-    --fonts=DIR     Load fonts from this directory
-                    [env:OIKOS_FONTS: N/A]
-    --system-fonts  Search for additional fonts in system directories
-                    [env:OIKOS_SYSTEM_FONTS: not set]
-    -h, --help      Prints help information
+        --fonts=DIR     Load fonts from this directory
+                        [env:OIKOS_FONTS: N/A]
+        --system-fonts  Search for additional fonts in system directories
+                        [env:OIKOS_SYSTEM_FONTS: not set]
+    -h, --help          Prints help information
 `
 	assertHelp(t, parser, expected)
 }
@@ -439,7 +439,7 @@ func TestWith_group_help(t *testing.T) {
 
 	ab := Pair(a, b).Parser().withGroupHelp(func(meta meta) Doc {
 		var b Doc
-		b.Emphasis("Uses either of those ")
+		b.Emphasis("Uses either of those")
 		b.meta(meta, false)
 		return b
 	})

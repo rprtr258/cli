@@ -312,7 +312,7 @@ func unwrap_stdout(self parseFailure) string {
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-func textual_part(state state, ixxx Opt[int]) (string, bool) {
+func textual_part(state *state, ixxx Opt[int]) (string, bool) {
 	ixx, ok := ixxx.Unpack()
 	if !ok {
 		return "", false
@@ -330,7 +330,7 @@ func textual_part(state state, ixxx Opt[int]) (string, bool) {
 	return "", false
 }
 
-func only_once(state state, cur int) (int, bool) {
+func only_once(state *state, cur int) (int, bool) {
 	if cur == 0 {
 		return 0, false
 	}
@@ -357,7 +357,10 @@ func only_once(state state, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-func render(self *parseError, state state, meta meta) parseFailure {
+// and must stay a pointer to the interface.
+//
+//nolint:gocritic // `self *parseError` is written through (error replacement)
+func render(self *parseError, state *state, meta meta) parseFailure {
 	// try to come up with a better error message for a few cases
 	switch e := (*self).(type) {
 	case errorMissing:
@@ -370,7 +373,7 @@ func render(self *parseError, state state, meta meta) parseFailure {
 			*self = errorConflict{winner, loser}
 		} else if prev_ix, ok := only_once(state, ix); ok {
 			*self = errorOnlyOnce{prev_ix, ix}
-		} else if ix, suggestion, ok := suggest(state, meta); ok {
+		} else if ix, suggestion, ok := suggest(*state, meta); ok {
 			*self = errorSuggestion{ix, suggestion}
 		}
 	}
@@ -686,7 +689,7 @@ func render(self *parseError, state state, meta meta) parseFailure {
 }
 
 // go over all the missing items, pick the left most scope
-func summarize_missing(items []missingItem, inner meta, state state) parseError {
+func summarize_missing(items []missingItem, inner meta, state *state) parseError {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(
 		slices.Values(items),
@@ -716,10 +719,10 @@ func summarize_missing(items []missingItem, inner meta, state state) parseError 
 	}))
 
 	best_scope[0] = max(best_scope.start(), best_item.position)
-	state = state.clone()
-	state.scope = best_scope
-	if ix, _, ok := state.items_iter()(); ok {
-		if iy, sugg, ok := suggest(state, inner); ok {
+	cloned := state.clone()
+	cloned.scope = best_scope
+	if ix, _, ok := cloned.items_iter()(); ok {
+		if iy, sugg, ok := suggest(cloned, inner); ok {
 			return errorSuggestion{iy, sugg}
 		} else {
 			return errorExpected{expected, Valid(ix)}

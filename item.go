@@ -31,6 +31,11 @@ type itemCommand struct {
 }
 
 func (itemCommand) isItem() {}
+
+// receiver would break `case itemCommand:` switches, and the 536-byte copy is
+// cheaper than reworking item storage.
+//
+//nolint:gocritic // itemI values are stored by value in interfaces; a pointer
 func (self itemCommand) clone() itemI {
 	return itemCommand{
 		self.name,

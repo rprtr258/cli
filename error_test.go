@@ -27,13 +27,7 @@ func TestNo_argument(t *testing.T) {
 
 	assertSuccess(t, PPair(int32(-42), false), parser, "-a", "-42")
 
-	{
-		//    r, err := parser.RunInner(newArgs("-a", "-4"]))
-		//    require.Nil(t, err)
-		//    require.Equal(t, r, (-4, flse));
-	}
-
-	// can we restore this?
+	// TODO: restore the alternative spelling of this failure:
 	// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
 	assertFailure(t, parser, "`-a` requires an argument `N`", "-a", "-2")
 }
@@ -139,7 +133,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	c := Pure(struct{}{}).ToOptions().Command("hello")
 	parser := Pair(a, c).ToOptions()
 
-	// const expected = "expected `COMMAND ...`, got `hello`. Pass `--help` for usage information"
+	// the message could also mention passing --help for usage information
 	assertSuccess(t, fun.Pair[uint, struct{}]{0, struct{}{}}, parser, "-a=hello")
 
 	{

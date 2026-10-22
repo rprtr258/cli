@@ -48,6 +48,8 @@ func test_completer_descr(input string) SSOS {
 }
 
 func complete_alpha(input string) SSOS {
+	//nolint:gocritic // candidate-first order is intentional: match when the
+	// typed input is a prefix of the completion candidate.
 	if strings.HasPrefix("alpha", input) {
 		return seq2(funiter.FromMany(PSOS{"alpha", Valid("alpha description")}))
 	} else {
@@ -56,6 +58,8 @@ func complete_alpha(input string) SSOS {
 }
 
 func complete_beta(input string) SSOS {
+	//nolint:gocritic // candidate-first order is intentional: match when the
+	// typed input is a prefix of the completion candidate.
 	if strings.HasPrefix("beta", input) {
 		return seq2(funiter.FromMany(PSOS{"beta", Valid("beta description")}))
 	} else {
@@ -510,7 +514,6 @@ func TestShould_be_able_to_suggest_double_dash(t *testing.T) {
 		Parser().
 		Optional()
 
-	// parser := Pair(a).ToOptions()
 	parser := a.ToOptions()
 
 	assertCompletion(t, parser, "--arg", "")

@@ -19,7 +19,7 @@ import (
 // # Usage
 //
 //	verbosity := verboseAndQuietByNumber(2, 0, 5)
-func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
+func verbose_and_quiet_by_number(offset, lo, hi int) Parser[int] {
 	vp := ReqFlag(Short('v').
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
@@ -32,7 +32,7 @@ func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
 		struct{}{}).Many()
 	quiet := qp.Map(lenOf)
 
-	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
+	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, lo, hi) })
 }
 
 // `--verbose` and `--quiet` flags with results chosen from a slice of values

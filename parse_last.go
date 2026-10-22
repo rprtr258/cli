@@ -6,9 +6,9 @@ import "math"
 func last_eval[T any](inner Parser[T], state *state) (T, parseError) {
 	last := Invalid[T]()
 	current := state.len()
-	len := uint(math.MaxUint)
+	maxlen := uint(math.MaxUint)
 	for {
-		val, err := parse_option(inner, &len, state, false)
+		val, err := parse_option(inner, &maxlen, state, false)
 		if err != nil || !val.Valid {
 			break
 		}

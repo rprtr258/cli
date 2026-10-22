@@ -212,7 +212,7 @@ func (self *helpItemsIter) next() (helpItem, bool) {
 }
 
 func (self helpItems) items_of_ty(target hiTy) iter.Seq[helpItem] {
-	iter := helpItemsIter{
+	it := helpItemsIter{
 		items:  self,
 		target: target,
 		cur:    0,
@@ -220,7 +220,7 @@ func (self helpItems) items_of_ty(target hiTy) iter.Seq[helpItem] {
 	}
 	return func(yield func(helpItem) bool) {
 		for {
-			x, ok := iter.next()
+			x, ok := it.next()
 			if !ok || !yield(x) {
 				break
 			}
@@ -500,22 +500,26 @@ func write_help_item(buf *Doc, item helpItem, include_env bool) {
 }
 
 func write_shortlong(buf *Doc, name shortLong) {
-	if s := name.Short; s != 0 {
+	switch {
+	case name.is_short():
 		buf.write_char('-', StyleLiteral)
-		buf.write_char(s, StyleLiteral)
-	}
-	if name.Short != 0 && name.Long != "" {
+		buf.write_char(name.Short, StyleLiteral)
+	case name.is_long():
+		// long only arguments are indented to match the short ones
+		buf.write_str("    --", StyleLiteral)
+		buf.write_str(name.Long, StyleLiteral)
+	case name.is_both():
+		buf.write_char('-', StyleLiteral)
+		buf.write_char(name.Short, StyleLiteral)
 		buf.write_str(", ", StyleText)
-	}
-	if l := name.Long; l != "" {
 		buf.write_str("--", StyleLiteral)
-		buf.write_str(l, StyleLiteral)
+		buf.write_str(name.Long, StyleLiteral)
 	}
 }
 
 func render_help(
 	path []string,
-	info info,
+	info *info,
 	parser_meta meta,
 	help_meta meta,
 ) Doc {

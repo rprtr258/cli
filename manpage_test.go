@@ -7,19 +7,18 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func write_updated(t *testing.T, new_val string, path string) {
+func write_updated(t *testing.T, new_val, path string) {
 	t.Helper()
 
 	current_val, err := os.ReadFile(path)
 	require.NoError(t, err)
 	if string(current_val) != new_val {
-		// os.WriteFile(path,new_val)
 		t.FailNow()
 	}
 }
 
 func TestSimple(t *testing.T) {
-	t.SkipNow() // TODO: fix
+	// unskipped
 	kraken := Short('d').
 		Long("kraken").
 		Help("Unleash the kraken").
@@ -39,7 +38,7 @@ func TestSimple(t *testing.T) {
 		"simple",
 		Section{Kind: SectionGeneral},
 		Valid("Aug 2022"),
-		Valid(os.Getenv("CARGO_PKG_AUTHORS")),
+		Valid("Michael Baykov <manpacket@gmail.com>"),
 		Valid("asdf"),
 	)
 
@@ -47,7 +46,7 @@ func TestSimple(t *testing.T) {
 }
 
 func TestNested(t *testing.T) {
-	t.SkipNow() // TODO: fix
+	// unskipped
 	a := Argument(Short('d').
 		Help("dragon"),
 		"y", ParseString).
@@ -86,7 +85,7 @@ func TestNested(t *testing.T) {
 			"simple",
 			Section{Kind: SectionGeneral},
 			Valid("Aug 2022"),
-			Valid(os.Getenv("CARGO_PKG_AUTHORS")),
+			Valid("Michael Baykov <manpacket@gmail.com>"),
 			Valid("asdf"),
 		)
 
@@ -94,7 +93,7 @@ func TestNested(t *testing.T) {
 }
 
 func TestVery_nested(t *testing.T) {
-	t.SkipNow() // TODO: fix
+	// unskipped
 	options := Argument(Short('k').
 		Help("Unleash the Kraken"),
 		"NAME", ParseString).
@@ -115,7 +114,7 @@ func TestVery_nested(t *testing.T) {
 		"simple",
 		Section{Kind: SectionGeneral},
 		Valid("Aug 2022"),
-		Valid(os.Getenv("CARGO_PKG_AUTHORS")),
+		Valid("Michael Baykov <manpacket@gmail.com>"),
 		Valid("asdf"),
 	)
 
