@@ -11,9 +11,10 @@ import (
 )
 
 func Filenames() {
-	parser := cli.Many(cli.Positional("FILE", parseString).
+	parser := cli.Positional("FILE", parseString).
 		Parser().
-		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))))
+		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).
+		Many()
 
 	r := parser.ToOptions().Run(os.Args)
 	fmt.Println(r)

@@ -25,9 +25,9 @@ func ExPositional() {
 		Parser().
 		Fallback(42).
 		Parser()
-	files := cli.Many(cli.Positional("FILE", func(s string) (string, error) {
+	files := cli.Positional("FILE", func(s string) (string, error) {
 		return s, nil
-	}))
+	}).Parser().Many()
 	opts := cli.Pair(value, files).Map(func(x fun.Pair[uint32, []string]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)

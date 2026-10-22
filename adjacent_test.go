@@ -10,7 +10,7 @@ func TestTest_adjacent(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Short('b').Switch()
 	c := Short('c').Switch()
-	parser := Many(Triple(a, b, c).Adjacent()).ToOptions()
+	parser := Triple(a, b, c).Adjacent().Many().ToOptions()
 
 	type R = Tuple[struct{}, bool, bool]
 	assertSuccess(t, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}}, parser, "-a", "-c", "-a", "-b", "-a", "-b", "-c")
@@ -69,7 +69,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	b := Positional("B", parseUint)
 	c := Positional("C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent())
+	adj := Triple(a, b, c).Adjacent().Many()
 	parser := Pair(adj, d).ToOptions()
 
 	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
@@ -80,7 +80,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	b := Argument(Short('b'), "B", parseUint)
 	c := Argument(Short('c'), "C", parseUint)
 	d := Short('d').Switch()
-	adj := Many(Triple(a, b, c).Adjacent())
+	adj := Triple(a, b, c).Adjacent().Many()
 	parser := Pair(adj, d).ToOptions()
 
 	// this should ask for -b or -c and complain on 10...
@@ -90,7 +90,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 func TestAdjacent_is_adjacent(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("B", parseUint)
-	parser := Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V })).ToOptions()
+	parser := Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }).Many().ToOptions()
 
 	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
 
@@ -100,7 +100,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 func TestAdjacent_with_switch(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("B", parseUint)
-	ab := Many(Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }))
+	ab := Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }).Many()
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
 

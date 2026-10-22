@@ -29,9 +29,10 @@ func Basic() {
 
 		// number of occurrences of the v/verbose flag capped at 3 with an error here but you can also
 		// use `max` inside `map`
-		verbose := cli.Many(cli.ReqFlag(cli.Short('v').
+		verbose := cli.ReqFlag(cli.Short('v').
 			Long("verbose").
-			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{})).
+			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).
+			Many().
 			Map(func(xs []struct{}) uint { return uint(len(xs)) }).
 			Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
@@ -71,7 +72,7 @@ func Basic() {
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
 
-		files_to_process := cli.Many(file_to_proces)
+		files_to_process := file_to_proces.Many()
 
 		// packing things in a struct assumes parser for each field is in scope.
 		// TODO: codgen on Out struct

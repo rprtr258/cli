@@ -29,10 +29,11 @@ func TopToBottom() {
 
 	// number of occurrences of the v/verbose flag capped at 3
 	var verbose cli.Parser[uint] = cli.
-		Many(cli.ReqFlag(cli.Short('v').
+		ReqFlag(cli.Short('v').
 			Long("verbose").
 			Help("Increase the verbosity\nYou can specify it up to 3 times\neither as -v -v -v or as -vvv"),
-			struct{}{})).
+			struct{}{}).
+		Many().
 		Map(func(xs []struct{}) uint { return uint(len(xs)) }).
 		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
@@ -64,9 +65,11 @@ func TopToBottom() {
 		Parser()
 
 	var files_to_process cli.Parser[[]string] = cli.
-		Many(cli.Argument(cli.Short('f').
+		Argument(cli.Short('f').
 			Long("file").
-			Help("File to process"), "FILE", parseString))
+			Help("File to process"), "FILE", parseString).
+		Parser().
+		Many()
 	// packing things in a struct assumes parser for each field is in scope.
 	opt := cli.Map6(
 		debug,

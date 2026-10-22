@@ -75,7 +75,7 @@ func Travel() {
 	segment := cli.Choice(segment_speed, segment_time)
 
 	// and we have several of them.
-	parser := cli.Many(segment).
+	parser := segment.Many().
 		Guard(func(x []Segment) bool { return len(x) > 0 }, "need at least one segment").
 		Guard(func(x []Segment) bool { return len(x) < 10 }, "for more than 9 segments you need to purchase a premium subscription")
 

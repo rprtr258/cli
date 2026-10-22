@@ -10,7 +10,7 @@ import (
 // Combinators return Parser directly: no intermediate .Parser() calls needed
 // anywhere in the chain, and builders compose into combinators directly.
 func TestFluentChaining(t *testing.T) {
-	verbose := Many(Short('v').Long("verbose").Switch())
+	verbose := Short('v').Long("verbose").Switch().Many()
 	speed := Argument[int](Short('s').Long("speed"), "SPEED", parseInt).
 		Parser().
 		FallbackDisplay(42).
@@ -50,7 +50,7 @@ func TestFluentChaining(t *testing.T) {
 func TestFluentCountSome(t *testing.T) {
 	parser := Pair(
 		ReqFlag[struct{}](Short('c'), struct{}{}).Count(),
-		Some(Positional[uint32]("N", parseUint32), "want N"),
+		Positional[uint32]("N", parseUint32).Parser().Some("want N"),
 	).ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-c", "-c", "-c", "7"})
@@ -106,7 +106,7 @@ func strconvItoa(x int) string {
 // Parse is a free generic function: it accepts any parser, including
 // ParseCon results from Pair.
 func TestFluentGenericMethods(t *testing.T) {
-	parser := Some(Positional[uint32]("N", parseUint32), "want N").
+	parser := Positional[uint32]("N", parseUint32).Parser().Some("want N").
 		Map(func(xs []uint32) uint32 {
 			res := uint32(0)
 			for _, x := range xs {

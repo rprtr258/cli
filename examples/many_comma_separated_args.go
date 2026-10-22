@@ -13,7 +13,7 @@ import (
 
 func ManyCommaSeparatedArgs() {
 	// --ports 1,2,3 --ports 4,5 => [1,2,3,4,5]
-	var args cli.Parser[[]uint16] = cli.Many(cli.Argument(cli.Long("ports").
+	var args cli.Parser[[]uint16] = cli.Argument(cli.Long("ports").
 		Help("Comma separated list of ports"),
 		"PORTS", func(s string) ([]uint16, error) {
 			parts := strings.Split(s, ",")
@@ -26,7 +26,7 @@ func ManyCommaSeparatedArgs() {
 				res[i] = uint16(u)
 			}
 			return res, nil
-		})).Map(func(nested [][]uint16) []uint16 {
+		}).Parser().Many().Map(func(nested [][]uint16) []uint16 {
 		return fun.ConcatMap(func(x []uint16) []uint16 { return x }, nested...)
 	})
 

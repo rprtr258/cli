@@ -20,16 +20,16 @@ import (
 //
 //	verbosity := verboseAndQuietByNumber(2, 0, 5)
 func verbose_and_quiet_by_number(offset, min, max int) Parser[int] {
-	vp := Many(ReqFlag(Short('v').
+	vp := ReqFlag(Short('v').
 		Long("verbose").
 		Help("Increase output verbosity, can be used several times"),
-		struct{}{}))
+		struct{}{}).Many()
 	verbose := vp.Map(lenOf)
 
-	qp := Many(ReqFlag(Short('q').
+	qp := ReqFlag(Short('q').
 		Long("quiet").
 		Help("Decrease output verbosity, can be used several times"),
-		struct{}{}))
+		struct{}{}).Many()
 	quiet := qp.Map(lenOf)
 
 	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, min, max) })
@@ -53,7 +53,7 @@ func verbose_by_slice[T any](
 // Pick last passed value between two different flags
 //
 // Usually the parser accepts only a single instance of each item unless
-// you use [Many] or [Some]. toggle_flag consumes multiple instances of two different
+// you use [Parser.Many] or [Parser.Some]. toggle_flag consumes multiple instances of two different
 // flags and returns the last specified value.
 //
 // This function relies on the fact that selection between two parsers prefers the left most
@@ -90,7 +90,7 @@ func toggle_flag[T interface{ ~bool }](
 ) Parser[Opt[T]] {
 	pa := ReqFlag(a, val_a)
 	pb := ReqFlag(b, val_b)
-	return Many(Choice(pa, pb)).Map(last)
+	return Choice(pa, pb).Many().Map(last)
 }
 
 // Get usage for a parser

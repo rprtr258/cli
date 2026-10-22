@@ -298,7 +298,7 @@ func TestStatic_complete_test_5(t *testing.T) {
 
 func TestStatic_complete_test_6(t *testing.T) {
 	a := Optional(Argument(Short('a'), "A", parseString))
-	b := Many(Argument(Short('b'), "B", parseString))
+	b := Argument(Short('b'), "B", parseString).Parser().Many()
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a=A\t\t\n-b\t-b=B\t\t\n\n", "-b", "x", "")
@@ -451,18 +451,18 @@ func TestOnly_positionals_after_double_dash(t *testing.T) {
 }
 
 func TestMany_does_not_duplicate_metadata(t *testing.T) {
-	parser := Many(Positional("D", parseString)).ToOptions()
+	parser := Positional("D", parseString).Parser().Many().ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestSome_does_not_duplicate_metadata(t *testing.T) {
-	parser := Some(Positional("D", parseString), "").ToOptions()
+	parser := Positional("D", parseString).Parser().Some("").ToOptions()
 	assertCompletion(t, parser, "\tD\t\t\n\n", "xxx")
 }
 
 func TestOnly_positionals_after_positionals(t *testing.T) {
 	a := Short('a').Switch()
-	d := Many(Positional("D", parseString))
+	d := Positional("D", parseString).Parser().Many()
 	parser := Pair(a, d).ToOptions()
 
 	assertCompletion(t, parser, "-a\t-a\t\t\n\tD\t\t\n\n", "")
@@ -578,7 +578,7 @@ func TestAmbiguity_no_resolve(t *testing.T) {
 }
 
 func TestAmbiguity_to_flags(t *testing.T) {
-	parser := Many(Short('a').Switch()).ToOptions()
+	parser := Short('a').Switch().Many().ToOptions()
 
 	assertCompletion(t, parser, "-aaa\n", "-aaa")
 }
@@ -615,7 +615,7 @@ func TestZsh_style_completion_visible(t *testing.T) {
 }
 
 func TestZsh_many_positionals(t *testing.T) {
-	parser := Many(Positional("POS", parseString)).ToOptions()
+	parser := Positional("POS", parseString).Parser().Many().ToOptions()
 
 	assertCompletion(t, parser, "\tPOS\t\t\n\n", "")
 

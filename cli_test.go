@@ -531,7 +531,7 @@ func TestGit(t *testing.T) {
 		add := Map3(
 			Short('i').Switch(),
 			Long("all").Switch(),
-			Many(Positional("FILE", parseString)),
+			Positional("FILE", parseString).Parser().Many(),
 			OptAdd)
 		add_inner := add.ToOptions().Description("add files to the staging area")
 		add_cmd := add_inner.Command("add")
@@ -608,7 +608,7 @@ func TestArg_bench(t *testing.T) {
 		Help("Sets width"),
 		"width", parseUint32).Guard(func(n uint32) bool { return n > 0 }, "Width must be positive").Fallback(10)
 
-	input := Many(Positional("INPUT", parseString))
+	input := Positional("INPUT", parseString).Parser().Many()
 
 	parser := Map4(
 		number,
@@ -862,12 +862,12 @@ Available commands:
 }
 
 func TestManyDoesntPanic(t *testing.T) {
-	parser := Many(Short('a').Switch()).Map(lenOf).ToOptions()
+	parser := Short('a').Switch().Many().Map(lenOf).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
 func TestSomeDoesntPanic(t *testing.T) {
-	parser := Some(Short('a').Switch(), "").Map(lenOf).ToOptions()
+	parser := Short('a').Switch().Some("").Map(lenOf).ToOptions()
 	assertSuccess(t, 3, parser, "-aaa")
 }
 
@@ -907,7 +907,7 @@ func TestOptional_error_handling(t *testing.T) {
 }
 
 func TestMany_error_handling(t *testing.T) {
-	p := Many(Argument(Short('p'), "P", parseUint32)).ToOptions()
+	p := Argument(Short('p'), "P", parseUint32).Parser().Many().ToOptions()
 
 	assertSuccess(t, []uint32{}, p)
 	assertSuccess(t, []uint32{3}, p, "-p", "3")
@@ -1089,27 +1089,27 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 func TestCombine_flags_by_order(t *testing.T) {
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('A'), false)
-	parser := Many(Choice(a, b)).ToOptions()
+	parser := Choice(a, b).Many().ToOptions()
 
 	assertSuccess(t, []bool{true, false, false, false, true}, parser, "-a", "-A", "-A", "-A", "-a")
 }
 
 func TestParse_many_errors_positional(t *testing.T) {
-	p := Many(Positional("N", parseUint32)).ToOptions()
+	p := Positional("N", parseUint32).Parser().Many().ToOptions()
 
 	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "1", "2", "x") // TODO: replace `x` with %q // TODO: replace `x` with %q
 	assertSuccess(t, []uint32{1, 2, 3}, p, "1", "2", "3")
 }
 
 func TestParse_collect_flag(t *testing.T) {
-	p := Collect(Argument(Short('p'), "N", parseUint32)).ToOptions()
+	p := Argument(Short('p'), "N", parseUint32).Parser().Collect().ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "-p", "1", "-p", "x")
 }
 
 func TestParse_many_errors_flag(t *testing.T) {
-	p := Many(Argument(Short('p'), "N", parseUint32)).ToOptions()
+	p := Argument(Short('p'), "N", parseUint32).Parser().Many().ToOptions()
 
 	assertSuccess(t, []uint32{1, 2}, p, "-p", "1", "-p", "2")
 	assertFailure(t, p, "couldn't parse `x`: invalid digit found in string", "-p", "1", "-p", "x")
@@ -1133,7 +1133,7 @@ func TestSuggestion_for_equals_1(t *testing.T) {
 }
 
 func TestDouble_dash_is_pos_only_just_once(t *testing.T) {
-	parser := Many(Positional("POS", parseString)).ToOptions()
+	parser := Positional("POS", parseString).Parser().Many().ToOptions()
 
 	assertSuccess(t, []string{}, parser, "--")
 	assertSuccess(t, []string{"--"}, parser, "--", "--")
@@ -1206,7 +1206,7 @@ func TestSneaky_command(t *testing.T) {
 }
 
 func TestDefault_for_many(t *testing.T) {
-	parser := Many(Positional("ROOTS", parseString)).
+	parser := Positional("ROOTS", parseString).Parser().Many().
 		Map(func(items []string) []string {
 			if len(items) == 0 {
 				return []string{"."}
@@ -1243,10 +1243,10 @@ func TestParse_some_catch(t *testing.T) {
 	}
 	AU32 := func(a uint32) A { return A{true, a, ""} }
 	AS := func(s string) A { return A{false, 0, s} }
-	a1 := SomeCatch(Argument(Short('a'),
-		"N", parseUint32).Map(AU32), "A").
+	a1 := Argument(Short('a'),
+		"N", parseUint32).Map(AU32).SomeCatch("A").
 		Hide()
-	a2 := SomeCatch(Argument(Short('a'), "S", parseString).Map(AS), "A").Hide()
+	a2 := Argument(Short('a'), "S", parseString).Map(AS).SomeCatch("A").Hide()
 	parser := Choice(a1, a2).ToOptions()
 
 	assertSuccess(t, []A{AU32(10)}, parser, "-a", "10")
@@ -1304,9 +1304,9 @@ Available options:
 
 func TestMany_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := Many(Argument(Short('v').
+	parser := Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString)).ToOptions()
+		"USER", parseString).Parser().Many().ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
 
@@ -1330,9 +1330,9 @@ func TestEnv_hidden_flag(t *testing.T) {
 
 func TestSome_env(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := Some(Argument(Short('v').
+	parser := Argument(Short('v').
 		Env("USER1"),
-		"USER", parseString), "a").
+		"USER", parseString).Parser().Some("a").
 		ToOptions()
 	assertSuccess(t, []string{"top s3cr3t"}, parser)
 }
@@ -1354,7 +1354,7 @@ func TestOption_requires_other_option2(t *testing.T) {
 }
 
 func TestDefault_for_some(t *testing.T) {
-	parser := Some(Positional[uint32]("ROOTS", parseUint32), "msg").
+	parser := Positional[uint32]("ROOTS", parseUint32).Parser().Some("msg").
 		FallbackWith(func() ([]uint32, error) { return []uint32{1, 2, 3}, nil }).
 		ToOptions()
 
@@ -1371,8 +1371,8 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 }
 
 func TestFallback_for_some(t *testing.T) {
-	parser := Some(Argument(Short('a'),
-		"ARG", parseUint32), "potatoes").
+	parser := Argument(Short('a'),
+		"ARG", parseUint32).Parser().Some("potatoes").
 		Fallback([]uint32{1, 2, 3}).ToOptions()
 
 	assertSuccess(t, []uint32{1}, parser, "-a", "1")

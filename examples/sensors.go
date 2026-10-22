@@ -67,7 +67,7 @@ func Sensors() {
 		// from_str needs to be replaced with `parse` that can deal with hex digits
 		bus_id := cli.Argument(cli.Long("sensor-i2c-bus"), "BUS", parseUint)
 		address := cli.Argument(cli.Long("sensor-i2c-address"), "ADDRESS", parseUint)
-		sensors := cli.Many(cli.Pair(
+		sensors := cli.Pair(
 			cli.Pair(
 				cli.Pair(
 					sensor,
@@ -81,7 +81,7 @@ func Sensors() {
 			address,
 		).Adjacent().Map(func(x fun.Pair[fun.Pair[fun.Pair[struct{}, string], fun.Pair[string, uint]], uint]) Sensor {
 			return Sensor{x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V}
-		})) // TODO: adjacent must be after Map somehow
+		}).Many() // TODO: adjacent must be after Map somehow
 		return sensors.Map(func(x []Sensor) Opts { return Opts{x} })
 	}()
 

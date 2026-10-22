@@ -22,27 +22,27 @@ func collect_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseE
 
 // Collect collects zero or more items from a command line into a slice
 //
-// A generic variant of [Many] collecting values into a slice.
-// Inner parser failures propagate. See [CollectCatch] for the variant that
+// A generic variant of [Parser.Many] collecting values into a slice.
+// Inner parser failures propagate. See [Parser.CollectCatch] for the variant that
 // stops at the first failing item, keeping the values collected so far.
 //
 // Collect will collect at most one result that does not consume anything from the
 // argument list, allowing its use in combination with parsers with a fallback. After
 // the first one, it keeps collecting the results as long as they consume something.
-func Collect[T any](self parser[T]) Parser[[]T] {
+func (self Parser[T]) Collect[R []T]() Parser[R] {
 	inner := self.Parser()
-	return Parser[[]T]{
-		eval: func(state *state) ([]T, parseError) { return collect_eval(inner, false, state) },
+	return Parser[R]{
+		eval: func(state *state) (R, parseError) { return collect_eval(inner, false, state) },
 		meta: metaMany{metaRequired{inner.meta}},
 	}
 }
 
 // CollectCatch collects zero or more items, stopping at the first inner parser
 // failure and keeping the values collected so far.
-func CollectCatch[T any](self parser[T]) Parser[[]T] {
+func (self Parser[T]) CollectCatch[R []T]() Parser[R] {
 	inner := self.Parser()
-	return Parser[[]T]{
-		eval: func(state *state) ([]T, parseError) { return collect_eval(inner, true, state) },
+	return Parser[R]{
+		eval: func(state *state) (R, parseError) { return collect_eval(inner, true, state) },
 		meta: metaMany{metaRequired{inner.meta}},
 	}
 }

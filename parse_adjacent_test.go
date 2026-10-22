@@ -18,7 +18,7 @@ func TestAdjacent(t *testing.T) {
 	b := Short('b').Switch()
 	c := Short('c').Switch()
 
-	parser := Many(Pair(a, Pair(b, c)).Adjacent().Map(func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} })).ToOptions()
+	parser := Pair(a, Pair(b, c)).Adjacent().Map(func(abc fun.Pair[struct{}, fun.Pair[bool, bool]]) cmd { return cmd{abc.K, abc.V.K, abc.V.V} }).Many().ToOptions()
 
 	for name, tc := range map[string]struct {
 		args     []string

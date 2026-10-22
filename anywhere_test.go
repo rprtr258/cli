@@ -61,7 +61,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 func TestAnywhere_catch_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := Positional("x", parseUint)
-	ab := ManyCatch(Pair(a, b).Adjacent())
+	ab := Pair(a, b).Adjacent().ManyCatch()
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
 
@@ -112,7 +112,7 @@ func TestAnywhere_literal(t *testing.T) {
 		false,
 	)
 	mode := Positional("value", parseUint)
-	a := ManyCatch(Pair(tag, mode).Adjacent())
+	a := Pair(tag, mode).Adjacent().ManyCatch()
 	b := Short('b').Switch()
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]P, bool]

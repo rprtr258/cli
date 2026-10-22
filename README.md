@@ -96,9 +96,9 @@ optional, `cli.Count` - number of repeats.
 - `Parser.Map` / `Parse` - convert the produced value
 - `Guard` - validate the value with a custom check and error message
 - `Optional` / `OptionalCatch` - make a parser optional
-- `Many` / `Some` / `ManyCatch` / `SomeCatch` - collect repeated items into a slice
-- `Collect` - collect repeated items into a slice
-- `Count` - count the number of occurrences of a flag
+- `Parser.Many` / `Parser.Some` / `Parser.ManyCatch` / `Parser.SomeCatch` - collect repeated items into a slice
+- `Parser.Collect` - collect repeated items into a slice
+- `Parser.Count` - count the number of occurrences of a flag
 - `Fallback` / `FallbackWith` - provide default values
 
 ## Composing parsers

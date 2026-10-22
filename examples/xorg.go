@@ -48,7 +48,7 @@ func Xorg() {
 			Switch(),
 		toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false),
 		toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true),
-		cli.Many(extension),
+		extension.Many(),
 		func(turbo bool, backing bool, xinerama bool, extensions []fun.Pair[string, bool]) Options {
 			return Options{turbo, backing, xinerama, extensions}
 		},

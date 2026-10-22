@@ -113,7 +113,7 @@ func TestNot_expected_at_all(t *testing.T) {
 
 func TestCannot_be_used_twice(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Short('b').Switch())
+	b := Short('b').Switch().Many()
 	parser := Pair(a, b).ToOptions()
 
 	assertFailure(t, parser, "argument `-a` cannot be used multiple times in this context", "-a", "-b", "-a")
@@ -161,7 +161,7 @@ func TestAdjacent_option_complains_to(t *testing.T) {
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
 	a := Short('a').Switch()
-	b := Some(Positional("B", parseUint), "Want B")
+	b := Positional("B", parseUint).Parser().Some("Want B")
 	parser := Pair(a, b).ToOptions()
 
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")

@@ -21,7 +21,7 @@ func TestGet_any_simple(t *testing.T) {
 
 func TestGet_any_many(t *testing.T) {
 	a := Short('a').Switch()
-	b := Many(Any("REST", some, false).Help("any help"))
+	b := Any("REST", some, false).Help("any help").Parser().Many()
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, []string]
@@ -31,7 +31,7 @@ func TestGet_any_many(t *testing.T) {
 }
 
 func TestGet_any_many2(t *testing.T) {
-	parser := Many(Any("REST", some, false)).ToOptions()
+	parser := Any("REST", some, false).Parser().Many().ToOptions()
 	assertSuccess(t, []string{"-vvv"}, parser, "-vvv")
 }
 

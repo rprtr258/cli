@@ -65,8 +65,8 @@
 // Each combinator returns a new parser without changing the original:
 // [Parser.Map] and [Parse] convert values, [Parser.Guard] validates them,
 // [Parser.Fallback] and [Parser.FallbackWith] provide defaults,
-// [Optional] makes a parser optional, [Many] and [Some] collect repeated
-// items, [Collect] fills any slice, [Count] counts occurrences.
+// [Optional] makes a parser optional, [Parser.Many] and [Parser.Some] collect repeated
+// items, [Parser.Collect] fills any slice, [Parser.Count] counts occurrences.
 //
 // # Combining parsers
 //
@@ -124,9 +124,9 @@ package cli
 //
 //	a := Argument[uint32](Short('a'), "N", parseUint32).
 //	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
-//	collectA := Many(a)
+//	collectA := a.Many()
 //
-//	b := Many(Argument[uint](Short('b'), "N", parseUint32))
+//	b := Argument[uint](Short('b'), "N", parseUint32).Parser().Many()
 //	collectB := Parse(b, func(bs []uint32) ([]uint32, error) {
 //	    for _, b := range bs {
 //	        if b >= 10 {

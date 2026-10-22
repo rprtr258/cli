@@ -48,7 +48,7 @@ func TestDash_is_positional(t *testing.T) {
 }
 
 func TestHelpful_error_message(t *testing.T) {
-	parser := Some(Positional("FOO", parseString), "you need to specify at least one FOO").
+	parser := Positional("FOO", parseString).Parser().Some("you need to specify at least one FOO").
 		ToOptions()
 
 	assertFailure(t, parser, "you need to specify at least one FOO")

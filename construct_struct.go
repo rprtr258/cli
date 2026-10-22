@@ -429,7 +429,7 @@ func wrapTyped[T any](ix int, ft reflect.Type, p Parser[T], named, isSlice, isOp
 	}
 	switch {
 	case isSlice:
-		pm := Many(p)
+		pm := p.Many()
 		return wrapEval(func(state *state) (reflect.Value, parseError) {
 			xs, err := pm.eval(state)
 			if err != nil {
@@ -472,7 +472,7 @@ func wrapAny(ix int, ft reflect.Type, p Parser[any], named, isSlice, isOption bo
 	}
 	switch {
 	case isSlice:
-		pm := Many(p)
+		pm := p.Many()
 		return fieldPart{ix: ix, named: named, meta: pm.meta, eval: func(state *state) (reflect.Value, parseError) {
 			xs, err := pm.eval(state)
 			if err != nil {
