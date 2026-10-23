@@ -53,20 +53,19 @@ func Git() {
 	repository := cli.Positional("SRC", func(s string) (string, error) {
 		return s, nil
 	}).Fallback("origin")
-	fetch := cli.Pair(cli.Pair(dry_run, all), repository).Map(func(x fun.Pair[fun.Pair[bool, bool], string]) Opt { return OptFetch(x.K.K, x.K.V, x.V) }).
+	fetch_cmd := cli.Map3(dry_run, all, repository, func(dry_run, all bool, repository string) Opt { return OptFetch(dry_run, all, repository) }).
 		ToOptions().
-		Description("fetches branches from remote repository")
-
-	fetch_cmd := fetch.Command("fetch")
+		Description("fetches branches from remote repository").
+		Command("fetch")
 
 	interactive := cli.Short('i').Switch()
 	all2 := cli.Long("all").Switch()
 	files := cli.Positional("FILE", cli.ParseString).Parser().Many()
-	add := cli.Pair(cli.Pair(interactive, all2), files).Map(func(x fun.Pair[fun.Pair[bool, bool], []string]) Opt { return OptAdd(x.K.K, x.K.V, x.V) }).
+	add_cmd := cli.Pair(cli.Pair(interactive, all2), files).Map(func(x fun.Pair[fun.Pair[bool, bool], []string]) Opt { return OptAdd(x.K.K, x.K.V, x.V) }).
 		ToOptions().
-		Description("add files to the staging area")
-
-	add_cmd := add.Command("add").Help("add files to the staging area")
+		Description("add files to the staging area").
+		Command("add").
+		Help("add files to the staging area")
 
 	opt := cli.Choice(fetch_cmd, add_cmd).
 		ToOptions().

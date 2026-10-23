@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func Basic() {
@@ -76,31 +75,23 @@ func Basic() {
 
 		// packing things in a struct assumes parser for each field is in scope.
 		// TODO: codgen on Out struct
-		return cli.Pair(
-			cli.Pair(
-				cli.Pair(
+		return cli.Map6(
+			debug,
+			verbose,
+			speed,
+			output,
+			nb_cars,
+			files_to_process,
+			func(debug bool, verbose uint, speed float64, output string, nb_cars uint32, files_to_process []string) Out {
+				return Out{
 					debug,
 					verbose,
-				),
-				cli.Pair(
 					speed,
 					output,
-				),
-			),
-			cli.Pair(
-				nb_cars,
-				files_to_process,
-			),
-		).Map(func(x fun.Pair[fun.Pair[fun.Pair[bool, uint], fun.Pair[float64, string]], fun.Pair[uint32, []string]]) Out {
-			return Out{
-				debug:            x.K.K.K,
-				verbose:          x.K.K.V,
-				speed:            x.K.V.K,
-				output:           x.K.V.V,
-				nb_cars:          x.V.K,
-				files_to_process: x.V.V,
-			}
-		}).
+					nb_cars,
+					files_to_process,
+				}
+			}).
 			ToOptions().
 			Description("This is a description")
 	}
