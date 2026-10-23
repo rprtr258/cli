@@ -1,0 +1,33 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - govet
+    - gocritic
+  settings:
+    govet:
+      disable:
+        # Unkeyed struct literals are fine in this codebase (internal
+        # positional construction); do not flag them.
+        - composites
+    gocritic:
+      disable-all: true
+      enabled-tags:
+        - diagnostic
+        - style
+        - performance
+        - experimental
+        - opinionated
+      settings:
+        hugeParam:
+          # Value semantics are deliberate for the small builder/parser types:
+          # NamedArg is a fluent builder chained on non-addressable constructor
+          # results, ShowComp/itemArgument are stored by value in interfaces,
+          # and comp/state are forked by value all over the parse engine.
+          # Only the heavy ones (info, itemCommand) are passed by pointer.
+          sizeThreshold: 160
+
+formatters:
+  enable:
+    - gofumpt
