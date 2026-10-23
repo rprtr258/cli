@@ -70,7 +70,7 @@
 // # Combining parsers
 //
 // [Map2] through [Map6] combine a fixed number of parsers into one value,
-// [Construct] combines them into a struct, [Choice] and [Parser.OrElse] pick
+// [Construct] combines them into a struct, [Choice] picks
 // the first parser that succeeds, [Parser.Adjacent] restricts a group to
 // adjacent command line items, [Any] consumes items at arbitrary positions.
 //
@@ -173,49 +173,6 @@ func (self Parser[T]) Parser() Parser[T] {
 
 type parser[T any] interface {
 	Parser() Parser[T]
-}
-
-// OrElse returns a parser that tries self first and alt if self fails.
-//
-// For the parser to succeed either of the components needs to succeed. If both succeed the
-// result comes from the one that consumed the left most value. The second flag on the
-// command line remains unconsumed by [Parser.OrElse].
-//
-// # Combinatoric usage
-//
-// There are two ways to write this combinator with identical results:
-//
-//	func a() cli.Parser[uint32] {
-//	    return cli.Argument[uint32](cli.Short('a'), "NUM", parseUint32).Parser()
-//	}
-//
-//	func b() cli.Parser[uint32] {
-//	    return cli.Argument[uint32](cli.Short('b'), "NUM", parseUint32).Parser()
-//	}
-//
-//	func aOrB() cli.Parser[uint32] {
-//	    return cli.Choice(a(), b())
-//	}
-//
-// # Example
-//
-//	$ app -a 12 -b 3
-//	12
-//	$ app -b 3 -a 12
-//	3
-//	$ app -b 13
-//	13
-//	$ app
-//	fails asking for either -a NUM or -b NUM
-//
-// Deprecated: instead of a.OrElse(b) you should use Choice(a, b)
-func (self Parser[T]) OrElse(alt Parser[T]) Parser[T] {
-	return Parser[T]{
-		eval: func(state *state) (T, parseError) {
-			return or_else_eval(self, alt, state)
-		},
-		meta: or(self.meta, alt.meta),
-	}
 }
 
 // Hide hides this parser from any sort of help generation.

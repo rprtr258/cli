@@ -34,7 +34,6 @@ package cli
 //	func aOrB() cli.Parser[uint32] {
 //	a := cli.Argument[uint32](cli.Short('a'), "NUM", parseUint32)
 //	b := cli.Argument[uint32](cli.Short('b'), "NUM", parseUint32)
-//	    // an equivalent way of writing this would be a.OrElse(b)
 //	    return cli.Choice(a, b)
 //	}
 //

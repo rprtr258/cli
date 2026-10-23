@@ -7,7 +7,7 @@ import (
 )
 
 // or_else_eval tries either of two parsers and uses one that succeeds;
-// created with [Parser.OrElse]..
+// created with [Choice].
 func or_else_eval[T any](self, alt Parser[T], state *state) (T, parseError) {
 	var comp_items []comp
 
@@ -61,6 +61,16 @@ func or_else_eval[T any](self, alt Parser[T], state *state) (T, parseError) {
 		return res_a.unwrap(), nil
 	} else {
 		return res_b.unwrap(), nil
+	}
+}
+
+// or_else returns a parser that tries self first and alt if self fails.
+func or_else[T any](self, alt Parser[T]) Parser[T] {
+	return Parser[T]{
+		eval: func(state *state) (T, parseError) {
+			return or_else_eval(self, alt, state)
+		},
+		meta: or(self.meta, alt.meta),
 	}
 }
 
@@ -210,8 +220,6 @@ func this_or_that_picks_first(
 // You can use this function to create multiple parsers that produce the same type of value at a runtime
 // and let the library pick one that best fits. This function is designed to work with the
 // combinatoric API.
-//
-// Deprecated: use [Choice] instead.
 func Choice[T any](parsers ...parser[T]) Parser[T] {
 	if len(parsers) == 0 {
 		p := Fail[T]("Invalid choice usage")
@@ -220,7 +228,7 @@ func Choice[T any](parsers ...parser[T]) Parser[T] {
 
 	this := parsers[0].Parser()
 	for _, that := range parsers[1:] {
-		this = this.OrElse(that.Parser())
+		this = or_else(this, that.Parser())
 	}
 	return this
 }

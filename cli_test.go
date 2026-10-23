@@ -156,7 +156,7 @@ func TestEitherOfThreeRequiredFlags(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
 	b := ReqFlag(Short('b'), struct{}{})
 	c := ReqFlag(Short('c'), struct{}{})
-	p := a.OrElse(b).OrElse(c)
+	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
 
 	// version help requires version meta
@@ -209,7 +209,7 @@ func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
 	a := ReqFlag(Short('a'), true)
 	b := ReqFlag(Short('b'), false)
 	c := Short('c').Switch()
-	p := a.OrElse(b).OrElse(c)
+	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
 
 	assertHelp(t, decorated, "Version: 1.0\n", "-V")

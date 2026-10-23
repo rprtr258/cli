@@ -49,7 +49,7 @@ const (
 	itemStateKindParsed                        // Value was parsed
 )
 
-// itemState shows which branch of [Parser.OrElse] parsed the argument.
+// itemState shows which branch of [Choice] parsed the argument.
 type itemState struct {
 	kind     itemStateKind
 	conflict int
