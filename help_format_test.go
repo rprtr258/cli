@@ -189,75 +189,60 @@ Available options:
 	assertHelp(t, parser, expected)
 }
 
-// TODO: fix
-// func TestEnum_with_docs(t *testing.T) {
-//  #derive(Bpaf)
-// 	type Mode bool
-// 	// Pick mode:
-// 	const (
-// 		// help
-// 		//
-// 		// absent
-// 		Intel Mode = false
-// 		// help
-// 		//
-// 		// Hidden
-// 		Att Mode = true
-// 	)
+func TestEnum_with_docs(t *testing.T) {
+	// builder equivalent of bpaf's derive expansion (top_comment_is_group_help_enum):
+	// /// Pick mode:
+	// enum Mode { /// help
+	//     Intel, /// help
+	//     Att }
+	// construct!([long("intel").help("help").req_flag(...),
+	//              long("att").help("help").req_flag(...)]).group_help("Pick mode:")
+	intel := ReqFlag(Long("intel").Help("help"), false)
+	att := ReqFlag(Long("att").Help("help"), true)
+	parser := Choice(intel, att).GroupHelp("Pick mode:").ToOptions()
 
-// 	r := mode().
-// 		Parser().ToOptions().
-// 		RunInner(newArgs("--help")).
-// 		unwrap_err().
-// 		UnwrapStdout()
+	const expected = `Usage: (--intel | --att)
 
-// 	const expected=`// Usage: (--intel | --att)
+Pick mode:
+        --intel  help
+        --att    help
 
-// Pick mode:
-//         --intel  help
-//         --att    help
+Available options:
+    -h, --help   Prints help information
+`
+	assertHelp(t, parser, expected)
+}
 
-// Available options:
-//     -h, --help   Prints help information
-// `
-// 	require.Equal(t, expected, r)
-// }
+func TestAnywhere_invariant_check(t *testing.T) {
+	// builder equivalent of bpaf's derive expansion:
+	// #[bpaf(adjacent)]
+	// struct Fooo { tag: (), name: String, val: String }
+	// construct!(long("tag").req_flag(()), positional("NAME").help("help for name"),
+	//            positional("VAL").help("help for val")).adjacent()
+	tag := ReqFlag(Long("tag"), struct{}{})
+	name := Positional("NAME", ParseString).Help("help for name")
+	val := Positional("VAL", ParseString).Help("help for val")
+	fooo := Pair(Pair(tag, name), val).Adjacent()
+	a := Short('a').Help("help for a").Switch()
+	b := Short('b').Help("help for b").Switch()
+	parser := Pair(Pair(a, fooo), b).ToOptions()
 
-// TODO: fix
-// func TestAnywhere_invariant_check(t*testing.T) {
-//     #[bpaf(adjacent)]
-//     struct Fooo {
-//         tag: (),
-//         #[bpaf(positional("NAME"))]
-//         /// help for name
-//         name: String,
-//         #[bpaf(positional("VAL"))]
-//         /// help for val
-//         val: String,
-//     }
+	const expected = `Usage: [-a] --tag NAME VAL [-b]
 
-//     a := Short('a').help("help for a").Switch();
-//     b := Short('b').help("help for b").Switch();
-//     parser := Pair(a, fooo(), b).ToOptions();
+Available options:
+    -a          help for a
+  --tag NAME VAL
+    NAME        help for name
+    VAL         help for val
 
-//     const expected=`// Usage: [-a] --tag NAME VAL [-b]
+    -b          help for b
+    -h, --help  Prints help information
+`
+	assertHelp(t, parser, expected)
 
-// Available options:
-//     -a          help for a
-//   --tag NAME VAL
-//     NAME        help for name
-//     VAL         help for val
-
-//     -b          help for b
-//     -h, --help  Prints help information
-// `
-
-//     r := parser.RunInner(newArgs("--help")).unwrap_err().UnwrapStdout();
-//     require.Equal(t, expected, r);
-
-//     // this shouldn't crash
-//     parser.check_invariants(true);
-// }
+	// this shouldn't crash
+	parser.CheckInvariants(true)
+}
 
 func TestMulti_arg_help(t *testing.T) {
 	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{})
