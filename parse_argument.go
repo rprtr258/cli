@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// Parser for a named argument, created with [NamedArgargument].
+// parseArgument is a parser for a named argument, created with [Argument].
 type parseArgument[T any] struct {
 	named    NamedArg
 	metavar  Metavar
@@ -31,7 +31,7 @@ func (self parseArgument[T]) Map[R any](fn func(T) R) Parser[R] { return self.Pa
 // Hide this parser from help generation, see [Parser.Hide].
 func (self parseArgument[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self parseArgument[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -83,17 +83,17 @@ func (self parseArgument[T]) CompleteShell(op ShellComp) Parser[T] {
 	return self.Parser().CompleteShell(op)
 }
 
-// Add a help message to an `argument`
+// help adds a help message to an argument.
 //
-// See [NamedArghelp]
+// See [NamedArg.Help].
 func (self *parseArgument[T]) help(help Doc) *parseArgument[T] {
 	self.named.help = Valid(help)
 	return self
 }
 
-// Restrict parsed arguments to have both flag and a value in the same word:
+// Adjacent restricts parsed arguments to have both the flag and a value in the same word.
 //
-// In other words adjacent restricted [Argument] would accept `--flag=value` or
+// In other words, an adjacent-restricted [Argument] would accept `--flag=value` or
 // `-fbar` but not `--flag value`. Note, this is different from [ParseCon.Adjacent],
 // it just plays a similar role.
 func (self *parseArgument[T]) Adjacent() *parseArgument[T] {
@@ -160,8 +160,8 @@ func (self parseArgument[T]) eval(state *state) (T, parseError) {
 	return t, nil
 }
 
-// Parse a value following a named flag: a short (`-a`) or long (`--name`) name
-// followed by either a space or `=` and then by a value. `-f foo`, `--flag bar` or `-o=-`
+// Argument parses a value following a named flag: a short (`-a`) or long
+// (`--name`) name followed by either a space or `=` and then by a value. `-f foo`, `--flag bar` or `-o=-`
 // are all valid Argument examples. Note, the value can't start with `-` unless separated
 // from the flag with `=`. For short flags the value can follow immediately: `-fbar`.
 //

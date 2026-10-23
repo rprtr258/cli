@@ -10,7 +10,7 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// matches literal name prefixed with - or +
+// toggleOptions matches a literal name prefixed with - or +.
 func toggleOptions(meta, name, help string) cli.Parser[bool] {
 	return cli.
 		Any(meta, func(s string) (bool, bool) {

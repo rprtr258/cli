@@ -2,7 +2,8 @@ package cli
 
 import "math"
 
-// Apply inner parser as many times as it succeeds while consuming something and return this number
+// count_eval applies the inner parser as many times as it succeeds while
+// consuming something and returns this number.
 func count_eval[T any](inner Parser[T], state *state) (int, parseError) {
 	res := 0
 	current := state.len()

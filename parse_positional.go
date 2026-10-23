@@ -10,7 +10,7 @@ const (
 	PositionNonStrict
 )
 
-// A positional item parser, created with [Positional]
+// ParsePositional is a positional item parser, created with [Positional].
 //
 // You can add extra information with [ParsePositional.Help],
 // [ParsePositional.Strict] and [ParsePositional.NonStrict].
@@ -21,9 +21,9 @@ type ParsePositional[T any] struct {
 	p        func(string) (T, error)
 }
 
-// Add a help message to the positional item
+// Help adds a help message to the positional item.
 //
-// The help message is displayed in the `--help` output.
+// The help message is displayed in the --help output.
 func (self *ParsePositional[T]) Help(help string) *ParsePositional[T] {
 	self.help = Valid(NewDoc(help))
 	return self
@@ -44,10 +44,10 @@ func (self *ParsePositional[T]) ToOptions() *OptionParser[T] { return self.Parse
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self *ParsePositional[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
-// Hide this parser from help generation, see [Parser.Hide].
+// Hide hides this parser from help generation, see [Parser.Hide].
 func (self *ParsePositional[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self *ParsePositional[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -99,9 +99,9 @@ func (self *ParsePositional[T]) CompleteShell(op ShellComp) Parser[T] {
 	return self.Parser().CompleteShell(op)
 }
 
-// Changes positional parser to be a "Strict" positional
+// Strict changes the positional parser to be a "strict" positional.
 //
-// Usually positional items can appear anywhere on a command line:
+// Usually positional items can appear anywhere on a command line: on a command line:
 //
 //	$ ls -d file
 //	$ ls file -d
@@ -122,7 +122,7 @@ func (self *ParsePositional[T]) Strict() *ParsePositional[T] {
 	return self
 }
 
-// Changes positional parser to be a "not strict" positional
+// NonStrict changes the positional parser to be a "not strict" positional.
 //
 // Ensures the parser always rejects "strict" positions to the right of the separator, `--`.
 // Essentially the inverse operation to [ParsePositional.Strict], which can be used to ensure
@@ -161,9 +161,9 @@ func (self ParsePositional[T]) eval(state *state) (T, parseError) {
 	return t, nil
 }
 
-// Parse a Positional argument
+// Positional parses a positional argument.
 //
-// For named flags and arguments ordering generally doesn't matter: most programs would
+// For named flags and arguments ordering generally doesn't matter: most programs would: most programs would
 // understand `-O2 -v` the same way as `-v -O2`, but for Positional items order matters: in *nix
 // `cat hello world` and `cat world hello` would display contents of the same two files but in
 // a different order.

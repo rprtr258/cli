@@ -2,9 +2,9 @@ package cli
 
 import "math"
 
-// Apply inner parser, return a value in `Some` if items requested by it are all present, restore
-// and return `None` if any are missing. Created with [Parser.Optional] or
-// [Parser.OptionalCatch].
+// optional_eval applies the inner parser, returns the value if all items it
+// requests are present, restores the state and returns an empty [Opt] if any
+// are missing. Created with [Parser.Optional] or [Parser.OptionalCatch].
 func optional_eval[T any](inner Parser[T], catch bool, state *state) (Opt[T], parseError) {
 	maxlen := uint(math.MaxUint)
 	return parse_option(inner, &maxlen, state, catch)

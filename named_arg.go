@@ -2,8 +2,8 @@ package cli
 
 import "github.com/rprtr258/fun"
 
-// A named thing used to create a flag with [Flag] or [ReqFlag], a switch with
-// [NamedArg.Switch] or an argument with [Argument]
+// NamedArg is a named thing used to create a flag with [Flag] or [ReqFlag],
+// a switch with [NamedArg.Switch] or an argument with [Argument].
 //
 // # Combinatoric usage
 //
@@ -40,7 +40,7 @@ func (self NamedArg) flag_item() (item, bool) {
 	return item{self.help, itemFlag{x, self.short, first(self.env)}}, true
 }
 
-// Add a short name to a flag/switch/argument
+// Short adds a short name to a flag/switch/argument.
 //
 // You can chain multiple [NamedArg.Short], [NamedArg.Long] and [NamedArg.Env] calls
 // for multiple names. Multiple names of the same type are allowed -
@@ -50,7 +50,7 @@ func (self NamedArg) Short(short byte) NamedArg {
 	return self
 }
 
-// Add a long name to a flag/switch/argument
+// Long adds a long name to a flag/switch/argument.
 //
 // You can chain multiple [NamedArg.Short], [NamedArg.Long] and [NamedArg.Env] calls
 // for multiple names. Multiple names of the same type are allowed -
@@ -60,9 +60,9 @@ func (self NamedArg) Long(long string) NamedArg {
 	return self
 }
 
-// Environment variable fallback
+// Env adds an environment variable fallback.
 //
-// If named value isn't present - try to fallback to this environment variable.
+// If the named value isn't present - try to fallback to this environment variable.
 //
 // You can specify it multiple times, items past the first one become hidden aliases.
 //
@@ -76,17 +76,17 @@ func (self NamedArg) Env(variable string) NamedArg {
 	return self
 }
 
-// Add a help message to a flag/switch/argument
+// Help adds a help message to a flag/switch/argument.
 //
-// The help message is displayed in the `--help` output next to the option name.
+// The help message is displayed in the --help output next to the option name.
 func (self NamedArg) Help(help string) NamedArg {
 	self.help = Valid(NewDoc(help))
 	return self
 }
 
-// Simple boolean flag
+// Switch is a simple boolean flag.
 //
-// A special case of [Flag] that produces a `bool` - a convenient shortcut
+// A special case of [Flag] that produces a bool - a convenient shortcut
 // for `Flag(self, true, false)`.
 //
 // With [Construct] a `bool` field without a consumer tag parses as a switch.
@@ -94,7 +94,8 @@ func (self NamedArg) Switch() Parser[bool] {
 	return flagParser(true, Valid(false), self)
 }
 
-// `adjacent` requires for the argument to be present in the same word as the flag:
+// matches_arg reports whether the argument matches the named item. With
+// adjacent set, the argument must be present in the same word as the flag:
 // `-f bar` - no, `-fbar` or `-f=bar` - yes.
 func (self NamedArg) matches_arg(arg arg, adjacent bool) bool {
 	return (!adjacent || arg.isAdjacent) &&
@@ -102,7 +103,7 @@ func (self NamedArg) matches_arg(arg arg, adjacent bool) bool {
 			arg.kind == argKindLongFlag && fun.Contains(arg.s, self.long...))
 }
 
-// Start building a flag/switch/argument from a short name
+// Short starts building a flag/switch/argument from a short name.
 //
 // You can chain multiple [NamedArg.Short], [NamedArg.Long] and [NamedArg.Env] calls
 // for multiple names. Multiple names of the same type are allowed -
@@ -116,7 +117,7 @@ func Short(short byte) NamedArg {
 	}
 }
 
-// Start building a flag/switch/argument from a long name
+// Long starts building a flag/switch/argument from a long name.
 //
 // You can chain multiple [NamedArg.Short], [NamedArg.Long] and [NamedArg.Env] calls
 // for multiple names. Multiple names of the same type are allowed -
@@ -130,7 +131,7 @@ func Long(long string) NamedArg {
 	}
 }
 
-// Start building a flag/switch/argument from an environment variable
+// Env starts building a flag/switch/argument from an environment variable.
 //
 // You can chain multiple [NamedArg.Short], [NamedArg.Long] and [NamedArg.Env] calls
 // for multiple names. Multiple names of the same type are allowed -

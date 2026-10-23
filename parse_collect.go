@@ -2,7 +2,8 @@ package cli
 
 import "math"
 
-// Apply inner parser several times and collect results, created with [Parser.Collect].
+// collect_eval applies the inner parser several times and collects the
+// results; created with [Parser.Collect].
 func collect_eval[T any](inner Parser[T], catch bool, state *state) ([]T, parseError) {
 	maxlen := uint(math.MaxUint)
 	res := []T{}

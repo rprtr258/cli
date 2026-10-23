@@ -47,7 +47,7 @@ func Basic() {
 		output := cli.Argument[string](cli.Short('o').
 			Long("output").
 			Help("output file"),
-			"OUTPUT", cli.ParseString). // but it's optional when rustc can derive it
+			"OUTPUT", cli.ParseString). // no fallback means the value is required
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Invalid[string]()))
 

@@ -43,43 +43,6 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 	assertFailure(t, parser, "`-b` is not expected in this context", "-a", "-b")
 }
 
-// func TestBetter_error_with_enum(t*testing.T) {
-//     #[derive(Bpaf)]
-//     #[bpaf(options)]
-//     enum Foo {
-//         Alpha,
-//         Beta,
-//         Gamma,
-//     }
-
-//     res := foo().
-//         RunInner(newArgs("--alpha", "--beta"]).
-//         unwrap_err().
-//         UnwrapStderr();
-//     require.Equal(t, res, "`--beta` cannot be used at the same time as `--alpha`");
-
-//     res := foo().
-//         RunInner(newArgs("--alpha", "--gamma"]).
-//         unwrap_err().
-//         UnwrapStderr();
-//     require.Equal(t,
-//         res,
-//         "`--gamma` cannot be used at the same time as `--alpha`"
-//     );
-
-//     res := foo().
-//         RunInner(newArgs("--beta", "--gamma"]).
-//         unwrap_err().
-//         UnwrapStderr();
-//     require.Equal(t, res, "`--gamma` cannot be used at the same time as `--beta`");
-
-//     res := foo().
-//         RunInner(newArgs("--alpha", "--beta", "--gamma"]).
-//         unwrap_err().
-//         UnwrapStderr();
-//     require.Equal(t, res, "`--beta` cannot be used at the same time as `--alpha`");
-// }
-
 func TestGuard_message(t *testing.T) {
 	parser := Argument(Short('a'),
 		"N", parseUint32).

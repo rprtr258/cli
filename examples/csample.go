@@ -33,10 +33,10 @@ func Csample() {
 		ToOptions().
 		Description("Dynamic autocomplete example").
 		Footer(`This library supports dynamic autocompletion for a few shells, make sure your binary is in $PATH and try using one of those; this output should go into a file that depends on your shell:
-$ csample --bpaf-complete-style-bash
-$ csample --bpaf-complete-style-zsh
-$ csample --bpaf-complete-style-fish
-$ csample --bpaf-complete-style-elvish`)
+$ csample --cli-complete-style-bash
+$ csample --cli-complete-style-zsh
+$ csample --cli-complete-style-fish
+$ csample --cli-complete-style-elvish`)
 
 	fmt.Println(parser.FallbackToUsage().Run(os.Args))
 }

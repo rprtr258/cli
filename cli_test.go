@@ -671,16 +671,8 @@ Available options:
 	}
 }
 
-// func TestLongPathInConstruct(t*testing.T) {
-//     a := Short('a').Switch();
-//     _ = construct(std::option::Opt::Some(a));
-
-//     b := Short('b').Switch();
-//     _ = construct(::std::option::Opt::Some(b));
-// }
-
 func TestHiddenEnv(t *testing.T) {
-	name := "BPAF_SECRET_API_KEY2"
+	name := "CLI_SECRET_API_KEY2"
 	visible := Argument(Long("key").
 		Help("use this secret key\n two lines"),
 		"KEY", ParseString)
@@ -696,11 +688,11 @@ Available options:
 `
 	assertHelp(t, parser, expected, "-h")
 
-	assertFailure(t, parser, "environment variable `BPAF_SECRET_API_KEY2` is not set")
+	assertFailure(t, parser, "environment variable `CLI_SECRET_API_KEY2` is not set")
 }
 
 func TestEnvVariable(t *testing.T) {
-	const name = "BPAF_SECRET_API_KEY"
+	const name = "CLI_SECRET_API_KEY"
 	parser := Argument(Long("key").
 		Env(name).
 		Help("use this secret key\ntwo lines"), "KEY", ParseString).
@@ -712,7 +704,7 @@ func TestEnvVariable(t *testing.T) {
 
 Available options:
         --key=KEY  use this secret key two lines
-                   [env:BPAF_SECRET_API_KEY: N/A]
+                   [env:CLI_SECRET_API_KEY: N/A]
     -h, --help     Prints help information
 `
 		assertHelp(t, parser, expected_help, "-h")
@@ -724,7 +716,7 @@ Available options:
 
 Available options:
         --key=KEY  use this secret key two lines
-                   [env:BPAF_SECRET_API_KEY = "top s3cr3t"]
+                   [env:CLI_SECRET_API_KEY = "top s3cr3t"]
     -h, --help     Prints help information
 `
 		assertHelp(t, parser, expected_help, "-h")

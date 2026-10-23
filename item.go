@@ -16,8 +16,8 @@ type itemAny struct {
 func (itemAny) isItem()           {}
 func (self itemAny) clone() itemI { return itemAny{self.metavar.clone(), self.anywhere} }
 
-// Positional item, consumed from the the front of the arguments
-// <FILE>
+// itemPositional is a positional item, consumed from the front of the
+// arguments: <FILE>.
 type itemPositional struct{ metavar Metavar }
 
 func (itemPositional) isItem()           {}
@@ -32,8 +32,9 @@ type itemCommand struct {
 
 func (itemCommand) isItem() {}
 
-// receiver would break `case itemCommand:` switches, and the 536-byte copy is
-// cheaper than reworking item storage.
+// clone returns a value copy: a pointer receiver would break
+// `case itemCommand:` switches, and the 536-byte copy is cheaper than
+// reworking item storage.
 //
 //nolint:gocritic // itemI values are stored by value in interfaces; a pointer
 func (self itemCommand) clone() itemI {
@@ -45,9 +46,7 @@ func (self itemCommand) clone() itemI {
 	}
 }
 
-// short or long name, consumed anywhere
-// -f
-// --file
+// itemFlag is a short or long name, consumed anywhere: -f, --file.
 type itemFlag struct {
 	name shortLong
 	// used for disambiguation
@@ -64,9 +63,8 @@ func (self itemFlag) clone() itemI {
 	}
 }
 
-// Short or long name followed by a value, consumed anywhere
-// -f <VAL>
-// --file <VAL>
+// itemArgument is a short or long name followed by a value, consumed
+// anywhere: -f <VAL>, --file <VAL>.
 type itemArgument struct {
 	name shortLong
 	// used for disambiguation
@@ -194,8 +192,8 @@ func (self shortLong) eq(other string) bool {
 	}
 }
 
-// Changes [shortLong](shortLongShortLong) variant into either short or long depending,
-// leaves both Short and Long untouched
+// normalize changes the variant into either short or long depending on the
+// short flag, leaving non-both variants untouched.
 func (self *shortLong) normalize(short bool) {
 	if !self.is_both() {
 		return

@@ -13,7 +13,8 @@ const (
 	codeRest
 )
 
-// Raw(string, uint) | Paragraph | LineBreak
+// chunk is a piece of the payload: a raw string with its kind, a paragraph,
+// or a line break.
 type chunk struct {
 	s string
 	i int // -1 for paragraph, -2 for LineBreak
@@ -33,8 +34,8 @@ const (
 	chunkTickedCode = 1_000_001
 )
 
-// Split payload into chunks annotated with character width and containing no newlines according
-// to text formatting rules
+// split splits the payload into chunks annotated with character width and
+// containing no newlines according to text formatting rules.
 func split(input string) iter.Seq[chunk] {
 	type Splitter struct {
 		input string

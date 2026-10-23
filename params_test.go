@@ -67,11 +67,6 @@ func TestSquashed_short_names(t *testing.T) {
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, string]
-	// For now instead of supporting I parse "-Obits=2048" instead as "-O" with "bits=2048" body
-	// https://github.com/pacak/bpaf/issues/121
-	//
-	// r := parser.run_inner(newArgs("-ab=foo")).unwrap();
-	// require.Equal(t,r.V, "foo");
 
 	// an odd one, short flag a is squashed with short argument b
 	assertSuccess(t, R{true, "foo"}, parser, "-ab", "foo")
@@ -82,15 +77,3 @@ func TestSquashed_short_names(t *testing.T) {
 	// normal
 	assertSuccess(t, R{true, "foo"}, parser, "-a", "-bfoo")
 }
-
-// func Testcommand_alias(t *testing.T) {
-//     #[derive(Debug, Bpaf, Clone)]
-//     #[bpaf(options)]
-//     enum Groups {
-//         #[bpaf(command("top"), long("top-alias"))]
-//         Command,
-//     }
-
-//     groups().run_inner(newArgs("top")).unwrap();
-//     groups().run_inner(newArgs("top-alias")).unwrap();
-// }

@@ -70,7 +70,7 @@ func suggestionNested(name string, v variant) suggestion {
 	}
 }
 
-// Looks for potential typos
+// suggest_zalupa looks for potential typos.
 func suggest_zalupa(state state, meta meta, return_ func(int, suggestion, bool)) {
 	next := state.items_iter()
 	ix, arg, ok := next()
@@ -213,7 +213,7 @@ func suggest(state state, meta meta) (a int, b suggestion, c bool) {
 	return
 }
 
-// Damerau-Levenshtein distance function
+// damerau_levenshtein computes the Damerau-Levenshtein distance.
 //
 // returns `math.MaxInt` if there's no common characters at all mostly to avoid
 // confusing error messages - "you typed 'foo', maybe you ment 'bar'" where

@@ -1,6 +1,7 @@
 package cli
 
-// try to parse
+// parse_option tries to parse the next value with the parser, optionally
+// catching missing-item failures when catch is set.
 func parse_option[T any](
 	parser Parser[T],
 	maxlen *uint,

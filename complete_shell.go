@@ -24,7 +24,7 @@ func (self Shell) fmt(f *strings.Builder) {
 	f.WriteByte('\'')
 }
 
-// A completion callback for shell completion of the current word.
+// ShellComp is a completion callback for shell completion of the current word.
 //
 // Implement it to provide custom completion logic and pass it to
 // [Parser.CompleteShell].
@@ -189,9 +189,9 @@ func render_bash(
 	// allow for multiple extensions zsh takes a sane "*.(foo|bar|baz)" approach,
 	// while bash wants it to be "@(foo|bar|baz)"
 	//
-	// This doesn't cover all the possible masks, I suspect that the right way of
-	// handling this would be ignoring the shell machinery and handling masks on the
-	// Rust side... But for now try this
+	// This doesn't cover all the possible masks; the right way of handling
+	// them might be ignoring the shell machinery altogether, but for now
+	// this translation is what we have.
 	//
 	bashmask := func(i string) string {
 		ii := strip_prefix(i, "*.").OrDefault(i)
@@ -254,7 +254,8 @@ func render_bash(
 	return res.String()
 }
 
-// Render like the Rust `Debug` derive does for the `ShellComp` enum - used in test output
+// debug_string renders the shell completion callback the way it is shown in
+// test output.
 func (self ShellComp) debug_string() string {
 	option_str := func(o Opt[string]) string {
 		if s, ok := o.Unpack(); ok {

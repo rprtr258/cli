@@ -2,7 +2,8 @@ package cli
 
 import "math"
 
-// Apply inner parser as many times as it succeeds, return the Last value
+// last_eval applies the inner parser as many times as it succeeds and
+// returns the last value.
 func last_eval[T any](inner Parser[T], state *state) (T, parseError) {
 	last := Invalid[T]()
 	current := state.len()
@@ -24,7 +25,7 @@ func last_eval[T any](inner Parser[T], state *state) (T, parseError) {
 	return inner.eval(state)
 }
 
-// Apply the inner parser as many times as it succeeds, return the Last value
+// Last applies the inner parser as many times as it succeeds, returning the last value.
 //
 // # You can use this to allow users to pick contradicting options
 //

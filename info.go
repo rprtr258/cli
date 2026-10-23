@@ -1,8 +1,8 @@
 package cli
 
-// Information about the parser
+// info holds information about the parser.
 //
-// No longer public, users are only interacting with it via [OptionParser]
+// No longer public: users only interact with it via [OptionParser].
 type info struct {
 	version               Opt[Doc] // version field, see [version][Infoversion]
 	descr                 Opt[Doc] // Custom description field, see [descr][Infodescr]

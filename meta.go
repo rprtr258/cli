@@ -11,7 +11,7 @@ type meta interface {
 	clone() meta
 }
 
-// All arguments listed in a vector must be present
+// metaAnd requires all arguments listed in the slice to be present.
 type metaAnd []meta
 
 func (metaAnd) isMeta() {}
@@ -19,7 +19,7 @@ func (self metaAnd) clone() meta {
 	return metaAnd(fun.Map[meta](meta.clone, self...))
 }
 
-// One of arguments listed in a vector must be present
+// metaOr requires one of the arguments listed in the slice to be present.
 type metaOr []meta
 
 func (metaOr) isMeta() {}
@@ -27,7 +27,8 @@ func (self metaOr) clone() meta {
 	return metaOr(fun.Map[meta](meta.clone, self...))
 }
 
-// Arguments are optional and encased in [] when rendered
+// metaOptional renders the wrapped arguments as optional, encased in []
+// when rendered.
 type metaOptional struct{ m meta }
 
 func (metaOptional) isMeta() {}
@@ -35,7 +36,8 @@ func (self metaOptional) clone() meta {
 	return metaOptional{self.m.clone()}
 }
 
-// Arguments are requred and encased in () when rendered
+// metaRequired renders the wrapped arguments as required, encased in ()
+// when rendered.
 type metaRequired struct{ m meta }
 
 func (metaRequired) isMeta() {}
@@ -43,7 +45,7 @@ func (self metaRequired) clone() meta {
 	return metaRequired{self.m.clone()}
 }
 
-// Argumens are required to be adjacent to each other
+// metaAdjacent requires the wrapped arguments to be adjacent to each other.
 type metaAdjacent struct{ m meta }
 
 func (metaAdjacent) isMeta() {}
@@ -51,7 +53,7 @@ func (self metaAdjacent) clone() meta {
 	return metaAdjacent{self.m.clone()}
 }
 
-// Primitive argument as described
+// metaItem is a primitive argument item.
 type metaItem item
 
 func (metaItem) isMeta() {}
@@ -59,7 +61,7 @@ func (self metaItem) clone() meta {
 	return metaItem(item(self).clone())
 }
 
-// Accepts multiple arguments
+// metaMany accepts multiple arguments.
 type metaMany struct{ m meta }
 
 func (metaMany) isMeta() {}
@@ -67,9 +69,10 @@ func (self metaMany) clone() meta {
 	return metaMany{self.m.clone()}
 }
 
-// Arguments form a subsection with buffer being it's header
+// metaSubsection renders the arguments as a subsection with the doc as its
+// header.
 //
-// whole set of arguments go into the same section as the first one
+// The whole set of arguments goes into the same section as the first one.
 type metaSubsection struct {
 	m   meta
 	doc Doc
@@ -80,7 +83,7 @@ func (self metaSubsection) clone() meta {
 	return metaSubsection{self.m.clone(), self.doc.clone()}
 }
 
-// Buffer is rendered after
+// metaSuffix renders the doc after the wrapped arguments.
 type metaSuffix struct {
 	m   meta
 	doc Doc
@@ -91,7 +94,7 @@ func (self metaSuffix) clone() meta {
 	return metaSuffix{self.m.clone(), self.doc.clone()}
 }
 
-// This item is not rendered in the help message
+// metaSkip is not rendered in the help message.
 type metaSkip struct{}
 
 func (metaSkip) isMeta() {}
@@ -99,8 +102,9 @@ func (metaSkip) clone() meta {
 	return metaSkip{}
 }
 
-// mirrors Rust's meta::CustomUsage(Box<meta>, Box<Doc>) - the doc is always set
-// where this variant is constructed (parse_usage)
+// metaCustomUsage is a custom usage wrapper: a meta together with the Doc
+// that replaces its derived usage line. The doc is always set where this
+// variant is constructed (parse_usage).
 type metaCustomUsage struct {
 	m   meta
 	doc Doc
@@ -111,7 +115,7 @@ func (self metaCustomUsage) clone() meta {
 	return metaCustomUsage{self.m.clone(), self.doc.clone()}
 }
 
-// this meta must be prefixed with -- in unsage group
+// metaStrict must be prefixed with -- in the usage group.
 type metaStrict struct{ m meta }
 
 func (metaStrict) isMeta() {}
@@ -171,10 +175,8 @@ func isSkip(m meta) bool {
 	return ok
 }
 
-// metaStrict should bubble up to one of 3 places:
-// - top level
-// - one of "and" elements
-// - one of "or" elements
+// strictNorm marks where [metaStrict] should bubble up to: top level, one of
+// the "and" elements, or one of the "or" elements.
 type strictNorm uint8
 
 const (
@@ -195,7 +197,7 @@ func (self *strictNorm) push() {
 	}
 }
 
-// Used by normalization function to collapse duplicated commands.
+// is_command collapses duplicated commands, used by the normalization function.
 // It seems to be fine to strip section information but not anything else
 func is_command(self meta) bool {
 	switch self := self.(type) {
@@ -208,7 +210,7 @@ func is_command(self meta) bool {
 	return false
 }
 
-// do a nested invariant check
+// positional_invariant_check performs a nested invariant check.
 func positional_invariant_check(self meta, verbose bool) {
 	var GO func(meta meta, is_pos *bool, v bool)
 	GO = func(meta meta, is_pos *bool, v bool) {
@@ -292,7 +294,8 @@ func normalized(m meta, for_usage bool) meta {
 	return m
 }
 
-// Used by adjacent parsers since it inherits behavior of the front item
+// metaFirstItem returns the front item of the meta; used by adjacent parsers
+// since they inherit behavior of the front item.
 func metaFirstItem(meta meta) Opt[item] {
 	switch meta := meta.(type) {
 	case metaAnd:
@@ -320,8 +323,7 @@ func metaFirstItem(meta meta) Opt[item] {
 }
 
 // flatten_and flattens directly nested and-groups into a flat element list.
-// Composition helpers like Map3 nest them, while the equivalent bpaf
-// construct! invocation produces a flat list; strict `--` bubbling and
+// Composition helpers like Map3 can nest them; strict `--` bubbling and
 // rendering rely on the flat shape.
 func flatten_and(m meta) []meta {
 	if and, ok := m.(metaAnd); ok {
@@ -334,9 +336,10 @@ func flatten_and(m meta) []meta {
 	return []meta{m}
 }
 
-// Normalize meta info for display as usage. Required propagates outwards
+// normalize normalizes meta info for display as usage; required propagates
+// outwards.
 //
-// wrapping it in a pointer to the interface is intentional here.
+// Wrapping it in a pointer to the interface is intentional here.
 //
 //nolint:gocritic // `self *meta` is written through and must stay a pointer,
 func normalize(self *meta, for_usage bool, norm *strictNorm) {
@@ -511,7 +514,7 @@ func or(self, other meta) meta {
 	}
 }
 
-// collect different kinds of short names for disambiguation
+// collect_shorts collects different kinds of short names for disambiguation.
 func collect_shorts(self meta, flags, args *[]byte) {
 	switch self := self.(type) {
 	case metaAnd:

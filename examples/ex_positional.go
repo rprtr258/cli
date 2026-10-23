@@ -1,4 +1,4 @@
-// Non derive version for positional arguments
+// Positional arguments built with the combinator API.
 package examples
 
 import (

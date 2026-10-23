@@ -52,7 +52,7 @@ func main() {
 $ app --width 10 --height 5
 {10 5}
 $ app --width 0
-Error:  --width=P: Sides of a rectangle must be 1..20 units long
+parseError: `0`: Sides of a rectangle must be 1..20 units long
 ```
 
 ## Struct-based declaration
@@ -95,7 +95,7 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 
 ## Transforming parsers
 
-- `Parser.Map` / `Parse` - convert the produced value
+- `Parser.Map` - convert the produced value
 - `Guard` - validate the value with a custom check and error message
 - `Parser.Optional` / `Parser.OptionalCatch` - make a parser optional
 - `Parser.Many` / `Parser.Some` / `Parser.ManyCatch` / `Parser.SomeCatch` - collect repeated items into a slice
@@ -122,11 +122,11 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 ## Shell completion
 
 Flag and value names are completed out of the box through the dynamic completion
-protocol of the shell. Register the stub once and both bash, zsh and fish will
+protocol of the shell. Register the stub once and bash, zsh, fish and elvish will
 query your binary:
 
 ```bash
-source <(your-binary --bpaf-complete-style-bash)
+source <(your-binary --cli-complete-style-bash)
 ```
 
 Custom dynamic completion is available with `Parser.CompleteShell` for

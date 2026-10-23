@@ -6,7 +6,8 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// A composed parser over several inner parsers, created with [Pair], [Triple] or [Construct]
+// ParseCon is a composed parser over several inner parsers, created with
+// [Pair], [Triple] or [Construct].
 type ParseCon[T any] struct {
 	// inner parser closure
 	inner func(bool, *state) (T, parseError)
@@ -30,10 +31,10 @@ func (self ParseCon[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOp
 // Map applies a pure transformation to the composed value, see [Parser.Map].
 func (self ParseCon[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
-// Hide this parser from help generation, see [Parser.Hide].
+// Hide hides this parser from help generation, see [Parser.Hide].
 func (self ParseCon[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self ParseCon[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -85,7 +86,7 @@ func (self ParseCon[T]) eval(state *state) (T, parseError) {
 	return res, err
 }
 
-// Restrict the inner parser scope to accept adjacent values only
+// Adjacent restricts the inner parser scope to accept adjacent values only.
 //
 // Adjacent can solve a surprisingly wide variety of problems: sequential command chaining,
 // multi-value arguments, groups of options to name a few. If you want to run a parser on a
@@ -139,7 +140,7 @@ func (self ParseCon[T]) Adjacent() Parser[T] {
 	}
 }
 
-// Combine two parsers into one producing a [fun.Pair] of their results
+// Pair combines two parsers into one producing a [fun.Pair] of their results.
 //
 // Both parsers must succeed for the combined parser to succeed. Usually [Map2]
 // is more convenient since it produces the combined value directly. See also
@@ -174,7 +175,7 @@ type Tuple[A, B, C any] struct {
 	C C
 }
 
-// Combine three parsers into one producing a [Tuple] of their results
+// Triple combines three parsers into one producing a [Tuple] of their results.
 //
 // All three parsers must succeed for the combined parser to succeed. Usually
 // [Map3] is more convenient since it produces the combined value directly.

@@ -99,7 +99,7 @@
 
 package cli
 
-// Simple or composed argument parser
+// Parser[T] is a simple or composed argument parser.
 //
 // # Overview
 //
@@ -175,13 +175,14 @@ type parser[T any] interface {
 	Parser() Parser[T]
 }
 
-// If first parser fails - try the second one
+// OrElse returns a parser that tries self first and alt if self fails.
 //
-// For parser to succeed either of the components needs to succeed. If both succeed the
+// For the parser to succeed either of the components needs to succeed. If both succeed the
 // result comes from the one that consumed the left most value. The second flag on the
 // command line remains unconsumed by [Parser.OrElse].
 //
 // # Combinatoric usage
+//
 // There are two ways to write this combinator with identical results:
 //
 //	func a() cli.Parser[uint32] {
@@ -217,10 +218,10 @@ func (self Parser[T]) OrElse(alt Parser[T]) Parser[T] {
 	}
 }
 
-// Ignore this parser during any sort of help generation
+// Hide hides this parser from any sort of help generation.
 //
 // Best used for optional parsers or parsers with a defined fallback, usually for implementing
-// backward compatibility or hidden aliases
+// backward compatibility or hidden aliases.
 func (self Parser[T]) Hide() Parser[T] {
 	inner := self
 	return Parser[T]{
@@ -238,7 +239,7 @@ func (self Parser[T]) Hide() Parser[T] {
 	}
 }
 
-// Attach a help message to a complex parser
+// GroupHelp attaches a help message to a complex parser.
 //
 // The library inserts the group help message before the block with all the options
 // from the inner parser and an empty line after the block.
@@ -258,7 +259,7 @@ func (self Parser[T]) GroupHelp(message string) Parser[T] {
 	}
 }
 
-// Make a help message for a complex parser from its inner structure
+// withGroupHelp makes a help message for a complex parser from its inner structure.
 func (self Parser[T]) withGroupHelp(f func(meta) Doc) Parser[T] {
 	inner := self
 	return Parser[T]{
@@ -267,7 +268,7 @@ func (self Parser[T]) withGroupHelp(f func(meta) Doc) Parser[T] {
 	}
 }
 
-// Transform `Parser` into [OptionParser] to get ready to run it
+// ToOptions transforms the parser into an [OptionParser] ready to run.
 //
 // The returned [OptionParser] carries the presentation and runtime options:
 // [OptionParser.Run] or [OptionParser.RunE] parse the command line, and

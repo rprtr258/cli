@@ -5,7 +5,8 @@ import (
 	"unicode/utf8"
 )
 
-// All currently present command line parameters with some extra metainfo
+// argList holds all currently present command line parameters with some
+// extra metainfo.
 //
 // Internal type used for parsing; for tests build one with [newArgList]
 // and pass it to the internal run helpers.
@@ -23,7 +24,7 @@ func newArgList(args ...string) argList {
 	}
 }
 
-// Enable completions with custom output revision style
+// setComp enables completions with a custom output revision style.
 //
 // Revision 0 is useful to test the completion mechanism:
 //
@@ -48,7 +49,7 @@ const (
 	itemStateKindParsed                        // Value was parsed
 )
 
-// Shows which branch of [Parser.OrElse] parsed the argument
+// itemState shows which branch of [Parser.OrElse] parsed the argument.
 type itemState struct {
 	kind     itemStateKind
 	conflict int

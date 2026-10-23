@@ -241,24 +241,6 @@ func TestOptional_last_of_many(t *testing.T) {
 	assert_usage(t, parser, "[-a | -b]...")
 }
 
-// func TestHidden_fallback_branch(t*testing.T) {
-//     #[derive(Bpaf)]
-//     struct Fallback {
-//         #[bpaf(positional("COMMAND"))]
-//         name: String,
-//     }
-
-//     #[derive(Bpaf)]
-//     #[bpaf(options)]
-//     enum Commands {
-//         #[bpaf(command)]
-//         Build {},
-//         Fallback(#[bpaf(external(fallback), hide)] Fallback),
-//     }
-
-//     assert_usage(t,commands(), "COMMAND ...");
-// }
-
 func TestCustom_usage(t *testing.T) {
 	a := Short('a').Switch()
 

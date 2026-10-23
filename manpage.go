@@ -22,8 +22,7 @@ const (
 	SectionCustom                             // Custom section
 )
 
-// Manual page section
-// Section is a fragment of the manpage: a kind plus the text.
+// Section is a fragment of the manpage: a section kind plus the text.
 type Section struct {
 	Kind sectionKind
 	Text string
@@ -53,7 +52,7 @@ func (self Section) String() string {
 	panic("unreachable")
 }
 
-// Render command line documentation for the app into a manpage
+// RenderManpage renders command line documentation for the app into a manpage.
 func (self OptionParser[T]) RenderManpage(
 	app string,
 	section Section,
@@ -167,9 +166,9 @@ func FontFrom(value Style) Font {
 }
 
 func (self Doc) render_roff(roffDoc *roff.Roff) string {
-	// sections and subsections are implemented with .SH and .SS
-	// control messages and it is easier to provide them right away
-	// We also strip styling from them and change sections to all caps
+	// Sections and subsections are implemented with .SH and .SS control
+	// messages and it is easier to provide them right away. Styling is
+	// stripped and section names are changed to all caps.
 	capture := fun.Pair[string, bool]{K: "", V: false}
 
 	byte_pos := 0
@@ -205,8 +204,8 @@ func (self Doc) render_roff(roffDoc *roff.Roff) string {
 			case blockMeta:
 				roffDoc.Control0("nf")
 			case blockTermRef:
-				// mirrors the upstream implementation: this block is unreachable,
-				// TermRef is only emitted by error rendering which never uses manpage
+				// Unreachable: TermRef is only emitted by error rendering, which
+				// never produces manpages.
 				panic("TermRef is not supported in manpage rendering")
 			}
 		default:
@@ -228,8 +227,8 @@ func (self Doc) render_roff(roffDoc *roff.Roff) string {
 			case blockMeta:
 				roffDoc.Control0("fi")
 			case blockTermRef:
-				// mirrors the upstream implementation: this block is unreachable,
-				// TermRef is only emitted by error rendering which never uses manpage
+				// Unreachable: TermRef is only emitted by error rendering, which
+				// never produces manpages.
 				panic("TermRef is not supported in manpage rendering")
 			}
 		}

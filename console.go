@@ -41,7 +41,8 @@ const (
 	maxRenderWidth = 100
 )
 
-// Default to dull color if colors are enabled,
+// color selects the color scheme; it defaults to dull color if colors are
+// enabled.
 type color uint8
 
 const (
@@ -56,7 +57,7 @@ func (c color) IsMonochrome() bool {
 
 var colorDefault = colorMonochrome
 
-// ANSI escape sequences, mirroring owo_colors output in Rust
+// ANSI escape sequences used to style the rendered text.
 const (
 	ansiReset     = "\x1b[0m"
 	ansiBold      = "\x1b[1m"
@@ -117,9 +118,9 @@ func (self color) push_str(style Style, item string) string {
 
 const padding = "                                                  "
 
-// Render a monochrome version of the document
+// monochrome renders a monochrome version of the document.
 //
-// `full` indicates if full message should be rendered, this makes
+// full indicates if the full message should be rendered, this makes
 // difference for rendered help message, otherwise you can pass `true`.
 func (self Doc) monochrome(full bool) string {
 	return self.render_console(full, colorMonochrome, maxRenderWidth)

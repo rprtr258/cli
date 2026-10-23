@@ -643,51 +643,6 @@ func TestShell_help_single_line_only(t *testing.T) {
 	assertCompletion(t, parser, "-a\t-a=X\t\thello 1\n-b\t-b=Y\t\thello 2\n\n", "")
 }
 
-// TODO: get back
-// func TestDerive_decorations(t*testing.T) {
-//     #[derive(Debug, Clone, Bpaf)]
-//     #[allow(dead_code)]
-//     /// == Cargo options
-//     struct CargoOpts {
-//         /// optimize
-//         release: bool,
-//         /// pick target
-//         target: String,
-//     }
-
-//     #[derive(Debug, Clone, Bpaf)]
-//     #[allow(dead_code)]
-//     /// == Application options
-//     struct AppOpts {
-//         /// pick focus
-//         focus: String,
-//         /// inline rust
-//         inline: bool,
-//     }
-
-//     #[derive(Debug, Clone, Bpaf)]
-//     #[allow(dead_code)]
-//     #[bpaf(options)]
-//     struct Opts {
-//         #[bpaf(external)]
-//         cargo_opts: CargoOpts,
-//         #[bpaf(external)]
-//         app_opts: AppOpts,
-//     }
-
-//     parser := opts();
-
-//     r := parser.
-//         RunInner(newArgList("").setComp(0)).
-//         unwrap_err().
-//         UnwrapStdout();
-//     assert.Equal(t, r, `
-// --release\t--release\t== Cargo options\toptimize
-// --target\t--target=ARG\t== Cargo options\tpick target
-// --focus\t--focus=ARG\t== Application options\tpick focus
-// --inline\t--inline\t== Application options\tinline rust\n\n`);
-// }
-
 func TestZsh_complete_info(t *testing.T) {
 	foo := func(string) SSOS {
 		return seq2(funiter.FromMany([]PSOS{{"hello", Valid("word")}, {"sample", Invalid[string]()}}...))

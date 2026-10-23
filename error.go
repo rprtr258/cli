@@ -9,46 +9,49 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Unsuccessful command line parsing outcome, internal representation
+// parseError is the internal representation of an unsuccessful command line
+// parsing outcome.
 type parseError interface {
 	isError()
 }
 
-// those can be caught ---------------------------------------------------------------
-// Tried to consume an env variable with no fallback, variable was not set
+// Errors that can be caught (combined) during parsing.
+
+// errorNoEnv means an environment variable was consumed without a fallback
+// but the variable was not set.
 type errorNoEnv string
 
 func (errorNoEnv) isError() {}
 
-// User specified an error message on some
+// errorParseSome is a user-specified error message.
 type errorParseSome string
 
 func (errorParseSome) isError() {}
 
-// User asked for parser to fail explicitly
+// errorParseFail is a message from a parser asked to fail explicitly.
 type errorParseFail string
 
 func (errorParseFail) isError() {}
 
-// pure_with failed to parse a value
+// errorPureFailed means a fixed-value parse function failed.
 type errorPureFailed string
 
 func (errorPureFailed) isError() {}
 
-// Expected one of those values
-//
-// Used internally to generate better error messages
+// errorMissing lists the values expected at the failure position; used
+// internally to generate better error messages.
 type errorMissing []missingItem
 
 func (errorMissing) isError() {}
 
-// those cannot be caught-------------------------------------------------------------
-// Parsing failed and this is the final output
+// Errors that cannot be caught.
+
+// errorParseFailure means parsing failed and this is the final output.
 type errorParseFailure struct{ e parseFailure }
 
 func (errorParseFailure) isError() {}
 
-// Tried to consume a strict positional argument, value was present but was not strictly positional
+// errorStrictPos means a value was present but was not strictly positional.
 type errorStrictPos struct {
 	a       int
 	metavar Metavar
@@ -56,7 +59,8 @@ type errorStrictPos struct {
 
 func (errorStrictPos) isError() {}
 
-// Tried to consume a non-strict positional argument, but the value was strict
+// errorNonStrictPos means a non-strict positional argument was consumed but
+// the value was strict.
 type errorNonStrictPos struct {
 	a       int
 	metavar Metavar
@@ -64,7 +68,7 @@ type errorNonStrictPos struct {
 
 func (errorNonStrictPos) isError() {}
 
-// Parser provided by user failed to parse a value
+// errorParseFailed means a user-provided parse function failed to parse a value.
 type errorParseFailed struct {
 	pos Opt[int]
 	msg string
@@ -72,7 +76,7 @@ type errorParseFailed struct {
 
 func (errorParseFailed) isError() {}
 
-// Parser provided by user failed to validate a value
+// errorGuardFailed means a user-provided validation function rejected a value.
 type errorGuardFailed struct {
 	pos Opt[int]
 	msg string
@@ -80,12 +84,8 @@ type errorGuardFailed struct {
 
 func (errorGuardFailed) isError() {}
 
-// Argument requres a value but something else was passed,
-// required: --foo <BAR>
-// given: --foo --bar
-//
-//	--foo -- bar
-//	--foo
+// errorNoArgument means an argument requires a value but something else was
+// passed, e.g. --foo <BAR> is required but --foo --bar was given.
 type errorNoArgument struct {
 	ix      int
 	metavar Metavar
@@ -93,13 +93,14 @@ type errorNoArgument struct {
 
 func (errorNoArgument) isError() {}
 
-// Parser is expected to consume all the things from the command line
-// this item will contain an index of the unconsumed value
+// errorUnconsumed carries the index of a command line item the parser was
+// expected to consume but did not.
 type errorUnconsumed int
 
 func (errorUnconsumed) isError() {}
 
-// argument is ambigoups - parser can accept it as both a set of flags and a short flag with no =
+// errorAmbiguity means the argument is ambiguous: the parser can accept it
+// both as a set of flags and as a short flag with an = value.
 type errorAmbiguity struct {
 	ix   int
 	name string
@@ -107,7 +108,7 @@ type errorAmbiguity struct {
 
 func (errorAmbiguity) isError() {}
 
-// Suggested fixes for typos or missing input
+// errorSuggestion carries a suggested fix for a typo or missing input.
 type errorSuggestion struct {
 	ix         int
 	suggestion suggestion
@@ -115,13 +116,14 @@ type errorSuggestion struct {
 
 func (errorSuggestion) isError() {}
 
-// Two arguments are mutually exclusive
-// --release --dev
+// errorConflict means two arguments are mutually exclusive, e.g. --release
+// and --dev.
 type errorConflict struct{ winner, loser int }
 
 func (errorConflict) isError() {}
 
-// Expected one or more items in the scope, got someting else if any
+// errorExpected means one or more items were expected in the scope but
+// something else, if anything, was found.
 type errorExpected struct {
 	expected []item
 	actual   Opt[int]
@@ -129,7 +131,8 @@ type errorExpected struct {
 
 func (errorExpected) isError() {}
 
-// Parameter is accepted but only once
+// errorOnlyOnce means the parameter is accepted only once but appeared
+// multiple times.
 type errorOnlyOnce struct{ winner, loser int }
 
 func (errorOnlyOnce) isError() {}
@@ -181,7 +184,7 @@ func (r rng) end() int             { return r[1] }
 func (r rng) contains(ix int) bool { return r[0] <= ix && ix < r[1] }
 func (r rng) String() string       { return fmt.Sprintf("[%d, %d]", r[0], r[1]) }
 
-// Missing item in a context
+// missingItem is an item missing in a parse context.
 type missingItem struct {
 	// item that is missing
 	item item
@@ -198,30 +201,26 @@ func (mi missingItem) String() string {
 	)
 }
 
-// Unsuccessful command line parsing outcome, use it for unit tests
+// parseFailure is the outcome of a failed parse, used for unit tests.
 //
 // When the internal run helper produces a failure it means that the parser couldn't
 // produce the value it was supposed to produce and the program should terminate.
-// it means that the parser couldn't produce the value it supposed to produce and the program
-// should terminate.
 //
-// If you are handling variants manually - `Stdout` contains formatted output and you can use any
+// If you are handling the variants manually: `Stdout` contains formatted output and you can use any
 // logging framework to produce the output, `Completion` should be printed to stdout unchanged -
-// shell completion mechanism relies on that. In both cases application should exit with error
-// code of 0. `Stderr` variant indicates a genuinly parsing error which should be printed to
+// shell completion mechanism relies on that. In both cases the application should exit with error
+// code of 0. `Stderr` indicates a genuine parsing error which should be printed to
 // stderr or a logging framework of your choice as an error and the app should exit with error
-// code of 1. [ParseFailureexit_code] is a helper method that performs printing and produces
-// the exit code to use.
+// code of 1. [OptionParser.Run] performs the printing and exits with the right code.
 //
-// For purposes of for unit testing for user parsers, you can consume it with
-// [ParseFailureunwrap_stdout] and [ParseFailureunwrap_stdout] - both of which produce a
-// an unformatted `String` that parser might produce if failure type is correct or panics
-// otherwise.
+// For unit testing of user parsers, you can consume the failure with unwrap_stdout and
+// unwrap_stderr, both of which produce an unformatted string that the parser produces if
+// the failure type matches or panic otherwise.
 type parseFailure interface {
 	isParseFailure()
 }
 
-// Print this to stdout and exit with success code
+// parseFailureStdout should be printed to stdout, exiting with success.
 type parseFailureStdout struct {
 	msg  Doc
 	full bool
@@ -229,13 +228,14 @@ type parseFailureStdout struct {
 
 func (parseFailureStdout) isParseFailure() {}
 
-// This also goes to stdout with exit code of 0,
-// this cannot be Doc because completion needs more control about rendering
+// parseFailureCompletion goes to stdout with exit code 0 as well; it is a
+// plain string rather than a [Doc] because completion needs more control
+// over rendering.
 type parseFailureCompletion string
 
 func (parseFailureCompletion) isParseFailure() {}
 
-// Print this to stderr and exit with failure code
+// parseFailureStderr should be printed to stderr, exiting with failure.
 type parseFailureStderr Doc
 
 func (parseFailureStderr) isParseFailure() {}
@@ -278,11 +278,12 @@ func combine_with(self, other parseError) parseError {
 	}
 }
 
-// Returns the contained `stderr` values - for unit tests
+// unwrap_stderr returns the stderr message contained in the failure, for
+// unit tests.
 //
 // # Panics
 //
-// Panics if failure contains `stdout`
+// Panics if the failure contains stdout.
 func unwrap_stderr(self parseFailure) string {
 	switch self := self.(type) {
 	case parseFailureStdout:
@@ -295,11 +296,12 @@ func unwrap_stderr(self parseFailure) string {
 	panic(fmt.Sprintf("unreachable %T", self))
 }
 
-// Returns the contained `stdout` values - for unit tests
+// unwrap_stdout returns the stdout message contained in the failure, for
+// unit tests.
 //
 // # Panics
 //
-// Panics if failure contains `stderr`
+// Panics if the failure contains stderr.
 func unwrap_stdout(self parseFailure) string {
 	switch self := self.(type) {
 	case parseFailureStdout:
@@ -357,7 +359,9 @@ func only_once(state *state, cur int) (int, bool) {
 	return cur - offset - 1, true
 }
 
-// and must stay a pointer to the interface.
+// render produces the failure for the error, possibly rewriting the error
+// into a more specific one first. It must stay a pointer to the interface:
+// the error is replaced through it.
 //
 //nolint:gocritic // `self *parseError` is written through (error replacement)
 func render(self *parseError, state *state, meta meta) parseFailure {
@@ -401,9 +405,7 @@ func render(self *parseError, state *state, meta meta) parseFailure {
 		// parseError: <message from pure_with>
 		doc.Text(s)
 	case errorMissing:
-		// this case is handled above(?)
-		// this one is unreachable
-		// already rendered
+		// Already rendered above.
 	case errorParseFailure:
 		return e.e
 	case errorStrictPos:
@@ -688,7 +690,8 @@ func render(self *parseError, state *state, meta meta) parseFailure {
 	return parseFailureStderr(doc)
 }
 
-// go over all the missing items, pick the left most scope
+// summarize_missing picks the left most scope among the missing items and
+// produces the best possible error for it.
 func summarize_missing(items []missingItem, inner meta, state *state) parseError {
 	// missing items can belong to different scopes, pick the best scope to work with
 	best_item, ok := max_by_key(

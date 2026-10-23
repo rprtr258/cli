@@ -6,7 +6,8 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Parser that tries to either of two parsers and uses one that succeeeds, created with [Parser.OrElse].
+// or_else_eval tries either of two parsers and uses one that succeeds;
+// created with [Parser.OrElse]..
 func or_else_eval[T any](self, alt Parser[T], state *state) (T, parseError) {
 	var comp_items []comp
 
@@ -63,8 +64,9 @@ func or_else_eval[T any](self, alt Parser[T], state *state) (T, parseError) {
 	}
 }
 
-// Given two possible errors along with to sets of arguments produce a new error or an instruction
-// to pick between two answers. Updates arguments state to switch the results
+// this_or_that_picks_first, given two possible errors along with two sets of
+// arguments, produces a new error or an instruction to pick between the two
+// answers. It updates the argument state to switch the results.
 func this_or_that_picks_first(
 	err_a Opt[parseError],
 	err_b Opt[parseError],
@@ -131,8 +133,7 @@ func this_or_that_picks_first(
 			// If neither parser consumed anything - both can produce valid completions, otherwise
 			// look for the first "significant" consume and keep that parser
 			//
-			// This is needed to preserve completion from a choice between a positional and a flag
-			// See the upstream discussion for more details: this mimics the original or_else behavior
+			// This is needed to preserve completion from a choice between a positional and a flag.
 			_, ok1 := args_a.comp_mut()
 			_, ok2 := args_b.comp_mut()
 			if ok1 && ok2 {
@@ -204,7 +205,7 @@ func this_or_that_picks_first(
 	return res.K, nil
 }
 
-// Choose between several parsers specified at runtime
+// Choice chooses between several parsers specified at runtime.
 //
 // You can use this function to create multiple parsers that produce the same type of value at a runtime
 // and let the library pick one that best fits. This function is designed to work with the

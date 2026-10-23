@@ -6,7 +6,7 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Builder structure for a subcommand parser
+// ParseCommand is a builder structure for a subcommand parser.
 //
 // Created with [Command]; implements a parser for the inner structure, allows attaching
 // a help message with [ParseCommand.Help].
@@ -19,7 +19,7 @@ type ParseCommand[T any] struct {
 	adjacent  bool
 }
 
-// Add a brief description to a command
+// Help adds a brief description to a command.
 //
 // The library uses this description along with the command name in the help output
 // so it shouldn't exceed one or two lines. If `help` isn't specified the library falls
@@ -59,7 +59,7 @@ func (self *ParseCommand[P]) Help(help string) *ParseCommand[P] {
 	return self
 }
 
-// Add a custom short alias for a command
+// Short adds a custom short alias for a command.
 //
 // Behavior is similar to [NamedArg.Short]: only the first short name is visible.
 func (self *ParseCommand[P]) Short(short byte) *ParseCommand[P] {
@@ -67,7 +67,7 @@ func (self *ParseCommand[P]) Short(short byte) *ParseCommand[P] {
 	return self
 }
 
-// Add a custom hidden long alias for a command
+// Long adds a custom hidden long alias for a command.
 //
 // Behavior is similar to [NamedArg.Long], but since you had to specify the first long
 // name when making the command - this one becomes a hidden alias.
@@ -76,7 +76,7 @@ func (self *ParseCommand[P]) Long(long string) *ParseCommand[P] {
 	return self
 }
 
-// Allow for the command to succeed even if there are non consumed items present
+// Adjacent allows for the command to succeed even if there are unconsumed items present.
 //
 // Normally a subcommand parser should handle the rest of the unconsumed elements thus
 // allowing only "vertical" chaining of commands. `adjacent` modifier lets command parser to
@@ -108,10 +108,10 @@ func (self ParseCommand[T]) ToOptions() *OptionParser[T] { return self.Parser().
 // Map applies a pure transformation to the parsed command value, see [Parser.Map].
 func (self ParseCommand[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
-// Hide this parser from help generation, see [Parser.Hide].
+// Hide hides this parser from help generation, see [Parser.Hide].
 func (self ParseCommand[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self ParseCommand[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -228,7 +228,7 @@ func (self ParseCommand[T]) item() item {
 	}}
 }
 
-// Parse a subcommand
+// Command parses a subcommand.
 //
 // Subcommands allow to use a totally independent parser inside a current one. Inner parser
 // can have its own help message, description, version and so on. You can nest them arbitrarily
@@ -264,7 +264,9 @@ func (self OptionParser[T]) Command(name string) *ParseCommand[T] {
 	}
 }
 
-// Deprecated: You should switch from command(name, sub) to sub.command(name)
+// command builds a subcommand parser with the given long name.
+//
+// Deprecated: switch from command(name, sub) to sub.command(name).
 func command[T any](name string, subparser OptionParser[T]) ParseCommand[T] {
 	return ParseCommand[T]{
 		longs:     []string{name},

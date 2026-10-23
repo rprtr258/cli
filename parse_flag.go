@@ -2,7 +2,8 @@ package cli
 
 import "os"
 
-// Parser for a named switch, created with [NamedArg.Switch], [Flag] or [ReqFlag].
+// flagParser parses a named switch; created with [NamedArg.Switch], [Flag]
+// or [ReqFlag].
 //
 // This is an unexported constructor shared by all flag parsers; the fluent
 // combinators continue on the returned [Parser].
@@ -51,7 +52,7 @@ func Flag[T any](self NamedArg, present, absent T) Parser[T] {
 	return flagParser(present, Valid(absent), self)
 }
 
-// Required flag with custom value
+// ReqFlag is a required flag with custom value.
 //
 // Similar to [Flag] takes no Opt arguments, but would only
 // succeed if user specifies its name on a command line.

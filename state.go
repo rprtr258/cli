@@ -38,7 +38,8 @@ func (self state) clone() state {
 	return s
 }
 
-// Check if item at ixth position is still present (was not parsed)
+// present checks whether the item at the ixth position is still present (was
+// not parsed).
 func (self state) present(ix int) (present, exact bool) {
 	inBounds := ix < len(self.item_state)
 	return inBounds && !self.item_state[ix].parsed(), inBounds
@@ -149,7 +150,7 @@ LOOP:
 	}, err
 }
 
-// creates iterator over remaining elements
+// items_iter creates an iterator over the remaining elements.
 func (self state) items_iter() func() (int, arg, bool) {
 	i := self.scope[0]
 	return func() (int, arg, bool) {
@@ -184,7 +185,7 @@ func (self state) pick_winner(other state) (bool, Opt[int]) {
 	return true, Invalid[int]()
 }
 
-// find first saved conflict
+// conflict finds the first saved conflict.
 func (self state) conflict() (rng, bool) {
 	next := self.items_iter()
 	ix, _, ok := next()
@@ -220,7 +221,7 @@ func (self state) len() int {
 	return res
 }
 
-// Get an argument from a scope that was not consumed yet
+// get returns an argument from a scope that was not consumed yet.
 func (self state) get(ix int) (arg, bool) {
 	if !self.scope.contains(ix) || self.item_state[ix].parsed() {
 		return arg{}, false
@@ -229,7 +230,8 @@ func (self state) get(ix int) (arg, bool) {
 	return self.items[ix], true
 }
 
-// Narrow down scope of &self to adjacently consumed values compared to original.
+// adjacent_scope narrows the scope to adjacently consumed values compared to
+// the original.
 func (self state) adjacent_scope(original state) (rng, bool) {
 	if len(self.items) == 0 {
 		return rng{}, false
@@ -255,7 +257,8 @@ func (self state) adjacent_scope(original state) (rng, bool) {
 	return rng{}, false
 }
 
-// Get a scope for an adjacently available block of item starting at start
+// adjacently_available_from returns a scope for an adjacently available block
+// of items starting at start.
 func (self state) adjacently_available_from(start int) rng {
 	span_size := 0
 	for _, v := range self.item_state[start:] {
@@ -302,7 +305,8 @@ func (self state) ranges(item item) func() (argRangesIterItem, bool) {
 	}
 }
 
-// check if the library tries to complete the last consumed element
+// touching_last_remove checks whether the library tries to complete the last
+// consumed element.
 func (self state) touching_last_remove() bool {
 	return self.comp.Valid && len(self.items)-1 == self.currentIdx.OrDefault(math.MaxInt)
 }
@@ -317,7 +321,7 @@ func (self *state) swap_comps_with(comps *[]comp) {
 	}
 }
 
-// Get a short or long flag: `-f` / `--flag`
+// takeBoolFlag takes a short or long flag: `-f` / `--flag`.
 //
 // Returns false if value isn't present
 func (self *state) takeBoolFlag(named NamedArg) bool {
@@ -339,7 +343,7 @@ func (self *state) takeBoolFlag(named NamedArg) bool {
 	return ok
 }
 
-// get a short or long arguments
+// takeFlag takes a short or long argument.
 //
 // Returns Invalid() if flag isn't present
 // Returns Err if flag is present but value is either missing or strange.
@@ -373,7 +377,7 @@ func (self *state) takeFlag(
 	return Valid(ww.str), nil
 }
 
-// gets first positional argument present
+// takePositional takes the first positional argument present.
 //
 // returns Ok(Invalid()) if input is empty
 // returns Err if first positional argument is a flag
@@ -394,7 +398,7 @@ func (self *state) takePositional(metavar Metavar) (ix int, strict bool, value s
 	}})
 }
 
-// take a static string argument from the first present argument
+// takeCmd takes a static string argument from the first present argument.
 func (self *state) takeCmd(cmd string) bool {
 	ix, a, ok := self.items_iter()()
 	if ok && a.str == cmd &&

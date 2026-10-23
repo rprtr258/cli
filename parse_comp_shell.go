@@ -1,6 +1,7 @@
 package cli
 
-// Parser that inserts static shell completion into the dynamic shell completion
+// compShell_eval inserts static shell completion into the dynamic shell
+// completion.
 func compShell_eval[T any](inner Parser[T], op ShellComp, state *state) (T, parseError) {
 	// same as with ParseComp the goal is to replace metavars added by inner parser
 	// with a completion that would call a bash script.
@@ -30,11 +31,11 @@ func compShell_eval[T any](inner Parser[T], op ShellComp, state *state) (T, pars
 	return res, err
 }
 
-// Static shell completion
+// CompleteShell adds static shell completion.
 //
-// Allows to ask existing shell completion to provide some information such as a file or
-// directory names or pass through existing shell completion scripts, see
-// [ShellComp](complete_shellShellComp) for accessible functionality
+// Allows to ask the existing shell completion to provide some information such as file or
+// directory names, or to pass through existing shell completion scripts; see
+// [ShellComp] for accessible functionality.
 //
 // Places function calls in place of the metavar placeholder, so running it on
 // something that doesn't have a positional or an argument doesn't

@@ -53,7 +53,7 @@ Available options:
 func TestDecorations(t *testing.T) {
 	p := Argument(Short('p').
 		Long("parser").
-		Env("BPAF_VARIABLE"), "ARG", ParseString).
+		Env("CLI_VARIABLE"), "ARG", ParseString).
 		Parser().ToOptions().
 		Description("descr\n descr").
 		Header("header\n header").
@@ -70,7 +70,7 @@ header
 header
 
 Available options:
-    -p, --parser=ARG  [env:BPAF_VARIABLE: N/A]
+    -p, --parser=ARG  [env:CLI_VARIABLE: N/A]
     -h, --help        Prints help information
     -V, --version     Prints version information
 
@@ -190,13 +190,7 @@ Available options:
 }
 
 func TestEnum_with_docs(t *testing.T) {
-	// builder equivalent of bpaf's derive expansion (top_comment_is_group_help_enum):
-	// /// Pick mode:
-	// enum Mode { /// help
-	//     Intel, /// help
-	//     Att }
-	// construct!([long("intel").help("help").req_flag(...),
-	//              long("att").help("help").req_flag(...)]).group_help("Pick mode:")
+	// Two required flags combined with Choice and wrapped in a group help header.
 	intel := ReqFlag(Long("intel").Help("help"), false)
 	att := ReqFlag(Long("att").Help("help"), true)
 	parser := Choice(intel, att).GroupHelp("Pick mode:").ToOptions()
@@ -214,11 +208,7 @@ Available options:
 }
 
 func TestAnywhere_invariant_check(t *testing.T) {
-	// builder equivalent of bpaf's derive expansion:
-	// #[bpaf(adjacent)]
-	// struct Fooo { tag: (), name: String, val: String }
-	// construct!(long("tag").req_flag(()), positional("NAME").help("help for name"),
-	//            positional("VAL").help("help for val")).adjacent()
+	// Adjacent block: a tag flag followed by two positionals.
 	tag := ReqFlag(Long("tag"), struct{}{})
 	name := Positional("NAME", ParseString).Help("help for name")
 	val := Positional("VAL", ParseString).Help("help for val")

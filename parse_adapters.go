@@ -16,6 +16,8 @@ import (
 // # Usage
 //
 //	width := cli.Argument(cli.Long("width").Help("Width of the rectangle"), "PX", cli.ParseInt)
+
+// unwrapNumError unwraps the strconv number error into the underlying cause.
 func unwrapNumError(err error) error {
 	var numErr *strconv.NumError
 	if errors.As(err, &numErr) {
@@ -24,13 +26,14 @@ func unwrapNumError(err error) error {
 	return err
 }
 
-// Identity conversion for [Argument] and [Positional]: the parsed value is the
-// string itself.
+// ParseString is the identity conversion for [Argument] and [Positional]:
+// the parsed value is the string itself.
 func ParseString(s string) (string, error) {
 	return s, nil
 }
 
-// Parse a signed base-10 integer, for use with [Argument] and [Positional].
+// ParseInt parses a signed base-10 integer, for use with [Argument] and
+// [Positional].
 func ParseInt(s string) (int, error) {
 	x, err := strconv.Atoi(s)
 	if err != nil {
@@ -39,7 +42,8 @@ func ParseInt(s string) (int, error) {
 	return x, nil
 }
 
-// Parse an unsigned base-10 integer, for use with [Argument] and [Positional].
+// ParseUint parses an unsigned base-10 integer, for use with [Argument] and
+// [Positional].
 func ParseUint(s string) (uint, error) {
 	x, err := strconv.ParseUint(s, 10, 0)
 	if err != nil {
@@ -48,7 +52,8 @@ func ParseUint(s string) (uint, error) {
 	return uint(x), nil
 }
 
-// Parse a base-10 floating point number, for use with [Argument] and [Positional].
+// ParseFloat parses a base-10 floating point number, for use with [Argument]
+// and [Positional].
 func ParseFloat(s string) (float64, error) {
 	x, err := strconv.ParseFloat(s, 64)
 	if err != nil {
@@ -57,8 +62,8 @@ func ParseFloat(s string) (float64, error) {
 	return x, nil
 }
 
-// Parse a boolean accepting `1, t, T, TRUE, true, True, 0, f, F, FALSE, false, False`,
-// for use with [Argument] and [Positional].
+// ParseBool parses a boolean accepting `1, t, T, TRUE, true, True, 0, f, F,
+// FALSE, false, False`, for use with [Argument] and [Positional].
 func ParseBool(s string) (bool, error) {
 	x, err := strconv.ParseBool(s)
 	if err != nil {
@@ -67,8 +72,8 @@ func ParseBool(s string) (bool, error) {
 	return x, nil
 }
 
-// Parse a duration like `1h2m4s` with [time.ParseDuration], for use with
-// [Argument] and [Positional].
+// ParseDuration parses a duration like `1h2m4s` with [time.ParseDuration],
+// for use with [Argument] and [Positional].
 func ParseDuration(s string) (time.Duration, error) {
 	return time.ParseDuration(s)
 }

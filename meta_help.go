@@ -131,9 +131,10 @@ func ty(self helpItem) hiTy {
 	panic("unreachable")
 }
 
-// A collection of all the help items separated into flags, positionals and commands
+// helpItems is a collection of all the help items separated into flags,
+// positionals and commands.
 //
-// Items are stored as references and can be trivially copied
+// Items are stored as references and can be trivially copied.
 type helpItems []helpItem
 
 func helpItemsDefault() helpItems {
@@ -148,7 +149,8 @@ const (
 	hiTyPositional
 )
 
-// No | Decor(hiTy) | Anywhere(hiTy)
+// itemBlock is either not present, a decorated block with the given type, or
+// an anywhere block with the given type.
 type itemBlock struct {
 	present bool
 	isDecor bool // anywhere otherwise
@@ -258,7 +260,7 @@ func peek_front_ty(self meta) (hiTy, bool) {
 	return res, ok
 }
 
-// Recursively classify contents of the meta
+// append_meta recursively classifies the contents of the meta.
 func (self *helpItems) append_meta(mm meta) {
 	var GO func(mm meta, no_ss bool)
 	GO = func(mm meta, no_ss bool) {
@@ -582,7 +584,8 @@ func insert[K comparable](s *set.Set[K], item K) bool {
 	return true
 }
 
-// TODO: mutate somehow vahui
+// check deduplicates the item, storing it and reporting whether it should
+// be kept in the help output.
 func (self *dedup) check(item helpItem) bool {
 	switch item := item.(type) {
 	case helpItemDecorSuffix:

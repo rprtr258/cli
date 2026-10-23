@@ -29,7 +29,7 @@ const (
 	compKindShell
 )
 
-// A single completion hint, mirrors the Rust `comp` enum
+// comp is a single completion hint.
 type comp struct {
 	kind compKind
 	// shared metadata
@@ -72,21 +72,21 @@ func compShell(extra compExtra, script ShellComp, is_argument bool) comp {
 	return comp{kind: compKindShell, extra: extra, script: script, is_argument: is_argument}
 }
 
-// completion:
-// static: flag names, command names
-// dynamic: argument values, positional item values
+// Complete implements the completion protocol:
 //
-// for static when running collect any parser that fails
+//	static: flag names, command names
+//	dynamic: argument values, positional item values
 //
-// OR: combine completions
-// AND: usual logic without shortcircuits
+// For static completion, running collect only fails if any parser fails.
 //
-// for static completion it's enough to collect items
-// for argument completion - only one argument(compMeta) should be active at once
+//	OR: combine completions
+//	AND: usual logic without shortcircuits
 //
-// for rendering prefer longer version of names
+// For static completion it's enough to collect items.
+// For argument completion - only one argument (compMeta) should be active at once.
 //
-// complete short names to long names if possible
+// For rendering prefer longer version of names.
+// Complete short names to long names if possible.
 
 type Complete struct {
 	// completions accumulated so far
@@ -106,7 +106,7 @@ func newComplete(output_rev uint) Complete {
 	}
 }
 
-// Add a new completion hint for flag, if needed
+// push_flag adds a new completion hint for the flag, if needed.
 func (self *state) push_flag(named NamedArg) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
@@ -123,7 +123,7 @@ func (self *state) push_flag(named NamedArg) {
 	}
 }
 
-// Add a new completion hint for an argument, if needed
+// push_argument adds a new completion hint for an argument, if needed.
 func (self *state) push_argument(named NamedArg, metavar Metavar) {
 	depth := self.depth()
 	if comp, ok := self.comp_mut(); ok {
@@ -141,7 +141,7 @@ func (self *state) push_argument(named NamedArg, metavar Metavar) {
 	}
 }
 
-// Add a new completion hint for metadata, if needed
+// push_metavar adds a new completion hint for metadata, if needed.
 //
 // `is_argument` is set to true when we are trying to parse the value and false if
 // when meta
@@ -162,7 +162,7 @@ func (self *state) push_metavar(
 	}
 }
 
-// Add a new completion hint for command, if needed
+// push_command adds a new completion hint for the command, if needed.
 func (self *state) push_command(
 	name string,
 	short Opt[byte],
@@ -182,14 +182,14 @@ func (self *state) push_command(
 	}
 }
 
-// Clear collected completions if enabled
+// clear_comps clears collected completions if completion is enabled.
 func (self *state) clear_comps() {
 	if comp, ok := self.comp_mut(); ok {
 		comp.comps = comp.comps[:0]
 	}
 }
 
-// Insert a literal value with some description for completion
+// push_pos_sep inserts a literal value with some description for completion.
 //
 // In practice it's "--"
 func (self *state) push_pos_sep() {
@@ -207,7 +207,7 @@ func (self *state) push_pos_sep() {
 	}
 }
 
-// Insert a bunch of items
+// push_with_group inserts a group of items.
 func (self *state) push_with_group(group Opt[string], comps *[]comp) {
 	if comp, ok := self.comp_mut(); ok {
 		for i := range *comps {
@@ -253,14 +253,14 @@ func (self *Complete) extend_comps(comps []comp) {
 	self.comps = append(self.comps, comps...)
 }
 
-// to avoid leaking items with higher depth into items with lower depth
+// depth returns the completion depth, used to avoid leaking items with
+// higher depth into items with lower depth.
 func (self *comp) depth() int {
 	return self.extra.depth
 }
 
-// completer needs to replace meta placeholder with actual values - uses this
-//
-// value indicates if it's an argument or a positional meta
+// is_metavar reports whether the comp is a metavariable placeholder and
+// whether it stands for an argument or a positional meta.
 func (self *comp) is_metavar() (is_argument, ok bool) {
 	if self.kind == compKindMetavariable {
 		return self.is_argument, true
@@ -300,9 +300,8 @@ func (self ShowComp) to_string() string {
 	return res.String()
 }
 
-// What is the preceeding item, if any
-//
-// Mostly is there to tell if we are trying to complete and argument or not...
+// prefix inspects the preceding item, if any - mostly to tell whether an
+// argument rather than a flag is being completed.
 type prefix = func(
 	NA func(),
 	Short func(byte),
@@ -326,9 +325,11 @@ func prefixLong(s string) prefix {
 	}
 }
 
-// Generate completion from collected heads
-// before calling this method we run parser in "complete" mode and collect live heads inside
-// `self.comp`, this part goes over collected heads and generates possible completions from that
+// check_complete generates completion from collected heads.
+//
+// Before calling this method the parser runs in "complete" mode and collects
+// live heads inside self.comp; this part goes over the collected heads and
+// generates possible completions from that.
 func (self *state) check_complete() (string, bool) {
 	comp, ok := self.comp.Unpack()
 	if !ok {
@@ -408,7 +409,7 @@ func (self *state) check_complete() (string, bool) {
 	}(), true
 }
 
-// Try to expand short string names into long names if possible
+// preferred_name expands short string names into long names if possible.
 func preferred_name(name shortLong) string {
 	if name.is_short() {
 		return fmt.Sprintf("-%c", name.Short)
@@ -421,7 +422,8 @@ func stris_empty(s string) bool {
 	return s == ""
 }
 
-// check if argument can possibly switch the argument passed in and returns a preferrable replacement
+// arg_matches checks whether the argument can possibly switch the argument
+// passed in and returns a preferable replacement.
 func arg_matches(arg string, name shortLong) (string, bool) {
 	// "" and "-" switch any flag
 	if arg == "" || arg == "-" ||
@@ -451,7 +453,8 @@ func cmd_matches(arg, name string, short Opt[byte]) (string, bool) {
 	return "", false
 }
 
-// this completion should suppress anything else that is not a value
+// only_value reports whether this completion should suppress anything else
+// that is not a value.
 func (self *comp) only_value() bool {
 	switch self.kind {
 	case compKindValue, compKindMetavariable, compKindShell:

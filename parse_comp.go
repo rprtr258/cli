@@ -2,7 +2,8 @@ package cli
 
 import "iter"
 
-// Parser that replaces metavar placeholders with actual info in shell completion
+// ParseComp is a parser that replaces metavar placeholders with actual info in
+// shell completion.
 type ParseComp[T any] struct {
 	inner Parser[T]
 	op    func(T) iter.Seq2[string, Opt[string]]
@@ -19,10 +20,10 @@ func (self ParseComp[T]) ToOptions() *OptionParser[T] { return self.Parser().ToO
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self ParseComp[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
-// Hide this parser from help generation, see [Parser.Hide].
+// Hide hides this parser from help generation, see [Parser.Hide].
 func (self ParseComp[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self ParseComp[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -70,7 +71,7 @@ func (self ParseComp[T]) CompleteShell(op ShellComp) Parser[T] {
 	return self.Parser().CompleteShell(op)
 }
 
-// Attach group name to parsed values
+// Group attaches a group name to parsed values.
 func (self *ParseComp[T]) Group(group string) *ParseComp[T] {
 	self.group = Valid(group)
 	return self
@@ -132,7 +133,7 @@ func (self ParseComp[T]) eval(state *state) (T, parseError) {
 	return res, nil
 }
 
-// Dynamic shell completion
+// Complete adds dynamic shell completion.
 //
 // Allows to generate autocompletion information for the shell. The completer places generated
 // input in place of metavar placeholders, so running it on something that doesn't have a

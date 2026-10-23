@@ -6,8 +6,8 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Consume an arbitrary value that satisfies a condition, created with [Any],
-// optionally in "anywhere" mode.
+// ParseAny consumes an arbitrary value that satisfies a condition, created
+// with [Any], optionally in "anywhere" mode.
 type ParseAny[T any] struct {
 	metavar  Doc
 	help     Opt[Doc]
@@ -25,10 +25,10 @@ func (self ParseAny[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOp
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self ParseAny[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 
-// Hide this parser from help generation, see [Parser.Hide].
+// Hide hides this parser from help generation, see [Parser.Hide].
 func (self ParseAny[T]) Hide() Parser[T] { return self.Parser().Hide() }
 
-// Hide this parser from the usage line, see [Parser.HideUsage].
+// HideUsage hides this parser from the usage line, see [Parser.HideUsage].
 func (self ParseAny[T]) HideUsage() Parser[T] { return self.Parser().HideUsage() }
 
 // CustomUsage overrides the usage line, see [Parser.CustomUsage].
@@ -78,13 +78,13 @@ func (self ParseAny[T]) item() item {
 	return item{self.help, itemAny{self.metavar, self.anywhere}}
 }
 
-// Add a help message to the [Any] parser.
+// Help adds a help message to the [Any] parser.
 func (self *ParseAny[T]) Help(help string) *ParseAny[T] {
 	self.help = Valid(NewDoc(help))
 	return self
 }
 
-// Replace the metavar with a custom value
+// Metavar replaces the metavar with a custom value.
 //
 // The metavar is the placeholder shown in the usage line and help output.
 func (self *ParseAny[T]) Metavar(metavar Doc) *ParseAny[T] {
@@ -113,7 +113,7 @@ func (self ParseAny[T]) eval(state *state) (T, parseError) {
 	}})
 }
 
-// Parse a single arbitrary item from a command line
+// Any parses a single arbitrary item from a command line.
 //
 // **[Any] is designed to consume items that don't fit into the usual flag, switch,
 // argument, positional or command classification - in most cases you don't need to use it**
@@ -161,7 +161,7 @@ func Any[T any](
 	}
 }
 
-// A specialized version of [Any] that consumes an arbitrary string
+// Literal is a specialized version of [Any] that consumes an arbitrary string.
 //
 // By default Literal behaves similarly to a positional item: place it near the
 // rightmost end of the composed parser and it will only try to parse the first unconsumed

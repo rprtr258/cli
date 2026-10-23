@@ -6,7 +6,7 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// String with styled segments.
+// Doc is a string with styled segments.
 //
 // A [Doc] accumulates styled text via [Doc.Text], [Doc.Emphasis], [Doc.Literal] and
 // [Doc.Invalid] helpers and renders it into help messages and
@@ -26,44 +26,44 @@ func NewDocFromPairs(val []fun.Pair[string, Style]) Doc {
 	return res
 }
 
-// Append a fragment of plain Text to [Doc]
+// Text appends a fragment of plain text to the [Doc].
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) Text(text string) {
 	self.write_str(text, StyleText)
 }
 
-// Append a fragment of Literal text to [Doc]
+// Literal appends a fragment of literal text to the [Doc].
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) Literal(text string) {
 	self.write_str(text, StyleLiteral)
 }
 
-// Append a fragment of text with Emphasis to [Doc]
+// Emphasis appends a fragment of emphasized text to the [Doc].
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) Emphasis(text string) {
 	self.write_str(text, StyleEmphasis)
 }
 
-// Append a fragment of unexpected user input to [Doc]
+// Invalid appends a fragment of unexpected user input to the [Doc].
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) Invalid(text string) {
 	self.write_str(text, StyleInvalid)
 }
 
-// Append a fragment of parser metadata to [Doc]
+// meta appends a fragment of parser metadata to the [Doc].
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) meta(meta meta, for_usage bool) {
 	self.write_meta(meta, for_usage)
 }
 
-// Append a `Doc` to [Doc]
+// Doc appends another [Doc] to this one.
 //
-// See [Doc] for usage examples
+// See [Doc] for usage examples.
 func (self *Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, tokenBlockStart(blockInlineBlock))
 	self.tokens = append(self.tokens, buf.tokens...)
@@ -71,8 +71,8 @@ func (self *Doc) Doc(buf Doc) {
 	self.tokens = append(self.tokens, tokenBlockEnd(blockInlineBlock))
 }
 
-// Append a `Doc` to [Doc] for plaintext documents try to format
-// first line as a help section header
+// emDoc appends a Doc, formatting the first line as a help section header
+// for plaintext documents.
 func (self *Doc) emDoc(buf Doc) {
 	self.tokens = append(self.tokens, tokenBlockStart(blockInlineBlock))
 	if v, ok := first(buf.tokens).Unpack(); ok && v.isText {
@@ -179,14 +179,14 @@ func (self *Doc) write_meta(meta meta, for_usage bool) {
 	self.token(tokenBlockEnd(blockMono))
 }
 
-// style of a text fragment inside of [Doc]
+// Style is the style of a text fragment inside of a [Doc].
 type Style uint8
 
 const (
 	StyleText     Style = iota // Plain text, no decorations
-	StyleEmphasis              // Word with emphasis - things like "Usage", "Available options", etc
-	StyleLiteral               // Something user needs to type literally - command names, etc
-	StyleMetavar               // Metavavar placeholder - something user needs to replace with own input
+	StyleEmphasis              // A word with emphasis - things like "Usage", "Available options", etc
+	StyleLiteral               // Something the user needs to type literally - command names, etc
+	StyleMetavar               // A metavar placeholder - something the user needs to replace with own input
 	StyleInvalid               // Invalid input given by user - used to display invalid parts of the input
 )
 

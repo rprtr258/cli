@@ -1,81 +1,82 @@
-// Package roff implements a faithful port of bpaf's ROFF document composer
+// Package roff renders documents in the ROFF text-formatting language, as
+// used for manual pages.
 //
-// [ROFF] is a family of Unix text-formatting languages, implemented
-// by the `nroff`, `troff`, and `groff` programs, among others. This
-// structure is an abstract representation of a document in ROFF format.
-// It is meant for writing code to generate ROFF documents, such as
-// manual pages.
+// [ROFF] is a family of Unix text-formatting languages, implemented by the
+// nroff, troff, and groff programs, among others. A [Roff] value is an
+// abstract representation of a document in ROFF format. It is meant for
+// writing code that generates ROFF documents, such as manual pages.
 //
 // [ROFF]: https://en.wikipedia.org/wiki/Roff_(software)
 package roff
 
-// Apostrophes handling configuration
+// Apostrophes controls how apostrophes are rendered.
 //
-// To generate manpages you most likely want to have this in Handle state.
-// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65 for more details
+// To generate manpages you most likely want this in the [Handle] state.
+// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65 for details.
 type Apostrophes uint8
 
 const (
-	// Replace apostrophes with special code that
+	// Handle replaces apostrophes with a portable escape sequence.
 	Handle Apostrophes = iota
-	// Leave apostrophes as is
+	// DontHandle leaves apostrophes as is.
 	DontHandle
 )
 
-// Replacement for apostrophes, if active
+// apostrophe is the replacement written for `'` when apostrophe handling is
+// enabled.
 //
-// https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65
+// See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65.
 const apostrophe = `\*(Aq`
 
-// A preamble added to the start of rendered output.
+// APOSTROPHE_PREABMLE is the preamble added to the start of rendered output
+// when apostrophe handling is enabled.
 //
-// This defines a string variable that contains an apostrophe. For
-// historical reasons, there seems to be no other portable way to
-// represent apostrophes across various implementations of the ROFF
-// language. In implementations that produce output like PostScript
-// or PDF, an apostrophe gets typeset as a right single quote, which
-// looks different from an apostrophe. For terminal output ("ASCII"),
-// such as when using nroff, an apostrophe looks indistinguishable
-// from a right single quote. For manual pages, and similar content,
-// an apostrophe is more generally desired than the right single
-// quote, so we convert all apostrophe characters in input text into
-// a use of the string variable defined in the preamble.
-//
-// Used when apostrophe handle is enabled.
+// It defines a string variable that contains an apostrophe. For historical
+// reasons, there seems to be no other portable way to represent apostrophes
+// across various implementations of the ROFF language. In implementations
+// that produce output like PostScript or PDF, an apostrophe gets typeset as
+// a right single quote, which looks different from an apostrophe. For
+// terminal output ("ASCII"), such as when using nroff, an apostrophe looks
+// indistinguishable from a right single quote. For manual pages and similar
+// content, an apostrophe is more generally desired than the right single
+// quote, so all apostrophe characters in input text are converted into uses
+// of the string variable defined in this preamble.
 //
 // See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65
 const APOSTROPHE_PREABMLE = `.ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 `
 
-// Escaping rules
+// Escape selects the escaping rules applied to a piece of text.
 type Escape uint8
 
 const (
-	// Insert a newline character unless on a new line already
+	// EscapeUnescapedAtNewline inserts a newline character unless the output
+	// is already at the start of a line.
 	EscapeUnescapedAtNewline Escape = iota
 
-	// Escape space characters (`' '`) and newlines (`'\n'`)
-	// This escape is used for control sequence arguments
+	// EscapeSpaces escapes space characters (' ') and newlines ('\n').
+	// It is used for control sequence arguments.
 	EscapeSpaces
 
-	// Escape characters roff considers special:
-	//   - `' '`, `'.'` and `'\''` at the beginning of the line,
-	//   - `'-'` and `'\\'` when inside the body
-	//   - replace `'\''` with APOSTROPHE if Apostrophes handling is enabled
+	// EscapeSpecial escapes characters roff considers special:
+	//   - ' ', '.' and '\'' at the beginning of the line,
+	//   - '-' and '\\' when inside the body,
+	//   - '\'' is replaced with [Handle]'s escape when apostrophe handling
+	//     is enabled.
 	EscapeSpecial
 
-	// Similar to [EscapeSpecial] but also replaces `'\n'` with `' '`
+	// EscapeSpecialNoNewline is similar to [EscapeSpecial] but also replaces
+	// '\n' with ' '.
 	EscapeSpecialNoNewline
 
-	// Input is written as is
+	// EscapeUnescaped writes the input as is.
 	EscapeUnescaped
 )
 
-// Escape a sequence of string slices according to escaping rules
-//
-// Writes results to out, result should be a valid utf8 string as long as out
-// starts empty or contains a valid utf8 sequence.
+// escapeSlice escapes payload fragments into out according to the escape
+// kind of each label. The result is valid UTF-8 as long as out starts empty
+// or contains a valid UTF-8 sequence.
 func escapeSlice(payload string, labels []label, out *[]byte, ap Apostrophes) {
 	at_line_start := true
 	for _, l := range labels {
@@ -125,7 +126,7 @@ type label struct {
 	kind       Escape
 }
 
-// FreeMonoid on a set of annotated string slices: payload plus labels
+// freeMonoid is a payload string annotated with escape labels.
 type freeMonoid struct {
 	payload string
 	labels  []label
@@ -134,7 +135,7 @@ type freeMonoid struct {
 func (self *freeMonoid) pushStr(kind Escape, payload string) {
 	start := len(self.payload)
 	self.payload += payload
-	// no squashing: control lines and font runs are kept separate like upstream
+	// No squashing: control lines and font runs are kept separate.
 	self.labels = append(self.labels, label{start, len(self.payload), kind})
 }
 
@@ -146,21 +147,21 @@ func (self *freeMonoid) iter() []label {
 	return self.labels
 }
 
-// Font selector
+// Font selects the font used to render a piece of text.
 type Font uint8
 
 const (
-	// Roman font - regular font that should be used for most of the text
+	// Roman is the regular font that should be used for most of the text.
 	Roman Font = iota
 
-	// Bold font
+	// Bold font.
 	Bold
 
-	// Italic font
+	// Italic font.
 	Italic
 )
 
-// Escape code needed to set this font
+// escape returns the escape code that switches to this font.
 func (self Font) escape() string {
 	switch self {
 	case Bold:
@@ -173,7 +174,7 @@ func (self Font) escape() string {
 	panic("unreachable")
 }
 
-// Escape code used to return to the previous font
+// RESTORE_FONT is the escape code that returns to the previous font.
 const RESTORE_FONT = `\fP`
 
 // Roff is an abstract representation of a document in ROFF format.
@@ -188,27 +189,27 @@ func New() *Roff {
 	return &Roff{}
 }
 
-// Chainable setter for `stripNewlines` field
+// StripNewlines controls whether [Roff.Render] keeps newline characters
+// inside added text.
 //
-// `stripNewlines` specifies if [Roff.Render] should keep all the newline characters
-// inside added text newlines can come with a special meaning, for example adding a
-// section header relies, newlines are automatically stripped from [Roff.Control]
-// arguments.
+// Newlines can carry a special meaning in ROFF. For example, newlines are
+// automatically stripped from [Roff.Control] arguments when adding a
+// section header.
 func (self *Roff) StripNewlines(state bool) *Roff {
 	self.stripNewlines = state
 	return self
 }
 
-// Insert a raw control sequence
+// Control inserts a raw control sequence.
 //
-// `name` should not contain initial `'.'`.
-// Arguments are escaped accordingly
+// name should not contain the initial '.'. Arguments are escaped as space
+// escaped payloads.
 func (self *Roff) Control(name string, args ...string) *Roff {
 	self.payload.pushStr(EscapeUnescapedAtNewline, ".")
 	self.payload.pushStr(EscapeUnescaped, name)
 	for _, arg := range args {
-		// empty macro argument can be specified as "", mostly useful for TH macro
-		// which takes several arguments positionally
+		// An empty macro argument is written as "", which is mostly useful
+		// for the TH macro that takes several positional arguments.
 		s := arg
 		if s == "" {
 			s = `""`
@@ -220,7 +221,7 @@ func (self *Roff) Control(name string, args ...string) *Roff {
 	return self
 }
 
-// Control0 is a variant of Control that takes no parameters
+// Control0 is a variant of [Roff.Control] that takes no arguments.
 func (self *Roff) Control0(name string) *Roff {
 	self.payload.pushStr(EscapeUnescapedAtNewline, ".")
 	self.payload.pushStr(EscapeUnescaped, name)
@@ -228,24 +229,24 @@ func (self *Roff) Control0(name string) *Roff {
 	return self
 }
 
-// RoffLinebreak inserts a line break in the Roff document source
+// RoffLinebreak inserts a line break in the ROFF document source.
 //
-// This will not show up in the output of the roff program.
+// The break does not show up in the output of the roff program.
 func (self *Roff) RoffLinebreak() *Roff {
 	self.payload.pushStr(EscapeUnescapedAtNewline, "")
 	return self
 }
 
-// Escape inserts a raw escape sequence
+// Escape inserts a raw escape sequence.
 //
-// You can use all the notations for the escapes, they will be copied into the
-// output stream as is without extra checks or escapes.
+// Any escape notation is copied to the output stream as is, without extra
+// checks or escaping.
 func (self *Roff) Escape(arg string) *Roff {
 	self.payload.pushStr(EscapeUnescaped, arg)
 	return self
 }
 
-// Plaintext inserts a plain text string, special characters are escaped
+// Plaintext inserts a plain text string, escaping special characters.
 func (self *Roff) Plaintext(text string) *Roff {
 	if self.stripNewlines {
 		self.payload.pushStr(EscapeSpecialNoNewline, text)
@@ -255,7 +256,7 @@ func (self *Roff) Plaintext(text string) *Roff {
 	return self
 }
 
-// Text inserts one or more string slices using custom font for each one
+// Text inserts one or more text slices, each rendered with its own font.
 func (self *Roff) Text(text ...FontText) *Roff {
 	var prev_font Font
 	var prev_set bool
@@ -274,15 +275,16 @@ func (self *Roff) Text(text ...FontText) *Roff {
 	return self
 }
 
-// FontText is a text slice with the font to render it in
+// FontText is a text slice with the font to render it in.
 type FontText struct {
 	Font Font
 	Text string
 }
 
-// Render renders Roff document to a string
+// Render renders the ROFF document to a string.
 //
-// This method creates a valid ROFF document which can be fed to a ROFF implementation
+// The result is a valid ROFF document that can be fed to a ROFF
+// implementation.
 func (self Roff) Render(ap Apostrophes) string {
 	res := make([]byte, 0, self.payload.payloadSize()*2)
 	if ap == Handle {

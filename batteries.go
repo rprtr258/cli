@@ -11,9 +11,10 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// `--verbose` and `--quiet` flags with results encoded as number
+// verbose_and_quiet_by_number returns `--verbose` and `--quiet` flags with
+// results encoded as a number.
 //
-// Parameters specify the offset and minimal/maximal values. Parser accepts many `-v | --verbose` and
+// Parameters specify the offset and minimal/maximal values. The parser accepts many `-v | --verbose` and
 // `-q | --quiet` to increase and decrease verbosity respectively
 //
 // # Usage
@@ -35,7 +36,8 @@ func verbose_and_quiet_by_number(offset, lo, hi int) Parser[int] {
 	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, lo, hi) })
 }
 
-// `--verbose` and `--quiet` flags with results chosen from a slice of values
+// verbose_by_slice returns `--verbose` and `--quiet` flags with results
+// chosen from a slice of values.
 //
 // The parameters specify the possible values and the offset: the number of `-v` minus `-q`
 // selects the value by index.
@@ -50,7 +52,7 @@ func verbose_by_slice[T any](
 	return Parser[T]{pp.eval, pp.meta}
 }
 
-// Pick last passed value between two different flags
+// toggle_flag picks the last passed value between two different flags.
 //
 // Usually the parser accepts only a single instance of each item unless
 // you use [Parser.Many] or [Parser.Some]. toggle_flag consumes multiple instances of two different
@@ -93,7 +95,7 @@ func toggle_flag[T interface{ ~bool }](
 	return Choice(pa, pb).Many().Map(last)
 }
 
-// Get usage for a parser
+// get_usage returns the usage for a parser.
 //
 // In some cases you might want to print usage if the user gave no command line options.
 // To do that, add a hidden fallback parser for the help variant and print the result

@@ -1,5 +1,5 @@
-// All the flags don't have to live in the same structure, this example uses non derive version.
-// with derive API you would use `external` annotation
+// All the flags don't have to live in the same structure: this example composes
+// parsers from separate pieces and combines them with Pair.
 package examples
 
 import (

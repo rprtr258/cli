@@ -2,7 +2,8 @@ package cli
 
 import "math"
 
-// Repeatedly apply an inner parser and collect at least one result, created with
+// some_eval repeatedly applies an inner parser and collects at least one
+// result; created with
 // [Parser.Some] or [Parser.SomeCatch]; fails with `message` if none are available.
 func some_eval[T any](inner Parser[T], message string, catch bool, state *state) ([]T, parseError) {
 	res := []T{}

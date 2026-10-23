@@ -8,19 +8,13 @@ import (
 	"github.com/rprtr258/fun"
 )
 
-// Ready to run [Parser] with additional information attached
-//
-// Created with [Parser.ToOptions]
-//
-// In addition to the inner parser `OptionParser` contains documentation about a program or a
-// subcommand as a whole, version, custom usage, if specified, and handles custom parsers for
-// `--version` and `--help` flags.
 type OptionParser[T any] struct {
 	inner Parser[T]
 	info  info
 }
 
-// Execute the [OptionParser], extract a parsed value or print some diagnostic and exit
+// Run parses args and returns the parsed value, or prints a diagnostic
+// message and exits the process.
 //
 // # Usage
 //
@@ -49,18 +43,19 @@ func (self OptionParser[T]) Run(args []string) T {
 		fmt.Fprintln(os.Stderr, color.push_str(StyleInvalid, "parseError: ")+Doc(f).render_console(true, color, self.info.max_width))
 	}
 
-	// matches Rust's behavior: exit with the code (info.rs:94)
 	os.Exit(failure.ExitCode())
 	return t
 }
 
-// Execute the [OptionParser], extract a parsed value or return a [FailureError] without
-// printing anything and without exiting the process
+// RunE parses args and returns the parsed value, or a [FailureError]
+// without printing anything and without exiting the process.
 //
-// This is the embeddable counterpart of [Run]: use it when the parser is a part of a bigger
-// application or when the parser needs to be tested from outside of this package.
+// This is the embeddable counterpart of [OptionParser.Run]: use it when the
+// parser is a part of a bigger application or when the parser needs to be
+// tested from outside of this package.
 //
-// `args` is the same as for [Run]: the first element is the program name, usually `os.Args`.
+// args follows the same rules as for [OptionParser.Run]: the first element
+// is the program name, usually os.Args.
 //
 // # Usage
 //
@@ -91,19 +86,20 @@ func (self OptionParser[T]) RunE(args []string) (T, error) {
 	return t, nil
 }
 
-// Diagnostic produced by a failed [OptionParser.RunE] call, this is the same thing
-// [OptionParser.Run] prints before exiting
+// FailureError is the diagnostic produced by a failed [OptionParser.RunE]
+// call; it is the same message [OptionParser.Run] prints before exiting.
 //
 // The diagnostic is one of:
-//   - help or version message: belongs on `stdout`, [FailureError.ExitCode] is 0
-//   - shell completion script: belongs on `stdout`, [FailureError.ExitCode] is 0
-//   - error message: belongs on `stderr`, [FailureError.ExitCode] is 1
+//   - help or version message: belongs on stdout, [FailureError.ExitCode] is 0
+//   - shell completion script: belongs on stdout, [FailureError.ExitCode] is 0
+//   - error message: belongs on stderr, [FailureError.ExitCode] is 1
 type FailureError struct {
 	failure  parseFailure
 	maxWidth uint
 }
 
-// Rendered diagnostic message, without the `parseError: ` prefix and without a trailing newline
+// Error renders the diagnostic message, without the "parseError: " prefix
+// and without a trailing newline.
 func (self FailureError) Error() string {
 	color := colorDefault
 	switch f := self.failure.(type) {
@@ -118,36 +114,40 @@ func (self FailureError) Error() string {
 	}
 }
 
-// IsError reports whether the diagnostic is an error message: it belongs on `stderr` and
+// IsError reports whether the diagnostic is an error message: it belongs on stderr and
 // [FailureError.ExitCode] is 1. Otherwise it is help, version or completion output which
-// belongs on `stdout` and [FailureError.ExitCode] is 0.
+// belongs on stdout and [FailureError.ExitCode] is 0.
 func (self FailureError) IsError() bool {
 	_, ok := self.failure.(parseFailureStderr)
 	return ok
 }
 
-// Exit code [OptionParser.Run] uses for this diagnostic, see [FailureError.IsError]
+// ExitCode returns the exit code [OptionParser.Run] uses for this diagnostic.
+//
+// See [FailureError.IsError].
 func (self FailureError) ExitCode() int {
 	return fun.IF(self.IsError(), 1, 0)
 }
 
-// Check the invariants the parser relies on for normal operations
+// CheckInvariants checks the invariants the parser relies on for normal
+// operation.
 //
-// Takes a parameter whether to check for cosmetic invariants or not
-// (max help width exceeding 120 symbols, etc), currently not in use
+// The parameter selects whether cosmetic invariants are checked too (help
+// width exceeding 120 symbols, etc); it is currently unused.
 //
-// Best used as part of your test suite:
+// Best used as part of a test suite:
 //
 //	parser.ToOptions().CheckInvariants(false)
 //
 // # Panics
 //
-// CheckInvariants indicates problems with panic.
+// CheckInvariants reports problems by panicking.
 func (self OptionParser[T]) CheckInvariants(bool) {
 	positional_invariant_check(self.inner.meta, true)
 }
 
-// Execute the [OptionParser] and produce a value for unit tests or manual processing
+// run executes the [OptionParser] and produces a value for unit tests or
+// manual processing.
 //
 //	parser := cli.Positional[string]("FILE", nil).
 //	    Help("File to process").
@@ -261,7 +261,7 @@ func (self OptionParser[T]) run_subparser(state *state) (T, parseFailure) {
 	return *new(T), parseFailureStdout{msg, extra.Help}
 }
 
-// Get first line of description if Available
+// short_descr returns the first line of the description, if available.
 //
 // Used internally to avoid duplicating description for [command].
 func (self OptionParser[T]) short_descr() Opt[Doc] {
@@ -271,11 +271,12 @@ func (self OptionParser[T]) short_descr() Opt[Doc] {
 	})
 }
 
-// Set the version field.
+// Version sets the version string.
 //
-// By default the library won't include any version info and won't accept `--version` switch.
+// By default the library won't include any version info and won't accept the
+// --version switch.
 //
-// # Combinatoric usage
+// # Usage
 //
 //	parser := cli.Short('s').Switch().
 //	    Parser().
@@ -292,12 +293,13 @@ func (self *OptionParser[T]) Version(version string) *OptionParser[T] {
 	return self
 }
 
-// Set the description field
+// Description sets the description shown before the usage line.
 //
-// Description field should be 1-2 lines long briefly explaining program purpose. If
-// description field is present the library prints it right before the usage line.
+// The description should be 1-2 lines long, briefly explaining the purpose
+// of the program. If it is present, the library prints it right before the
+// usage line.
 //
-// # Combinatoric usage
+// # Usage
 //
 //	parser := cli.Short('s').Switch().
 //	    Parser().
@@ -328,11 +330,10 @@ func (self *OptionParser[T]) Description(descr string) *OptionParser[T] {
 	return self
 }
 
-// Set the Header field
+// Header sets the text shown between the usage line and the list of the
+// available options in --help output.
 //
-// The library displays the header between the usage line and a list of the available options in `--help` output.
-//
-// # Combinatoric usage
+// # Usage
 //
 //	parser := cli.Short('s').Switch().
 //	    Parser().
@@ -363,11 +364,10 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 	return self
 }
 
-// Set the Footer field
+// Footer sets the text shown after the list of the available options in
+// --help output.
 //
-// The library displays the footer after the list of the available options in `--help` output.
-//
-// # Combinatoric usage
+// # Usage
 //
 //	parser := cli.Short('s').Switch().
 //	    Parser().
@@ -398,18 +398,17 @@ func (self *OptionParser[T]) Footer(footer string) *OptionParser[T] {
 	return self
 }
 
-// Set custom usage line
-//
-// Custom usage line to use instead of one derived by the library.
+// Usage sets a custom usage line to use instead of the one derived by the
+// library.
 func (self *OptionParser[T]) Usage(usage Doc) *OptionParser[T] {
 	self.info.usage = Valid(usage)
 	return self
 }
 
-// Generate new usage line using automatically derived usage
+// WithUsage generates a new usage line from the automatically derived one.
 //
-// You can customize the surroundings of the usage line while still
-// having the frequently changing part generated by the library.
+// You can customize the surroundings of the usage line while still having
+// the frequently changing part generated by the library.
 func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 	doc := Doc{}
 	doc.write_meta(self.inner.meta, true)
@@ -417,29 +416,32 @@ func (self *OptionParser[T]) WithUsage(f func(Doc) Doc) *OptionParser[T] {
 	return self
 }
 
-// Customize parser for `--help`
+// HelpParser replaces the parser that triggers the help message.
 //
-// By default the library displays help when the program is called with either `--help` or `-h`; you
-// can customize those names and description in the help message.
+// By default the library displays help when the program is called with
+// either --help or -h; you can customize those names and the description in
+// the help message.
 //
-// Note, `--help` is something the user expects to work
+// Note that --help is something the user expects to work.
 func (self *OptionParser[T]) HelpParser(parser NamedArg) *OptionParser[T] {
 	self.info.help_arg = parser
 	return self
 }
 
-// Customize parser for `--version`
+// VersionParser replaces the parser that triggers the version message.
 //
-// By default the library displays version information when the program is called with either `--version`
-// or `-V` (and version is available); you can customize those names and description in the help message.
+// By default the library displays version information when the program is
+// called with either --version or -V (and a version is available); you can
+// customize those names and the description in the help message.
 //
-// Note, `--version` is something the user expects to work
+// Note that --version is something the user expects to work.
 func (self *OptionParser[T]) VersionParser(parser NamedArg) *OptionParser[T] {
 	self.info.version_arg = parser
 	return self
 }
 
-// Print help if the app was called with no parameters
+// FallbackToUsage prints the help message if the app was called with no
+// arguments.
 //
 // By default the library tries to parse the command line and displays the best possible
 // error it can come up with. If the application requires a subcommand or some argument
@@ -455,7 +457,8 @@ func (self *OptionParser[T]) FallbackToUsage() *OptionParser[T] {
 	return self
 }
 
-// Set the width of the help message printed to the terminal upon failure
+// MaxWidth sets the width of the help message printed to the terminal upon
+// failure.
 //
 // By default, the help message is printed with a width of 100 characters.
 // This method allows to change where the help message is wrapped.

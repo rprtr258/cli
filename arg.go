@@ -20,8 +20,10 @@ const (
 	argKindPositional
 )
 
-// Preprocessed command line argument
-// [string] in Short/Long correspond to orignal command line item used for errors
+// arg is a preprocessed command line argument.
+//
+// The [string] payload corresponds to the original command line item,
+// kept for error messages.
 type arg struct {
 	str  string
 	kind argKind
@@ -85,22 +87,23 @@ func (self arg) String() string {
 	panic("unreachable")
 }
 
-// short flag disambiguations:
+// GoString renders the argument as it appeared on the command line.
 //
-// Short flags | short arg
-// No          | No        | no problem
-// Yes         | No        | use flag
-// No          | Yes       | use arg
-// Yes         | Yes       | ask user?
+// Short flag disambiguation:
 //
-// -a  - just a regular short flag: "-a"
-// -abc - assuming there are short flags a, b and c: "-a -b -c", assuming utf8 values AND there's no argument -a
-// -abc - assuming there's no -a -b -c: "-a bc"
-// -abc - assuming both short a b c AND there's argument -a - need to disambiguate on a context level
+//	Short flags | short arg
+//	No          | No        | no problem
+//	Yes         | No        | use flag
+//	No          | Yes       | use arg
+//	Yes         | Yes       | ask user?
 //
-// 1. parse argument into ambigous representation that can store both short flags and argument
-// 2. collect short flag/arg when entering the subparsre
-// 3. when reaching ambi
+//	-a   - just a regular short flag: "-a"
+//	-abc - assuming there are short flags a, b and c: "-a -b -c", assuming utf8 values AND there's no argument -a
+//	-abc - assuming there's no -a -b -c: "-a bc"
+//	-abc - assuming both short a b c AND there's argument -a - need to disambiguate on a context level
+//
+//	1. parse argument into ambiguous representation that can store both short flags and argument
+//	2. collect short flag/arg when entering the subparser
 func (self arg) GoString() string {
 	switch self.kind {
 	case argKindShortFlag:
@@ -119,15 +122,15 @@ const (
 	argTypeLong  argType = true
 )
 
-// split [string] into argument specific bits
+// split_os_argument splits a string into argument specific bits.
 //
-// takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
-// "--" - type, "name" - name, must be representable as utf8, "=" - optional, "value" - flag
+// It takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
+// "--" - type, "name" - name, must be representable as utf8, "=" - optional, "value" - flag value.
 //
-// dashes and equals sign are low codepoint values and - can look for them literally in a string.
-// This probably means not supporting dashes with diacritics, but that's okay
+// Dashes and equals sign are low codepoint values and can be looked for literally in a string.
+// This probably means not supporting dashes with diacritics, but that's okay.
 //
-// name must be valid utf8 after conversion and must not include `=`
+// name must be valid utf8 after conversion and must not include `=`.
 //
 // argument is optional and can be non-valid utf8.
 //
