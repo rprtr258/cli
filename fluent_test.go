@@ -19,14 +19,14 @@ func TestFluentChaining(t *testing.T) {
 		Hide()
 	rest := Positional[string]("REST", ParseString).Parser().Optional()
 
-	parser := Pair(verbose, Pair(speed, rest)).Map(func(x fun.Pair[[]bool, fun.Pair[int, Opt[string]]]) string {
+	parser := Map3(verbose, speed, rest, func(verbs []bool, speed int, rest Opt[string]) string {
 		res := ""
-		for range x.K {
+		for range verbs {
 			res += "v"
 		}
-		res += ":" + strconvItoa(x.V.K)
-		if x.V.V.Valid {
-			res += ":" + x.V.V.Value
+		res += ":" + strconvItoa(speed)
+		if rest.Valid {
+			res += ":" + rest.Value
 		}
 		return res
 	}).ToOptions()
@@ -117,10 +117,10 @@ func TestFluentGenericMethods(t *testing.T) {
 		ToOptions()
 	assertSuccess(t, uint32(3), parser, "1", "2")
 
-	parser2 := Pair(
+	parser2 := Map2(
 		Positional[uint32]("W", parseUint32),
-		Positional[uint32]("H", parseUint32)).
-		Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).
+		Positional[uint32]("H", parseUint32),
+		func(w, h uint32) uint32 { return w * h }).
 		ToOptions()
 	assertSuccess(t, uint32(20), parser2, "4", "5")
 

@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func CargoCmd() {
@@ -22,10 +21,10 @@ func CargoCmd() {
 	// defining a parser in a usual way
 	width := cli.Argument(cli.Short('w'), "WIDTH", cli.ParseUint).Fallback(10)
 	height := cli.Argument(cli.Short('h'), "HEIGHT", cli.ParseUint).Fallback(10)
-	parser := cli.Pair(width, height).Map(func(x fun.Pair[uint, uint]) Opts { return Opts{x.K, x.V} })
+	parser := cli.Map2(width, height, func(width, height uint) Opts { return Opts{width, height} })
 
 	cmd := cli.Literal("cmd").Optional().Hide()
-	combined_parser := cli.Pair(cmd, parser).Map(func(x fun.Pair[cli.Opt[struct{}], Opts]) Opts { return x.V })
+	combined_parser := cli.Map2(cmd, parser, func(_ cli.Opt[struct{}], opts Opts) Opts { return opts })
 
 	opts := combined_parser.ToOptions().Run(os.Args)
 

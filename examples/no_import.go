@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func NoImport() {
@@ -35,7 +34,7 @@ func NoImport() {
 		Parser()
 
 	// packing things in a struct assumes parser for each field is in scope.
-	opt := cli.Pair(debug, speed).Map(func(x fun.Pair[bool, float64]) Out { return Out{x.K, x.V} }).ToOptions().Run(os.Args)
+	opt := cli.Map2(debug, speed, func(debug bool, speed float64) Out { return Out{debug, speed} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opt)
 }

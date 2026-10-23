@@ -13,7 +13,6 @@ import (
 	"strconv"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func MultipleFallback() {
@@ -49,7 +48,7 @@ func MultipleFallback() {
 		Fallback(DEFAULT_CONFIG.field2).
 		Parser()
 
-	opts := cli.Pair(field1, field2).Map(func(x fun.Pair[uint32, uint64]) Config { return Config{x.K, x.V} }).ToOptions().Run(os.Args)
+	opts := cli.Map2(field1, field2, func(field1 uint32, field2 uint64) Config { return Config{field1, field2} }).ToOptions().Run(os.Args)
 
 	// At this point if you get opts - it should be taken from one of
 	// - the command line argument

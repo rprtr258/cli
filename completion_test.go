@@ -731,7 +731,7 @@ func TestGenerate_unparseable_items(t *testing.T) {
 	two := Pure(struct{}{}).ToOptions().Command("ctwo")
 	e := Short('e').Switch()
 
-	one_e := Pair(e, one).Map(func(x fun.Pair[bool, struct{}]) struct{} { return x.V })
+	one_e := Map2(e, one, func(_ bool, _ struct{}) struct{} { return struct{}{} })
 	parser := Choice(one_e, two).ToOptions()
 
 	// passing -e restricts branch with cmd_two

@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func Rectangle() {
@@ -28,8 +27,7 @@ func Rectangle() {
 		Long("height").
 		Help("Height of the rectangle"), "PX", cli.ParseUint)
 
-	rect := cli.Pair(width, height).
-		Map(func(x fun.Pair[uint, uint]) Rect { return Rect{x.K, x.V} }).
+	rect := cli.Map2(width, height, func(width, height uint) Rect { return Rect{width, height} }).
 		GroupHelp("Rectangle is defined by width and height in meters").
 		Optional()
 
@@ -39,7 +37,7 @@ func Rectangle() {
 		Help("Print computation steps").
 		Switch()
 
-	opt := cli.Pair(verbose, rect).Map(func(x fun.Pair[bool, cli.Opt[Rect]]) Out { return Out{x.V, x.K} }).
+	opt := cli.Map2(verbose, rect, func(verbose bool, rect cli.Opt[Rect]) Out { return Out{rect, verbose} }).
 		ToOptions().
 		Description("This program calculates rectangle's area").
 		Header("vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv").

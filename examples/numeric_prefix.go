@@ -17,7 +17,6 @@ import (
 	"strconv"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func NumericPrefix() {
@@ -38,7 +37,7 @@ func NumericPrefix() {
 			return s, nil
 		}).Help("Required command name")
 
-		return cli.Pair(prefix, command).Map(func(x fun.Pair[cli.Opt[uint], string]) Options { return Options{x.K, x.V} })
+		return cli.Map2(prefix, command, func(prefix cli.Opt[uint], command string) Options { return Options{prefix, command} })
 	}()
 
 	fmt.Println(options.ToOptions().Run(os.Args))

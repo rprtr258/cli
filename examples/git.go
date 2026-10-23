@@ -10,7 +10,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func Git() {
@@ -61,7 +60,7 @@ func Git() {
 	interactive := cli.Short('i').Switch()
 	all2 := cli.Long("all").Switch()
 	files := cli.Positional("FILE", cli.ParseString).Parser().Many()
-	add_cmd := cli.Pair(cli.Pair(interactive, all2), files).Map(func(x fun.Pair[fun.Pair[bool, bool], []string]) Opt { return OptAdd(x.K.K, x.K.V, x.V) }).
+	add_cmd := cli.Map3(interactive, all2, files, func(interactive, all bool, files []string) Opt { return OptAdd(interactive, all, files) }).
 		ToOptions().
 		Description("add files to the staging area").
 		Command("add").

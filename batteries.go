@@ -33,7 +33,7 @@ func verbose_and_quiet_by_number(offset, lo, hi int) Parser[int] {
 		struct{}{}).Many()
 	quiet := qp.Map(lenOf)
 
-	return Pair(verbose, quiet).Map(func(vq fun.Pair[int, int]) int { v, q := vq.K, vq.V; return fun.Clamp(v-q+offset, lo, hi) })
+	return Map2(verbose, quiet, func(v, q int) int { return fun.Clamp(v-q+offset, lo, hi) })
 }
 
 // verbose_by_slice returns `--verbose` and `--quiet` flags with results

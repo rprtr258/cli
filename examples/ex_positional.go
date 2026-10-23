@@ -7,7 +7,6 @@ import (
 	"strconv"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 func ExPositional() {
@@ -28,7 +27,7 @@ func ExPositional() {
 	files := cli.Positional("FILE", func(s string) (string, error) {
 		return s, nil
 	}).Parser().Many()
-	opts := cli.Pair(value, files).Map(func(x fun.Pair[uint32, []string]) Options { return Options{x.K, x.V} }).ToOptions().Run(os.Args)
+	opts := cli.Map2(value, files, func(value uint32, files []string) Options { return Options{value, files} }).ToOptions().Run(os.Args)
 
 	fmt.Println(opts)
 }
