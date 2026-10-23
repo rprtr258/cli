@@ -1,36 +1,36 @@
 package cli
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
 )
 
 func dump_bash_completer(name string) {
-	println(`_cli_dynamic_completion()
-{{
-    line="$1 --cli-complete-rev=8 ${{COMP_WORDS[@]:1}}"
-    if [[ ${{COMP_WORDS[-1]}} == "" ]]; then
-        line="${{line}} \"\""
+	fmt.Println(`_cli_dynamic_completion()
+{
+    line="$1 --cli-complete-rev=8 ${COMP_WORDS[@]:1}"
+    if [[ ${COMP_WORDS[-1]} == "" ]]; then
+        line="${line} \"\""
     fi
-    source <( eval ${{line}})
-}}
+    source <( eval ${line})
+}
 complete -o nosort -F _cli_dynamic_completion ` + name)
 }
 
 func dump_zsh_completer(name string) {
-	println(`#compdef ` + name + `
+	fmt.Println(`#compdef ` + name + `
 local line
-line="${{words[1]}} --cli-complete-rev=7 ${{words[@]:1}}"
-if [[ ${{words[-1]}} == "" ]]; then
-    line="${{line}} \"\""
+line="${words[1]} --cli-complete-rev=7 ${words[@]:1}"
+if [[ ${words[-1]} == "" ]]; then
+    line="${line} \"\""
 fi
-source <(eval ${{line}})
-`)
+source <(eval ${line})`)
 }
 
 func dump_fish_completer(_ string) {
-	println(`set -l current (commandline --tokenize --current-process)
+	fmt.Println(`set -l current (commandline --tokenize --current-process)
 set -l tmpline $current[1] --cli-complete-rev=9 $current[2..]
 if test (commandline --current-process) != (string trim (commandline --current-process))
     set tmpline $tmpline ""
@@ -45,18 +45,18 @@ source ( $tmpline | psub )`)
 // with no diagnostics. See https://github.com/elves/elvish/issues/803.
 func dump_elvish_completer(name string) {
 	rev := "1"
-	println(`set edit:completion:arg-completer[` + name + `] = ` + "{{" + ` |@args| var args = $args[1..];
+	fmt.Println(`set edit:completion:arg-completer[` + name + `] = { |@args| var args = $args[1..];
      var @lines = ( ` + name + ` --cli-complete-rev=` + rev + ` $@args );
      use str;
-     for line $lines ` + "{{" + `
-         var @arg = (str:split \"\\t\" $line)
-         try ` + "{{" + `
-             edit:complex-candidate $arg[0] &display=( printf \"%-19s %s\" $arg[0] $arg[1] )
-         }} catch {{
+     for line $lines {
+         var @arg = (str:split "\t" $line)
+         try {
+             edit:complex-candidate $arg[0] &display=( printf "%-19s %s" $arg[0] $arg[1] )
+         } catch {
              edit:complex-candidate $line
-         }}
-     }}
-}}`)
+         }
+     }
+}`)
 }
 
 type argScanner struct {

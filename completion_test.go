@@ -1,13 +1,17 @@
 package cli
 
 import (
+	"io"
 	stditer "iter"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 	"testing"
 
 	"github.com/rprtr258/fun"
 	funiter "github.com/rprtr258/fun/iter"
+	"github.com/stretchr/testify/require"
 )
 
 type (
@@ -784,4 +788,127 @@ func TestPositionals_with_no_completions_are_not_duplicated(t *testing.T) {
 	parser := Pair(a, b).ToOptions()
 
 	assertCompletion(t, parser, "--arg\t--arg=ALPHA\t\tAlhpa argument\n\tBETA\t\tBeta argument\n\n", "")
+}
+
+func captureStdout(t *testing.T, f func()) string {
+	t.Helper()
+
+	r, w, err := os.Pipe()
+	require.NoError(t, err)
+	orig := os.Stdout
+	os.Stdout = w
+	defer func() { os.Stdout = orig }()
+	f()
+	require.NoError(t, w.Close())
+	data, err := io.ReadAll(r)
+	require.NoError(t, err)
+	return string(data)
+}
+
+func TestDump_completer_scripts(t *testing.T) {
+	const name = "app"
+
+	tests := []struct {
+		script   string
+		expected string
+		dump     func(string)
+	}{
+		{
+			script: "bash",
+			dump:   dump_bash_completer,
+			expected: `_cli_dynamic_completion()
+{
+    line="$1 --cli-complete-rev=8 ${COMP_WORDS[@]:1}"
+    if [[ ${COMP_WORDS[-1]} == "" ]]; then
+        line="${line} \"\""
+    fi
+    source <( eval ${line})
+}
+complete -o nosort -F _cli_dynamic_completion app
+`,
+		},
+		{
+			script: "zsh",
+			dump:   dump_zsh_completer,
+			expected: `#compdef app
+local line
+line="${words[1]} --cli-complete-rev=7 ${words[@]:1}"
+if [[ ${words[-1]} == "" ]]; then
+    line="${line} \"\""
+fi
+source <(eval ${line})
+`,
+		},
+		{
+			script: "fish",
+			dump:   dump_fish_completer,
+			expected: `set -l current (commandline --tokenize --current-process)
+set -l tmpline $current[1] --cli-complete-rev=9 $current[2..]
+if test (commandline --current-process) != (string trim (commandline --current-process))
+    set tmpline $tmpline ""
+end
+source ( $tmpline | psub )
+`,
+		},
+		{
+			script: "elvish",
+			dump:   dump_elvish_completer,
+			expected: `set edit:completion:arg-completer[app] = { |@args| var args = $args[1..];
+     var @lines = ( app --cli-complete-rev=1 $@args );
+     use str;
+     for line $lines {
+         var @arg = (str:split "\t" $line)
+         try {
+             edit:complex-candidate $arg[0] &display=( printf "%-19s %s" $arg[0] $arg[1] )
+         } catch {
+             edit:complex-candidate $line
+         }
+     }
+}
+`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(t.Name()+"_"+tt.script, func(t *testing.T) {
+			script := captureStdout(t, func() { tt.dump(name) })
+			require.Equal(t, tt.expected, script)
+		})
+	}
+}
+
+// TestDump_scripts_syntax parses the generated scripts with the shell
+// interpreters available on the machine, skipping the absent ones. The dump
+// functions are not exercised anywhere else, so a syntax regression would go
+// unnoticed until a user runs the stub.
+func TestDump_scripts_syntax(t *testing.T) {
+	checks := []struct {
+		script   string
+		binary   string
+		args     []string
+		generate func() string
+	}{
+		{script: "bash", binary: "bash", args: []string{"-n"}, generate: func() string {
+			return captureStdout(t, func() { dump_bash_completer("app") })
+		}},
+		{script: "zsh", binary: "zsh", args: []string{"-n"}, generate: func() string {
+			return captureStdout(t, func() { dump_zsh_completer("app") })
+		}},
+		{script: "fish", binary: "fish", args: []string{"--no-execute"}, generate: func() string {
+			return captureStdout(t, func() { dump_fish_completer("app") })
+		}},
+	}
+
+	for _, check := range checks {
+		t.Run(t.Name()+"_"+check.script, func(t *testing.T) {
+			if _, err := exec.LookPath(check.binary); err != nil {
+				t.Skipf("%s is not installed", check.binary)
+			}
+			script := check.generate()
+			cmd := exec.Command(check.binary, check.args...)
+			cmd.Stdin = strings.NewReader(script)
+			out, err := cmd.CombinedOutput()
+			require.NoError(t, err, "%s -n failed:\n%s", check.binary, out)
+		})
+	}
 }

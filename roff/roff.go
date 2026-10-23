@@ -28,7 +28,7 @@ const (
 // See https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65.
 const apostrophe = `\*(Aq`
 
-// APOSTROPHE_PREABMLE is the preamble added to the start of rendered output
+// APOSTROPHE_PREAMBLE is the preamble added to the start of rendered output
 // when apostrophe handling is enabled.
 //
 // It defines a string variable that contains an apostrophe. For historical
@@ -43,7 +43,7 @@ const apostrophe = `\*(Aq`
 // of the string variable defined in this preamble.
 //
 // See: https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=507673#65
-const APOSTROPHE_PREABMLE = `.ie \n(.g .ds Aq \(aq
+const APOSTROPHE_PREAMBLE = `.ie \n(.g .ds Aq \(aq
 .el .ds Aq '
 `
 
@@ -288,7 +288,7 @@ type FontText struct {
 func (self Roff) Render(ap Apostrophes) string {
 	res := make([]byte, 0, self.payload.payloadSize()*2)
 	if ap == Handle {
-		res = append(res, APOSTROPHE_PREABMLE...)
+		res = append(res, APOSTROPHE_PREAMBLE...)
 	}
 	escapeSlice(self.payload.payload, self.payload.iter(), &res, ap)
 	return string(res)
