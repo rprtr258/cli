@@ -10,6 +10,7 @@ adapted from a clap.rs example with the same name. A few entry points:
 - [`git.go`](https://github.com/rprtr258/cli/blob/master/examples/git.go) — subcommands.
 - [`env_variable.go`](https://github.com/rprtr258/cli/blob/master/examples/env_variable.go) — fallback to environment variables.
 - [`customize_help.go`](https://github.com/rprtr258/cli/blob/master/examples/customize_help.go) — appname, description, copyright, version.
+- [`with_examples.go`](https://github.com/rprtr258/cli/blob/master/examples/with_examples.go) — documented usage examples, validated against the parser.
 
 Run any of them from the repo root:
 

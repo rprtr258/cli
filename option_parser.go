@@ -72,6 +72,8 @@ func (self OptionParser[T]) Run(args []string) T {
 //		}
 //	}
 func (self OptionParser[T]) RunE(args []string) (T, error) {
+	self.validate_examples()
+
 	current_args := argList{
 		items: args[1:],
 		name:  Valid(filepath.Base(args[0])),
@@ -130,20 +132,18 @@ func (self FailureError) ExitCode() int {
 }
 
 // CheckInvariants checks the invariants the parser relies on for normal
-// operation.
-//
-// The parameter selects whether cosmetic invariants are checked too (help
-// width exceeding 120 symbols, etc); it is currently unused.
+// operation, including the declared examples.
 //
 // Best used as part of a test suite:
 //
-//	parser.ToOptions().CheckInvariants(false)
+//	parser.ToOptions().CheckInvariants()
 //
 // # Panics
 //
 // CheckInvariants reports problems by panicking.
 func (self OptionParser[T]) CheckInvariants() {
-	positional_invariant_check(self.inner.meta, true)
+	positional_invariant_check(self.inner.meta)
+	self.validate_examples()
 }
 
 // run executes the [OptionParser] and produces a value for unit tests or
@@ -397,6 +397,47 @@ func (self *OptionParser[T]) Footer(footer string) *OptionParser[T] {
 // library.
 func (self *OptionParser[T]) Usage(usage Doc) *OptionParser[T] {
 	self.info.usage = Valid(usage)
+	return self
+}
+
+// Example appends a single usage example shown in the "Examples:" section of
+// the help message and in the EXAMPLES section of the manpage.
+//
+// descr explains what the example demonstrates, command is the command line
+// to run. The command line is written relative to the parser the example is
+// declared on: without the program name and, for commands, without the command
+// name.
+//
+// # Usage
+//
+//	cli.Positional[string]("FILE", nil).
+//	    ToOptions().
+//	    Description("Copy a file").
+//	    Example("Copy a file to a directory", "file.txt backup/").
+//	    Example("Copy a directory recursively", "--recursive src/ dst/")
+//
+// # Panics
+//
+// Panics at declaration time if descr or command is empty or if the command
+// line has unbalanced quotes.
+//
+// Panics at run time if the example fails to parse: the command line is
+// parsed with the parser it is declared on, keeping the example in sync with
+// the parser as it evolves. This also executes the example converters, so the
+// example command line must not have side effects. Use
+// [OptionParser.CheckInvariants] to run the same check in tests.
+func (self *OptionParser[T]) Example(descr, command string) *OptionParser[T] {
+	if descr == "" {
+		panic("cli usage BUG: example description must not be empty")
+	}
+	if command == "" {
+		panic("cli usage BUG: example command must not be empty")
+	}
+	if _, err := split_example_args(command); err != nil {
+		panic(err.Error())
+	}
+
+	self.info.examples = append(self.info.examples, example{descr: descr, command: command})
 	return self
 }
 

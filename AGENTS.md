@@ -9,6 +9,23 @@ Run all checks and formatting through the make targets:
 
 Invoke formatters and vetters exclusively through these targets.
 
+## Documentation stays in sync with the API
+
+When changing user-facing behavior — new, removed or changed `OptionParser`/
+`Parser` methods, help or manpage output, validation or error behavior — update
+the docs in the same change, not as a follow-up:
+
+- `README.md` (feature bullets and code/console snippets)
+- `docs/*.md` (mkdocs site; e.g. methods table and sections in `docs/help.md`,
+  testing notes in `docs/running.md`, runnable examples list in
+  `docs/examples.md`)
+- godoc comments on the touched declarations (keep the `# Usage` / `# Example`
+  / `# Panics` conventions used across the codebase)
+
+Console snippets in docs must match real output; generate them by running the
+parser instead of writing them from memory. Then run `make test` and
+`make lint` as usual.
+
 ## Generic methods: self-instantiating return types
 
 A method on `Parser[T]` must not return `Parser[X[T]]` directly (e.g.

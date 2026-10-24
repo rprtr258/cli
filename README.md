@@ -157,8 +157,34 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 - `Help` - document flags, arguments and positional items
 - `Parser.Hide`, `Parser.HideUsage`, `Parser.GroupHelp` - control what is shown in `--help`
 - `OptionParser.Description`, `OptionParser.Header`, `OptionParser.Footer`, `OptionParser.Usage`, `OptionParser.WithUsage`, `OptionParser.MaxWidth` - shape the help output
+- `OptionParser.Example(descr, command)` - document a usage example; examples are shown in the `Examples:` section of `--help` and in the `EXAMPLES` section of the manpage
 - `OptionParser.Version` - add a `--version` switch
 - `OptionParser.HelpParser`, `OptionParser.VersionParser` - customize the flags that trigger help and version
+
+Documented examples are validated whenever the parser runs: each example
+command line is parsed with the parser it is declared on, so an example that
+drifts from the parser panics with a `cli usage BUG` message instead of
+shipping stale documentation:
+
+```go
+parser.ToOptions().
+    Description("Copy files and directories").
+    Example("Copy a file to a directory", "file.txt backup/").
+    Example("Copy a directory recursively", "--recursive src/ dst/")
+```
+
+```console
+$ app --help
+Copy files and directories
+
+Usage: app [-r] SRC DST
+
+<skip>
+
+Examples:
+    Copy a file to a directory  $ app file.txt backup/
+    Copy a directory recursively  $ app --recursive src/ dst/
+```
 
 ## Shell completion
 
@@ -189,7 +215,8 @@ value, err := parser.RunE([]string{"prog", "-vvv"})
 
 `CheckInvariants` panics with a descriptive message when a parser is built with
 violated invariants, such as positional items or commands placed before named
-options. Call it in tests to catch misconfiguration early:
+options, and when a declared usage example no longer parses. Call it in tests
+to catch misconfiguration early:
 
 ```go
 rectangle.ToOptions().CheckInvariants()
