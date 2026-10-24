@@ -132,7 +132,7 @@ type Out struct {
 
 `NamedArg.Argument` and `Positional` take a `func(string) (T, error)` to convert the raw
 text. Ready-made adapters for common types are provided: `ParseString`,
-`ParseInt`, `ParseUint`, `ParseFloat`, `ParseBool`, `ParseDuration`.
+`ParseInt`, `ParseInt32`, `ParseUint`, `ParseFloat`, `ParseBool`, `ParseDuration`.
 
 ## Transforming parsers
 

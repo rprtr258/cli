@@ -1,9 +1,7 @@
 package cli
 
 import (
-	"errors"
 	"iter"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -14,25 +12,6 @@ import (
 
 func map3[A, B, C any](A, B, C) struct{} {
 	return struct{}{}
-}
-
-// TODO: move similar funcs to batteries and use
-func parseUint32(s string) (uint32, error) {
-	u, err := strconv.ParseUint(s, 10, 32)
-	if err != nil {
-		// TODO: %q
-		return 0, errors.New("invalid digit found in string")
-	}
-	return uint32(u), nil
-}
-
-// TODO: move similar funcs to batteries and use
-func parseInt32(s string) (int32, error) {
-	u, err := strconv.ParseInt(s, 10, 32)
-	if err != nil {
-		return 0, errors.New("invalid digit found in string")
-	}
-	return int32(u), nil
 }
 
 // Strip a command name if present at the front when used as a `cargo` command

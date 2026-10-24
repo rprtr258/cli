@@ -20,7 +20,7 @@ func TestThis_or_that_odd(t *testing.T) {
 }
 
 func TestNo_argument(t *testing.T) {
-	a := Short('a').Argument("N", parseInt32)
+	a := Short('a').Argument("N", ParseInt32)
 	b := Short('2').Switch()
 	parser := Pair(a, b).ToOptions()
 
@@ -44,7 +44,7 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 
 func TestGuard_message(t *testing.T) {
 	parser := Short('a').Argument(
-		"N", parseUint32).
+		"N", ParseUint32).
 		Parser().Guard(func(n uint32) bool { return n <= 10 }, "too high").
 		Parser().ToOptions()
 
@@ -155,8 +155,8 @@ func TestGuard_on_fallback(t *testing.T) {
 }
 
 func TestTwo_required_fields_first_missing(t *testing.T) {
-	a := Long("a").Argument("A", parseUint32)
-	b := Long("b").Argument("B", parseUint32)
+	a := Long("a").Argument("A", ParseUint32)
+	b := Long("b").Argument("B", ParseUint32)
 	parser := Pair(a, b).ToOptions()
 	assertFailure(t, parser, "expected `--a=A`, pass `--help` for usage information", "--b", "1")
 }

@@ -50,7 +50,7 @@ func TestFluentChaining(t *testing.T) {
 func TestFluentCountSome(t *testing.T) {
 	parser := Pair(
 		Short('c').ReqFlag[struct{}](struct{}{}).Count(),
-		Positional[uint32]("N", parseUint32).Parser().Some("want N"),
+		Positional[uint32]("N", ParseUint32).Parser().Some("want N"),
 	).ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-c", "-c", "-c", "7"})
@@ -75,8 +75,8 @@ func TestFluentFallbackDisplay(t *testing.T) {
 // Adjacent on a constructed pair chains into further combinators.
 func TestFluentAdjacent(t *testing.T) {
 	parser := Pair(
-		Short('w').Argument[uint32]("W", parseUint32),
-		Short('h').Argument[uint32]("H", parseUint32),
+		Short('w').Argument[uint32]("W", ParseUint32),
+		Short('h').Argument[uint32]("H", ParseUint32),
 	).Adjacent().Hide().Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-w", "2", "-h", "3"})
@@ -106,7 +106,7 @@ func strconvItoa(x int) string {
 // Parse is a free generic function: it accepts any parser, including
 // ParseCon results from Pair.
 func TestFluentGenericMethods(t *testing.T) {
-	parser := Positional[uint32]("N", parseUint32).Parser().Some("want N").
+	parser := Positional[uint32]("N", ParseUint32).Parser().Some("want N").
 		Map(func(xs []uint32) uint32 {
 			res := uint32(0)
 			for _, x := range xs {
@@ -118,14 +118,14 @@ func TestFluentGenericMethods(t *testing.T) {
 	assertSuccess(t, uint32(3), parser, "1", "2")
 
 	parser2 := Map2(
-		Positional[uint32]("W", parseUint32),
-		Positional[uint32]("H", parseUint32),
+		Positional[uint32]("W", ParseUint32),
+		Positional[uint32]("H", ParseUint32),
 		func(w, h uint32) uint32 { return w * h }).
 		ToOptions()
 	assertSuccess(t, uint32(20), parser2, "4", "5")
 
 	parser3 := Parse(
-		Positional[uint32]("N", parseUint32),
+		Positional[uint32]("N", ParseUint32),
 		func(x uint32) (string, error) { return strconvItoa(int(x)), nil }).
 		ToOptions()
 	assertSuccess(t, "42", parser3, "42")
