@@ -41,6 +41,15 @@ func ParseInt(s string) (int, error) {
 	return x, nil
 }
 
+// ParseInt32 parses a signed base-10 integer that fits in 32 bits, for use with [NamedArg.Argument] and [Positional].
+func ParseInt32(s string) (int32, error) {
+	x, err := strconv.ParseInt(s, 10, 32)
+	if err != nil {
+		return 0, unwrapNumError(err)
+	}
+	return int32(x), nil
+}
+
 // ParseInt64 parses a signed base-10 integer, for use with [NamedArg.Argument] and [Positional].
 func ParseInt64(s string) (int64, error) {
 	x, err := strconv.ParseInt(s, 10, 64)

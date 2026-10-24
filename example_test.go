@@ -4,8 +4,8 @@ import "fmt"
 
 // Choice picks the first parser that succeeds.
 func ExampleChoice() {
-	a := Short('a').Argument[uint32]("NUM", parseUint32)
-	b := Short('b').Argument[uint32]("NUM", parseUint32)
+	a := Short('a').Argument[uint32]("NUM", ParseUint32)
+	b := Short('b').Argument[uint32]("NUM", ParseUint32)
 	num := Choice(a, b).ToOptions()
 
 	value, err := num.RunE([]string{"app", "-a", "12"})
