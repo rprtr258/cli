@@ -1,7 +1,11 @@
 .PHONY: lint
 lint:
-	gotestsum --format dots-v2 ./...
+	golangci-lint run ./...
 
-.PHONY: check_crosscompile
-check_crosscompile:
-	./contrib/check_crosscompile.sh
+.PHONY: fmt
+fmt:
+	golangci-lint fmt
+
+.PHONY: test
+test:
+	gotestsum --format dots-v2 ./...
