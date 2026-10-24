@@ -1,0 +1,9 @@
+{
+  "go.lintTool": "golangci-lint",
+  "go.lintFlags": ["-c", ".golangci.yml"],
+  "gopls": {
+    "analyses": {
+      "composites": false
+    }
+  }
+}

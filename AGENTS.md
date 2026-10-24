@@ -3,6 +3,7 @@
 Run all checks and formatting through the make targets:
 
 - `make test` — full test suite; exits 0 = done.
+- `make bench` — run benchmarks (`go test -bench=. -benchmem -run='^$'`).
 - `make lint` — golangci-lint, includes the gofumpt formatting check.
 - `make fmt` — apply gofumpt formatting via golangci-lint.
 

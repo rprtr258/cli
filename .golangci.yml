@@ -8,17 +8,10 @@ linters:
   settings:
     govet:
       disable:
-        # Unkeyed struct literals are fine in this codebase (internal
-        # positional construction); do not flag them.
+        # Unkeyed struct literals are fine in this codebase (internal positional construction); do not flag them.
         - composites
     gocritic:
-      disable-all: true
-      enabled-tags:
-        - diagnostic
-        - style
-        - performance
-        - experimental
-        - opinionated
+      enable-all: true
       settings:
         hugeParam:
           # Value semantics are deliberate for the small builder/parser types:

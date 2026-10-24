@@ -9,3 +9,7 @@ fmt:
 .PHONY: test
 test:
 	gotestsum --format dots-v2 ./...
+
+.PHONY: bench
+bench:
+	go test -bench=. -benchmem -run='^$$' ./...
