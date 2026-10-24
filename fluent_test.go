@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/rprtr258/fun"
@@ -20,15 +21,10 @@ func TestFluentChaining(t *testing.T) {
 	rest := Positional[string]("REST", ParseString).Parser().Optional()
 
 	parser := Map3(verbose, speed, rest, func(verbs []bool, speed int, rest Opt[string]) string {
-		res := ""
-		for range verbs {
-			res += "v"
-		}
-		res += ":" + strconvItoa(speed)
-		if rest.Valid {
-			res += ":" + rest.Value
-		}
-		return res
+		return strings.Repeat("v", len(verbs)) +
+			":" +
+			strconvItoa(speed) +
+			rest.Map(func(s string) string { return ":" + s }).OrDefault("")
 	}).ToOptions()
 
 	for name, tc := range map[string]struct {
