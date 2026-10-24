@@ -65,7 +65,7 @@ func newState(
 	short_flags []byte,
 	short_args []byte,
 ) (state, parseError) {
-	items := []arg{}
+	items := make([]arg, 0, len(args.items))
 	pos_only := false
 	double_dash_marker := Invalid[int]()
 
@@ -126,9 +126,6 @@ LOOP:
 	}
 
 	item_state := make([]itemState, len(items))
-	for i := range items {
-		item_state[i] = itemStateUnparsed
-	}
 	if ix, ok := double_dash_marker.Unpack(); ok {
 		item_state[ix] = itemStateParsed
 
