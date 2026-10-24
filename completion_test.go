@@ -72,7 +72,7 @@ func complete_beta(input string) SSOS {
 }
 
 func TestMixing_shell_and_positional_1_flag_or_pos(t *testing.T) {
-	arg := ReqFlag(Short('b').Help("Option b"), uint(10))
+	arg := Short('b').Help("Option b").ReqFlag(uint(10))
 	pos := Parse(Positional("DISTANCE", ParseString).
 		Parser().CompleteShell(ShellCompFile(Invalid[string]())).
 		Parser().Guard(func(s string) bool { return s != "" }, "unreachable"),
@@ -89,7 +89,7 @@ func TestMixing_shell_and_positional_2_arg_or_pos(t *testing.T) {
 }
 
 func TestMixing_shell_and_positional_3_flag_and_pos(t *testing.T) {
-	arg := ReqFlag(Short('b').Help("Option b"), uint(10))
+	arg := Short('b').Help("Option b").ReqFlag(uint(10))
 	pos := Positional("DISTANCE", ParseUint).CompleteShell(ShellCompFile(Invalid[string]()))
 
 	assertCompletion(t, Pair(arg, pos).ToOptions(), "-b\t-b\t\tOption b\n\nFile { mask: None }\n", "")

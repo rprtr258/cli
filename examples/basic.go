@@ -28,9 +28,10 @@ func Basic() {
 
 		// number of occurrences of the v/verbose flag capped at 3 with an error here but you can also
 		// use `max` inside `map`
-		verbose := cli.ReqFlag(cli.Short('v').
+		verbose := cli.Short('v').
 			Long("verbose").
-			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv"), struct{}{}).
+			Help("Increase the verbosity\n You can specify it up to 3 times\n either as -v -v -v or as -vvv").
+			ReqFlag(struct{}{}).
 			Many().
 			Map(func(xs []struct{}) uint { return uint(len(xs)) }).
 			Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
@@ -46,7 +47,6 @@ func Basic() {
 		output := cli.Short('o').
 			Long("output").
 			Help("output file").Argument("OUTPUT", cli.ParseString). // no fallback means the value is required
-			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Invalid[string]()))
 
 		// no magical name transmogrifications in combinatoric API,
@@ -56,7 +56,6 @@ func Basic() {
 			u, err := strconv.ParseUint(s, 10, 32)
 			return uint32(u), err
 		}).
-			Parser().
 			FallbackDisplay(1)
 
 		// a parser that consumes one argument
@@ -65,8 +64,7 @@ func Basic() {
 		file_to_proces := cli.Short('f').
 			Long("file").
 			Help("File to process").Argument("FILE", cli.ParseString).
-			Parser().
-			CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
+			CompleteShell(cli.ShellCompFile(cli.Valid("*.go")))
 
 		files_to_process := file_to_proces.Many()
 

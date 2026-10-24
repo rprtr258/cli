@@ -21,7 +21,6 @@ func ConstructStruct() {
 	}
 
 	out := cli.Construct[Out]().
-		Parser().
 		ToOptions().
 		Description("This is a description").
 		Run(os.Args)

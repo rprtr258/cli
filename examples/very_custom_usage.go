@@ -1,4 +1,4 @@
-// `very_custom_usage.rs` - a way to customize usage for a nested command.
+// `very_custom_usage.go` - a way to customize usage for a nested command.
 //
 // Usually you would go with generated usage or by overriding it using the `usage`
 // annotation to the top level or command level annotation. By taking advantage of
@@ -19,13 +19,14 @@ type veryCustomUsageCmd struct {
 }
 
 func VeryCustomUsage() {
-	cmd := cli.Long("opt").Switch().
-		Parser().
+	opt := cli.Long("opt").
+		Switch().
 		ToOptions().
 		Usage(cli.NewDoc("A very custom usage goes here")).
 		Command("cmd").
-		Map(func(opt bool) veryCustomUsageCmd { return veryCustomUsageCmd{opt: opt} }).
-		Parser()
+		Map(func(opt bool) veryCustomUsageCmd { return veryCustomUsageCmd{opt} }).
+		ToOptions().
+		Run(os.Args)
 
-	fmt.Println(cmd.ToOptions().Run(os.Args))
+	fmt.Println(opt)
 }

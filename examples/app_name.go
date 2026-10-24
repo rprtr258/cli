@@ -1,4 +1,4 @@
-// `app_name.rs` shows using the application name (taken from argv[0]) as part of
+// `app_name.go` shows using the application name (taken from argv[0]) as part of
 // the parsed structure, alongside regular arguments.
 package examples
 
@@ -31,7 +31,6 @@ func AppName() {
 	opts := cli.Map2(user, appname, func(user, appname string) Opts {
 		return Opts{user, appname}
 	}).
-		Parser().
 		ToOptions().
 		Run(os.Args)
 

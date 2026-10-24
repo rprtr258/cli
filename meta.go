@@ -299,7 +299,7 @@ func normalized(m meta, for_usage bool) meta {
 func metaFirstItem(meta meta) Opt[item] {
 	switch meta := meta.(type) {
 	case metaAnd:
-		return optFlatMap(first(meta), metaFirstItem)
+		return first(meta).FlatMap(metaFirstItem)
 	case metaItem:
 		return Valid(item(meta))
 	case metaOptional:

@@ -22,6 +22,8 @@ func (self ParseAny[T]) Parser() Parser[T] {
 // ToOptions prepares the parser for running, see [Parser.ToOptions].
 func (self ParseAny[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
 
+func (self ParseAny[T]) Many() Parser[[]T] { return self.Parser().Many() }
+
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self ParseAny[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 

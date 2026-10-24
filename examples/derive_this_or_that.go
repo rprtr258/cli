@@ -1,4 +1,4 @@
-// `derive_this_or_that.rs` - deriving for a tri-state enabled/disabled/undecided
+// `derive_this_or_that.go` - deriving for a tri-state enabled/disabled/undecided
 // switch; the combinatoric version uses a combination of `req_flag` and `Choice`.
 package examples
 
@@ -21,8 +21,8 @@ const (
 )
 
 func DeriveThisOrThat() {
-	on := cli.ReqFlag(cli.Long("on").Help("enabled"), thisOrThatOn)
-	off := cli.ReqFlag(cli.Long("off").Help("disabled"), thisOrThatOff)
+	on := cli.Long("on").Help("enabled").ReqFlag(thisOrThatOn)
+	off := cli.Long("off").Help("disabled").ReqFlag(thisOrThatOff)
 
 	opts := cli.Choice(on, off).
 		Fallback(thisOrThatUndecided).

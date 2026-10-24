@@ -100,8 +100,8 @@ Available options:
 }
 
 func TestDuplicate_items_same_help(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	c1 := Short('c').Help("c").Switch()
 	c2 := Short('c').Help("c").Switch()
 	ac := Pair(a, c1)
@@ -121,8 +121,8 @@ Available options:
 }
 
 func TestDuplicate_items_dif_help(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	c1 := Short('c').Help("c1").Switch()
 	c2 := Short('c').Help("c2").Switch()
 	ac := Pair(a, c1)
@@ -143,8 +143,8 @@ Available options:
 }
 
 func TestDuplicate_pos_items_same_help(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	c1 := Positional("C", ParseString).Help("C")
 	c2 := Positional("C", ParseString).Help("C")
 	ac := Pair(a, c1)
@@ -166,8 +166,8 @@ Available options:
 }
 
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	c1 := Positional("C", ParseString).Help("C1")
 	c2 := Positional("C", ParseString).Help("C2")
 	ac := Pair(a, c1)
@@ -191,8 +191,8 @@ Available options:
 
 func TestEnum_with_docs(t *testing.T) {
 	// Two required flags combined with Choice and wrapped in a group help header.
-	intel := ReqFlag(Long("intel").Help("help"), false)
-	att := ReqFlag(Long("att").Help("help"), true)
+	intel := Long("intel").Help("help").ReqFlag(false)
+	att := Long("att").Help("help").ReqFlag(true)
 	parser := Choice(intel, att).GroupHelp("Pick mode:").ToOptions()
 
 	const expected = `Usage: (--intel | --att)
@@ -209,7 +209,7 @@ Available options:
 
 func TestAnywhere_invariant_check(t *testing.T) {
 	// Adjacent block: a tag flag followed by two positionals.
-	tag := ReqFlag(Long("tag"), struct{}{})
+	tag := Long("tag").ReqFlag(struct{}{})
 	name := Positional("NAME", ParseString).Help("help for name")
 	val := Positional("VAL", ParseString).Help("help for val")
 	fooo := Pair(Pair(tag, name), val).Adjacent()
@@ -235,7 +235,7 @@ Available options:
 }
 
 func TestMulti_arg_help(t *testing.T) {
-	a := ReqFlag(Short('f').Long("flag").Help("flag help"), struct{}{})
+	a := Short('f').Long("flag").Help("flag help").ReqFlag(struct{}{})
 	b := Short('e').Long("extra").Help("extra strange").Switch()
 	c := Positional("NAME", ParseString).Help("pos1 help")
 	d := Positional("STATE", ParseBool).Help("pos2 help")

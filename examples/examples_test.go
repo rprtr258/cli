@@ -93,6 +93,7 @@ var examplesByName = map[string]func(){
 	"travel":                           examples.Travel,
 	"verbose":                          examples.Verbose,
 	"very_custom_usage":                examples.VeryCustomUsage,
+	"wtf":                              examples.Wtf,
 	"xorg":                             examples.Xorg,
 }
 
@@ -182,6 +183,11 @@ var exampleTests = []struct {
 	{"travel", []string{"--time", "2", "--mph", "60", "--km", "100"}, nil},
 	{"verbose", []string{"-vvv", "--trim"}, []string{"3"}},
 	{"very_custom_usage", []string{"cmd", "--opt"}, []string{"true"}},
+	{"wtf", []string{"add", "-a", "f1", "f2"}, []string{"Adding (all=true)", "\"f1\", \"f2\""}},
+	{"wtf", []string{"rm", "-f", "f1"}, []string{"Removing (force=true)", "\"f1\""}},
+	{"wtf", []string{"example", "-n", "foo", "--offset", "7", "--point", "3,4", "-s", "a", "-s", "b", "f.txt"}, []string{"Example(verbose=false, offset=7, name=\"foo\", point=3,4, file=\"-\", num=None, strs=[]string{\"a\", \"b\"}, files=[]string{\"f.txt\"})"}},
+	{"wtf", []string{"example", "-n", "foo", "-p", "5", "-f", "cfg.yml"}, []string{"Example(verbose=false, offset=0, name=\"foo\", point=1,2, file=\"cfg.yml\", num=Some(5), strs=[]string{}, files=[]string{})"}},
+	{"wtf", []string{"docker", "image", "ls", "-o", "yaml", "img1"}, []string{"Listing images (verbose=false, output=yaml)"}},
 	{"xorg", []string{"-t", "+ext", "GLX"}, []string{"GLX"}},
 }
 

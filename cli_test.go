@@ -153,9 +153,9 @@ Available options:
 }
 
 func TestEitherOfThreeRequiredFlags(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
-	c := ReqFlag(Short('c'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
+	c := Short('c').ReqFlag(struct{}{})
 	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
 
@@ -181,9 +181,9 @@ Available options:
 }
 
 func TestEitherOfThreeRequiredFlags2(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
-	c := ReqFlag(Short('c'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
+	c := Short('c').ReqFlag(struct{}{})
 	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
 
@@ -206,8 +206,8 @@ Available options:
 }
 
 func TestEitherOfTwoRequiredFlagsAndOneOptional(t *testing.T) {
-	a := ReqFlag(Short('a'), true)
-	b := ReqFlag(Short('b'), false)
+	a := Short('a').ReqFlag(true)
+	b := Short('b').ReqFlag(false)
 	c := Short('c').Switch()
 	p := Choice(a, b, c)
 	decorated := p.ToOptions().Version("1.0")
@@ -378,19 +378,14 @@ Available commands:
 }
 
 func TestFromSeveralAlternativesPickMoreMeaningful(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
-	c := ReqFlag(Short('c'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
+	c := Short('c').ReqFlag(struct{}{})
 	parser := Choice(a, b, c).ToOptions()
-
 	assertFailure(t, parser, "`-b` cannot be used at the same time as `-a`", "-a", "-b")
-
 	assertFailure(t, parser, "`-a` cannot be used at the same time as `-b`", "-b", "-a")
-
 	assertFailure(t, parser, "`-a` cannot be used at the same time as `-c`", "-c", "-a")
-
 	assertFailure(t, parser, "`-c` cannot be used at the same time as `-a`", "-a", "-c")
-
 	assertFailure(t, parser, "`-b` cannot be used at the same time as `-c`", "-c", "-b", "-a")
 }
 
@@ -427,7 +422,7 @@ Available commands:
 }
 
 func TestMultipleAliases(t *testing.T) {
-	a := ReqFlag(Short('a').Short('b').Short('c'), struct{}{})
+	a := Short('a').Short('b').Short('c').ReqFlag(struct{}{})
 	parser := a.ToOptions()
 
 	const expected_help = `Usage: -a
@@ -855,7 +850,7 @@ func TestCommandResetsLeftHeadState(t *testing.T) {
 	type Foo fun.Option[uint32]
 
 	a := Short('a').Argument("A", parseUint32).Fallback(0)
-	b := ReqFlag(Short('b'), struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 
 	p1 := a.Map(func(a uint32) Foo { return Foo{a, true} })
 	p2 := b.Map(func(struct{}) Foo { return Foo{0, false} })
@@ -936,7 +931,7 @@ func TestDid_you_mean_switch(t *testing.T) {
 }
 
 func TestDid_you_mean_req_flag(t *testing.T) {
-	parser := ReqFlag(Long("flag"), struct{}{}).ToOptions()
+	parser := Long("flag").ReqFlag(struct{}{}).ToOptions()
 	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "--fla")
 }
 
@@ -1067,8 +1062,8 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 }
 
 func TestCombine_flags_by_order(t *testing.T) {
-	a := ReqFlag(Short('a'), true)
-	b := ReqFlag(Short('A'), false)
+	a := Short('a').ReqFlag(true)
+	b := Short('A').ReqFlag(false)
 	parser := Choice(a, b).Many().ToOptions()
 
 	assertSuccess(t, []bool{true, false, false, false, true}, parser, "-a", "-A", "-A", "-A", "-a")
@@ -1260,7 +1255,7 @@ func TestOptional_bool_states(t *testing.T) {
 }
 
 func TestFancy_negative(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Any("A", func(s string) (int32, bool) { res, err := strconv.ParseInt(s, 10, 32); return int32(res), err == nil }, false)
 	ab := Pair(a, b).Adjacent().Map(func(x fun.Pair[struct{}, int32]) int32 { return x.V })
 
@@ -1306,7 +1301,7 @@ func TestEnv_hidden_switch(t *testing.T) {
 
 func TestEnv_hidden_flag(t *testing.T) {
 	t.Setenv("USER1", "top s3cr3t")
-	parser := Flag(Env("USER1"), true, false).ToOptions()
+	parser := Env("USER1").Flag(true, false).ToOptions()
 	assertSuccess(t, true, parser)
 }
 
@@ -1362,8 +1357,8 @@ func TestFallback_for_some(t *testing.T) {
 }
 
 func TestFlag_like_commands(t *testing.T) {
-	a := ReqFlag(Short('a'), 1).ToOptions().Command("--add")
-	b := ReqFlag(Short('b'), 2).ToOptions().Command("remove")
+	a := Short('a').ReqFlag(1).ToOptions().Command("--add")
+	b := Short('b').ReqFlag(2).ToOptions().Command("remove")
 	parser := Choice(a, b).ToOptions()
 
 	assertSuccess(t, 1, parser, "--add", "-a")

@@ -10,7 +10,6 @@ package examples
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/rprtr258/cli"
 )
@@ -30,21 +29,14 @@ func MultipleFallback() {
 
 	field1 := cli.Long("field1").
 		Env("FIELD1").
-		Help("Field 1").Argument("ARG", func(s string) (uint32, error) {
-		u, err := strconv.ParseUint(s, 10, 32)
-		return uint32(u), err
-	}).
-		Parser().
-		Fallback(DEFAULT_CONFIG.field1).
-		Parser()
+		Help("Field 1").
+		Argument("ARG", cli.ParseUint32).
+		Fallback(DEFAULT_CONFIG.field1)
 	field2 := cli.Long("field2").
 		Env("FIELD2").
-		Help("Field 2").Argument("ARG", func(s string) (uint64, error) {
-		return strconv.ParseUint(s, 10, 64)
-	}).
-		Parser().
-		Fallback(DEFAULT_CONFIG.field2).
-		Parser()
+		Help("Field 2").
+		Argument("ARG", cli.ParseUint64).
+		Fallback(DEFAULT_CONFIG.field2)
 
 	opts := cli.Map2(field1, field2, func(field1 uint32, field2 uint64) Config { return Config{field1, field2} }).ToOptions().Run(os.Args)
 

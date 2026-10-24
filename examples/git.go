@@ -1,4 +1,4 @@
-// `git.rs` serves as a demonstration of how to use subcommands,
+// `git.go` serves as a demonstration of how to use subcommands,
 // as well as a demonstration of adding documentation to subcommands.
 //
 // Note, this "fetch" command uses fallback to inner description to get the help message, "add"
@@ -59,7 +59,7 @@ func Git() {
 
 	interactive := cli.Short('i').Switch()
 	all2 := cli.Long("all").Switch()
-	files := cli.Positional("FILE", cli.ParseString).Parser().Many()
+	files := cli.Positional("FILE", cli.ParseString).Many()
 	add_cmd := cli.Map3(interactive, all2, files, func(interactive, all bool, files []string) Opt { return OptAdd(interactive, all, files) }).
 		ToOptions().
 		Description("add files to the staging area").

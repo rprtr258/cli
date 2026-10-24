@@ -115,7 +115,7 @@ func (self *state) push_flag(named NamedArg) {
 				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  optFlatMap(named.help, Doc.to_completion),
+					help:  named.help.FlatMap(Doc.to_completion),
 				},
 				name,
 			))
@@ -132,7 +132,7 @@ func (self *state) push_argument(named NamedArg, metavar Metavar) {
 				compExtra{
 					depth: depth,
 					group: Invalid[string](),
-					help:  optFlatMap(named.help, Doc.to_completion),
+					help:  named.help.FlatMap(Doc.to_completion),
 				},
 				name,
 				metavar,
@@ -155,7 +155,7 @@ func (self *state) push_metavar(
 		extra := compExtra{
 			depth: depth,
 			group: Invalid[string](),
-			help:  optFlatMap(help, Doc.to_completion),
+			help:  help.FlatMap(Doc.to_completion),
 		}
 
 		comp.comps = append(comp.comps, compMetavariable(extra, meta, is_argument))
@@ -174,7 +174,7 @@ func (self *state) push_command(
 			compExtra{
 				depth: depth,
 				group: Invalid[string](),
-				help:  optFlatMap(help, Doc.to_completion),
+				help:  help.FlatMap(Doc.to_completion),
 			},
 			name,
 			short,
@@ -428,11 +428,11 @@ func arg_matches(arg string, name shortLong) (string, bool) {
 	// "" and "-" switch any flag
 	if arg == "" || arg == "-" ||
 		// separately check for short and long names, fancy strip prefix things is here to avoid allocations and cloning
-		map_or(strip_prefixb(arg, '-').
-			and_then(func(a string) Opt[string] { return strip_prefixb(a, name.Short) }),
-			false, stris_empty) ||
+		strip_prefixb(arg, '-').
+			FlatMap(func(a string) Opt[string] { return strip_prefixb(a, name.Short) }).
+			MapOr(false, stris_empty) ||
 		// and long string too, name must actually have a long variant
-		map_or(strip_prefix(arg, "--"), false, func(s string) bool {
+		strip_prefix(arg, "--").MapOr(false, func(s string) bool {
 			return name.Long != "" && strings.HasPrefix(name.Long, s)
 		}) {
 		return preferred_name(name), true
@@ -443,9 +443,9 @@ func arg_matches(arg string, name shortLong) (string, bool) {
 
 func cmd_matches(arg, name string, short Opt[byte]) (string, bool) {
 	// partial long name and exact short name switch anything
-	if strings.HasPrefix(name, arg) || map_or(short, false, func(s byte) bool {
+	if strings.HasPrefix(name, arg) || short.MapOr(false, func(s byte) bool {
 		// avoid allocations
-		return map_or(strip_prefixb(arg, s), false, stris_empty)
+		return strip_prefixb(arg, s).MapOr(false, stris_empty)
 	}) {
 		return name, true
 	}

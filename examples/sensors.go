@@ -49,7 +49,7 @@ func Sensors() {
 					yield("tank03", "Temperature in a storage tank 3") &&
 					yield("outdoor", "Outdoor temperature sensor")
 			} {
-				if strings.HasPrefix(name, input) && yield(name, cli.Valid(descr)) {
+				if strings.HasPrefix(name, input) && !yield(name, cli.Valid(descr)) {
 					return
 				}
 			}
@@ -57,10 +57,8 @@ func Sensors() {
 	}
 
 	var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
-		sensor := cli.ReqFlag(cli.Long("sensor"), struct{}{})
-		device := cli.Long("sensor-device").Argument("DEVICE", cli.ParseString).
-			Parser().
-			Complete(sensor_device_comp)
+		sensor := cli.Long("sensor").ReqFlag(struct{}{})
+		device := cli.Long("sensor-device").Argument("DEVICE", cli.ParseString).Complete(sensor_device_comp)
 		name := cli.Long("sensor-name").Argument("NAME", cli.ParseString)
 
 		// from_str needs to be replaced with `parse` that can deal with hex digits

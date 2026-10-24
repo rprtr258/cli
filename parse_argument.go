@@ -25,6 +25,14 @@ func (self parseArgument[T]) Parser() Parser[T] {
 // ToOptions prepares the parser for running, see [Parser.ToOptions].
 func (self parseArgument[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
 
+func (self parseArgument[T]) Optional() Parser[Opt[T]] {
+	return self.Parser().Optional()
+}
+
+func (self parseArgument[T]) Many() Parser[[]T] {
+	return self.Parser().Many()
+}
+
 // Map applies a pure transformation to the parsed value, see [Parser.Map].
 func (self parseArgument[T]) Map[R any](fn func(T) R) Parser[R] { return self.Parser().Map(fn) }
 

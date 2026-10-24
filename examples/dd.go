@@ -1,4 +1,4 @@
-// `dd.rs` - this is not a typical usage, but you should be able to replicate the
+// `dd.go` - this is not a typical usage, but you should be able to replicate the
 // command line interface used by dd.
 package examples
 
@@ -30,37 +30,30 @@ func ddTag[T any](name, meta, help string, parse func(string) (T, error)) cli.Pa
 				{K: name, V: cli.StyleLiteral},
 				{K: meta, V: cli.StyleMetavar},
 			})).
-			Help(help).
-			Parser(),
+			Help(help),
 		parse)
 }
 
-func ddInFile() cli.Parser[string] {
-	return ddTag("if=", "FILE", "read from FILE", cli.ParseString).
-		Fallback("-").
-		FallbackDisplay("-")
-}
+var ddInFile = ddTag("if=", "FILE", "read from FILE", cli.ParseString).
+	Fallback("-").
+	FallbackDisplay("-")
 
-func ddOutFile() cli.Parser[string] {
-	return ddTag("of=", "FILE", "write to FILE", cli.ParseString).
-		Fallback("-").
-		FallbackDisplay("-")
-}
+var ddOutFile = ddTag("of=", "FILE", "write to FILE", cli.ParseString).
+	Fallback("-").
+	FallbackDisplay("-")
 
-func ddBlockSize() cli.Parser[uint] {
-	// it is possible to parse the notation used by dd itself as well,
-	// using uint only for simplicity
-	return ddTag("bs=", "SIZE", "read/write SIZE blocks at once", cli.ParseUint).
-		Fallback(512).
-		FallbackDisplay(512)
-}
+// it is possible to parse the notation used by dd itself as well,
+// using uint only for simplicity
+var ddBlockSize = ddTag("bs=", "SIZE", "read/write SIZE blocks at once", cli.ParseUint).
+	Fallback(512).
+	FallbackDisplay(512)
 
 func Dd() {
 	magic := cli.Short('m').Long("magic").
 		Help("a usual switch still works").Switch()
 
 	opts := cli.Map4(
-		magic, ddInFile(), ddOutFile(), ddBlockSize(),
+		magic, ddInFile, ddOutFile, ddBlockSize,
 		func(magic bool, inFile, outFile string, blockSize uint) ddOptions {
 			return ddOptions{magic: magic, inFile: inFile, outFile: outFile, blockSize: blockSize}
 		},

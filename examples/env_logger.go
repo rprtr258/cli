@@ -1,4 +1,4 @@
-// `env_logger.rs` - convert verbosity level from a count of -v flags into an enum
+// `env_logger.go` - convert verbosity level from a count of -v flags into an enum
 // from a logger crate of your choice.
 package examples
 
@@ -27,10 +27,9 @@ type envLoggerOptions struct {
 }
 
 func EnvLogger() {
-	verbose := cli.ReqFlag(
-		cli.Short('v').Help("Verbosity level, use multiple times for more verbosity"),
-		struct{}{},
-	).
+	verbose := cli.Short('v').
+		Help("Verbosity level, use multiple times for more verbosity").
+		ReqFlag(struct{}{}).
 		Count().
 		Map(func(l int) levelFilter {
 			levels := []levelFilter{levelOff, levelError, levelWarn, levelInfo, levelDebug, levelTrace}
@@ -43,7 +42,6 @@ func EnvLogger() {
 	potato := cli.Long("potato").
 		Help("number of potatoes").
 		Argument("NUM", cli.ParseUint).
-		Parser().
 		Fallback(3)
 
 	opts := cli.Map2(verbose, potato, func(verbose levelFilter, potato uint) envLoggerOptions {

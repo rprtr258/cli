@@ -1,4 +1,4 @@
-// `dynamic-tree.rs` - this example constructs a dynamic command tree from a structure.
+// `dynamic-tree.go` - this example constructs a dynamic command tree from a structure.
 package examples
 
 import (
@@ -20,10 +20,10 @@ var cogConfig = cog{
 	name: "commands",
 	help: "contains all the commands, can be flattened with choose but effort :)",
 	nested: []cog{
-		cog{help: "First echo command", name: "echoCommand", operation: "echo 'some text'"},
-		cog{help: "Second echo command", name: "anotherEchoCmd", operation: "echo 'another text'"},
-		cog{name: "commandGroup", help: "contains a single sleep", nested: []cog{
-			cog{name: "sleepCommand", help: "sleep for a bit", operation: "sleep 5"},
+		{help: "First echo command", name: "echoCommand", operation: "echo 'some text'"},
+		{help: "Second echo command", name: "anotherEchoCmd", operation: "echo 'another text'"},
+		{name: "commandGroup", help: "contains a single sleep", nested: []cog{
+			{name: "sleepCommand", help: "sleep for a bit", operation: "sleep 5"},
 		}},
 	},
 }

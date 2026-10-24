@@ -14,7 +14,7 @@ func TestAdjacent(t *testing.T) {
 		b, c bool
 	}
 
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Short('b').Switch()
 	c := Short('c').Switch()
 
@@ -53,7 +53,7 @@ func TestAdjacent(t *testing.T) {
 
 func TestAdjacentPrefix(t *testing.T) {
 	type cmd = fun.Pair[Opt[fun.Pair[struct{}, uint]], bool]
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("X", func(s string) (uint, error) {
 		u, err := strconv.ParseUint(s, 10, 32)
 		return uint(u), err

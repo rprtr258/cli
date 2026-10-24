@@ -38,6 +38,14 @@ func (self *ParsePositional[T]) Parser() Parser[T] {
 	return Parser[T]{self.eval, meta}
 }
 
+func (self *ParsePositional[T]) Optional() Parser[Opt[T]] {
+	return self.Parser().Optional()
+}
+
+func (self *ParsePositional[T]) Many() Parser[[]T] {
+	return self.Parser().Many()
+}
+
 // ToOptions prepares the parser for running, see [Parser.ToOptions].
 func (self *ParsePositional[T]) ToOptions() *OptionParser[T] { return self.Parser().ToOptions() }
 

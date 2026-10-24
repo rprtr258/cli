@@ -7,7 +7,7 @@ import (
 )
 
 func TestTest_adjacent(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Short('b').Switch()
 	c := Short('c').Switch()
 	parser := Triple(a, b, c).Adjacent().Many().ToOptions()
@@ -22,7 +22,7 @@ func TestTest_adjacent(t *testing.T) {
 func TestTest_adjacent_prefix(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Opt[P], bool]
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("X", ParseUint)
 	ab := Pair(a, b).Adjacent().Optional()
 	c := Short('c').Switch()
@@ -35,7 +35,7 @@ func TestTest_adjacent_prefix(t *testing.T) {
 }
 
 func TestAdjacent_error_message_pos_single(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("B", ParseUint)
 	c := Positional("C", ParseUint)
 	d := Short('d').Switch()
@@ -46,7 +46,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 }
 
 func TestAdjacent_error_message_arg_single0(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Short('b').Argument("B", ParseUint)
 	parser := Pair(a, b).Adjacent().ToOptions()
 
@@ -54,7 +54,7 @@ func TestAdjacent_error_message_arg_single0(t *testing.T) {
 }
 
 func TestAdjacent_error_message_arg_single(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Short('b').Argument("B", ParseUint)
 	c := Short('c').Argument("C", ParseUint)
 	d := Short('d').Switch()
@@ -65,7 +65,7 @@ func TestAdjacent_error_message_arg_single(t *testing.T) {
 }
 
 func TestAdjacent_error_message_pos_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("B", ParseUint)
 	c := Positional("C", ParseUint)
 	d := Short('d').Switch()
@@ -76,7 +76,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 }
 
 func TestAdjacent_error_message_arg_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Short('b').Argument("B", ParseUint)
 	c := Short('c').Argument("C", ParseUint)
 	d := Short('d').Switch()
@@ -88,7 +88,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 }
 
 func TestAdjacent_is_adjacent(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("B", ParseUint)
 	parser := Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }).Many().ToOptions()
 
@@ -98,7 +98,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 }
 
 func TestAdjacent_with_switch(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("B", ParseUint)
 	ab := Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }).Many()
 	c := Short('c').Switch()

@@ -13,13 +13,13 @@ func EnvVariable() {
 		key string
 	}
 
-	key := cli.Long("key").
+	opts := cli.Long("key").
 		Env("ACCESS_KEY").
-		Help("access key to use").Argument("KEY", func(s string) (string, error) {
-		return s, nil
-	})
-
-	opts := key.Map(func(key string) Opts { return Opts{key} }).ToOptions().Run(os.Args)
+		Help("access key to use").
+		Argument("KEY", func(s string) (string, error) { return s, nil }).
+		Map(func(key string) Opts { return Opts{key} }).
+		ToOptions().
+		Run(os.Args)
 
 	fmt.Println(opts)
 }

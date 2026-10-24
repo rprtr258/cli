@@ -11,7 +11,7 @@ import (
 )
 
 func Compression() {
-	var compression cli.Parser[uint] = cli.
+	opts := cli.
 		Any("COMP", func(s string) (uint, bool) {
 			x, err := strconv.ParseInt(s, 10, 64)
 			return uint(-x), err == nil && -9 <= x && x <= -1
@@ -22,8 +22,8 @@ func Compression() {
 			{K: "-9", V: cli.StyleLiteral},
 		})).
 		Help("Compression level").
-		Parser()
+		ToOptions().
+		Run(os.Args)
 
-	opts := compression.ToOptions().Run(os.Args)
 	fmt.Println(opts)
 }
