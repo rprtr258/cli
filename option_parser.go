@@ -142,7 +142,7 @@ func (self FailureError) ExitCode() int {
 // # Panics
 //
 // CheckInvariants reports problems by panicking.
-func (self OptionParser[T]) CheckInvariants(bool) {
+func (self OptionParser[T]) CheckInvariants() {
 	positional_invariant_check(self.inner.meta, true)
 }
 

@@ -231,7 +231,7 @@ Available options:
 	assertHelp(t, parser, expected)
 
 	// this shouldn't crash
-	parser.CheckInvariants(true)
+	parser.CheckInvariants()
 }
 
 func TestMulti_arg_help(t *testing.T) {

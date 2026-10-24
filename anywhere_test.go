@@ -23,7 +23,7 @@ Available options:
 
 	assertHelp(t, parser, expected)
 	// this should be allowed because "anywhere" prevents anything inside from being positional
-	parser.CheckInvariants(true)
+	parser.CheckInvariants()
 }
 
 func TestParse_anywhere_no_catch(t *testing.T) {

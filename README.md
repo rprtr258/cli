@@ -74,23 +74,24 @@ type Rectangle struct {
 	Width, Height int
 }
 
-func rectangle() cli.Parser[Rectangle] {
-	invalidSize := "Sides of a rectangle must be 1..20 units long"
-	invalidArea := "Area of a rectangle must not exceed 200 units square"
-	width := cli.Long("width").Help("Width of the rectangle").
+const invalidSize = "Sides of a rectangle must be 1..20 units long"
+
+var rectangle cli.Parser[Rectangle] = cli.Map2(
+	cli.Long("width").
+		Help("Width of the rectangle").
 		Argument("PX", cli.ParseInt).
-		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	height := cli.Long("height").Help("Height of the rectangle").
+		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize),
+	cli.Long("height").
+		Help("Height of the rectangle").
 		Argument("PX", cli.ParseInt).
-		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	return cli.Map2(width, height, func(w, h int) Rectangle {
+		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize),
+	func(w, h int) Rectangle {
 		return Rectangle{Width: w, Height: h}
 	}).
-		Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, invalidArea)
-}
+	Guard(func(r Rectangle) bool { return r.Width*r.Height <= 200 }, "Area of a rectangle must not exceed 200 units square")
 
 func main() {
-	rect := rectangle().ToOptions().Run(os.Args)
+	rect := rectangle.ToOptions().Run(os.Args)
 	fmt.Println(rect)
 }
 ```
@@ -191,7 +192,7 @@ violated invariants, such as positional items or commands placed before named
 options. Call it in tests to catch misconfiguration early:
 
 ```go
-rectangle().ToOptions().CheckInvariants(false)
+rectangle.ToOptions().CheckInvariants()
 ```
 
 ## Examples
