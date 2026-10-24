@@ -7,7 +7,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func write_updated(t *testing.T, new_val, path string) {
+func require_golden(t *testing.T, new_val, path string) {
 	t.Helper()
 
 	current_val, err := os.ReadFile(path)
@@ -42,7 +42,7 @@ func TestSimple(t *testing.T) {
 		Valid("asdf"),
 	)
 
-	write_updated(t, roff, "tests/simple.1")
+	require_golden(t, roff, "tests/simple.1")
 }
 
 func TestNested(t *testing.T) {
@@ -89,7 +89,7 @@ func TestNested(t *testing.T) {
 			Valid("asdf"),
 		)
 
-	write_updated(t, roff, "tests/nested.1")
+	require_golden(t, roff, "tests/nested.1")
 }
 
 func TestVery_nested(t *testing.T) {
@@ -118,5 +118,5 @@ func TestVery_nested(t *testing.T) {
 		Valid("asdf"),
 	)
 
-	write_updated(t, roff, "tests/very_nested.1")
+	require_golden(t, roff, "tests/very_nested.1")
 }

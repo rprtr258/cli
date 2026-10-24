@@ -1,0 +1,41 @@
+site_name: rprtr258/cli
+site_description: Type-safe command line argument parser for Go
+site_url: https://rprtr258.github.io/cli/
+repo_url: https://github.com/rprtr258/cli
+repo_name: rprtr258/cli
+
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.sections
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+markdown_extensions:
+  - admonition
+  - pymdownx.highlight
+  - pymdownx.superfences
+  - pymdownx.inlinehilite
+  - tables
+
+nav:
+  - Overview: index.md
+  - Declaration:
+      - Combinator declaration: combinator.md
+      - Struct-based declaration: struct.md
+  - Building blocks:
+      - Ways to consume data: consumers.md
+      - Transforming parsers: transformers.md
+      - Composing parsers: composers.md
+  - Help and UX: help.md
+  - Shell completion: completion.md
+  - Running and testing: running.md
+  - Examples: examples.md
