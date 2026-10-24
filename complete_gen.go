@@ -162,6 +162,22 @@ func (self *state) push_metavar(
 	}
 }
 
+// push_choices adds completion hints for a fixed set of allowed argument values, if needed.
+func (self *state) push_choices(choices []string, help Opt[Doc]) {
+	depth := self.depth()
+	if comp, ok := self.comp_mut(); ok {
+		extra := compExtra{
+			depth: depth,
+			group: Invalid[string](),
+			help:  help.FlatMap(Doc.to_completion),
+		}
+
+		for _, choice := range choices {
+			comp.comps = append(comp.comps, compValue(extra, choice, true))
+		}
+	}
+}
+
 // push_command adds a new completion hint for the command, if needed.
 func (self *state) push_command(
 	name string,

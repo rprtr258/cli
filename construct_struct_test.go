@@ -73,7 +73,7 @@ func TestConstructOptional(t *testing.T) {
 		parser, "--speed", "1.5", "bob")
 
 	assertFailure(t, parser,
-		"couldn't parse `x`: strconv.ParseFloat: parsing \"x\": invalid syntax",
+		"couldn't parse `x`: invalid syntax",
 		"--speed", "x")
 }
 
@@ -228,7 +228,7 @@ func TestConstructPanics(t *testing.T) {
 	assertPanicsContains(t, func() { Construct[SliceWithDefault]() }, "cannot have a default")
 
 	type Unsupported struct {
-		X map[string]string `cli:"long=x"`
+		X chan int `cli:"long=x"`
 	}
 	assertPanicsContains(t, func() { Construct[Unsupported]() }, "unsupported field type")
 

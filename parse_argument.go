@@ -1,8 +1,13 @@
 package cli
 
 import (
+	"fmt"
 	"iter"
 	"os"
+	"slices"
+	"strings"
+
+	"github.com/rprtr258/fun"
 )
 
 // parseArgument is a parser for a named argument, created with [NamedArg.Argument].
@@ -10,6 +15,7 @@ type parseArgument[T any] struct {
 	named    NamedArg
 	metavar  Metavar
 	adjacent bool
+	choices  []string
 	parse    func(string) (T, error)
 }
 
@@ -109,6 +115,18 @@ func (self *parseArgument[T]) Adjacent() *parseArgument[T] {
 	return self
 }
 
+// Choice restricts the argument value to one of the listed values.
+//
+// Can be called repeatedly to add more choices. The listed values are shown in
+// the `--help` output as `(one of: v1, v2)` and offered as shell completions
+// for the argument value. Parsing fails with
+// `couldn't parse `x`: expected one of `v1`, `v2“ for any other value.
+func (self *parseArgument[T]) Choice(values ...string) *parseArgument[T] {
+	self.choices = append(self.choices, values...)
+	slices.Sort(self.choices)
+	return self
+}
+
 func (self parseArgument[T]) item() (item, bool) {
 	name, ok := shortLongTryFrom(self.named)
 	if !ok {
@@ -119,6 +137,7 @@ func (self parseArgument[T]) item() (item, bool) {
 		self.named.short,
 		Metavar(self.metavar),
 		first(self.named.env),
+		self.choices,
 	}}, true
 }
 
@@ -153,12 +172,23 @@ func (self parseArgument[T]) eval(state *state) (T, parseError) {
 		}
 
 		if state.touching_last_remove() {
-			state.push_metavar(self.metavar, self.named.help, true)
+			if len(self.choices) > 0 {
+				state.push_choices(self.choices, self.named.help)
+			} else {
+				state.push_metavar(self.metavar, self.named.help, true)
+			}
 		}
 		return valueStr, nil
 	}()
 	if err != nil {
 		return *new(T), err
+	}
+
+	if len(self.choices) > 0 && !fun.Contains(valueStr, self.choices...) {
+		quotedChoices := fun.Map[string](func(choice string) string {
+			return fmt.Sprintf("%#q", choice)
+		}, self.choices...)
+		return *new(T), errorParseFailed{state.currentIdx, fmt.Sprintf("expected one of %s", strings.Join(quotedChoices, ", "))}
 	}
 
 	t, errr := self.parse(valueStr)

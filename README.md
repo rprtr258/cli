@@ -106,14 +106,19 @@ parseError: `0`: Sides of a rectangle must be 1..20 units long
 ## Struct-based declaration
 
 Field types choose the consumers: `bool` - a switch, primitives - an argument
-(or a positional if the field has no name), `[]E` - zero or more, `cli.Opt[E]` -
-optional, `cli.Count` - number of repeats. Non-trivial options (short names,
-help text, env fallbacks, defaults) go into the `cli` struct tag:
+(or a positional if the field has no name), `[]E` - zero or more, `*E` -
+optional with `nil` when absent, `cli.Opt[E]` - optional, `cli.Count` - number
+of repeats, `map[K]V` - repeated `KEY:VALUE` named argument accumulating into a
+map. Struct fields marked `command=NAME` declare subcommands and `group=NAME`
+renders their options in a separate help section. Non-trivial options (short
+names, help text, env fallbacks, defaults, `choice=` value sets, `hidden`) go
+into the `cli` struct tag:
 
 ```go
 type Out struct {
 	Debug bool   `cli:"short=d,long=debug,help='Activate debug mode'"`
 	Home  string `cli:"long=home,env=HOME"`
+	Tags  map[string]string `cli:"long=tag,help='Tags as KEY:VALUE'"`
 }
 ```
 
@@ -126,6 +131,7 @@ type Out struct {
 | `NamedArg.Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
 | `NamedArg.ReqFlag` | `-f` (required) | `Parser[T]` |
 | `NamedArg.Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
+| `NamedArg.Map` | `--flag=KEY:VALUE`, repeatable | `Parser[map[K]V]` |
 | `Positional` | a free-standing value | `Parser[T]` |
 | `Any` | any unconsumed item | `Parser[T]` |
 | `OptionParser.Command("cmd")` | a subcommand | `ParseCommand[T]`, an independent subparser |

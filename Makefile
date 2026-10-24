@@ -1,10 +1,10 @@
 .PHONY: lint
 lint:
-	golangci-lint run ./...
+	go tool golangci-lint run ./...
 
 .PHONY: fmt
 fmt:
-	golangci-lint fmt
+	go tool golangci-lint fmt
 
 .PHONY: test
 test:

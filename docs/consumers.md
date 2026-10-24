@@ -7,6 +7,7 @@
 | `NamedArg.Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
 | `NamedArg.ReqFlag` | `-f` (required) | `Parser[T]` |
 | `NamedArg.Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
+| `NamedArg.Map` | `--flag=KEY:VALUE`, repeatable | `Parser[map[K]V]` |
 | `Positional` | a free-standing value | `Parser[T]` |
 | `Any` | any unconsumed item | `Parser[T]` |
 | `OptionParser.Command("cmd")` | a subcommand | `ParseCommand[T]`, an independent subparser |

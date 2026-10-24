@@ -72,6 +72,8 @@ type helpItemArgument struct {
 	metavar Metavar
 	env     Opt[string]
 	help    Opt[Doc]
+	// allowed values shown in help; empty means any
+	choices []string
 }
 
 func (helpItemArgument) isHelpItem() {}
@@ -369,7 +371,7 @@ func helpItemFromItem(item item) helpItem {
 	case itemFlag:
 		return helpItemFlag{v.name, v.env, item.help}
 	case itemArgument:
-		return helpItemArgument{v.name, v.metavar, v.env, item.help}
+		return helpItemArgument{v.name, v.metavar, v.env, item.help, v.choices}
 	}
 	panic("unreachable")
 }
@@ -467,6 +469,19 @@ func write_help_item(buf *Doc, item helpItem, include_env bool) {
 		if help, ok := item.help.Unpack(); ok {
 			buf.token(tokenBlockStart(blockItemBody))
 			buf.Doc(help)
+			buf.token(tokenBlockEnd(blockItemBody))
+		}
+
+		if len(item.choices) > 0 {
+			buf.token(tokenBlockStart(blockItemBody))
+			buf.Text("(one of: ")
+			for i, choice := range item.choices {
+				if i > 0 {
+					buf.Text(", ")
+				}
+				buf.Literal(choice)
+			}
+			buf.Text(")")
 			buf.token(tokenBlockEnd(blockItemBody))
 		}
 
@@ -605,7 +620,7 @@ func (self *dedup) check(item helpItem) bool {
 		self.keep = insert(&self.items, fmt.Sprintf("%#v %#v", item.name, item.help))
 		return self.keep
 	case helpItemArgument:
-		self.keep = insert(&self.items, fmt.Sprintf("%#v %v %#v", item.name, item.metavar, item.help))
+		self.keep = insert(&self.items, fmt.Sprintf("%#v %v %#v %#v", item.name, item.metavar, item.help, item.choices))
 		return self.keep
 	case helpItemGroupStart, helpItemGroupEnd, helpItemAnywhereStart, helpItemAnywhereStop:
 		self.keep = true
