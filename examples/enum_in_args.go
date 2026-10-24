@@ -33,9 +33,10 @@ func EnumInArgs() {
 
 	opt := cli.Long("baz").
 		Short('b').
-		Help("choose between foo, bar or foobar").Argument("CMD", parseBaz).
-		Parser().
-		ToOptions().Run(os.Args)
+		Help("choose between foo, bar or foobar").
+		Argument("CMD", parseBaz).
+		ToOptions().
+		Run(os.Args)
 
 	fmt.Println(opt)
 }

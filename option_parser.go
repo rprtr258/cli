@@ -151,7 +151,6 @@ func (self OptionParser[T]) CheckInvariants() {
 //
 //	parser := cli.Positional[string]("FILE", nil).
 //	    Help("File to process").
-//	    Parser().
 //	    ToOptions()
 //
 //	_, err := parser.RunE([]string{"prog", "--help"})
@@ -265,7 +264,7 @@ func (self OptionParser[T]) run_subparser(state *state) (T, parseFailure) {
 //
 // Used internally to avoid duplicating description for [command].
 func (self OptionParser[T]) short_descr() Opt[Doc] {
-	return self.info.descr.and_then(func(d Doc) Opt[Doc] {
+	return self.info.descr.FlatMap(func(d Doc) Opt[Doc] {
 		v, ok := d.first_line()
 		return Opt[Doc]{v, ok}
 	})
@@ -279,7 +278,6 @@ func (self OptionParser[T]) short_descr() Opt[Doc] {
 // # Usage
 //
 //	parser := cli.Short('s').Switch().
-//	    Parser().
 //	    ToOptions().
 //	    Version("0.5.0")
 //
@@ -302,7 +300,6 @@ func (self *OptionParser[T]) Version(version string) *OptionParser[T] {
 // # Usage
 //
 //	parser := cli.Short('s').Switch().
-//	    Parser().
 //	    ToOptions().
 //	    Description("This is a description").
 //	    Header("This is a header").
@@ -336,7 +333,6 @@ func (self *OptionParser[T]) Description(descr string) *OptionParser[T] {
 // # Usage
 //
 //	parser := cli.Short('s').Switch().
-//	    Parser().
 //	    ToOptions().
 //	    Description("This is a description").
 //	    Header("This is a Header").
@@ -370,7 +366,6 @@ func (self *OptionParser[T]) Header(header string) *OptionParser[T] {
 // # Usage
 //
 //	parser := cli.Short('s').Switch().
-//	    Parser().
 //	    ToOptions().
 //	    Description("This is a description").
 //	    Header("This is a header").
@@ -449,7 +444,6 @@ func (self *OptionParser[T]) VersionParser(parser NamedArg) *OptionParser[T] {
 // the help message.
 //
 //	parser := cli.Short('a').Switch().
-//	    Parser().
 //	    ToOptions().
 //	    FallbackToUsage()
 func (self *OptionParser[T]) FallbackToUsage() *OptionParser[T] {

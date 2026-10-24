@@ -1,4 +1,4 @@
-// `positional_derive.rs` - struct with named values that uses a positional argument.
+// `positional_derive.go` - struct with named values that uses a positional argument.
 package examples
 
 import (

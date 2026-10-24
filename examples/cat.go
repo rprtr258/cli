@@ -20,7 +20,6 @@ func Cat() {
 		file := cli.Parse(
 			cli.Positional("FILE", func(s string) (string, error) { return s, nil }).
 				Help("File name to concatenate, with no FILE or when FILE is -, read standard input").
-				Parser().
 				Optional(),
 			func(pathOpt cli.Opt[string]) (*os.File, error) {
 				path, ok := pathOpt.Unpack()
@@ -34,7 +33,6 @@ func Cat() {
 
 				return f, nil
 			}).
-			Parser().
 			ToOptions().
 			Description("Concatenate a file to standard output").
 			Run(os.Args)

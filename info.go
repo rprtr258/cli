@@ -43,11 +43,11 @@ func (self *info) clone() info {
 }
 
 func (self *info) mk_help_parser() Parser[struct{}] {
-	return ReqFlag(self.help_arg, struct{}{})
+	return self.help_arg.ReqFlag(struct{}{})
 }
 
 func (self *info) mk_version_parser() Parser[struct{}] {
-	return ReqFlag(self.version_arg, struct{}{})
+	return self.version_arg.ReqFlag(struct{}{})
 }
 
 type extraParams struct {

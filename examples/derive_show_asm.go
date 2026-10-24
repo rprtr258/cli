@@ -1,4 +1,4 @@
-// `derive_show_asm.rs` - parsing snippet from cargo-show-asm.
+// `derive_show_asm.go` - parsing snippet from cargo-show-asm.
 // Derive + typed fallback + external both with and without name.
 package examples
 
@@ -77,7 +77,6 @@ func asmParseManifestPath() cli.Parser[string] {
 		Help("Path to Cargo.toml").
 		Argument("PATH", cli.ParseString).
 		CompleteShell(cli.ShellCompFile(cli.Valid("*.toml"))).
-		Parser().
 		Map(func(p string) string {
 			if filepath.IsAbs(p) {
 				return p
@@ -95,8 +94,8 @@ func asmParseManifestPath() cli.Parser[string] {
 }
 
 func asmColorDetection() cli.Parser[bool] {
-	yes := cli.ReqFlag(cli.Long("color").Help("Enable color highlighting"), true)
-	no := cli.ReqFlag(cli.Long("no-color").Help("Disable color highlighting"), false)
+	yes := cli.Long("color").Help("Enable color highlighting").ReqFlag(true)
+	no := cli.Long("no-color").Help("Disable color highlighting").ReqFlag(false)
 	return cli.Choice(yes, no).FallbackWith(func() (bool, error) {
 		// we could call into a supports-color library here
 		return true, nil
@@ -119,43 +118,39 @@ func asmCompExamples(prefix string) iter.Seq2[string, cli.Opt[string]] {
 }
 
 func asmParseFocus() cli.Parser[asmFocus] {
-	lib := cli.ReqFlag(cli.Long("lib").Help("Show results from library code"), asmFocus{kind: asmFocusLib})
+	lib := cli.Long("lib").Help("Show results from library code").ReqFlag(asmFocus{kind: asmFocusLib})
 	test := cli.Long("test").
 		Help("Show results from a test").
 		Argument("TEST", cli.ParseString).
-		Parser().
 		Map(func(s string) asmFocus { return asmFocus{kind: asmFocusTest, arg: s} })
 	bench := cli.Long("bench").
 		Help("Show results from a benchmark").
 		Argument("BENCH", cli.ParseString).
-		Parser().
 		Map(func(s string) asmFocus { return asmFocus{kind: asmFocusBench, arg: s} })
 	example := cli.Long("example").
 		Help("Show results from an example").
 		Argument("EXAMPLE", cli.ParseString).
 		Complete(asmCompExamples).
-		Parser().
 		Map(func(s string) asmFocus { return asmFocus{kind: asmFocusExample, arg: s} })
 	bin := cli.Long("bin").
 		Help("Show results from a binary").
 		Argument("BIN", cli.ParseString).
-		Parser().
 		Map(func(s string) asmFocus { return asmFocus{kind: asmFocusBin, arg: s} })
 
 	return cli.Choice(lib, test, bench, example, bin)
 }
 
 func asmParseSyntax() cli.Parser[asmSyntax] {
-	intel := cli.ReqFlag(cli.Long("intel").Help("Generate assembly using Intel style"), asmSyntaxIntel)
-	att := cli.ReqFlag(cli.Long("att").Help("Generate assembly using AT&T style"), asmSyntaxAtt)
+	intel := cli.Long("intel").Help("Generate assembly using Intel style").ReqFlag(asmSyntaxIntel)
+	att := cli.Long("att").Help("Generate assembly using AT&T style").ReqFlag(asmSyntaxAtt)
 	return cli.Choice(intel, att).Fallback(asmSyntaxIntel)
 }
 
 func asmParseFormat() cli.Parser[asmFormat] {
 	return cli.Map3(
-		cli.Long("rust").Help("Print interleaved Rust code").Switch().Parser(),
+		cli.Long("rust").Help("Print interleaved Rust code").Switch(),
 		asmColorDetection(),
-		cli.Long("full-name").Help("include full demangled name instead of just prefix").Switch().Parser(),
+		cli.Long("full-name").Help("include full demangled name instead of just prefix").Switch(),
 		func(rust, color, fullName bool) asmFormat {
 			return asmFormat{rust: rust, color: color, fullName: fullName}
 		},
@@ -166,11 +161,9 @@ func asmParseSelectedFunction() cli.Parser[asmSelectedFunction] {
 	return cli.Map2(
 		cli.Positional("FUNCTION", cli.ParseString).
 			Help("Complete or partial function name to filter").
-			Parser().
 			Optional(),
 		cli.Positional("INDEX", cli.ParseUint).
 			Help("Select nth item from a filtered list").
-			Parser().
 			Fallback(0),
 		func(function cli.Opt[string], nth uint) asmSelectedFunction {
 			return asmSelectedFunction{function: function, nth: nth}
@@ -187,10 +180,10 @@ type asmFlags struct {
 
 func asmParseFlags() cli.Parser[asmFlags] {
 	return cli.Map4(
-		cli.Long("dry").Help("Produce a build plan instead of actually building").Switch().Parser(),
-		cli.Long("frozen").Help("Requires Cargo.lock and cache are up to date").Switch().Parser(),
-		cli.Long("locked").Help("Requires Cargo.lock is up to date").Switch().Parser(),
-		cli.Long("offline").Help("Run without accessing the network").Switch().Parser(),
+		cli.Long("dry").Help("Produce a build plan instead of actually building").Switch(),
+		cli.Long("frozen").Help("Requires Cargo.lock and cache are up to date").Switch(),
+		cli.Long("locked").Help("Requires Cargo.lock is up to date").Switch(),
+		cli.Long("offline").Help("Run without accessing the network").Switch(),
 		func(dry, frozen, locked, offline bool) asmFlags {
 			return asmFlags{dry: dry, frozen: frozen, locked: locked, offline: offline}
 		},
@@ -214,13 +207,11 @@ func DeriveShowAsm() {
 	targetDir := cli.Long("target-dir").
 		Help("Custom target directory for generated artifacts").
 		Argument("DIR", cli.ParseString).
-		Parser().
 		Optional()
 	// Package to use if ambigous
 	pkg := cli.Short('p').Long("package").
 		Help("Package to use if ambigous").
 		Argument("SPEC", cli.ParseString).
-		Parser().
 		Optional()
 
 	head := cli.Map3(
@@ -235,7 +226,7 @@ func DeriveShowAsm() {
 			return asmMid{flags: flags, format: format, syntax: syntax}
 		},
 	)
-	tail := cli.Pair(asmParseFocus().Parser().Optional(), asmParseSelectedFunction()).Parser()
+	tail := cli.Pair(asmParseFocus().Optional(), asmParseSelectedFunction())
 
 	opts := cli.Map3(
 		head, mid, tail,
@@ -255,7 +246,6 @@ func DeriveShowAsm() {
 			}
 		},
 	).
-		Parser().
 		ToOptions().
 		Run(os.Args)
 

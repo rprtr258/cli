@@ -48,7 +48,7 @@ func flagParser[T any](present T, absent Opt[T], named NamedArg) Parser[T] {
 //
 // More generic version of [NamedArg.Switch] that can use arbitrary type instead of
 // [bool].
-func Flag[T any](self NamedArg, present, absent T) Parser[T] {
+func (self NamedArg) Flag[T any](present, absent T) Parser[T] {
 	return flagParser(present, Valid(absent), self)
 }
 
@@ -57,6 +57,6 @@ func Flag[T any](self NamedArg, present, absent T) Parser[T] {
 // Similar to [Flag] takes no Opt arguments, but would only
 // succeed if user specifies its name on a command line.
 // Works best in combination with other parsers.
-func ReqFlag[T any](self NamedArg, present T) Parser[T] {
+func (self NamedArg) ReqFlag[T any](present T) Parser[T] {
 	return flagParser(present, Invalid[T](), self)
 }

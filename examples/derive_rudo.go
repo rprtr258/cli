@@ -1,5 +1,5 @@
-// `derive_rudo.rs` - parser inspired by
-// https://github.com/hood/rudo/blob/e448942b752c56dd2be2e2bb5026ced45e215ed5/src/main.rs
+// `derive_rudo.go` - parser inspired by
+// https://github.com/hood/rudo/blob/master/src/main.rs
 package examples
 
 import (
@@ -26,7 +26,6 @@ type rudoAction struct {
 
 func rudoCommand(p cli.Parser[rudoAction], name, help string) cli.Parser[rudoAction] {
 	return p.
-		Parser().
 		ToOptions().
 		Command(name).
 		Help(help).

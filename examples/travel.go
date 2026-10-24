@@ -12,56 +12,63 @@ import (
 	"github.com/rprtr258/cli"
 )
 
+type Segment func(
+	Time func(float64),
+	SpeedDistance func(speed, dist float64),
+)
+
+func segmentTime(x float64) Segment {
+	return func(f func(float64), _ func(_, _ float64)) {
+		if f != nil {
+			f(x)
+		}
+	}
+}
+
+func segmentSpeedDistance(speed, dist float64) Segment {
+	return func(_ func(float64), f func(speed, dist float64)) {
+		if f != nil {
+			f(speed, dist)
+		}
+	}
+}
+
 func Travel() {
-	type Segment func(
-		Time func(float64),
-		SpeedDistance func(speed, dist float64),
-	)
-
-	SegmentTime := func(x float64) Segment {
-		return func(f func(float64), _ func(_, _ float64)) {
-			if f != nil {
-				f(x)
-			}
-		}
-	}
-	SegmentSpeedDistance := func(speed, dist float64) Segment {
-		return func(_ func(float64), f func(speed, dist float64)) {
-			if f != nil {
-				f(speed, dist)
-			}
-		}
-	}
-
 	// Suppose we want to calcualte a total time of a travel, where parts of
 	// a travel can be given either as pairs of speed and distance or just by time.
 	// Speed can be given by KPH or MPH. Distance - either miles or km.
 
 	// parsers for speeds. Both speeds are converted to the same units
 	mph := cli.Long("mph").
-		Help("speed in MPH").Argument("SPEED", cli.ParseFloat).
+		Help("speed in MPH").
+		Argument("SPEED", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
-	kph := cli.Long("kph").Help("Speed in KPH").Argument("SPEED", cli.ParseFloat)
+	kph := cli.Long("kph").
+		Help("Speed in KPH").
+		Argument("SPEED", cli.ParseFloat)
 
 	// speed is either kph or mph, conversion to mph is handled by the parser
 	speed := cli.Choice(mph, kph)
 
 	// parsers for distances, both are converted to the same units
-	km := cli.Long("km").Help("Distance in KM").Argument("KMs", cli.ParseFloat)
+	km := cli.Long("km").
+		Help("Distance in KM").
+		Argument("KMs", cli.ParseFloat)
 	mi := cli.Long("mi").
-		Help("distance in miles").Argument("MILES", cli.ParseFloat).
+		Help("distance in miles").
+		Argument("MILES", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
 	dist := cli.Choice(mi, km)
 
 	// time, presumably in seconds
-	time := cli.Long("time").
-		Help("Travel time in hours").Argument("TIME", cli.ParseFloat)
-
-	// parsed time is trivially converted to time segment
-	segment_time := time.Map(SegmentTime)
+	segment_time := cli.Long("time").
+		Help("Travel time in hours").
+		Argument("TIME", cli.ParseFloat).
+		// parsed time is trivially converted to time segment
+		Map(segmentTime)
 
 	// parsed speed/distance is packed into SpeedDistance segment
-	segment_speed := cli.Map2(speed, dist, SegmentSpeedDistance)
+	segment_speed := cli.Map2(speed, dist, segmentSpeedDistance)
 
 	// segment can be either of two defined
 	segment := cli.Choice(segment_speed, segment_time)
@@ -71,19 +78,19 @@ func Travel() {
 		Guard(func(x []Segment) bool { return len(x) > 0 }, "need at least one segment").
 		Guard(func(x []Segment) bool { return len(x) < 10 }, "for more than 9 segments you need to purchase a premium subscription")
 
-	descr := "Accepts one or more travel segments"
-	header := `You need to specify one or more travel segments, segment is defined by
+	opt := parser.
+		ToOptions().
+		Description("Accepts one or more travel segments").
+		Header(`You need to specify one or more travel segments, segment is defined by
 a pair of speed and distance or by time.
 
 This example defines two separate travel segments, one given by speed/distance combo and one by time
-    travel --km 180 --kph 35 --time`
-	decorated := parser.ToOptions().Description(descr).Header(header)
-
-	// help message tries to explain what's needed:
-	// either --time OR one speed and one distance, both can be given in miles or km.
-	// number of speed flags must correspond to number of distance flags, more or
-	// less results in parser error messages
-	opt := decorated.Run(os.Args)
+    travel --km 180 --kph 35 --time`).
+		// help message tries to explain what's needed:
+		// either --time OR one speed and one distance, both can be given in miles or km.
+		// number of speed flags must correspond to number of distance flags, more or
+		// less results in parser error messages
+		Run(os.Args)
 
 	fmt.Println(opt)
 }

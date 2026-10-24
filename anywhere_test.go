@@ -27,7 +27,7 @@ Available options:
 }
 
 func TestParse_anywhere_no_catch(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("X", ParseUint)
 	ab := Pair(a, b).Adjacent()
 	c := Short('c').Switch()
@@ -45,7 +45,7 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 }
 
 func TestAnywhere_catch_optional(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().OptionalCatch()
 	bc := Short('a').Switch()
@@ -59,7 +59,7 @@ func TestAnywhere_catch_optional(t *testing.T) {
 }
 
 func TestAnywhere_catch_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().ManyCatch()
 	bc := Short('a').Switch()
@@ -75,7 +75,7 @@ func TestAnywhere_catch_many(t *testing.T) {
 func TestAnywhere_catch_fallback(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[P, bool]
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("x", ParseUint)
 	ab := Pair(a, b).Adjacent().Fallback(P{struct{}{}, 10})
 	bc := Short('a').Switch()
@@ -87,7 +87,7 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 }
 
 func TestParse_anywhere_catch_optional(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Positional("x", ParseUint)
 
 	// optional + catch makes it so parser succeeds without consuming anything

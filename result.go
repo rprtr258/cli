@@ -87,25 +87,18 @@ func (o Opt[T]) OrDefault(value T) T {
 	return fun.IF(o.Valid, o.Value, value)
 }
 
-func (o Opt[T]) and_then(f func(T) Opt[T]) Opt[T] {
-	if !o.Valid {
-		return Invalid[T]()
-	}
-	return f(o.Value)
-}
-
-func optMap[I, O any](o Opt[I], f func(I) O) Opt[O] {
+func (o Opt[I]) Map[O any](f func(I) O) Opt[O] {
 	if !o.Valid {
 		return Invalid[O]()
 	}
 	return Valid(f(o.Value))
 }
 
-func map_or[I, O any](o Opt[I], defVal O, f func(I) O) O {
-	return optMap(o, f).OrDefault(defVal)
+func (o Opt[I]) MapOr[O any](defVal O, f func(I) O) O {
+	return o.Map(f).OrDefault(defVal)
 }
 
-func optFlatMap[I, O any](o Opt[I], f func(I) Opt[O]) Opt[O] {
+func (o Opt[I]) FlatMap[O any](f func(I) Opt[O]) Opt[O] {
 	if !o.Valid {
 		return Invalid[O]()
 	}

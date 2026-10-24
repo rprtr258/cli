@@ -123,8 +123,8 @@ type Out struct {
 |-|-|-|
 | `Short('f')` / `Long("flag")` / `Env("VAR")` | - | `NamedArg` to build on |
 | `NamedArg.Switch` | `-f` / `--flag` | `Parser[bool]` |
-| `Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
-| `ReqFlag` | `-f` (required) | `Parser[T]` |
+| `NamedArg.Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
+| `NamedArg.ReqFlag` | `-f` (required) | `Parser[T]` |
 | `NamedArg.Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
 | `Positional` | a free-standing value | `Parser[T]` |
 | `Any` | any unconsumed item | `Parser[T]` |

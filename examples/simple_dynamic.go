@@ -1,4 +1,4 @@
-// `simple_dynamic.rs` - simple dynamic completion example.
+// `simple_dynamic.go` - simple dynamic completion example.
 package examples
 
 import (
@@ -55,8 +55,7 @@ func SimpleDynamic() {
 	name := cli.Long("crate").
 		Help("Select crate for analysis").
 		Argument("NAME", cli.ParseString).
-		Complete(simpleDynamicCrates).
-		Parser()
+		Complete(simpleDynamicCrates)
 
 	// Include dependencies into report
 	dependencies := cli.Long("dependencies").
@@ -64,25 +63,19 @@ func SimpleDynamic() {
 
 	// Format for generated report, fallbacks to plaintext
 	format := cli.Choice(
-		cli.ReqFlag(cli.Long("json").Help("Generate report in JSON format"), simpleDynamicFormatJson),
-		cli.ReqFlag(cli.Long("xml").Help("Generate report in XML format"), simpleDynamicFormatXml),
+		cli.Long("json").Help("Generate report in JSON format").ReqFlag(simpleDynamicFormatJson),
+		cli.Long("xml").Help("Generate report in XML format").ReqFlag(simpleDynamicFormatXml),
 	).Fallback(simpleDynamicFormatText)
 
 	// Upload report to a url
 	upload := cli.Positional("URL", cli.ParseString).
 		Help("Upload report to a url").
-		Parser().
 		Optional()
 
 	opts := cli.Map4(
 		name, dependencies, format, upload,
 		func(name string, dependencies bool, format simpleDynamicFormat, upload cli.Opt[string]) simpleDynamicOptions {
-			return simpleDynamicOptions{
-				name:         name,
-				dependencies: dependencies,
-				format:       format,
-				upload:       upload,
-			}
+			return simpleDynamicOptions{name, dependencies, format, upload}
 		},
 	).ToOptions()
 

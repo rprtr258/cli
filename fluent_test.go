@@ -49,7 +49,7 @@ func TestFluentChaining(t *testing.T) {
 // Count/Some return parsers usable directly in combinators.
 func TestFluentCountSome(t *testing.T) {
 	parser := Pair(
-		ReqFlag[struct{}](Short('c'), struct{}{}).Count(),
+		Short('c').ReqFlag[struct{}](struct{}{}).Count(),
 		Positional[uint32]("N", parseUint32).Parser().Some("want N"),
 	).ToOptions()
 

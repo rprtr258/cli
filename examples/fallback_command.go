@@ -1,5 +1,4 @@
-// `fallback_command.rs` - parse some commands manually or collect anything else as
-// for manual parsing.
+// `fallback_command.go` - parse some commands manually or collect anything else as for manual parsing.
 package examples
 
 import (
@@ -7,7 +6,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 type fallbackCommandKind uint8
@@ -30,18 +28,14 @@ func FallbackCommand() {
 		Map(func(opt uint) fallbackCommand {
 			return fallbackCommand{kind: fallbackCommandBuild, opt: opt}
 		}).
-		Parser().
 		ToOptions().
-		Command("build").
-		Parser()
+		Command("build")
 
-	fallback := cli.Pair(
-		cli.Positional("COMMAND", cli.ParseString).Parser(),
-		cli.Any("ARG", func(s string) (string, bool) { return s, true }, false).Parser().Many(),
-	).
-		Parser().
-		Map(func(p fun.Pair[string, []string]) fallbackCommand {
-			return fallbackCommand{kind: fallbackCommandFallback, name: p.K, args: p.V}
+	fallback := cli.Map2(
+		cli.Positional("COMMAND", cli.ParseString),
+		cli.Any("ARG", func(s string) (string, bool) { return s, true }, false).Many(),
+		func(name string, args []string) fallbackCommand {
+			return fallbackCommand{kind: fallbackCommandFallback, name: name, args: args}
 		}).
 		Hide()
 

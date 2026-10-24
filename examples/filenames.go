@@ -12,7 +12,6 @@ import (
 
 func Filenames() {
 	parser := cli.Positional("FILE", cli.ParseString).
-		Parser().
 		CompleteShell(cli.ShellCompFile(cli.Valid("*.(md|toml)"))).
 		Many()
 

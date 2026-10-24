@@ -32,8 +32,7 @@ func ParseString(s string) (string, error) {
 	return s, nil
 }
 
-// ParseInt parses a signed base-10 integer, for use with [NamedArg.Argument] and
-// [Positional].
+// ParseInt parses a signed base-10 integer, for use with [NamedArg.Argument] and [Positional].
 func ParseInt(s string) (int, error) {
 	x, err := strconv.Atoi(s)
 	if err != nil {
@@ -42,8 +41,16 @@ func ParseInt(s string) (int, error) {
 	return x, nil
 }
 
-// ParseUint parses an unsigned base-10 integer, for use with [NamedArg.Argument] and
-// [Positional].
+// ParseInt64 parses a signed base-10 integer, for use with [NamedArg.Argument] and [Positional].
+func ParseInt64(s string) (int64, error) {
+	x, err := strconv.ParseInt(s, 10, 64)
+	if err != nil {
+		return 0, unwrapNumError(err)
+	}
+	return x, nil
+}
+
+// ParseUint parses an unsigned base-10 integer, for use with [NamedArg.Argument] and [Positional].
 func ParseUint(s string) (uint, error) {
 	x, err := strconv.ParseUint(s, 10, 0)
 	if err != nil {
@@ -52,8 +59,25 @@ func ParseUint(s string) (uint, error) {
 	return uint(x), nil
 }
 
-// ParseFloat parses a base-10 floating point number, for use with [NamedArg.Argument]
-// and [Positional].
+// ParseUint32 parses an unsigned base-10 integer, for use with [NamedArg.Argument] and [Positional].
+func ParseUint32(s string) (uint32, error) {
+	x, err := strconv.ParseUint(s, 10, 32)
+	if err != nil {
+		return 0, unwrapNumError(err)
+	}
+	return uint32(x), nil
+}
+
+// ParseUint64 parses an unsigned base-10 integer, for use with [NamedArg.Argument] and [Positional].
+func ParseUint64(s string) (uint64, error) {
+	x, err := strconv.ParseUint(s, 10, 64)
+	if err != nil {
+		return 0, unwrapNumError(err)
+	}
+	return x, nil
+}
+
+// ParseFloat parses a base-10 floating point number, for use with [NamedArg.Argument] and [Positional].
 func ParseFloat(s string) (float64, error) {
 	x, err := strconv.ParseFloat(s, 64)
 	if err != nil {

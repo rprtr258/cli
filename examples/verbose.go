@@ -25,20 +25,22 @@ func Verbose() {
 
 	// Let's staty by creating a simple parser that handles a single -v / --verbose
 	// and fails otherwise;
-	verbose := cli.ReqFlag(cli.Short('v').Long("verbose"), struct{}{}).
-		Parser().Count(). // Try to apply the inner parser as many times as it succeeds, return the number
+	verbose := cli.Short('v').
+		Long("verbose").
+		ReqFlag(struct{}{}).
+		Count(). // Try to apply the inner parser as many times as it succeeds, return the number
 		// And add a simple sanity checker.
 		// By this time when this parser succeeds - it will contain verbosity in 0..3 range, inclusive.
-		Parser().Guard(func(x int) bool { return x <= 3 }, "it doesn't get any more verbose than 3")
+		Guard(func(x int) bool { return x <= 3 }, "it doesn't get any more verbose than 3")
 
 	// program takes --trimor --no-trimflag, but not both at once. If none is given -
 	// fallback value is to disable trimming. Trim enum is set accordingly
 
 	// this flag succeeds iff --no-trim is given and produces Trim::Off
-	trim_off := cli.ReqFlag(cli.Long("no-trim"), TrimOff)
+	trim_off := cli.Long("no-trim").ReqFlag(TrimOff)
 
 	// this flag handles two remaining cases: --trim is given (Trim::On) an fallback (Trim::Off)
-	trim_on := cli.Flag(cli.Long("trim"), TrimOn, TrimOff)
+	trim_on := cli.Long("trim").Flag(TrimOn, TrimOff)
 
 	// combination of previous two.
 	// if trim_off succeeds - trim_on never runs, otherwise trim_on tries to handle the remaining
@@ -47,8 +49,6 @@ func Verbose() {
 	// remains unused - parser fails
 	trim := cli.Choice(trim_off, trim_on)
 
-	parser := cli.Pair(verbose, trim)
-
-	opt := parser.ToOptions().Run(os.Args)
+	opt := cli.Pair(verbose, trim).ToOptions().Run(os.Args)
 	fmt.Println(opt)
 }

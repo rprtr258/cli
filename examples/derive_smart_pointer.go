@@ -1,4 +1,4 @@
-// `derive-smart-pointer.rs` - with minimal changes you can parse directly into
+// `derive-smart-pointer.go` - with minimal changes you can parse directly into
 // smart pointers.
 //
 // While the parser knows nothing about Box or Arc it lets you parse into them by
@@ -26,19 +26,16 @@ func DeriveSmartPointer() {
 	name := cli.Long("name").
 		Help("Adventurer's name").
 		Argument("NAME", cli.ParseString).
-		Parser().
 		Map(func(s string) *string { return &s })
 
 	coins := cli.Positional("COIN", cli.ParseUint).
 		Help("A set of coins").
-		Parser().
 		Many().
 		Map(func(xs []uint) *[]uint { return &xs })
 
 	opts := cli.Map2(name, coins, func(name *string, coins *[]uint) smartPointerOptions {
 		return smartPointerOptions{name: name, coins: coins}
 	}).
-		Parser().
 		ToOptions().
 		FallbackToUsage().
 		Run(os.Args)

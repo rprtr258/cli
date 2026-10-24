@@ -1,4 +1,4 @@
-// `shared_args.rs` - it is possible to have shared args returned alongside a subcommand.
+// `shared_args.go` - it is possible to have shared args returned alongside a subcommand.
 package examples
 
 import (
@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/rprtr258/cli"
-	"github.com/rprtr258/fun"
 )
 
 type sharedAction struct {
@@ -33,40 +32,33 @@ type sharedResult struct {
 }
 
 func SharedArgs() {
-	shared := cli.Positional("ARG", cli.ParseString).Parser().Many()
+	shared := cli.Positional("ARG", cli.ParseString).Many()
 
-	action := cli.Pair(
+	action := cli.Map2(
 		cli.Map2(
 			cli.Long("verbose").Switch(),
-			cli.Long("number").Help("Number of things").Argument("NUM", cli.ParseUint).Parser(),
+			cli.Long("number").Help("Number of things").Argument("NUM", cli.ParseUint),
 			func(verbose bool, number uint) sharedCommand {
 				return sharedCommand{kind: sharedCommandAction, action: sharedAction{verbose: verbose, number: number}}
 			},
-		).Parser(),
+		),
 		shared,
-	).
-		Parser().
-		Map(func(p fun.Pair[sharedCommand, []string]) sharedResult {
-			return sharedResult{command: p.K, args: p.V}
+		func(command sharedCommand, args []string) sharedResult {
+			return sharedResult{command, args}
 		}).
 		ToOptions().
-		Command("action").
-		Parser()
+		Command("action")
 
-	build := cli.Pair(
-		cli.Long("verbose").Switch().
-			Map(func(verbose bool) sharedCommand {
-				return sharedCommand{kind: sharedCommandBuild, buildVerbose: verbose}
-			}).Parser(),
+	build := cli.Map2(
+		cli.Long("verbose").Switch().Map(func(verbose bool) sharedCommand {
+			return sharedCommand{kind: sharedCommandBuild, buildVerbose: verbose}
+		}),
 		shared,
-	).
-		Parser().
-		Map(func(p fun.Pair[sharedCommand, []string]) sharedResult {
-			return sharedResult{command: p.K, args: p.V}
+		func(command sharedCommand, args []string) sharedResult {
+			return sharedResult{command, args}
 		}).
 		ToOptions().
-		Command("build").
-		Parser()
+		Command("build")
 
 	opts := cli.Choice(action, build).ToOptions().Run(os.Args)
 	fmt.Println(opts)

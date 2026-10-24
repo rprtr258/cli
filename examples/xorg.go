@@ -33,13 +33,17 @@ func Xorg() {
 	}
 
 	// matches literal +ext and -ext followed by extension name
-	extension := cli.Pair(cli.Any("(+|-)ext", func(s string) (bool, bool) {
-		return s == "+ext", s == "-ext" || s == "+ext"
-	}, true), cli.Positional("EXT", func(s string) (string, error) { return s, nil }).
-		Help("Extension to enable or disable, see documentation for the full list")).Adjacent().
+	extension := cli.Pair(
+		cli.Any("(+|-)ext", func(s string) (bool, bool) {
+			return s == "+ext", s == "-ext" || s == "+ext"
+		}, true),
+		cli.Positional("EXT", func(s string) (string, error) { return s, nil }).
+			Help("Extension to enable or disable, see documentation for the full list")).
+		Adjacent().
 		Map(func(ab fun.Pair[bool, string]) fun.Pair[string, bool] {
 			return fun.Pair[string, bool]{K: ab.V, V: ab.K}
-		})
+		}).
+		Many()
 
 	options := cli.Map4(
 		cli.Short('t').
@@ -48,11 +52,13 @@ func Xorg() {
 			Switch(),
 		toggleOptions("(+|-)backing", "backing", "Set backing status").Fallback(false),
 		toggleOptions("(+|-)xinerama", "xinerama", "Set Xinerama status").Fallback(true),
-		extension.Many(),
+		extension,
 		func(turbo bool, backing bool, xinerama bool, extensions []fun.Pair[string, bool]) Options {
 			return Options{turbo, backing, xinerama, extensions}
 		},
-	)
+	).
+		ToOptions().
+		Run(os.Args)
 
-	fmt.Println(options.ToOptions().Run(os.Args))
+	fmt.Println(options)
 }

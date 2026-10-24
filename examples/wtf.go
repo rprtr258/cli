@@ -1,114 +1,124 @@
+// wtf.go - a kitchen-sink example ported from the old struct-based API:
+// top-level subcommands with a nested `docker image` command tree, command
+// aliases, switches, required and optional arguments, repeated arguments,
+// default values, and a custom-parsed type.
 package examples
 
-// import (
-// 	"context"
-// 	"fmt"
-// 	"os"
+import (
+	"fmt"
+	"os"
 
-// 	"github.com/kr/pretty"
+	"github.com/rprtr258/cli"
+)
 
-// 	"github.com/rprtr258/cli"
-// 	"github.com/rprtr258/cli/flags"
-// )
+// wtfPoint is a custom type parsed from an "x,y" argument, mirroring the
+// MarshalFlag/UnmarshalFlag pair of the original struct-based example.
+type wtfPoint struct {
+	x, y int
+}
 
-// type EditorOptions struct {
-// 	Input  flags.Filename `short:"i" long:"input" description:"Input file" default:"-"`
-// 	Output flags.Filename `short:"o" long:"output" description:"Output file" default:"-"`
-// }
+func wtfParsePoint(s string) (wtfPoint, error) {
+	var p wtfPoint
+	if _, err := fmt.Sscanf(s, "%d,%d", &p.x, &p.y); err != nil {
+		return wtfPoint{}, fmt.Errorf(`expected two numbers separated by a comma, e.g. "10,20", but got %s`, s)
+	}
 
-// type Point struct {
-// 	X, Y int
-// }
+	return p, nil
+}
 
-// func (p *Point) UnmarshalFlag(value string) error {
-// 	if _, err := fmt.Sscanf(value, "%d,%d", &p.X, &p.Y); err != nil {
-// 		return fmt.Errorf(`expected two numbers separated by a comma, e.g. "10,20", but got %s`, value)
-// 	}
+// wtfExampleExtra groups the non-boolean options of the example command, so
+// they and the positionals fit into the Map3/Map6 combinators.
+type wtfExampleExtra struct {
+	num  cli.Opt[int]
+	strs []string
+	file string
+}
 
-// 	return nil
-// }
+func Wtf() {
+	// $ app add [-a] FILE...
+	add := cli.Map2(
+		cli.Short('a').Long("all").Help("Add all files").Switch(),
+		cli.Positional("FILE", cli.ParseString).Many(),
+		func(all bool, files []string) string {
+			return fmt.Sprintf("Adding (all=%v): %#v", all, files)
+		},
+	).
+		ToOptions().
+		Description("Add a file").
+		Command("add")
 
-// func (p Point) MarshalFlag() (string, error) {
-// 	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
-// }
+	// $ app rm [-f] FILE...
+	rm := cli.Map2(
+		cli.Short('f').Long("force").Help("Force removal of files").Switch(),
+		cli.Positional("FILE", cli.ParseString).Many(),
+		func(force bool, files []string) string {
+			return fmt.Sprintf("Removing (force=%v): %#v", force, files)
+		},
+	).
+		ToOptions().
+		Description("Remove a file").
+		Command("rm")
 
-// type cmdAdd struct {
-// 	All  bool     `short:"a" long:"all" description:"Add all files"`
-// 	argList []string `positional-args:"yes"`
-// }
+	// $ app example -n NAME [flags] FILE...
+	// exercises every kind of named option: a switch, an argument with a
+	// default, a required argument, an optional argument, a repeated
+	// argument, and an argument of a custom-parsed type
+	extra := cli.Map3(
+		cli.Short('p').
+			Help("A pointer to an integer").
+			Argument("NUM", cli.ParseInt).
+			Optional(),
+		cli.Short('s').
+			Help("A slice of strings").
+			Argument("STR", cli.ParseString).
+			Many(),
+		cli.Short('f').Long("file").Help("A file").Argument("FILE", cli.ParseString).FallbackDisplay("-"),
+		func(num cli.Opt[int], strs []string, file string) wtfExampleExtra {
+			return wtfExampleExtra{num: num, strs: strs, file: file}
+		},
+	)
+	example := cli.Map6(
+		cli.Short('v').Long("verbose").Help("Show verbose debug information").Switch(),
+		cli.Long("offset").Help("Offset").Argument("OFFSET", cli.ParseUint).FallbackDisplay(0),
+		cli.Short('n').Long("name").Help("A name").Argument("NAME", cli.ParseString),
+		cli.Long("point").Help("A x,y point").Argument("POINT", wtfParsePoint).FallbackDisplay(wtfPoint{1, 2}),
+		extra,
+		cli.Positional("FILE", cli.ParseString).Many(),
+		func(verbose bool, offset uint, name string, p wtfPoint, extra wtfExampleExtra, files []string) string {
+			return fmt.Sprintf("Example(verbose=%v, offset=%d, name=%q, point=%d,%d, file=%q, num=%v, strs=%#v, files=%#v)",
+				verbose, offset, name, p.x, p.y, extra.file, extra.num, extra.strs, files)
+		},
+	).
+		ToOptions().
+		Description("Command example with various flag types").
+		Command("example")
 
-// func (x cmdAdd) Execute(context.Context) error {
-// 	fmt.Printf("Adding (all=%v): %#v\n", x.All, x.argList)
-// 	return nil
-// }
+	// $ app docker image list [-v] [-o FORMAT] NAME...
+	// nested commands with a hidden long alias `ls` for the list command
+	list := cli.Map3(
+		cli.Short('v').Long("verbose").Help("Verbose output").Switch(),
+		cli.Short('o').Long("output").Help("Output format").Argument("FORMAT", cli.ParseString).FallbackDisplay("json"),
+		cli.Positional("NAME", cli.ParseString).Many(),
+		func(verbose bool, output string, names []string) string {
+			return fmt.Sprintf("Listing images (verbose=%v, output=%s): %#v", verbose, output, names)
+		},
+	).
+		ToOptions().
+		Description("List images").
+		Command("list").
+		Long("ls")
+	image := list.
+		ToOptions().
+		Description("Manage images").
+		Command("image")
+	docker := image.
+		ToOptions().
+		Description("Manage Docker").
+		Command("docker")
 
-// type cmdRm struct {
-// 	Force bool     `short:"f" long:"force" description:"Force removal of files"`
-// 	argList  []string `positional-args:"yes"`
-// }
-
-// func (x cmdRm) Execute(context.Context) error {
-// 	fmt.Printf("Removing (force=%v): %#v\n", x.Force, x.argList)
-// 	return nil
-// }
-
-// type cmdExample struct {
-// 	Verbose     bool           `short:"v" long:"verbose" description:"Show verbose debug information"`
-// 	Offset      uint           `long:"offset" description:"Offset"`
-// 	Name        string         `short:"n" long:"name" description:"A name" required:"true"`
-// 	Ptr         *int           `short:"p" description:"A pointer to an integer"`
-// 	StringSlice []string       `short:"s" description:"A slice of strings"`
-// 	PtrSlice    []*string      `long:"ptrslice" description:"A slice of pointers to string"`
-// 	IntMap      map[string]int `long:"intmap" description:"A map from string to int"`
-// 	File        string         `short:"f" long:"file" description:"A file" value-name:"FILE"`
-// 	Filename    flags.Filename `long:"filename" description:"A filename"`
-// 	argList        []string       `positional-args:"yes"`
-// }
-
-// func (x cmdExample) Execute(context.Context) error {
-// 	pretty.Println(x)
-// 	return nil
-// }
-
-// type cmdImageList struct {
-// 	Verbose bool     `short:"v" long:"verbose" description:"Verbose output"`
-// 	Output  string   `short:"o" long:"output" description:"Output format" default:"json"`
-// 	Names   []string `positional-args:"yes" description:"Names of images to list"`
-// }
-
-// func (x cmdImageList) Execute(context.Context) error {
-// 	return nil
-// }
-
-// type cmdImage struct {
-// 	List cmdImageList `command:"list" alias:"ls" description:"List images"`
-// }
-
-// type cmdDocker struct {
-// 	Image cmdImage `command:"image" description:"Manage images"`
-// }
-
-// type cmdRoot struct {
-// 	// Example of verbosity with level
-// 	// Verbose []bool `short:"v" long:"verbose" description:"Verbose output"`
-// 	// Example of optional value
-// 	// User string `short:"u" long:"user" description:"User name" optional:"yes" optional-value:"pancake"`
-// 	// Example of map with multiple default values
-// 	// Users map[string]string `long:"users" description:"User e-mail map" default:"system:system@example.org" default:"admin:admin@example.org"`
-// 	// Example of optional group
-// 	// EditorOptions
-// 	// Example of custom type Marshal/Unmarshal
-// 	// Point Point `long:"point" description:"A x,y point" default:"1,2"`
-
-// 	Add     cmdAdd     `command:"add" description:"Add a file" long-description:"The add command adds a file to the repository. Use -a to add all files."`
-// 	Rm      cmdRm      `command:"rm" description:"Remove a file" long-description:"The rm command removes a file to the repository. Use -f to force removal of files."`
-// 	Example cmdExample `command:"example" description:"Command example with various flag types"`
-// 	Docker  cmdDocker  `command:"docker" description:"Manage Docker"`
-// }
-
-// func Main() {
-// 	if err := cli.Run[cmdRoot](context.Background(), os.Args...); err != nil {
-// 		fmt.Fprintln(os.Stderr, err.Error())
-// 		os.Exit(1)
-// 	}
-// }
+	opts := cli.Choice(add, rm, example, docker).
+		ToOptions().
+		Description("A kitchen-sink example").
+		Run(os.Args)
+	fmt.Println(opts)
+}

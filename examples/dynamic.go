@@ -1,4 +1,4 @@
-// `dynamic.rs` - you can construct a parser at runtime without having a concrete type too.
+// `dynamic.go` - you can construct a parser at runtime without having a concrete type too.
 package examples
 
 import (
@@ -33,7 +33,6 @@ func Dynamic() {
 	number := func(name string) cli.Parser[dynamicItem] {
 		return cli.Long(name).
 			Argument("NUM", cli.ParseInt).
-			Parser().
 			Map(func(n int) dynamicItem {
 				return dynamicItem{name, dynamicValue{kind: dynamicValueNumber, number: n}}
 			})
@@ -49,7 +48,6 @@ func Dynamic() {
 		return cli.Long(name).
 			Help("this can use a help message").
 			Argument("NUM", cli.ParseString).
-			Parser().
 			Map(func(s string) dynamicItem {
 				return dynamicItem{name, dynamicValue{kind: dynamicValueString, str: s}}
 			})
@@ -77,7 +75,7 @@ func Dynamic() {
 			cur = str(it.name)
 		}
 
-		acc = cli.Pair(acc, cur).Parser().Map(
+		acc = cli.Pair(acc, cur).Map(
 			func(p fun.Pair[[]dynamicItem, dynamicItem]) []dynamicItem {
 				return append(p.K, p.V)
 			},

@@ -1,4 +1,4 @@
-// `derive_commands.rs` - snippet from cargo-hackerman crate, shows how to parse
+// `derive_commands.go` - snippet from cargo-hackerman crate, shows how to parse
 // commands and conditional skip for options.
 //
 // Command explain takes 3 parameters: required crate name and optional feature and
@@ -40,7 +40,6 @@ func deriveCommandsFeatureIf() cli.Parser[cli.Opt[string]] {
 	return cli.Positional("FEATURE", cli.ParseString).
 		// guard restricts it such that it can't be a valid version
 		Guard(func(s string) bool { return !deriveCommandsIsVersion(s) }, "").
-		Parser().
 		// OptionalCatch allows the parser to represent an ignored value with None
 		// and to handle parse failures coming from guard
 		OptionalCatch()
@@ -49,23 +48,20 @@ func deriveCommandsFeatureIf() cli.Parser[cli.Opt[string]] {
 func deriveCommandsVersionIf() cli.Parser[cli.Opt[string]] {
 	return cli.Positional("VERSION", cli.ParseString).
 		Guard(deriveCommandsIsVersion, "").
-		Parser().
 		OptionalCatch()
 }
 
 func DeriveCommands() {
 	explain := cli.Map3(
-		cli.Positional("CRATE", cli.ParseString).Parser(),
+		cli.Positional("CRATE", cli.ParseString),
 		deriveCommandsFeatureIf(),
 		deriveCommandsVersionIf(),
 		func(krate string, feature, version cli.Opt[string]) deriveCommandsExplain {
 			return deriveCommandsExplain{krate: krate, feature: feature, version: version}
 		},
 	).
-		Parser().
 		ToOptions().
-		Command("explain").
-		Parser()
+		Command("explain")
 
 	opts := explain.ToOptions().FallbackToUsage().Run(os.Args)
 	fmt.Println(opts)

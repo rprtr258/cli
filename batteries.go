@@ -21,17 +21,19 @@ import (
 //
 //	verbosity := verboseAndQuietByNumber(2, 0, 5)
 func verbose_and_quiet_by_number(offset, lo, hi int) Parser[int] {
-	vp := ReqFlag(Short('v').
+	verbose := Short('v').
 		Long("verbose").
-		Help("Increase output verbosity, can be used several times"),
-		struct{}{}).Many()
-	verbose := vp.Map(lenOf)
+		Help("Increase output verbosity, can be used several times").
+		ReqFlag(struct{}{}).
+		Many().
+		Map(lenOf)
 
-	qp := ReqFlag(Short('q').
+	quiet := Short('q').
 		Long("quiet").
-		Help("Decrease output verbosity, can be used several times"),
-		struct{}{}).Many()
-	quiet := qp.Map(lenOf)
+		Help("Decrease output verbosity, can be used several times").
+		ReqFlag(struct{}{}).
+		Many().
+		Map(lenOf)
 
 	return Map2(verbose, quiet, func(v, q int) int { return fun.Clamp(v-q+offset, lo, hi) })
 }
@@ -90,8 +92,8 @@ func toggle_flag[T interface{ ~bool }](
 	a NamedArg, val_a T,
 	b NamedArg, val_b T,
 ) Parser[Opt[T]] {
-	pa := ReqFlag(a, val_a)
-	pb := ReqFlag(b, val_b)
+	pa := a.ReqFlag(val_a)
+	pb := b.ReqFlag(val_b)
 	return Choice(pa, pb).Many().Map(last)
 }
 

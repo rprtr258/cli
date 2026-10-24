@@ -4,7 +4,6 @@ package examples
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/rprtr258/cli"
 )
@@ -25,12 +24,9 @@ func NoImport() {
 	// an argument, parsed and with default value
 	speed := cli.Short('s').
 		Long("speed").
-		Help("Set speed").Argument("SPEED", func(s string) (float64, error) {
-		return strconv.ParseFloat(s, 64)
-	}).
-		Parser().
-		Fallback(42.0).
-		Parser()
+		Help("Set speed").
+		Argument("SPEED", cli.ParseFloat).
+		Fallback(42.0)
 
 	// packing things in a struct assumes parser for each field is in scope.
 	opt := cli.Map2(debug, speed, func(debug bool, speed float64) Out { return Out{debug, speed} }).ToOptions().Run(os.Args)

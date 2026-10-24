@@ -8,15 +8,14 @@ import (
 
 func TestThis_or_that_odd(t *testing.T) {
 	ab := Pair(
-		ReqFlag(Short('a'), struct{}{}),
-		ReqFlag(Short('b'), struct{}{}),
+		Short('a').ReqFlag(struct{}{}),
+		Short('b').ReqFlag(struct{}{}),
 	)
 	cd := Pair(
-		ReqFlag(Short('a'), struct{}{}),
-		ReqFlag(Short('c'), struct{}{}),
+		Short('a').ReqFlag(struct{}{}),
+		Short('c').ReqFlag(struct{}{}),
 	)
 	parser := Choice(ab, cd).ToOptions()
-
 	assertFailure(t, parser, "`-c` cannot be used at the same time as `-b`", "-a", "-b", "-c")
 }
 
@@ -33,7 +32,7 @@ func TestNo_argument(t *testing.T) {
 }
 
 func TestCannot_be_used_partial_arg(t *testing.T) {
-	a := ReqFlag[uint](Short('a'), 10)
+	a := Short('a').ReqFlag[uint](10)
 	b := Short('b').Argument("ARG", ParseUint)
 	parser := Choice(a, b).ToOptions()
 
@@ -81,7 +80,7 @@ func TestCannot_be_used_twice(t *testing.T) {
 }
 
 func TestShould_not_split_adjacent_options(t *testing.T) {
-	a := ReqFlag(Short('a'), 0)
+	a := Short('a').ReqFlag(0)
 	b := Pure(struct{}{}).ToOptions().Command("hello")
 	parser := Pair(a, b).ToOptions()
 	// can probably suggest splitting here too: `-a` `hello`
@@ -90,7 +89,7 @@ func TestShould_not_split_adjacent_options(t *testing.T) {
 }
 
 func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
-	a1 := ReqFlag[uint](Short('a'), 0)
+	a1 := Short('a').ReqFlag[uint](0)
 	a2 := Short('a').Argument("x", ParseUint)
 	a := Choice(a2, a1)
 	c := Pure(struct{}{}).ToOptions().Command("hello")
@@ -130,25 +129,19 @@ func TestPos_with_invalid_arg(t *testing.T) {
 	a := Short('a').Argument("A", ParseUint).Parser().Optional()
 	b := Positional("B", ParseUint)
 	parser := Pair(a, b).ToOptions()
-
 	assertFailure(t, parser, "`-c` is not expected in this context", "-c", "12")
-
 	assertFailure(t, parser, "`-c` is not expected in this context", "12", "-c")
-
 	assertFailure(t, parser, "couldn't parse `t`: invalid syntax", "-c", "t")
-
 	assertFailure(t, parser, "couldn't parse `t`: invalid syntax", "t", "-c")
 }
 
 func TestStrictly_positional_help(t *testing.T) {
 	parser := Long("hhhh").Switch().ToOptions()
-
 	assertFailure(t, parser, "`--help` is not expected in this context", "--", "--help")
 }
 
 func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
-	parser := ReqFlag(Short('a'), struct{}{}).Hide().ToOptions()
-
+	parser := Short('a').ReqFlag(struct{}{}).Hide().ToOptions()
 	assertFailure(t, parser, "parser requires an extra flag, argument or parameter, but its name is hidden by the author")
 }
 

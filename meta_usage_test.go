@@ -47,30 +47,30 @@ func TestSome_switch(t *testing.T) {
 }
 
 func TestOptional_req_select(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Choice(a, b).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a | -b]")
 }
 
 func TestSingle_optional_req_select(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	parser := Choice(a).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a]")
 }
 
 func TestFallback_req_select(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Choice(a, b).Fallback(struct{}{}).ToOptions()
 
 	assert_usage(t, parser, "[-a | -b]")
 }
 
 func TestSingle_fallback_req_select(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	parser := Choice(a).Fallback(struct{}{}).ToOptions()
 
 	assert_usage(t, parser, "[-a]")
@@ -115,26 +115,26 @@ func TestCommand_and_fallback_meta(t *testing.T) {
 }
 
 func TestRequierd_select(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Choice(a, b).ToOptions()
 
 	assert_usage(t, parser, "(-a | -b)")
 }
 
 func TestRequierd_and(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Pair(a, b).ToOptions()
 
 	assert_usage(t, parser, "-a -b")
 }
 
 func TestRequired_or_and(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
-	c := ReqFlag(Short('c'), struct{}{})
-	d := ReqFlag(Short('d'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
+	c := Short('c').ReqFlag(struct{}{})
+	d := Short('d').ReqFlag(struct{}{})
 	ab := Pair(a, b)
 	cd := Pair(c, d)
 	parser := Choice(ab, cd).ToOptions()
@@ -142,24 +142,24 @@ func TestRequired_or_and(t *testing.T) {
 }
 
 func TestRequired_one_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Pair(a, b).Parser().Many().ToOptions()
 	assert_usage(t, parser, "[-a -b]...")
 }
 
 func TestOptional_one_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
 	parser := Pair(a, b).Parser().Optional().Many().ToOptions()
 	assert_usage(t, parser, "[-a -b]...")
 }
 
 func TestRequired_or_many(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
-	b := ReqFlag(Short('b'), struct{}{})
-	c := ReqFlag(Short('c'), struct{}{})
-	d := ReqFlag(Short('d'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
+	b := Short('b').ReqFlag(struct{}{})
+	c := Short('c').ReqFlag(struct{}{})
+	d := Short('d').ReqFlag(struct{}{})
 	ab := Pair(a, b)
 	cd := Pair(c, d)
 	e := Pure(PPair(struct{}{}, struct{}{}))
@@ -183,7 +183,7 @@ func TestA_or_b(t *testing.T) {
 }
 
 func TestSome_req_flag(t *testing.T) {
-	parser := ReqFlag(Short('a'), struct{}{}).Some("some").ToOptions()
+	parser := Short('a').ReqFlag(struct{}{}).Some("some").ToOptions()
 	assert_usage(t, parser, "-a...")
 }
 
@@ -213,7 +213,7 @@ func TestA_or_b_opt_and_c(t *testing.T) {
 }
 
 func TestAny_in_adjacent(t *testing.T) {
-	a := ReqFlag(Short('a'), struct{}{})
+	a := Short('a').ReqFlag(struct{}{})
 	b := Any("A", func(s string) (string, bool) { return s, true }, false)
 	parser := Pair(a, b).Adjacent().ToOptions()
 
@@ -233,8 +233,8 @@ func TestPositionals_in_branches_are_okay(t *testing.T) {
 }
 
 func TestOptional_last_of_many(t *testing.T) {
-	a := ReqFlag(Short('a'), true)
-	b := ReqFlag(Short('b'), false)
+	a := Short('a').ReqFlag(true)
+	b := Short('b').ReqFlag(false)
 	ab := Choice(a, b).Last().Fallback(false)
 	parser := ab.ToOptions()
 
