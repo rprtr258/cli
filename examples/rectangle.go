@@ -19,13 +19,13 @@ func Rectangle() {
 		verbose bool
 	}
 
-	width := cli.Argument[uint](cli.Short('w').
+	width := cli.Short('w').
 		Long("width").
-		Help("Width of the rectangle"), "PX", cli.ParseUint)
+		Help("Width of the rectangle").Argument("PX", cli.ParseUint)
 
-	height := cli.Argument[uint](cli.Short('h').
+	height := cli.Short('h').
 		Long("height").
-		Help("Height of the rectangle"), "PX", cli.ParseUint)
+		Help("Height of the rectangle").Argument("PX", cli.ParseUint)
 
 	rect := cli.Map2(width, height, func(width, height uint) Rect { return Rect{width, height} }).
 		GroupHelp("Rectangle is defined by width and height in meters").

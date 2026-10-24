@@ -11,7 +11,7 @@ import (
 // anywhere in the chain, and builders compose into combinators directly.
 func TestFluentChaining(t *testing.T) {
 	verbose := Short('v').Long("verbose").Switch().Many()
-	speed := Argument[int](Short('s').Long("speed"), "SPEED", ParseInt).
+	speed := Short('s').Long("speed").Argument[int]("SPEED", ParseInt).
 		Parser().
 		FallbackDisplay(42).
 		Guard(func(x int) bool { return x < 1000 }, "too fast").
@@ -61,7 +61,7 @@ func TestFluentCountSome(t *testing.T) {
 
 // FallbackDisplay shows the default in help output.
 func TestFluentFallbackDisplay(t *testing.T) {
-	parser := Argument[int](Short('s'), "SPEED", ParseInt).
+	parser := Short('s').Argument[int]("SPEED", ParseInt).
 		Parser().
 		FallbackDisplay(42).
 		ToOptions()
@@ -75,8 +75,8 @@ func TestFluentFallbackDisplay(t *testing.T) {
 // Adjacent on a constructed pair chains into further combinators.
 func TestFluentAdjacent(t *testing.T) {
 	parser := Pair(
-		Argument[uint32](Short('w'), "W", parseUint32),
-		Argument[uint32](Short('h'), "H", parseUint32),
+		Short('w').Argument[uint32]("W", parseUint32),
+		Short('h').Argument[uint32]("H", parseUint32),
 	).Adjacent().Hide().Map(func(x fun.Pair[uint32, uint32]) uint32 { return x.K * x.V }).ToOptions()
 
 	v, err := parser.RunE([]string{"prog", "-w", "2", "-h", "3"})

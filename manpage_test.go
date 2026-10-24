@@ -24,9 +24,9 @@ func TestSimple(t *testing.T) {
 		Help("Unleash the kraken").
 		Switch()
 
-	user := Argument(Long("user").
+	user := Long("user").
 		Env("USER").
-		Help("Log in as this user"),
+		Help("Log in as this user").Argument(
 		"USER", ParseString)
 
 	options := Pair(kraken, user).
@@ -47,8 +47,8 @@ func TestSimple(t *testing.T) {
 
 func TestNested(t *testing.T) {
 	// unskipped
-	a := Argument(Short('d').
-		Help("dragon"),
+	a := Short('d').
+		Help("dragon").Argument(
 		"y", ParseString).
 		Parser().ToOptions().
 		Description("I am a program and I do things").
@@ -56,8 +56,8 @@ func TestNested(t *testing.T) {
 		Footer("Beware `-d`, dragons be here 1").
 		Command("cmd")
 
-	b := Argument(Short('k').
-		Help("kraken"),
+	b := Short('k').
+		Help("kraken").Argument(
 		"x", ParseString).
 		Parser().ToOptions().
 		Description("I am a program and I do things 2").
@@ -68,9 +68,9 @@ func TestNested(t *testing.T) {
 
 	c := Positional("C", ParseString).Help("Mystery file")
 
-	d := Argument(Short('d').
+	d := Short('d').
 		Long("ddd").
-		Help("mystery arg"),
+		Help("mystery arg").Argument(
 		"D", ParseString)
 
 	// e := Short('e').Long("eee").help("the e in the room").argument::<String>("E");
@@ -94,8 +94,8 @@ func TestNested(t *testing.T) {
 
 func TestVery_nested(t *testing.T) {
 	// unskipped
-	options := Argument(Short('k').
-		Help("Unleash the Kraken"),
+	options := Short('k').
+		Help("Unleash the Kraken").Argument(
 		"NAME", ParseString).
 		Parser().ToOptions().
 		Description("lvl 4 description").

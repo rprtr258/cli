@@ -36,38 +36,35 @@ func Basic() {
 			Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
 		// an argument, parsed and with default value
-		speed := cli.Argument[float64](cli.Short('s').
+		speed := cli.Short('s').
 			Long("speed").
-			Help("Set speed"), "SPEED", func(s string) (float64, error) {
+			Help("Set speed").Argument("SPEED", func(s string) (float64, error) {
 			return strconv.ParseFloat(s, 64)
 		}). // you can specify a type to parse
 			FallbackDisplay(42.0)
 
-		output := cli.Argument[string](cli.Short('o').
+		output := cli.Short('o').
 			Long("output").
-			Help("output file"),
-			"OUTPUT", cli.ParseString). // no fallback means the value is required
+			Help("output file").Argument("OUTPUT", cli.ParseString). // no fallback means the value is required
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Invalid[string]()))
 
 		// no magical name transmogrifications in combinatoric API,
-		nb_cars := cli.Argument[uint32](cli.Short('n').
+		nb_cars := cli.Short('n').
 			Long("nb-cars").
-			Help("Number of items to process"),
-			"N", func(s string) (uint32, error) {
-				u, err := strconv.ParseUint(s, 10, 32)
-				return uint32(u), err
-			}).
+			Help("Number of items to process").Argument("N", func(s string) (uint32, error) {
+			u, err := strconv.ParseUint(s, 10, 32)
+			return uint32(u), err
+		}).
 			Parser().
 			FallbackDisplay(1)
 
 		// a parser that consumes one argument
 		// you can build the inner parser in one go or as multiple steps giving each step a name
 		// you can also add some static shell completion functionality
-		file_to_proces := cli.Argument(cli.Short('f').
+		file_to_proces := cli.Short('f').
 			Long("file").
-			Help("File to process"),
-			"FILE", cli.ParseString).
+			Help("File to process").Argument("FILE", cli.ParseString).
 			Parser().
 			CompleteShell(cli.ShellCompFile(cli.Valid("*.rs")))
 

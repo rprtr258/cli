@@ -38,27 +38,24 @@ func Travel() {
 	// Speed can be given by KPH or MPH. Distance - either miles or km.
 
 	// parsers for speeds. Both speeds are converted to the same units
-	mph := cli.Argument(cli.Long("mph").
-		Help("speed in MPH"),
-		"SPEED", cli.ParseFloat).
+	mph := cli.Long("mph").
+		Help("speed in MPH").Argument("SPEED", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
-	kph := cli.Argument(cli.Long("kph").Help("Speed in KPH"), "SPEED", cli.ParseFloat)
+	kph := cli.Long("kph").Help("Speed in KPH").Argument("SPEED", cli.ParseFloat)
 
 	// speed is either kph or mph, conversion to mph is handled by the parser
 	speed := cli.Choice(mph, kph)
 
 	// parsers for distances, both are converted to the same units
-	km := cli.Argument(cli.Long("km").Help("Distance in KM"), "KMs", cli.ParseFloat)
-	mi := cli.Argument(cli.Long("mi").
-		Help("distance in miles"),
-		"MILES", cli.ParseFloat).
+	km := cli.Long("km").Help("Distance in KM").Argument("KMs", cli.ParseFloat)
+	mi := cli.Long("mi").
+		Help("distance in miles").Argument("MILES", cli.ParseFloat).
 		Map(func(x float64) float64 { return x * 1.6 })
 	dist := cli.Choice(mi, km)
 
 	// time, presumably in seconds
-	time := cli.Argument(cli.Long("time").
-		Help("Travel time in hours"),
-		"TIME", cli.ParseFloat)
+	time := cli.Long("time").
+		Help("Travel time in hours").Argument("TIME", cli.ParseFloat)
 
 	// parsed time is trivially converted to time segment
 	segment_time := time.Map(SegmentTime)

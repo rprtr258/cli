@@ -5,34 +5,34 @@ import (
 )
 
 func TestOptional_group_meta(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Short('a').Argument("A", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Pair(a, b).Parser().Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a=A -b=B]")
 }
 
 func TestSensors_many(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Short('a').Argument("A", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Pair(a, b).Parser().Many().ToOptions()
 	assert_usage(t, parser, "[-a=A -b=B]...")
 }
 
 func TestSensors_some(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Short('a').Argument("A", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Pair(a, b).Parser().Some("want some sensors").ToOptions()
 	assert_usage(t, parser, "(-a=A -b=B)...")
 }
 
 func TestMany_arg(t *testing.T) {
-	parser := Argument(Short('a'), "A", ParseString).Parser().Many().ToOptions()
+	parser := Short('a').Argument("A", ParseString).Parser().Many().ToOptions()
 	assert_usage(t, parser, "[-a=A]...")
 }
 
 func TestSome_arg(t *testing.T) {
-	parser := Argument(Short('a'), "A", ParseString).Parser().Some("ARG").ToOptions()
+	parser := Short('a').Argument("A", ParseString).Parser().Some("ARG").ToOptions()
 	assert_usage(t, parser, "-a=A...")
 }
 
@@ -77,8 +77,8 @@ func TestSingle_fallback_req_select(t *testing.T) {
 }
 
 func TestOptional_argument_select(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Short('a').Argument("A", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Choice(a, b).Optional().ToOptions()
 
 	assert_usage(t, parser, "[-a=A | -b=B]")
@@ -176,8 +176,8 @@ func TestNo_actual_arguments_also_works(t *testing.T) {
 }
 
 func TestA_or_b(t *testing.T) {
-	a := Argument(Short('a').Long("aaa"), "A", ParseString)
-	b := Argument(Short('b').Long("bbb"), "B", ParseString)
+	a := Short('a').Long("aaa").Argument("A", ParseString)
+	b := Short('b').Long("bbb").Argument("B", ParseString)
 	parser := Choice(a, b).ToOptions()
 	assert_usage(t, parser, "(-a=A | -b=B)")
 }
@@ -188,8 +188,8 @@ func TestSome_req_flag(t *testing.T) {
 }
 
 func TestA_or_b_and_c(t *testing.T) {
-	a := Argument(Short('a').Long("aaa"), "A", ParseString)
-	b := Argument(Short('b').Long("bbb"), "B", ParseString)
+	a := Short('a').Long("aaa").Argument("A", ParseString)
+	b := Short('b').Long("bbb").Argument("B", ParseString)
 	ab := Choice(a, b)
 	c := Positional("C", ParseString)
 	parser := Pair(ab, c).ToOptions()
@@ -197,15 +197,15 @@ func TestA_or_b_and_c(t *testing.T) {
 }
 
 func TestA_or_b_opt(t *testing.T) {
-	a := Argument(Short('a').Long("aaa"), "A", ParseString)
-	b := Argument(Short('b').Long("bbb"), "B", ParseString)
+	a := Short('a').Long("aaa").Argument("A", ParseString)
+	b := Short('b').Long("bbb").Argument("B", ParseString)
 	parser := Choice(a, b).Optional().ToOptions()
 	assert_usage(t, parser, "[-a=A | -b=B]")
 }
 
 func TestA_or_b_opt_and_c(t *testing.T) {
-	a := Argument(Short('a').Long("aaa"), "A", ParseString)
-	b := Argument(Short('b').Long("bbb"), "B", ParseString)
+	a := Short('a').Long("aaa").Argument("A", ParseString)
+	b := Short('b').Long("bbb").Argument("B", ParseString)
 	ab := Choice(a, b).Optional()
 	c := Positional("C", ParseString)
 	parser := Pair(ab, c).ToOptions()
@@ -221,8 +221,8 @@ func TestAny_in_adjacent(t *testing.T) {
 }
 
 func TestPositionals_in_branches_are_okay(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	a := Short('a').Argument("A", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	c := Positional("C", ParseString)
 	d := Positional("D", ParseString)
 

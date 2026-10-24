@@ -19,8 +19,8 @@ package cli
 // Sequential composition runs each parser and if all of them succeed you get a
 // parser producing the combined value:
 //
-//	width := cli.Argument[uint32](cli.Short('w'), "W", parseUint32)
-//	height := cli.Argument[uint32](cli.Short('h'), "H", parseUint32)
+//	width := cli.Short('w').Argument("W", parseUint32)
+//	height := cli.Short('h').Argument("H", parseUint32)
 //	rect := cli.Map2(width, height, func(w, h uint32) Rectangle {
 //	    return Rectangle{Width: w, Height: h}
 //	})
@@ -32,8 +32,8 @@ package cli
 // parsers defined as variables or functions:
 //
 //	func aOrB() cli.Parser[uint32] {
-//	a := cli.Argument[uint32](cli.Short('a'), "NUM", parseUint32)
-//	b := cli.Argument[uint32](cli.Short('b'), "NUM", parseUint32)
+//	a := cli.Short('a').Argument("NUM", parseUint32)
+//	b := cli.Short('b').Argument("NUM", parseUint32)
 //	    return cli.Choice(a, b)
 //	}
 //

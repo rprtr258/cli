@@ -3,7 +3,7 @@ package cli
 import "github.com/rprtr258/fun"
 
 // NamedArg is a named thing used to create a flag with [Flag] or [ReqFlag],
-// a switch with [NamedArg.Switch] or an argument with [Argument].
+// a switch with [NamedArg.Switch] or an argument with [NamedArg.Argument].
 //
 // # Combinatoric usage
 //
@@ -12,7 +12,7 @@ import "github.com/rprtr258/fun"
 // environment variables using [NamedArg.Env]. You usually start with [Short], [Long] or [Env],
 // then apply [NamedArg.Short] / [NamedArg.Long] / [NamedArg.Env] / [NamedArg.Help] repeatedly
 // to build the desired set of names, then transform it into a parser using [NamedArg.Switch],
-// [Flag], [ReqFlag] or [Argument].
+// [Flag], [ReqFlag] or [NamedArg.Argument].
 //
 // With [Construct] the `cli` struct tag names each field: `short=v`, `long=name`,
 // `env=VAR` choose the names, additional `short`/`long` entries become hidden aliases.

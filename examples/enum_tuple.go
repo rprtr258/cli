@@ -25,12 +25,11 @@ func EnumTuple() {
 		}
 	}
 
-	bar := cli.Argument[string](cli.Short('b').
+	bar := cli.Short('b').
 		Long("bar").
-		Help("some bar command"),
-		"BAR", func(s string) (string, error) {
-			return s, nil
-		}).
+		Help("some bar command").Argument("BAR", func(s string) (string, error) {
+		return s, nil
+	}).
 		Parser().
 		Optional()
 

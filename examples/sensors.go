@@ -58,15 +58,14 @@ func Sensors() {
 
 	var opts cli.Parser[Opts] = func() cli.Parser[Opts] {
 		sensor := cli.ReqFlag(cli.Long("sensor"), struct{}{})
-		device := cli.Argument[string](cli.Long("sensor-device"),
-			"DEVICE", cli.ParseString).
+		device := cli.Long("sensor-device").Argument("DEVICE", cli.ParseString).
 			Parser().
 			Complete(sensor_device_comp)
-		name := cli.Argument[string](cli.Long("sensor-name"), "NAME", cli.ParseString)
+		name := cli.Long("sensor-name").Argument("NAME", cli.ParseString)
 
 		// from_str needs to be replaced with `parse` that can deal with hex digits
-		bus_id := cli.Argument(cli.Long("sensor-i2c-bus"), "BUS", cli.ParseUint)
-		address := cli.Argument(cli.Long("sensor-i2c-address"), "ADDRESS", cli.ParseUint)
+		bus_id := cli.Long("sensor-i2c-bus").Argument("BUS", cli.ParseUint)
+		address := cli.Long("sensor-i2c-address").Argument("ADDRESS", cli.ParseUint)
 		sensors := cli.Pair(
 			cli.Pair(
 				cli.Pair(

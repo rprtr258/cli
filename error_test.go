@@ -21,7 +21,7 @@ func TestThis_or_that_odd(t *testing.T) {
 }
 
 func TestNo_argument(t *testing.T) {
-	a := Argument(Short('a'), "N", parseInt32)
+	a := Short('a').Argument("N", parseInt32)
 	b := Short('2').Switch()
 	parser := Pair(a, b).ToOptions()
 
@@ -34,7 +34,7 @@ func TestNo_argument(t *testing.T) {
 
 func TestCannot_be_used_partial_arg(t *testing.T) {
 	a := ReqFlag[uint](Short('a'), 10)
-	b := Argument(Short('b'), "ARG", ParseUint)
+	b := Short('b').Argument("ARG", ParseUint)
 	parser := Choice(a, b).ToOptions()
 
 	// TODO - error message can be improved...
@@ -44,7 +44,7 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 }
 
 func TestGuard_message(t *testing.T) {
-	parser := Argument(Short('a'),
+	parser := Short('a').Argument(
 		"N", parseUint32).
 		Parser().Guard(func(n uint32) bool { return n <= 10 }, "too high").
 		Parser().ToOptions()
@@ -53,7 +53,7 @@ func TestGuard_message(t *testing.T) {
 }
 
 func TestStrict_positional_argument(t *testing.T) {
-	a := Argument(Short('a'), "N", ParseUint)
+	a := Short('a').Argument("N", ParseUint)
 	parser := a.ToOptions()
 
 	assertFailure(t, parser, "`-a` requires an argument `N`", "-a", "--", "10")
@@ -91,7 +91,7 @@ func TestShould_not_split_adjacent_options(t *testing.T) {
 
 func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 	a1 := ReqFlag[uint](Short('a'), 0)
-	a2 := Argument(Short('a'), "x", ParseUint)
+	a2 := Short('a').Argument("x", ParseUint)
 	a := Choice(a2, a1)
 	c := Pure(struct{}{}).ToOptions().Command("hello")
 	parser := Pair(a, c).ToOptions()
@@ -110,7 +110,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 }
 
 func TestAdjacent_option_complains_to(t *testing.T) {
-	parser := Argument(Short('a'), "A", ParseUint).ToOptions()
+	parser := Short('a').Argument("A", ParseUint).ToOptions()
 
 	// TODO - this should point to the whole "-ayam" thing
 	assertFailure(t, parser, "couldn't parse `yam`: invalid syntax", "-ayam")
@@ -127,7 +127,7 @@ func TestSome_pos_with_invalid_flag(t *testing.T) {
 }
 
 func TestPos_with_invalid_arg(t *testing.T) {
-	a := Argument(Short('a'), "A", ParseUint).Parser().Optional()
+	a := Short('a').Argument("A", ParseUint).Parser().Optional()
 	b := Positional("B", ParseUint)
 	parser := Pair(a, b).ToOptions()
 
@@ -153,7 +153,7 @@ func TestHidden_required_field_is_valid_but_strange(t *testing.T) {
 }
 
 func TestGuard_on_fallback(t *testing.T) {
-	parser := Argument(Short('a'),
+	parser := Short('a').Argument(
 		"A", ParseUint).
 		Parser().Fallback(10).
 		Parser().Guard(func(a uint) bool { return a < 10 }, "too big").
@@ -162,8 +162,8 @@ func TestGuard_on_fallback(t *testing.T) {
 }
 
 func TestTwo_required_fields_first_missing(t *testing.T) {
-	a := Argument(Long("a"), "A", parseUint32)
-	b := Argument(Long("b"), "B", parseUint32)
+	a := Long("a").Argument("A", parseUint32)
+	b := Long("b").Argument("B", parseUint32)
 	parser := Pair(a, b).ToOptions()
 	assertFailure(t, parser, "expected `--a=A`, pass `--help` for usage information", "--b", "1")
 }

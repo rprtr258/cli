@@ -101,7 +101,7 @@ func TestPositional_help_complain_2(t *testing.T) {
 func TestPositional_help_complain_3(t *testing.T) {
 	v := catchPanic[string](t, func() {
 		a := Positional("a", ParseString)
-		b := Argument(Short('b'), "B", ParseString)
+		b := Short('b').Argument("B", ParseString)
 		ba := Choice(b, a)
 		c := Short('c').Switch()
 		parser := Pair(ba, c).ToOptions()
@@ -114,7 +114,7 @@ func TestPositional_help_complain_3(t *testing.T) {
 
 func TestPositional_help_complain_4(t *testing.T) {
 	a := Positional("a", ParseString)
-	b := Argument(Short('b'), "B", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Choice(b, a).ToOptions()
 
 	_, err := parser.RunInner(newArgList("--help"))

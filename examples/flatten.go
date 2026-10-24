@@ -22,8 +22,8 @@ func Flatten() {
 	}
 
 	verbose := cli.Short('v').Help("switch verbosity on").Switch()
-	user := cli.Argument(cli.Short('u').Help("daemon user"), "USER", func(s string) (string, error) { return s, nil })
-	group := cli.Argument(cli.Short('g').Help("daemon group"), "GROUP", func(s string) (string, error) { return s, nil })
+	user := cli.Short('u').Help("daemon user").Argument("USER", func(s string) (string, error) { return s, nil })
+	group := cli.Short('g').Help("daemon group").Argument("GROUP", func(s string) (string, error) { return s, nil })
 	daemon_opts := cli.Map2(user, group, func(user, group string) DaemonOpts { return DaemonOpts{user, group} })
 	opt := cli.Map2(verbose, daemon_opts, func(verbose bool, daemon_opts DaemonOpts) Cmdline { return Cmdline{verbose, daemon_opts} }).ToOptions().Run(os.Args)
 	fmt.Println(opt)

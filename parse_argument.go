@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// parseArgument is a parser for a named argument, created with [Argument].
+// parseArgument is a parser for a named argument, created with [NamedArg.Argument].
 type parseArgument[T any] struct {
 	named    NamedArg
 	metavar  Metavar
@@ -93,7 +93,7 @@ func (self *parseArgument[T]) help(help Doc) *parseArgument[T] {
 
 // Adjacent restricts parsed arguments to have both the flag and a value in the same word.
 //
-// In other words, an adjacent-restricted [Argument] would accept `--flag=value` or
+// In other words, an adjacent-restricted [NamedArg.Argument] would accept `--flag=value` or
 // `-fbar` but not `--flag value`. Note, this is different from [ParseCon.Adjacent],
 // it just plays a similar role.
 func (self *parseArgument[T]) Adjacent() *parseArgument[T] {
@@ -175,7 +175,7 @@ func (self parseArgument[T]) eval(state *state) (T, parseError) {
 // "FILE", for a username - "USER", etc.
 //
 // You can further restrict it with [parseArgument.Adjacent]
-func Argument[T any](self NamedArg, metavar Metavar, p func(string) (T, error)) *parseArgument[T] {
+func (self NamedArg) Argument[T any](metavar Metavar, p func(string) (T, error)) *parseArgument[T] {
 	return &parseArgument[T]{
 		named:    self,
 		metavar:  metavar,

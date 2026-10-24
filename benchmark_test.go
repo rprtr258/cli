@@ -17,9 +17,9 @@ var benchArgs = []string{"prog", "-n", "42", "-s", "3.14", "-o", "out.txt"}
 
 func BenchmarkCli(b *testing.B) {
 	options := Map3(
-		Argument(Short('n'), "NUM", ParseUint),
-		Argument(Short('s'), "SPEED", ParseFloat),
-		Argument(Short('o'), "OUT", ParseString),
+		Short('n').Argument("NUM", ParseUint),
+		Short('s').Argument("SPEED", ParseFloat),
+		Short('o').Argument("OUT", ParseString),
 		func(n uint, speed float64, out string) benchOut {
 			return benchOut{n, speed, out}
 		},

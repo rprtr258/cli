@@ -25,8 +25,8 @@ func Csample() {
 	a := cli.Short('a').Long("avocado").Help("Use avocado").Switch()
 	b := cli.Short('b').Long("banana").Help("Use banana").Switch()
 	bb := cli.Long("bananananana").Help("I'm Batman").Switch()
-	c := cli.Argument[string](cli.Long("calculator").
-		Help("calculator expression"), "EXPR", func(s string) (string, error) {
+	c := cli.Long("calculator").
+		Help("calculator expression").Argument("EXPR", func(s string) (string, error) {
 		return s, nil
 	}).Complete(complete_calculator)
 	parser := cli.Pair(cli.Pair(a, b), cli.Pair(bb, c)).

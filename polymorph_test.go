@@ -11,7 +11,7 @@ type Poly[T any] struct {
 }
 
 func poly[T any](name string, parse func(string) (T, error)) Parser[Poly[T]] {
-	field := Argument(Long(name), "ARG", parse)
+	field := Long(name).Argument("ARG", parse)
 	return field.Map(func(a T) Poly[T] { return Poly[T]{a} })
 }
 

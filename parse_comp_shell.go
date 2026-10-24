@@ -49,8 +49,8 @@ func compShell_eval[T any](inner Parser[T], op ShellComp, state *state) (T, pars
 //
 // # Usage
 //
-//	out := cli.Argument[string](cli.Long("output").
-//	    Help("Cargo.toml file to use as output"), "OUTPUT", nil).
+//	out := cli.Long("output").
+//	    Help("Cargo.toml file to use as output").Argument("OUTPUT", nil).
 //	    CompleteShell(cli.ShellCompFile(Valid("*.toml")))
 //
 // For multiple file types correct mask syntax is `"*.(toml|md)"`.

@@ -15,12 +15,11 @@ func ExPositional() {
 		files []string
 	}
 
-	value := cli.Argument[uint32](cli.Long("value").
-		Help("Mysterious value"),
-		"VAL", func(s string) (uint32, error) {
-			u, err := strconv.ParseUint(s, 10, 32)
-			return uint32(u), err
-		}).
+	value := cli.Long("value").
+		Help("Mysterious value").Argument("VAL", func(s string) (uint32, error) {
+		u, err := strconv.ParseUint(s, 10, 32)
+		return uint32(u), err
+	}).
 		Parser().
 		Fallback(42).
 		Parser()

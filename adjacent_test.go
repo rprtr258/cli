@@ -47,7 +47,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 
 func TestAdjacent_error_message_arg_single0(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Argument(Short('b'), "B", ParseUint)
+	b := Short('b').Argument("B", ParseUint)
 	parser := Pair(a, b).Adjacent().ToOptions()
 
 	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
@@ -55,8 +55,8 @@ func TestAdjacent_error_message_arg_single0(t *testing.T) {
 
 func TestAdjacent_error_message_arg_single(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Argument(Short('b'), "B", ParseUint)
-	c := Argument(Short('c'), "C", ParseUint)
+	b := Short('b').Argument("B", ParseUint)
+	c := Short('c').Argument("C", ParseUint)
 	d := Short('d').Switch()
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).ToOptions()
@@ -77,8 +77,8 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 
 func TestAdjacent_error_message_arg_many(t *testing.T) {
 	a := ReqFlag(Short('a'), struct{}{})
-	b := Argument(Short('b'), "B", ParseUint)
-	c := Argument(Short('c'), "C", ParseUint)
+	b := Short('b').Argument("B", ParseUint)
+	c := Short('c').Argument("C", ParseUint)
 	d := Short('d').Switch()
 	adj := Triple(a, b, c).Adjacent().Many()
 	parser := Pair(adj, d).ToOptions()
@@ -124,7 +124,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 		Help("eat something").
 		Adjacent()
 
-	sleep := Argument(Long("time"),
+	sleep := Long("time").Argument(
 		"HOURS", ParseString).ToOptions().
 		Command("sleep").
 		Help("sleep for a bit").
@@ -152,8 +152,8 @@ Available commands:
 }
 
 func TestTwo_adjacent_args(t *testing.T) {
-	x := Argument(Short('x'), "X", ParseInt)
-	y := Argument(Short('y'), "Y", ParseInt)
+	x := Short('x').Argument("X", ParseInt)
+	y := Short('y').Argument("Y", ParseInt)
 	c := Short('c').Switch()
 	point := Pair(x, y).Adjacent()
 	parser := Pair(point, c).ToOptions()

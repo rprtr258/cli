@@ -19,8 +19,8 @@ func CargoCmd() {
 	}
 
 	// defining a parser in a usual way
-	width := cli.Argument(cli.Short('w'), "WIDTH", cli.ParseUint).Fallback(10)
-	height := cli.Argument(cli.Short('h'), "HEIGHT", cli.ParseUint).Fallback(10)
+	width := cli.Short('w').Argument("WIDTH", cli.ParseUint).Fallback(10)
+	height := cli.Short('h').Argument("HEIGHT", cli.ParseUint).Fallback(10)
 	parser := cli.Map2(width, height, func(width, height uint) Opts { return Opts{width, height} })
 
 	cmd := cli.Literal("cmd").Optional().Hide()

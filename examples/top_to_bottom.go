@@ -38,36 +38,33 @@ func TopToBottom() {
 		Guard(func(x uint) bool { return x <= 3 }, "It doesn't get any more verbose than this")
 
 	// an argument, parsed and with default value
-	var speed cli.Parser[float64] = cli.
-		Argument(cli.Short('s').
-			Long("speed").
-			Help("Set speed"), "SPEED", func(s string) (float64, error) {
-			return strconv.ParseFloat(s, 64)
-		}).
+	var speed cli.Parser[float64] = cli.Short('s').
+		Long("speed").
+		Help("Set speed").Argument("SPEED", func(s string) (float64, error) {
+		return strconv.ParseFloat(s, 64)
+	}).
 		Parser().
 		Fallback(42.0)
 
-	var output cli.Parser[string] = cli.
-		Argument(cli.Short('o').
-			Long("output").
-			Help("output file"),
-			"OUTPUT", cli.ParseString).
+	var output cli.Parser[string] = cli.Short('o').
+		Long("output").
+		Help("output file").
+		Argument("OUTPUT", cli.ParseString).
 		Parser()
 
 	// no magical name transmogrifications.
-	var nb_cars cli.Parser[uint32] = cli.
-		Argument(cli.Short('n').
-			Long("nb-cars"),
-			"N", func(s string) (uint32, error) {
-				u, err := strconv.ParseUint(s, 10, 32)
-				return uint32(u), err
-			}).
+	var nb_cars cli.Parser[uint32] = cli.Short('n').
+		Long("nb-cars").
+		Argument("N", func(s string) (uint32, error) {
+			u, err := strconv.ParseUint(s, 10, 32)
+			return uint32(u), err
+		}).
 		Parser()
 
-	var files_to_process cli.Parser[[]string] = cli.
-		Argument(cli.Short('f').
-			Long("file").
-			Help("File to process"), "FILE", cli.ParseString).
+	var files_to_process cli.Parser[[]string] = cli.Short('f').
+		Long("file").
+		Help("File to process").
+		Argument("FILE", cli.ParseString).
 		Parser().
 		Many()
 	// packing things in a struct assumes parser for each field is in scope.

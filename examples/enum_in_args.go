@@ -31,9 +31,9 @@ func EnumInArgs() {
 		}
 	}
 
-	opt := cli.Argument(cli.Long("baz").
+	opt := cli.Long("baz").
 		Short('b').
-		Help("choose between foo, bar or foobar"), "CMD", parseBaz).
+		Help("choose between foo, bar or foobar").Argument("CMD", parseBaz).
 		Parser().
 		ToOptions().Run(os.Args)
 

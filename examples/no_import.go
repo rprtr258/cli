@@ -23,12 +23,11 @@ func NoImport() {
 		Switch()
 
 	// an argument, parsed and with default value
-	speed := cli.Argument(cli.Short('s').
+	speed := cli.Short('s').
 		Long("speed").
-		Help("Set speed"),
-		"SPEED", func(s string) (float64, error) {
-			return strconv.ParseFloat(s, 64)
-		}).
+		Help("Set speed").Argument("SPEED", func(s string) (float64, error) {
+		return strconv.ParseFloat(s, 64)
+	}).
 		Parser().
 		Fallback(42.0).
 		Parser()

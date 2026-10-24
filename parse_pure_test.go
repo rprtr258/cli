@@ -10,7 +10,7 @@ import (
 func TestDefaultValueUsingPureWithOk(t *testing.T) {
 	// ~ this is a bit artifactial (it's better to use fallback_with instead actually),
 	// but this example demonstrates the concept
-	a := Argument(Short('t'), "N", parseUint32)
+	a := Short('t').Argument("N", parseUint32)
 	b := PureWith(func() (uint32, error) { return 42, nil })
 
 	opts := Choice(a, b).ToOptions()
@@ -37,7 +37,7 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 }
 
 func TestDefaultValueUsingPureWithErr(t *testing.T) {
-	a := Argument(Short('t'), "N", parseUint32)
+	a := Short('t').Argument("N", parseUint32)
 	b := PureWith(func() (uint32, error) { return 0, errors.New("some-err") })
 
 	opts := Choice(a, b).ToOptions()

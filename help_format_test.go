@@ -14,7 +14,7 @@ func TestHelp_after_switch(t *testing.T) {
 }
 
 func TestFallback_to_usage(t *testing.T) {
-	a := Argument(Short('a'),
+	a := Short('a').Argument(
 		"A", ParseUint).
 		Parser().ToOptions().
 		FallbackToUsage()
@@ -24,7 +24,7 @@ func TestFallback_to_usage(t *testing.T) {
 }
 
 func TestFallback_to_usage_nested(t *testing.T) {
-	a := Argument(Short('a'),
+	a := Short('a').Argument(
 		"A", ParseUint).
 		Parser().ToOptions().
 		FallbackToUsage().
@@ -36,8 +36,8 @@ func TestFallback_to_usage_nested(t *testing.T) {
 }
 
 func TestFancy_meta(t *testing.T) {
-	a := Argument(Long("trailing-comma"), "all|es5|none", ParseString)
-	b := Argument(Long("stdin-file-path"), "PATH", ParseString)
+	a := Long("trailing-comma").Argument("all|es5|none", ParseString)
+	b := Long("stdin-file-path").Argument("PATH", ParseString)
 	parser := Pair(a, b).ToOptions()
 
 	const expected = `Usage: --trailing-comma=<all|es5|none> --stdin-file-path=PATH
@@ -51,9 +51,9 @@ Available options:
 }
 
 func TestDecorations(t *testing.T) {
-	p := Argument(Short('p').
+	p := Short('p').
 		Long("parser").
-		Env("CLI_VARIABLE"), "ARG", ParseString).
+		Env("CLI_VARIABLE").Argument("ARG", ParseString).
 		Parser().ToOptions().
 		Description("descr\n descr").
 		Header("header\n header").
@@ -82,9 +82,9 @@ footer
 }
 
 func TestVery_long_switch(t *testing.T) {
-	a := Argument(Short('p').
+	a := Short('p').
 		Long("ppppppppppppppppppppppppppppppppppppp").
-		Help("this is help for megapotato"),
+		Help("this is help for megapotato").Argument(
 		"MEGAPOTATO", ParseUint)
 	b := Short('b').Long("batman").Help("help for batman").Switch()
 	p := Pair(a, b).ToOptions()
@@ -285,8 +285,8 @@ Available options:
 }
 
 func TestFallback_display_simple_arg(t *testing.T) {
-	parser := Argument(Long("a").
-		Help("help for a"),
+	parser := Long("a").
+		Help("help for a").Argument(
 		"NUM", ParseUint).
 		Parser().FallbackDisplay(42).
 		ToOptions()
@@ -328,8 +328,8 @@ func (self Pair2) String() string {
 }
 
 func TestFallback_display_tuple(t *testing.T) {
-	a := Argument(Long("a").Help("help for a"), "NUM", ParseUint)
-	b := Argument(Long("b").Help("help for b"), "NUM", ParseUint)
+	a := Long("a").Help("help for a").Argument("NUM", ParseUint)
+	b := Long("b").Help("help for b").Argument("NUM", ParseUint)
 	parser := Map2(a, b, func(k, v uint) Pair2 { return Pair2{uint32(k), uint32(v)} }).
 		FallbackDisplay(Pair2{42, 333}).ToOptions()
 
@@ -346,7 +346,7 @@ Available options:
 }
 
 func TestFallback_display_no_help(t *testing.T) {
-	parser := Argument(Long("a"),
+	parser := Long("a").Argument(
 		"NUM", ParseUint).
 		Parser().FallbackDisplay(42).
 		ToOptions()
@@ -363,9 +363,9 @@ Available options:
 }
 
 func TestEnv_fallback_visible(t *testing.T) {
-	fonts_dir := Argument(Long("fonts").
+	fonts_dir := Long("fonts").
 		Env("OIKOS_FONTS").
-		Help("Load fonts from this directory"),
+		Help("Load fonts from this directory").Argument(
 		"DIR", ParseString).
 		Parser().
 		Optional()

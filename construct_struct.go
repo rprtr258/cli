@@ -396,7 +396,7 @@ func buildFieldPart(ix int, name string, ft reflect.Type, tags map[string]string
 	}
 	var p Parser[any]
 	if named {
-		p = Argument[any](na, mv, conv).Parser()
+		p = na.Argument[any](mv, conv).Parser()
 	} else {
 		pp := Positional[any](mv, conv)
 		if cfg.help.Valid {

@@ -36,7 +36,7 @@ func TestGet_any_many2(t *testing.T) {
 }
 
 func TestGet_any_magic(t *testing.T) {
-	parser := Argument(Short('b'),
+	parser := Short('b').Argument(
 		"anana", ParseString).
 		Adjacent().
 		Parser().
@@ -63,7 +63,7 @@ func TestFrom_str_works_with_parse(t *testing.T) {
 
 func TestSquashed_short_names(t *testing.T) {
 	a := Short('a').Switch()
-	b := Argument(Short('b'), "B", ParseString)
+	b := Short('b').Argument("B", ParseString)
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, string]

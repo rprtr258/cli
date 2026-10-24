@@ -11,7 +11,7 @@ completion and even manpage rendering — you declare the command line once.
 - **One source of truth.** `--help` text, bash/zsh/fish/elvish completion and
   roff manpages are all generated from the same parser definition.
 - **One dependency.** Just [`github.com/rprtr258/fun`](https://github.com/rprtr258/fun); everything else is stdlib.
-- **Fast.** ~0.8 µs and 9 allocations to parse a 3-flag command (i7-1165G7) —
+- **Fast.** ~1 µs and a handful of allocations to parse a 3-flag command —
   negligible for a once-per-process task.
 - **Two declaration styles.** Combinator builders or `cli` struct tags via
   `Construct` — same runtime underneath.
@@ -77,9 +77,11 @@ type Rectangle struct {
 func rectangle() cli.Parser[Rectangle] {
 	invalidSize := "Sides of a rectangle must be 1..20 units long"
 	invalidArea := "Area of a rectangle must not exceed 200 units square"
-	width := cli.Argument(cli.Long("width").Help("Width of the rectangle"), "PX", cli.ParseInt).
+	width := cli.Long("width").Help("Width of the rectangle").
+		Argument("PX", cli.ParseInt).
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-	height := cli.Argument(cli.Long("height").Help("Height of the rectangle"), "PX", cli.ParseInt).
+	height := cli.Long("height").Help("Height of the rectangle").
+		Argument("PX", cli.ParseInt).
 		Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
 	return cli.Map2(width, height, func(w, h int) Rectangle {
 		return Rectangle{Width: w, Height: h}
@@ -122,24 +124,24 @@ type Out struct {
 | `NamedArg.Switch` | `-f` / `--flag` | `Parser[bool]` |
 | `Flag` | `-f` / `--flag` | `Parser[T]`, one of two values |
 | `ReqFlag` | `-f` (required) | `Parser[T]` |
-| `Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
+| `NamedArg.Argument` | `-f foo`, `--flag=bar` | `Parser[T]` |
 | `Positional` | a free-standing value | `Parser[T]` |
 | `Any` | any unconsumed item | `Parser[T]` |
-| `Command("cmd")` | a subcommand | independent subparser |
+| `OptionParser.Command("cmd")` | a subcommand | `ParseCommand[T]`, an independent subparser |
 
-`Argument` and `Positional` take a `func(string) (T, error)` to convert the raw
+`NamedArg.Argument` and `Positional` take a `func(string) (T, error)` to convert the raw
 text. Ready-made adapters for common types are provided: `ParseString`,
 `ParseInt`, `ParseUint`, `ParseFloat`, `ParseBool`, `ParseDuration`.
 
 ## Transforming parsers
 
 - `Parser.Map` - convert the produced value
-- `Guard` - validate the value with a custom check and error message
+- `Parser.Guard` - validate the value with a custom check and error message
 - `Parser.Optional` / `Parser.OptionalCatch` - make a parser optional
 - `Parser.Many` / `Parser.Some` / `Parser.ManyCatch` / `Parser.SomeCatch` - collect repeated items into a slice
 - `Parser.Collect` - collect repeated items into a slice
 - `Parser.Count` - count the number of occurrences of a flag
-- `Fallback` / `FallbackWith` - provide default values
+- `Parser.Fallback` / `Parser.FallbackWith` - provide default values
 
 ## Composing parsers
 
@@ -147,15 +149,15 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 - `Construct` - struct composition from `cli` tags
 - `Pair` / `Triple` - like `Map2`/`Map3`, but producing `fun.Pair`/`Tuple` values
 - `Choice` - parallel composition: the first parser that consumes the leftmost value wins
-- `Parser.Adjacent` - restrict a composed group to adjacent command line items
+- `Adjacent` - restrict a composed group (`Pair`, `Triple`), an argument or a command to adjacent command line items
 
 ## Improving user experience
 
 - `Help` - document flags, arguments and positional items
-- `Hide`, `HideUsage`, `GroupHelp` - control what is shown in `--help`
-- `Description`, `Header`, `Footer`, `Usage`, `WithUsage`, `MaxWidth` - shape the help output
-- `Version` - add a `--version` switch
-- `HelpParser`, `VersionParser` - customize the flags that trigger help and version
+- `Parser.Hide`, `Parser.HideUsage`, `Parser.GroupHelp` - control what is shown in `--help`
+- `OptionParser.Description`, `OptionParser.Header`, `OptionParser.Footer`, `OptionParser.Usage`, `OptionParser.WithUsage`, `OptionParser.MaxWidth` - shape the help output
+- `OptionParser.Version` - add a `--version` switch
+- `OptionParser.HelpParser`, `OptionParser.VersionParser` - customize the flags that trigger help and version
 
 ## Shell completion
 

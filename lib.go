@@ -35,10 +35,10 @@
 //	func rectangle() cli.Parser[Rectangle] {
 //	    invalidSize := "Sides of a rectangle must be 1..20 units long"
 //	    invalidArea := "Area of a rectangle must not exceed 200 units square"
-//	    width := cli.Argument[int](cli.Long("width").Help("Width of the rectangle"), "PX", strconv.Atoi).
+//	    width := cli.Long("width").Help("Width of the rectangle").Argument("PX", strconv.Atoi).
 //	        Parser().
 //	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    height := cli.Argument[int](cli.Long("height").Help("Height of the rectangle"), "PX", strconv.Atoi).
+//	    height := cli.Long("height").Help("Height of the rectangle").Argument("PX", strconv.Atoi).
 //	        Parser().
 //	        Guard(func(x int) bool { return 1 <= x && x <= 20 }, invalidSize)
 //	    return cli.Map2(width, height, func(w, h int) Rectangle {
@@ -56,7 +56,7 @@
 //
 // [Short], [Long] and [Env] build a [NamedArg]. [NamedArg.Switch] makes a boolean
 // flag; [Flag] and [ReqFlag] make flags with custom present/absent values;
-// [Argument] and [Positional] consume a value, converting the raw string with a
+// [NamedArg.Argument] and [Positional] consume a value, converting the raw string with a
 // parse function whose error is reported to the user.
 //
 // # Transforming parsers
@@ -121,11 +121,11 @@ package cli
 // value as it is consumed while `b` first collects and then validates the whole slice. The
 // former approach is usually more readable:
 //
-//	a := Argument[uint32](Short('a'), "N", parseUint32).
+//	a := Short('a').Argument[uint32]( "N", parseUint32).
 //	    Guard(func(a uint32) bool { return a < 10 }, "`a` must be below 10")
 //	collectA := a.Many()
 //
-//	b := Argument[uint](Short('b'), "N", parseUint32).Parser().Many()
+//	b := Short('b').Argument[uint]( "N", parseUint32).Parser().Many()
 //	collectB := Parse(b, func(bs []uint32) ([]uint32, error) {
 //	    for _, b := range bs {
 //	        if b >= 10 {
@@ -146,10 +146,10 @@ package cli
 //	func rectangle() cli.Parser[Rectangle] {
 //	    invalidSize := "Sides of a rectangle must be 1..20 units long"
 //	    invalidArea := "Area of a rectangle must not exceed 200 units square"
-//	    width := cli.Argument[uint32](cli.Long("width"), "PX", parseUint32).
+//	    width := cli.Long("width").Argument("PX", parseUint32).
 //	        Help("Width of the rectangle").
 //	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
-//	    height := cli.Argument[uint32](cli.Long("height"), "PX", parseUint32).
+//	    height := cli.Long("height").Argument("PX", parseUint32).
 //	        Help("Height of the rectangle").
 //	        Guard(func(x uint32) bool { return 1 <= x && x <= 20 }, invalidSize)
 //	    return cli.Map2(width, height, func(w, h uint32) Rectangle {
