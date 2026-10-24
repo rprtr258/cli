@@ -525,7 +525,7 @@ func render_help(
 	parser_meta meta,
 	help_meta meta,
 ) Doc {
-	positional_invariant_check(parser_meta, false)
+	positional_invariant_check(parser_meta)
 	buf := Doc{}
 
 	if t, ok := info.descr.Unpack(); ok {
@@ -558,6 +558,8 @@ func render_help(
 	items.append_meta(help_meta)
 
 	buf.write_help_item_groups(items, true)
+
+	buf.write_examples(path, info.examples)
 
 	if footer, ok := info.footer.Unpack(); ok {
 		buf.token(tokenBlockStart(blockBlock))

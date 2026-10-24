@@ -131,6 +131,14 @@ func (self OptionParser[T]) RenderManpage(
 		items.append_meta(help_meta)
 		buf.write_help_item_groups(items, false)
 
+		if examples := section.info.examples; len(examples) > 0 {
+			buf.token(tokenBlockStart(blockHeader))
+			buf.Text("EXAMPLES")
+			buf.token(tokenBlockEnd(blockHeader))
+
+			buf.write_examples(section.path, examples)
+		}
+
 		if footer, ok := section.info.footer.Unpack(); ok {
 			buf.token(tokenBlockStart(blockBlock))
 			buf.Doc(footer)

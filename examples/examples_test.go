@@ -93,6 +93,7 @@ var examplesByName = map[string]func(){
 	"travel":                           examples.Travel,
 	"verbose":                          examples.Verbose,
 	"very_custom_usage":                examples.VeryCustomUsage,
+	"with_examples":                    examples.WithExamples,
 	"wtf":                              examples.Wtf,
 	"xorg":                             examples.Xorg,
 }
@@ -183,6 +184,8 @@ var exampleTests = []struct {
 	{"travel", []string{"--time", "2", "--mph", "60", "--km", "100"}, nil},
 	{"verbose", []string{"-vvv", "--trim"}, []string{"3"}},
 	{"very_custom_usage", []string{"cmd", "--opt"}, []string{"true"}},
+	{"with_examples", []string{"file.txt", "backup/"}, []string{"file.txt -> backup/"}},
+	{"with_examples", []string{"--recursive", "src/", "dst/"}, []string{"src/ -> dst/ recursively"}},
 	{"wtf", []string{"add", "-a", "f1", "f2"}, []string{"Adding (all=true)", "\"f1\", \"f2\""}},
 	{"wtf", []string{"rm", "-f", "f1"}, []string{"Removing (force=true)", "\"f1\""}},
 	{"wtf", []string{"example", "-n", "foo", "--offset", "7", "--point", "3,4", "-s", "a", "-s", "b", "f.txt"}, []string{"Example(verbose=false, offset=7, name=\"foo\", point=3,4, file=\"-\", num=None, strs=[]string{\"a\", \"b\"}, files=[]string{\"f.txt\"})"}},

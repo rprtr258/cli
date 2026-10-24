@@ -30,6 +30,11 @@ Help output is verified with golden files in the repo, and the CI runs the
 [lint](https://github.com/rprtr258/cli/blob/master/.github/workflows/ci.yml)
 and test suites on every push to `master` and on pull requests.
 
+`CheckInvariants` also validates declared usage examples: every example command
+line must parse with the parser it is declared on, otherwise it panics with a
+`cli usage BUG` message naming the stale example (see
+[Help and UX](help.md#examples)).
+
 ## Where to go next
 
 - [Examples](examples.md) — runnable programs covering most of the API.

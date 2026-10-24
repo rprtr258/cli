@@ -1,14 +1,17 @@
 package cli
 
+import "slices"
+
 // info holds information about the parser.
 //
 // No longer public: users only interact with it via [OptionParser].
 type info struct {
-	version               Opt[Doc] // version field, see [version][Infoversion]
-	descr                 Opt[Doc] // Custom description field, see [descr][Infodescr]
-	header                Opt[Doc] // Custom header field, see [header][Infoheader]
-	footer                Opt[Doc] // Custom footer field, see [footer][Infofooter]
-	usage                 Opt[Doc] // Custom usage field, see [usage][Infousage]
+	version               Opt[Doc]  // version field, see [version][Infoversion]
+	descr                 Opt[Doc]  // Custom description field, see [descr][Infodescr]
+	header                Opt[Doc]  // Custom header field, see [header][Infoheader]
+	footer                Opt[Doc]  // Custom footer field, see [footer][Infofooter]
+	usage                 Opt[Doc]  // Custom usage field, see [usage][Infousage]
+	examples              []example // Usage examples, see [Parser.Examples]
 	help_arg, version_arg NamedArg
 	help_if_no_args       bool
 	max_width             uint
@@ -35,6 +38,7 @@ func (self *info) clone() info {
 		self.header.clone(),
 		self.footer.clone(),
 		self.usage.clone(),
+		slices.Clone(self.examples),
 		self.help_arg.clone(),
 		self.version_arg,
 		self.help_if_no_args,

@@ -211,33 +211,33 @@ func is_command(self meta) bool {
 }
 
 // positional_invariant_check performs a nested invariant check.
-func positional_invariant_check(self meta, verbose bool) {
-	var GO func(meta meta, is_pos *bool, v bool)
-	GO = func(meta meta, is_pos *bool, v bool) {
+func positional_invariant_check(self meta) {
+	var GO func(meta meta, is_pos *bool)
+	GO = func(meta meta, is_pos *bool) {
 		switch meta := meta.(type) {
 		case metaAnd:
 			for _, x := range meta {
-				GO(x, is_pos, v)
+				GO(x, is_pos)
 			}
 		case metaOr:
 			out := *is_pos
 			for _, x := range meta {
 				this_pos := *is_pos
-				GO(x, &this_pos, v)
+				GO(x, &this_pos)
 				out = out || this_pos
 			}
 			*is_pos = out
 		case metaOptional:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaRequired:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaAdjacent:
 			if i, ok := metaFirstItem(meta.m).Unpack(); ok {
 				if i.is_pos() {
-					GO(meta.m, is_pos, v)
+					GO(meta.m, is_pos)
 				} else {
 					inner := false
-					GO(meta.m, &inner, v)
+					GO(meta.m, &inner)
 				}
 			}
 		case metaItem:
@@ -252,29 +252,24 @@ func positional_invariant_check(self meta, verbose bool) {
 			m, ok := i.v.(itemCommand)
 			if ok {
 				command_pos := false
-				if v {
-					fmt.Printf("Checking\n%#v\n", m.meta)
-				}
-				GO(m.meta, &command_pos, v)
+				GO(m.meta, &command_pos)
 			}
 		case metaMany:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaSubsection:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaSuffix:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaSkip:
 		case metaCustomUsage:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		case metaStrict:
-			GO(meta.m, is_pos, v)
+			GO(meta.m, is_pos)
 		}
 	}
-	if verbose {
-		fmt.Printf("Checking\n%#v\n", self)
-	}
+
 	is_pos := false
-	GO(self, &is_pos, verbose)
+	GO(self, &is_pos)
 }
 
 func normalized(m meta, for_usage bool) meta {
