@@ -26,19 +26,19 @@ func TestMapAdjacent(t *testing.T) {
 
 	assertSuccess(t, map[string]int{"x": 1}, parser, "--point=x:1")
 	assertSuccess(t, map[string]int{"x": 1, "y": 2}, parser, "--point=x:1 --point=y:2")
-	assertFailure(t, parser, "`--point` is not expected in this context", "--point", "x:1")
+	assertFailure(t, parser, "`--point` is not expected in this context", "--point x:1")
 }
 
 func TestMapFailureNoColon(t *testing.T) {
 	parser := Long("point").Map("", ParseString, ParseInt).ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `x`: expected `key:value`", "--point", "x")
+	assertFailure(t, parser, "couldn't parse `x`: expected `key:value`", "--point x")
 }
 
 func TestMapFailureBadValue(t *testing.T) {
 	parser := Long("point").Map("", ParseString, ParseInt).ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `x:a`: invalid syntax", "--point", "x:a")
+	assertFailure(t, parser, "couldn't parse `x:a`: invalid syntax", "--point x:a")
 }
 
 func TestMapEnv(t *testing.T) {
@@ -61,11 +61,11 @@ func TestMapHelp(t *testing.T) {
 Available options:
         --point=<KEY:VALUE>
     -h, --help               Prints help information
-`)
+`, "")
 }
 
 func TestMapCompletion(t *testing.T) {
 	parser := Long("point").Map("", ParseString, ParseInt).ToOptions()
 
-	assertCompletion(t, parser, "\tKEY:VALUE\t\t\n\n", "--point", "")
+	assertCompletion(t, parser, "\tKEY:VALUE\t\t\n\n", `--point ""`)
 }

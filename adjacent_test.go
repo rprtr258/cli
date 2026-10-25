@@ -42,7 +42,7 @@ func TestAdjacent_error_message_pos_single(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).ToOptions()
 
-	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
+	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a 10")
 }
 
 func TestAdjacent_error_message_arg_single0(t *testing.T) {
@@ -50,7 +50,7 @@ func TestAdjacent_error_message_arg_single0(t *testing.T) {
 	b := Short('b').Argument("B", ParseUint)
 	parser := Pair(a, b).Adjacent().ToOptions()
 
-	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
+	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a 10")
 }
 
 func TestAdjacent_error_message_arg_single(t *testing.T) {
@@ -61,7 +61,7 @@ func TestAdjacent_error_message_arg_single(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent()
 	parser := Pair(adj, d).ToOptions()
 
-	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
+	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a 10")
 }
 
 func TestAdjacent_error_message_pos_many(t *testing.T) {
@@ -72,7 +72,7 @@ func TestAdjacent_error_message_pos_many(t *testing.T) {
 	adj := Triple(a, b, c).Adjacent().Many()
 	parser := Pair(adj, d).ToOptions()
 
-	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a", "10")
+	assertFailure(t, parser, "expected `C`, pass `--help` for usage information", "-a 10")
 }
 
 func TestAdjacent_error_message_arg_many(t *testing.T) {
@@ -84,7 +84,7 @@ func TestAdjacent_error_message_arg_many(t *testing.T) {
 	parser := Pair(adj, d).ToOptions()
 
 	// this should ask for -b or -c and complain on 10...
-	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a", "10")
+	assertFailure(t, parser, "expected `-b=B`, got `10`. Pass `--help` for usage information", "-a 10")
 }
 
 func TestAdjacent_is_adjacent(t *testing.T) {
@@ -92,7 +92,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 	b := Positional("B", ParseUint)
 	parser := Pair(a, b).Adjacent().Map(func(t fun.Pair[struct{}, uint]) uint { return t.V }).Many().ToOptions()
 
-	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
+	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a -a 10 20")
 
 	assertSuccess(t, []uint{10, 20}, parser, "-a 10 -a 20")
 }
@@ -148,7 +148,7 @@ Available commands:
     eat         eat something
     sleep       sleep for a bit
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestTwo_adjacent_args(t *testing.T) {
@@ -162,5 +162,5 @@ func TestTwo_adjacent_args(t *testing.T) {
 	// NOTE: adjacent groups must currently be adjacent to the first element; a
 	// proper fix is to split "adjacent" into "adjacent to" and "adjacent block".
 	// TODO: get back to allowing "-y 3 -x 4 -c" here.
-	assertFailure(t, parser, "expected `-y=Y`, pass `--help` for usage information", "-y", "3", "-c", "-x", "4")
+	assertFailure(t, parser, "expected `-y=Y`, pass `--help` for usage information", "-y 3 -c -x 4")
 }

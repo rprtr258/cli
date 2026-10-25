@@ -31,7 +31,7 @@ func TestConstructBasic(t *testing.T) {
 	assertSuccess(t, Out{Debug: true, Speed: 3.14, Output: "out.txt"}, parser, "-d --speed 3.14 -o out.txt")
 	assertSuccess(t, Out{Debug: true, Speed: 42, Output: "out"}, parser, "--debug --output=out")
 	// Output has no default - must fail with no arguments
-	assertFailure(t, parser, "expected `-o=FILE`, pass `--help` for usage information")
+	assertFailure(t, parser, "expected `-o=FILE`, pass `--help` for usage information", "")
 }
 
 func TestConstructPositionalBeforeNamed(t *testing.T) {
@@ -72,8 +72,7 @@ func TestConstructOptional(t *testing.T) {
 		parser, "--speed 1.5 bob")
 
 	assertFailure(t, parser,
-		"couldn't parse `x`: invalid syntax",
-		"--speed", "x")
+		"couldn't parse `x`: invalid syntax", "--speed x")
 }
 
 func TestConstructCount(t *testing.T) {

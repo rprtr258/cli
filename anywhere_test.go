@@ -21,7 +21,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 	// this should be allowed because "anywhere" prevents anything inside from being positional
 	parser.CheckInvariants()
 }
@@ -35,13 +35,13 @@ func TestParse_anywhere_no_catch(t *testing.T) {
 
 	// Usage: -a <x> [-c],
 
-	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "3", "-a")
+	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "3 -a")
 	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-a")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a", "221b")
-	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-c", "-a")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-c", "-a", "221b")
-	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-a", "-c")
-	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a", "221b", "-c")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a 221b")
+	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-c -a")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-c -a 221b")
+	assertFailure(t, parser, "expected `X`, pass `--help` for usage information", "-a -c")
+	assertFailure(t, parser, "couldn't parse `221b`: invalid syntax", "-a 221b -c")
 }
 
 func TestAnywhere_catch_optional(t *testing.T) {
@@ -96,13 +96,13 @@ func TestParse_anywhere_catch_optional(t *testing.T) {
 	c := Short('c').Switch()
 	parser := Pair(ab, c).ToOptions()
 
-	assertFailure(t, parser, "`-a` is not expected in this context", "-a", "221b")
-	assertFailure(t, parser, "`3` is not expected in this context", "3", "-a")
+	assertFailure(t, parser, "`-a` is not expected in this context", "-a 221b")
+	assertFailure(t, parser, "`3` is not expected in this context", "3 -a")
 	assertFailure(t, parser, "`-a` is not expected in this context", "-a")
-	assertFailure(t, parser, "`-a` is not expected in this context", "-c", "-a")
-	assertFailure(t, parser, "`-a` is not expected in this context", "-c", "-a", "221b")
-	assertFailure(t, parser, "`-a` is not expected in this context", "-a", "-c")
-	assertFailure(t, parser, "`-a` is not expected in this context", "-a", "221b", "-c")
+	assertFailure(t, parser, "`-a` is not expected in this context", "-c -a")
+	assertFailure(t, parser, "`-a` is not expected in this context", "-c -a 221b")
+	assertFailure(t, parser, "`-a` is not expected in this context", "-a -c")
+	assertFailure(t, parser, "`-a` is not expected in this context", "-a 221b -c")
 }
 
 func TestAnywhere_literal(t *testing.T) {

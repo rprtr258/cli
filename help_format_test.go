@@ -10,7 +10,7 @@ import (
 func TestHelp_after_switch(t *testing.T) {
 	parser := Short('a').Help("this is help").Switch().ToOptions()
 	const expected = "Usage: [-a]\n\nAvailable options:\n    -a          this is help\n    -h, --help  Prints help information\n"
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestFallback_to_usage(t *testing.T) {
@@ -20,7 +20,7 @@ func TestFallback_to_usage(t *testing.T) {
 		FallbackToUsage()
 
 	const expected = "Usage: -a=A\n\nAvailable options:\n    -a=A\n    -h, --help  Prints help information\n"
-	assertHelp(t, a, expected)
+	assertHelp(t, a, expected, "")
 }
 
 func TestFallback_to_usage_nested(t *testing.T) {
@@ -47,7 +47,7 @@ Available options:
         --stdin-file-path=PATH
     -h, --help  Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestDecorations(t *testing.T) {
@@ -78,7 +78,7 @@ footer
 footer
 `
 
-	assertHelp(t, p, expected)
+	assertHelp(t, p, expected, "")
 }
 
 func TestVery_long_switch(t *testing.T) {
@@ -96,7 +96,7 @@ Available options:
     -b, --batman  help for batman
     -h, --help    Prints help information
 `
-	assertHelp(t, p, expected)
+	assertHelp(t, p, expected, "")
 }
 
 func TestDuplicate_items_same_help(t *testing.T) {
@@ -117,7 +117,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestDuplicate_items_dif_help(t *testing.T) {
@@ -139,7 +139,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestDuplicate_pos_items_same_help(t *testing.T) {
@@ -162,7 +162,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestDuplicate_pos_items_diff_help(t *testing.T) {
@@ -186,7 +186,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestEnum_with_docs(t *testing.T) {
@@ -204,7 +204,7 @@ Pick mode:
 Available options:
     -h, --help   Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestAnywhere_invariant_check(t *testing.T) {
@@ -228,7 +228,7 @@ Available options:
     -b          help for b
     -h, --help  Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 
 	// this shouldn't crash
 	parser.CheckInvariants()
@@ -260,7 +260,7 @@ Available options:
     -h, --help      Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestMulti_pos_help(t *testing.T) {
@@ -281,7 +281,7 @@ Available options:
     -v, --verbose
     -h, --help     Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestFallback_display_simple_arg(t *testing.T) {
@@ -299,7 +299,7 @@ Available options:
     -h, --help   Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestFallback_display_simple_pos(t *testing.T) {
@@ -318,7 +318,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 type Pair2 fun.Pair[uint32, uint32]
@@ -342,7 +342,7 @@ Available options:
     -h, --help   Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestFallback_display_no_help(t *testing.T) {
@@ -359,7 +359,7 @@ Available options:
     -h, --help   Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestEnv_fallback_visible(t *testing.T) {
@@ -385,7 +385,7 @@ Available options:
                         [env:OIKOS_SYSTEM_FONTS: not set]
     -h, --help          Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestNested_group_help(t *testing.T) {
@@ -403,7 +403,7 @@ outer
 Available options:
     -h, --help  Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestWith_group_help(t *testing.T) {
@@ -431,7 +431,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-		assertHelp(t, parser, expected)
+		assertHelp(t, parser, expected, "")
 	}
 
 	assertSuccess(t, ppair(ppair(true, false), true), parser, "-a -c")
@@ -464,7 +464,7 @@ Available options:
     -a, --123456789012345  A
     -h, --help             Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestVarious_name_lengths_at(t *testing.T) {
@@ -480,7 +480,7 @@ Available options:
     -a, --1234567890123456  A
     -h, --help              Prints help information
 `
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestVarious_name_lengths_over1(t *testing.T) {
@@ -497,7 +497,7 @@ Available options:
     -a, --12345678901234567  A
     -h, --help               Prints help information
 `
-		assertHelp(t, parser, expected)
+		assertHelp(t, parser, expected, "")
 	}
 
 	{
@@ -513,13 +513,13 @@ Available options:
     -a, --1234567890123456789  A
     -h, --help  Prints help information
 `
-		assertHelp(t, parser, expected)
+		assertHelp(t, parser, expected, "")
 	}
 
 	{
 		parser := Short('a').Switch().ToOptions().Version("1")
 
-		assertHelp(t, parser, "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n")
+		assertHelp(t, parser, "Usage: [-a]\n\nAvailable options:\n    -a\n    -h, --help     Prints help information\n    -V, --version  Prints version information\n", "")
 
 		assertHelp(t, parser, "Version: 1\n", "--version")
 	}
