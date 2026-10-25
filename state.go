@@ -86,7 +86,7 @@ LOOP:
 			continue
 		}
 
-		argType, s, a, ok := split_os_argument(os)
+		argType, s, a, ok := splitOsArgument(os)
 		switch {
 		// -f and -fbar, but also -vvvvv
 		case ok && argType == argTypeShort && !a.Valid:

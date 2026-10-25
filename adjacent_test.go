@@ -115,7 +115,7 @@ func TestAdjacent_limits_commands(t *testing.T) {
 	s := Short('s').Switch()
 	parser := Pair(s, x).ToOptions()
 
-	assertSuccess(t, PPair(true, struct{}{}), parser, "a", "-s")
+	assertSuccess(t, ppair(true, struct{}{}), parser, "a", "-s")
 }
 
 func TestCommands_and_adjacent(t *testing.T) {
@@ -135,7 +135,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 
 	parser := Pair(switch_, cmds).ToOptions()
 
-	assertSuccess(t, PPair(true, "12"), parser, "sleep", "--time", "12", "-s")
+	assertSuccess(t, ppair(true, "12"), parser, "sleep", "--time", "12", "-s")
 
 	// TODO - this is ugly
 	const expected = `Usage: [-s] COMMAND ...
@@ -158,7 +158,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	point := Pair(x, y).Adjacent()
 	parser := Pair(point, c).ToOptions()
 
-	assertSuccess(t, PPair(PPair(3, 4), true), parser, "-x", "3", "-y", "4", "-c")
+	assertSuccess(t, ppair(ppair(3, 4), true), parser, "-x", "3", "-y", "4", "-c")
 	// NOTE: adjacent groups must currently be adjacent to the first element; a
 	// proper fix is to split "adjacent" into "adjacent to" and "adjacent block".
 	// TODO: get back to allowing "-y 3 -x 4 -c" here.

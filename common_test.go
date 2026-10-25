@@ -42,18 +42,25 @@ func seq2[K, V any](seq funiter.Seq[fun.Pair[K, V]]) iter.Seq2[K, V] {
 	}
 }
 
-func assertSuccess[T any](t *testing.T, expected T, parser *OptionParser[T], args ...string) {
+func assertSuccess[T any](
+	t *testing.T,
+	expected T,
+	parser *OptionParser[T],
+	args ...string,
+) {
 	t.Helper()
 
-	AssertSuccess(t, expected, parser, args...)
+	actual, err := parser.run(newArgList(args...))
+	require.Nil(t, err)
+	require.Equal(t, expected, actual)
 }
 
 // Parser must fail with the given stderr message for the given args.
 func assertFailure[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
 	t.Helper()
 
-	_, err := parser.RunInner(newArgList(args...))
-	require.Equal(t, expected, UnwrapStderr(err))
+	_, err := parser.run(newArgList(args...))
+	require.Equal(t, expected, unwrapStderr(err))
 }
 
 // Parser must print the expected stdout for the given args, `--help` by default.
@@ -63,24 +70,24 @@ func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected string, a
 	if len(args) == 0 {
 		args = []string{"--help"}
 	}
-	_, err := parser.RunInner(newArgList(args...))
-	require.Equal(t, expected, UnwrapStdout(err))
+	_, err := parser.run(newArgList(args...))
+	require.Equal(t, expected, unwrapStdout(err))
 }
 
 // Parser must produce the expected completion output for the given args.
 func assertCompletion[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
 	t.Helper()
 
-	_, err := parser.RunInner(newArgList(args...).setComp(0))
-	require.Equal(t, expected, UnwrapStdout(err))
+	_, err := parser.run(newArgList(args...).setComp(0))
+	require.Equal(t, expected, unwrapStdout(err))
 }
 
 // first line of `--help` output without the `Usage: ` prefix must be the expected usage.
 func assert_usage[T any](t *testing.T, parser *OptionParser[T], expected string) {
 	t.Helper()
 
-	_, output := parser.RunInner(newArgList("--help"))
-	usage := strings.TrimPrefix(strings.Split(UnwrapStdout(output), "\n")[0], "Usage: ")
+	_, output := parser.run(newArgList("--help"))
+	usage := strings.TrimPrefix(strings.Split(unwrapStdout(output), "\n")[0], "Usage: ")
 	require.Equal(t, expected, usage)
 }
 

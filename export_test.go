@@ -5,40 +5,13 @@ import (
 
 	"github.com/kr/pretty"
 	"github.com/rprtr258/fun"
-	"github.com/stretchr/testify/require"
 )
 
-func (self state) peek() (arg, bool) {
-	next := self.items_iter()
-	_, a, ok := next()
-	return a, ok
-}
-
-func (parser *OptionParser[T]) RunInner(args argList) (T, parseFailure) {
-	return parser.run(args)
-}
-
-func (o Opt[T]) Unwrap() T {
-	return o.unwrap()
-}
-
-func splitOsArgument(input string) (argType, string, Opt[arg], bool) {
-	return split_os_argument(input)
-}
-
-func UnwrapStdout(err parseFailure) string {
-	return unwrap_stdout(err)
-}
-
-func UnwrapStderr(err parseFailure) string {
-	return unwrap_stderr(err)
-}
-
-func PPair[T, R any](a T, b R) fun.Pair[T, R] {
+func ppair[T, R any](a T, b R) fun.Pair[T, R] {
 	return fun.Pair[T, R]{a, b}
 }
 
-func RequireNoParseFailure(t *testing.T, err parseFailure) {
+func requireNoParseFailure(t *testing.T, err parseFailure) {
 	t.Helper()
 
 	if err != nil {
@@ -52,17 +25,4 @@ func RequireNoParseFailure(t *testing.T, err parseFailure) {
 		}
 		t.FailNow()
 	}
-}
-
-func AssertSuccess[T any](
-	t *testing.T,
-	expected T,
-	parser *OptionParser[T],
-	args ...string,
-) {
-	t.Helper()
-
-	actual, err := parser.RunInner(newArgList(args...))
-	require.Nil(t, err)
-	require.Equal(t, expected, actual)
 }

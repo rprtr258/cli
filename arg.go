@@ -122,7 +122,7 @@ const (
 	argTypeLong  argType = true
 )
 
-// split_os_argument splits a string into argument specific bits.
+// splitOsArgument splits a string into argument specific bits.
 //
 // It takes a possibly non-utf8 string looking like "--name=value" and splits it into bits:
 // "--" - type, "name" - name, must be representable as utf8, "=" - optional, "value" - flag value.
@@ -143,7 +143,7 @@ const (
 // Notation -fbar is ambigous and could mean either `-f -b -a -r` or `-f=bar`, resolve it into
 // [argAmbiguity] and let subparser disambiguate it later depending on available short flag and
 // arguments
-func split_os_argument(input string) (argType, string, Opt[arg], bool) {
+func splitOsArgument(input string) (argType, string, Opt[arg], bool) {
 	// but in either case dashes and equals are just literal values just with different width
 	const DASH = '-'
 	const EQUALS = '='

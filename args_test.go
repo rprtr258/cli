@@ -179,6 +179,12 @@ func TestAmbiguity_towards_error(t *testing.T) {
 	require.NotNil(t, err)
 }
 
+func (self state) peek() (arg, bool) {
+	next := self.items_iter()
+	_, a, ok := next()
+	return a, ok
+}
+
 func TestAmbiguity_towards_default(t *testing.T) {
 	// AKA unresolved
 	a := Statefrom([]string{"-abc"})
