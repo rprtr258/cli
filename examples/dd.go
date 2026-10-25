@@ -12,10 +12,10 @@ import (
 )
 
 type ddOptions struct {
-	magic     bool
-	inFile    string
-	outFile   string
-	blockSize uint
+	Magic     bool
+	InFile    string
+	OutFile   string
+	BlockSize uint
 }
 
 // Parses a string that starts with `name`, returns the suffix parsed in a usual way.
@@ -52,12 +52,7 @@ func Dd() {
 	magic := cli.Short('m').Long("magic").
 		Help("a usual switch still works").Switch()
 
-	opts := cli.Map4(
-		magic, ddInFile, ddOutFile, ddBlockSize,
-		func(magic bool, inFile, outFile string, blockSize uint) ddOptions {
-			return ddOptions{magic: magic, inFile: inFile, outFile: outFile, blockSize: blockSize}
-		},
-	).ToOptions()
+	opts := cli.MapStruct4[ddOptions](magic, ddInFile, ddOutFile, ddBlockSize).ToOptions()
 
 	fmt.Println(opts.Run(os.Args))
 }
