@@ -593,3 +593,58 @@ func collect_shorts(self meta, flags, args *[]byte) {
 		collect_shorts(self.m, flags, args)
 	}
 }
+
+// find_argument_item looks for a declared flag-with-value item matching the
+// given command line token.
+//
+// Used to improve the unconsumed item error: when a token that is a declared
+// argument (e.g. the `-b` of `-b <VAL>`) is left unconsumed by a partially
+// successful alternative of a [Choice], the parser reports the missing value
+// instead of the generic "not expected" message.
+func find_argument_item(self meta, tok arg) (itemArgument, bool) {
+	switch self := self.(type) {
+	case metaAnd:
+		for _, x := range self {
+			if v, ok := find_argument_item(x, tok); ok {
+				return v, true
+			}
+		}
+	case metaOr:
+		for _, x := range self {
+			if v, ok := find_argument_item(x, tok); ok {
+				return v, true
+			}
+		}
+	case metaItem:
+		switch v := self.v.(type) {
+		case itemCommand:
+			return find_argument_item(v.meta, tok)
+		case itemArgument:
+			switch tok.kind {
+			case argKindShortFlag:
+				if tok.c == v.name.Short || fun.Contains(tok.c, v.shorts...) {
+					return v, true
+				}
+			case argKindLongFlag:
+				if tok.s == v.name.Long {
+					return v, true
+				}
+			}
+		}
+	case metaOptional:
+		return find_argument_item(self.m, tok)
+	case metaRequired:
+		return find_argument_item(self.m, tok)
+	case metaAdjacent:
+		return find_argument_item(self.m, tok)
+	case metaMany:
+		return find_argument_item(self.m, tok)
+	case metaSubsection:
+		return find_argument_item(self.m, tok)
+	case metaSuffix:
+		return find_argument_item(self.m, tok)
+	case metaCustomUsage:
+		return find_argument_item(self.m, tok)
+	}
+	return itemArgument{}, false
+}

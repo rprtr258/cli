@@ -35,10 +35,15 @@ func TestCannot_be_used_partial_arg(t *testing.T) {
 	b := Short('b').Argument("ARG", ParseUint)
 	parser := Choice(a, b).ToOptions()
 
-	// TODO - error message can be improved...
-	assertFailure(t, parser, "`-b` is not expected in this context", "-b -a")
+	// `-a` is a required flag, so the choice picks it and leaves `-b` unconsumed;
+	// the error explains that the leftover `-b` is a declared argument missing its value
+	assertFailure(
+		t, parser,
+		"`-b` requires an argument `ARG`, got a flag `-a`, try `-b=-a` to use it as an argument",
+		"-b -a",
+	)
 
-	assertFailure(t, parser, "`-b` is not expected in this context", "-a -b")
+	assertFailure(t, parser, "`-b` requires an argument `ARG`", "-a -b")
 }
 
 func TestGuard_message(t *testing.T) {

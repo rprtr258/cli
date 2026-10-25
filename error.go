@@ -381,6 +381,26 @@ func render(self *parseError, state *state, meta meta) parseFailure {
 	case errorUnconsumed:
 		ix := int(e)
 
+		// The unconsumed token is a declared flag-with-value left over from a
+		// partially successful alternative, e.g. the `-b` of a `Choice` between
+		// `-a` and `-b <VAL>` given `-b -a`: report the missing value instead of
+		// the generic "not expected" message. When a word follows the flag, the
+		// failure is about the value form (e.g. glued value required), so the
+		// generic message stays.
+		if tok, ok := get(state.items, ix).Unpack(); ok {
+			if declared, ok := find_argument_item(meta, tok); ok {
+				next, next_ok := get(state.items, ix+1).Unpack()
+				if !next_ok || next.IsShort() || next.IsLong() {
+					nextFlag := Invalid[string]()
+					if next_ok && (next.IsShort() || next.IsLong()) {
+						nextFlag = Valid(next.str)
+					}
+					*self = errorNoArgument{ix, declared.metavar, nextFlag}
+					break
+				}
+			}
+		}
+
 		if loserwinner, ok := state.conflict(); ok {
 			loser, winner := loserwinner.start(), loserwinner.end()
 			*self = errorConflict{winner, loser}
