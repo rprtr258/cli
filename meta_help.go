@@ -507,12 +507,10 @@ func write_help_item(buf *Doc, item helpItem, include_env bool) {
 			buf.token(tokenBlockEnd(blockItemBody))
 		}
 	case helpItemAnywhereStart:
-		buf.token(tokenBlockStart(blockSection3))
+		buf.token(tokenBlockStart(blockItemTerm))
 		buf.write_meta(item.inner, true)
-		buf.token(tokenBlockEnd(blockSection3))
+		buf.token(tokenBlockEnd(blockItemTerm))
 	case helpItemAnywhereStop:
-		buf.token(tokenBlockStart(blockBlock))
-		buf.token(tokenBlockEnd(blockBlock))
 	}
 }
 

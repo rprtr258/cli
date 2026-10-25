@@ -114,7 +114,7 @@ func TestCommandInnerFailure(t *testing.T) {
 func TestCommandHelp(t *testing.T) {
 	parser := Construct[withCommands]().ToOptions()
 
-	assertHelp(t, parser, `Usage: [-v] COMMAND ... COMMAND ...
+	assertHelp(t, parser, `Usage: [-v] add rm
 
 Available options:
     -v

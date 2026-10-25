@@ -222,6 +222,15 @@ func TestUnknownFlag(t *testing.T) {
 		"--flag1 stuff --unknownFlagX blah --flag2 foo")
 }
 
+func TestNamelessFlagPanics(t *testing.T) {
+	assertPanicsContains(t, func() { NamedArg{}.Switch() },
+		"flag must have at least one name")
+	assertPanicsContains(t, func() { NamedArg{}.Flag(true, false) },
+		"flag must have at least one name")
+	assertPanicsContains(t, func() { NamedArg{}.ReqFlag(true) },
+		"flag must have at least one name")
+}
+
 // flagEnum is a custom enum flag type parsed with UnmarshalText.
 type flagEnum int
 
@@ -361,7 +370,7 @@ type cmdRootHelp struct {
 func TestRootHelp(t *testing.T) {
 	parser := Construct[cmdRootHelp]().ToOptions()
 	assertHelp(t, parser, strings.Join([]string{
-		"Usage: COMMAND ...",
+		"Usage: sub",
 		"",
 		"Available options:",
 		"    -h, --help  Prints help information",

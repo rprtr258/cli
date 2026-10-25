@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/set"
 )
 
 type meta interface {
@@ -197,7 +198,7 @@ func (self *strictNorm) push() {
 	}
 }
 
-// is_command collapses duplicated commands, used by the normalization function.
+// is_command detects bare command items, used by the normalization function.
 // It seems to be fine to strip section information but not anything else
 func is_command(self meta) bool {
 	switch self := self.(type) {
@@ -208,6 +209,20 @@ func is_command(self meta) bool {
 		return is_command(self.m)
 	}
 	return false
+}
+
+// command_name extracts the name of a bare command item, used to deduplicate
+// command alternatives during normalization.
+func command_name(self meta) string {
+	switch self := self.(type) {
+	case metaItem:
+		if cmd, ok := self.v.(itemCommand); ok {
+			return cmd.name
+		}
+	case metaSubsection:
+		return command_name(self.m)
+	}
+	return ""
 }
 
 // positional_invariant_check performs a nested invariant check.
@@ -392,13 +407,29 @@ func normalize(self *meta, for_usage bool, norm *strictNorm) {
 		if replacement, ok := normalize_vec((*[]meta)(&m), for_usage, norm, true); ok {
 			*self = replacement
 		} else {
-			saw_cmd := false
-			// drop all the commands apart from the first one
+			// flatten alternatives, unwrapping subsections (GroupHelp) and
+			// required groups so the usage renders a single () group
+			flat := make([]meta, 0, len(m))
+			for _, x := range m {
+				if alts, ok := or_alts(x); ok {
+					flat = append(flat, alts...)
+				} else {
+					flat = append(flat, x)
+				}
+			}
+			m = flat
+			saw_cmds := set.New[string](0)
+			// drop duplicated commands
 			m = fun.Filter(func(m meta) bool {
-				is_cmd := is_command(m)
-				keep := !(is_cmd && saw_cmd)
-				saw_cmd = saw_cmd || is_cmd
-				return keep
+				if !is_command(m) {
+					return true
+				}
+				name := command_name(m)
+				if saw_cmds.Contains(name) {
+					return false
+				}
+				saw_cmds.Add(name)
+				return true
 			}, m...)
 			switch len(m) {
 			case 0:
@@ -492,6 +523,23 @@ func alts(self meta, to *[]meta) {
 	case metaSkip:
 	default:
 		*to = append(*to, self)
+	}
+}
+
+// or_alts returns the alternatives of an or meta, unwrapping subsections
+// (added by GroupHelp) and required groups around it; used by usage rendering.
+func or_alts(m meta) ([]meta, bool) {
+	for {
+		switch x := m.(type) {
+		case metaOr:
+			return x, true
+		case metaSubsection:
+			m = x.m
+		case metaRequired:
+			m = x.m
+		default:
+			return nil, false
+		}
 	}
 }
 

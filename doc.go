@@ -117,7 +117,7 @@ func (self *Doc) write_item(item item) {
 	case itemPositional:
 		self.metavar(v.metavar)
 	case itemCommand:
-		self.write_str("COMMAND ...", StyleMetavar)
+		self.write_str(v.name, StyleLiteral)
 	case itemFlag:
 		self.write_shortlong(v.name)
 	case itemArgument:
