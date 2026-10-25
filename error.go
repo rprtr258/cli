@@ -87,8 +87,9 @@ func (errorGuardFailed) isError() {}
 // errorNoArgument means an argument requires a value but something else was
 // passed, e.g. --foo <BAR> is required but --foo --bar was given.
 type errorNoArgument struct {
-	ix      int
-	metavar Metavar
+	ix       int
+	metavar  Metavar
+	nextFlag Opt[string] // set when the item after the flag is itself a flag
 }
 
 func (errorNoArgument) isError() {}
@@ -327,6 +328,13 @@ func textual_part(state *state, ixxx Opt[int]) (string, bool) {
 
 	switch ix.kind {
 	case argKindWord, argKindPositional:
+		// when the value is glued to its flag in a single command line token
+		// (e.g. `-ayam` or `--key=val`), point to the whole token, not just the value
+		if ix.kind == argKindWord && ixx > 0 {
+			if prev := state.items[ixx-1]; (prev.IsShort() || prev.IsLong()) && prev.isAdjacent {
+				return prev.str, true
+			}
+		}
 		return ix.str, true
 	}
 	return "", false
@@ -453,37 +461,27 @@ func render(self *parseError, state *state, meta meta) parseFailure {
 	case errorNoArgument:
 		// parseError: --foo requires an argument FOO, got a flag --bar, try --foo=-bar to use it as an argument
 		// parseError: --foo requires an argument FOO
-		a, ok := state.get(e.ix + 1)
-		if ok && (a.IsShort() || a.IsLong()) {
-			arg := &state.items[e.ix]
+		arg := &state.items[e.ix]
 
-			doc.token(tokenBlockStart(blockTermRef))
-			doc.write(arg.GoString(), StyleLiteral)
-			doc.token(tokenBlockEnd(blockTermRef))
-			doc.Text(" requires an argument ")
-			doc.token(tokenBlockStart(blockTermRef))
-			doc.metavar(e.metavar)
-			doc.token(tokenBlockEnd(blockTermRef))
+		doc.token(tokenBlockStart(blockTermRef))
+		doc.write(arg.GoString(), StyleLiteral)
+		doc.token(tokenBlockEnd(blockTermRef))
+		doc.Text(" requires an argument ")
+		doc.token(tokenBlockStart(blockTermRef))
+		doc.metavar(e.metavar)
+		doc.token(tokenBlockEnd(blockTermRef))
+		if nextFlag, ok := e.nextFlag.Unpack(); ok {
 			doc.Text(", got a flag ")
 			doc.token(tokenBlockStart(blockTermRef))
-			doc.write(a.str, StyleInvalid)
+			doc.write(nextFlag, StyleInvalid)
 			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(", try ")
 			doc.token(tokenBlockStart(blockTermRef))
 			doc.write(arg.GoString(), StyleLiteral)
 			doc.Literal("=")
-			doc.write(a.str, StyleLiteral)
+			doc.write(nextFlag, StyleLiteral)
 			doc.token(tokenBlockEnd(blockTermRef))
 			doc.Text(" to use it as an argument")
-		} else {
-			// "Some" part of this branch is actually unreachable
-			doc.token(tokenBlockStart(blockTermRef))
-			doc.write(state.items[e.ix].GoString(), StyleLiteral)
-			doc.token(tokenBlockEnd(blockTermRef))
-			doc.Text(" requires an argument ")
-			doc.token(tokenBlockStart(blockTermRef))
-			doc.metavar(e.metavar)
-			doc.token(tokenBlockEnd(blockTermRef))
 		}
 	case errorUnconsumed:
 		ix := int(e)

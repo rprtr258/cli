@@ -185,7 +185,7 @@ func TestCustomFlagFail(t *testing.T) {
 		},
 		"invalid value": {
 			command: "--custom=-2",
-			errWant: "couldn't parse `-2`: invalid flag value, expected -1 or -foo",
+			errWant: "couldn't parse `--custom=-2`: invalid flag value, expected -1 or -foo",
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
