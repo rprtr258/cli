@@ -11,12 +11,12 @@ import (
 
 func Basic() {
 	type Out struct {
-		debug            bool
-		verbose          uint
-		speed            float64
-		output           string
-		nb_cars          uint32
-		files_to_process []string
+		Debug          bool
+		Verbose        uint
+		Speed          float64
+		Output         string
+		NbCars         uint32
+		FilesToProcess []string
 	}
 
 	newOpts := func() *cli.OptionParser[Out] {
@@ -68,25 +68,15 @@ func Basic() {
 
 		files_to_process := file_to_proces.Many()
 
-		// packing things in a struct assumes parser for each field is in scope.
-		// TODO: codgen on Out struct
-		return cli.Map6(
+		// packing things in a struct: fields are filled from the parsers in declaration order
+		return cli.MapStruct6[Out](
 			debug,
 			verbose,
 			speed,
 			output,
 			nb_cars,
 			files_to_process,
-			func(debug bool, verbose uint, speed float64, output string, nb_cars uint32, files_to_process []string) Out {
-				return Out{
-					debug,
-					verbose,
-					speed,
-					output,
-					nb_cars,
-					files_to_process,
-				}
-			}).
+		).
 			ToOptions().
 			Description("This is a description")
 	}

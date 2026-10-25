@@ -52,6 +52,17 @@ The declaration is fully checked by the compiler: `Map2` only accepts parsers of
 types the combining function expects, and `Guard` reuses the same value type, so
 mistakes surface at build time.
 
+When the result is a plain struct, `MapStruct2[T]`–`MapStruct6[T]` drop the combining
+function and fill `T`'s fields from the parser results in declaration order:
+
+```go
+var rectangle cli.Parser[Rectangle] = cli.MapStruct2[Rectangle](width, height)
+```
+
+Field types are checked against the parser result types when `MapStruct` is called,
+panicking on a mismatch. See [struct-based declaration](struct.md) for the
+tag-driven alternative.
+
 ## Where to go next
 
 - [Struct-based declaration](struct.md) — describe the same thing with a struct and `cli` tags.

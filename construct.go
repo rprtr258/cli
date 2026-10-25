@@ -6,6 +6,8 @@ package cli
 //
 //   - [Map2] through [Map6] combine two to six parsers into one producing the
 //     value their combining function returns.
+//   - [MapStruct2] through [MapStruct6] do the same, filling the fields of a
+//     struct in declaration order.
 //   - [Pair] and [Triple] do the same while keeping the raw parts as a
 //     [fun.Pair] or [Tuple] value.
 //   - [Choice] picks the first parser that consumes the leftmost value.
