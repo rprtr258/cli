@@ -29,8 +29,8 @@ func TestDefaultValueUsingPureWithOk(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := opts.RunInner(newArgList(tc.args...))
-			RequireNoParseFailure(t, err)
+			r, err := opts.run(newArgList(tc.args...))
+			requireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
 	}
@@ -66,8 +66,8 @@ func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.RunInner(newArgList(tc.args...))
-			RequireNoParseFailure(t, err)
+			r, err := seeds.run(newArgList(tc.args...))
+			requireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
 	}
@@ -96,8 +96,8 @@ func TestDefaultValueUsingPureWithErrForSome(t *testing.T) {
 		},
 	} {
 		t.Run(name, func(t *testing.T) {
-			r, err := seeds.RunInner(newArgList(tc.args...))
-			RequireNoParseFailure(t, err)
+			r, err := seeds.run(newArgList(tc.args...))
+			requireNoParseFailure(t, err)
 			require.Equal(t, tc.expected, r)
 		})
 	}

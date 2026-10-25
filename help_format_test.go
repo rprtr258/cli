@@ -434,7 +434,7 @@ Available options:
 		assertHelp(t, parser, expected)
 	}
 
-	assertSuccess(t, PPair(PPair(true, false), true), parser, "-a", "-c")
+	assertSuccess(t, ppair(ppair(true, false), true), parser, "-a", "-c")
 }
 
 func TestCustom_help_and_version(t *testing.T) {

@@ -278,32 +278,14 @@ func combine_with(self, other parseError) parseError {
 	}
 }
 
-// unwrap_stderr returns the stderr message contained in the failure, for
-// unit tests.
-//
-// # Panics
-//
-// Panics if the failure contains stdout.
-func unwrap_stderr(self parseFailure) string {
-	switch self := self.(type) {
-	case parseFailureStdout:
-		panic(fmt.Sprintf("not an stderr: %#v", self))
-	case parseFailureCompletion:
-		panic(fmt.Sprintf("not an stderr: %#v", self))
-	case parseFailureStderr:
-		return Doc(self).monochrome(true)
-	}
-	panic(fmt.Sprintf("unreachable %T", self))
-}
-
-// unwrap_stdout returns the stdout message contained in the failure, for
+// unwrapStdout returns the stdout message contained in the failure, for
 // unit tests.
 //
 // # Panics
 //
 // Panics if the failure contains stderr.
-func unwrap_stdout(self parseFailure) string {
-	switch self := self.(type) {
+func unwrapStdout(err parseFailure) string {
+	switch self := err.(type) {
 	case parseFailureStdout:
 		return self.msg.monochrome(self.full)
 	case parseFailureCompletion:
@@ -311,7 +293,25 @@ func unwrap_stdout(self parseFailure) string {
 	case parseFailureStderr:
 		panic(fmt.Sprintf("not an stdout: %#v", self))
 	}
-	panic(fmt.Sprintf("unreachable %T", self))
+	panic(fmt.Sprintf("unreachable %T", err))
+}
+
+// unwrapStderr returns the stderr message contained in the failure, for
+// unit tests.
+//
+// # Panics
+//
+// Panics if the failure contains stdout.
+func unwrapStderr(err parseFailure) string {
+	switch self := err.(type) {
+	case parseFailureStdout:
+		panic(fmt.Sprintf("not an stderr: %#v", self))
+	case parseFailureCompletion:
+		panic(fmt.Sprintf("not an stderr: %#v", self))
+	case parseFailureStderr:
+		return Doc(self).monochrome(true)
+	}
+	panic(fmt.Sprintf("unreachable %T", err))
 }
 
 func textual_part(state *state, ixxx Opt[int]) (string, bool) {

@@ -78,8 +78,8 @@ func TestPositional_help_complain_1(t *testing.T) {
 		b := Short('b').Switch()
 		parser := Pair(a, b).ToOptions()
 
-		_, err := parser.RunInner(newArgList("--help"))
-		UnwrapStderr(err)
+		_, err := parser.run(newArgList("--help"))
+		unwrapStderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
@@ -92,8 +92,8 @@ func TestPositional_help_complain_2(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).ToOptions()
 
-		_, err := parser.RunInner(newArgList("--help"))
-		UnwrapStderr(err)
+		_, err := parser.run(newArgList("--help"))
+		unwrapStderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
@@ -106,8 +106,8 @@ func TestPositional_help_complain_3(t *testing.T) {
 		c := Short('c').Switch()
 		parser := Pair(ba, c).ToOptions()
 
-		_, err := parser.RunInner(newArgList("--help"))
-		UnwrapStderr(err)
+		_, err := parser.run(newArgList("--help"))
+		unwrapStderr(err)
 	})
 	require.True(t, strings.HasPrefix(v, "cli usage BUG: all positional"))
 }
@@ -117,8 +117,8 @@ func TestPositional_help_complain_4(t *testing.T) {
 	b := Short('b').Argument("B", ParseString)
 	parser := Choice(b, a).ToOptions()
 
-	_, err := parser.RunInner(newArgList("--help"))
-	UnwrapStdout(err)
+	_, err := parser.run(newArgList("--help"))
+	unwrapStdout(err)
 }
 
 func TestStrictly_positional(t *testing.T) {

@@ -30,7 +30,7 @@ func TestWtfShenanigans1(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, i_prefix, o_prefix)
-		require.Equal(t, argWord(i_suffix), o_suffix.Unwrap())
+		require.Equal(t, argWord(i_suffix), o_suffix.unwrap())
 	}
 
 	f(argTypeShort, "f")
@@ -59,7 +59,7 @@ func TestWtfShenanigans2(t *testing.T) {
 		require.True(t, ok)
 		require.Equal(t, i_c, o_c)
 		require.Equal(t, flagName, gotFlagName)
-		require.Equal(t, argWord(value), gotValue.Unwrap())
+		require.Equal(t, argWord(value), gotValue.unwrap())
 	}
 
 	f(argTypeShort, "f")
@@ -69,8 +69,8 @@ func TestWtfShenanigans2(t *testing.T) {
 
 func TestDeYoda(t *testing.T) {
 	parser := Pair(Short('a').Switch(), Short('b').Switch()).ToOptions()
-	assertSuccess(t, PPair(false, false), parser)
-	assertSuccess(t, PPair(true, true), parser, "-a", "-b")
+	assertSuccess(t, ppair(false, false), parser)
+	assertSuccess(t, ppair(true, true), parser, "-a", "-b")
 }
 
 func TestConstructWithFn(t *testing.T) {
@@ -83,8 +83,8 @@ func TestConstructWithFn(t *testing.T) {
 	c := Short('c').Switch()
 	parser := Map3(a, b, c, func(a bool, b bool, c bool) Opts { return Opts{a, b, c} }).ToOptions()
 
-	_, err := parser.RunInner(newArgList("--help"))
-	help := UnwrapStdout(err)
+	_, err := parser.run(newArgList("--help"))
+	help := unwrapStdout(err)
 	expected_help := `Usage: [-a] [-b] [-c]
 
 Available options:
@@ -95,8 +95,8 @@ Available options:
 `
 	require.Equal(t, expected_help, help)
 
-	x, err := parser.RunInner(newArgList("-b", "-c"))
-	RequireNoParseFailure(t, err)
+	x, err := parser.run(newArgList("-b", "-c"))
+	requireNoParseFailure(t, err)
 	require.Equal(t, Opts{false, true, true}, x)
 }
 
@@ -227,7 +227,7 @@ Available options:
 	assertHelp(t, decorated, expected_help, "-h")
 
 	// fallback to default
-	res, err := decorated.RunInner(newArgList())
+	res, err := decorated.run(newArgList())
 	require.Nil(t, err)
 	require.True(t, !res)
 }
@@ -434,15 +434,15 @@ Available options:
 	assertHelp(t, parser, expected_help)
 
 	{
-		_, err := parser.RunInner(newArgList("-a"))
+		_, err := parser.run(newArgList("-a"))
 		require.Nil(t, err)
 	}
 	{
-		_, err := parser.RunInner(newArgList("-b"))
+		_, err := parser.run(newArgList("-b"))
 		require.Nil(t, err)
 	}
 	{
-		_, err := parser.RunInner(newArgList("-c"))
+		_, err := parser.run(newArgList("-c"))
 		require.Nil(t, err)
 	}
 }
@@ -628,10 +628,10 @@ func TestSimpleCargoHelper(t *testing.T) {
 		Description("this is a test")
 
 	// cargo run variant
-	assertSuccess(t, PPair(true, false), decorated, "-a")
+	assertSuccess(t, ppair(true, false), decorated, "-a")
 
 	// cargo simple variant
-	assertSuccess(t, PPair(false, true), decorated, "simple", "-b")
+	assertSuccess(t, ppair(false, true), decorated, "simple", "-b")
 
 	assertFailure(t, decorated, "argument `-a` cannot be used multiple times in this context", "-a", "-a")
 
@@ -777,12 +777,12 @@ Available options:
 
 	// hidden and visible aliases are working
 	for _, alias := range []string{"foo", "f", "bar", "b"} {
-		_, err := parser.RunInner(newArgList(alias))
+		_, err := parser.run(newArgList(alias))
 		require.Nil(t, err)
 	}
 
 	// and "k" isn't a thing
-	_, err := parser.RunInner(newArgList("k"))
+	_, err := parser.run(newArgList("k"))
 	require.NotNil(t, err)
 }
 
@@ -864,13 +864,13 @@ func TestCommand_preserves_custom_failure_message(t *testing.T) {
 	const msg = "need more cheese"
 	inner := Fail[struct{}](msg).ToOptions()
 
-	_, err := inner.RunInner(newArgList())
-	require.Equal(t, UnwrapStderr(err), "need more cheese")
+	_, err := inner.run(newArgList())
+	require.Equal(t, unwrapStderr(err), "need more cheese")
 
 	outer := inner.Command("feed").ToOptions()
 
-	_, err = outer.RunInner(newArgList("feed"))
-	require.Equal(t, UnwrapStderr(err), "need more cheese")
+	_, err = outer.run(newArgList("feed"))
+	require.Equal(t, unwrapStderr(err), "need more cheese")
 }
 
 func TestOptional_error_handling(t *testing.T) {
@@ -1267,8 +1267,8 @@ func TestFancy_negative(t *testing.T) {
 
 	parser := Pair(ab, c).ToOptions()
 
-	assertSuccess(t, PPair[int32, uint](-10, 42), parser, "-a", "-10")
-	assertSuccess(t, PPair[int32, uint](-20, 110), parser, "-a=-20", "-c", "110")
+	assertSuccess(t, ppair[int32, uint](-10, 42), parser, "-a", "-10")
+	assertSuccess(t, ppair[int32, uint](-20, 110), parser, "-a=-20", "-c", "110")
 	{
 		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
 		const expected = `Usage: -a A [-c=C]
@@ -1347,8 +1347,8 @@ func TestAdjacent_anywhere_needs_to_consume_something(t *testing.T) {
 	b := Short('b').Switch()
 	parser := Pair(a, b).Adjacent().ToOptions()
 
-	assertSuccess(t, PPair(true, false), parser, "-a")
-	assertSuccess(t, PPair(false, true), parser, "-b")
+	assertSuccess(t, ppair(true, false), parser, "-a")
+	assertSuccess(t, ppair(false, true), parser, "-b")
 }
 
 func TestFallback_for_some(t *testing.T) {

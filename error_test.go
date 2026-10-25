@@ -24,7 +24,7 @@ func TestNo_argument(t *testing.T) {
 	b := Short('2').Switch()
 	parser := Pair(a, b).ToOptions()
 
-	assertSuccess(t, PPair(int32(-42), false), parser, "-a", "-42")
+	assertSuccess(t, ppair(int32(-42), false), parser, "-a", "-42")
 
 	// TODO: restore the alternative spelling of this failure:
 	// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
@@ -105,7 +105,7 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 
 	// this one is okay, try to parse -a as argument - it fails because "hello" is not a number, then
 	// try to parse -a as a flag - this works
-	assertSuccess(t, PPair(uint(0), struct{}{}), parser, "-a", "hello")
+	assertSuccess(t, ppair(uint(0), struct{}{}), parser, "-a", "hello")
 }
 
 func TestAdjacent_option_complains_to(t *testing.T) {
