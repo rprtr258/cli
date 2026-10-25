@@ -13,10 +13,10 @@ func TestTest_adjacent(t *testing.T) {
 	parser := Triple(a, b, c).Adjacent().Many().ToOptions()
 
 	type R = Tuple[struct{}, bool, bool]
-	assertSuccess(t, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}}, parser, "-a", "-c", "-a", "-b", "-a", "-b", "-c")
+	assertSuccess(t, []R{{struct{}{}, false, true}, {struct{}{}, true, false}, {struct{}{}, true, true}}, parser, "-a -c -a -b -a -b -c")
 	assertSuccess(t, []R{{struct{}{}, false, false}}, parser, "-a")
-	assertSuccess(t, []R{{struct{}{}, false, true}}, parser, "-a", "-c")
-	assertSuccess(t, []R{}, parser)
+	assertSuccess(t, []R{{struct{}{}, false, true}}, parser, "-a -c")
+	assertSuccess(t, []R{}, parser, "")
 }
 
 func TestTest_adjacent_prefix(t *testing.T) {
@@ -29,9 +29,9 @@ func TestTest_adjacent_prefix(t *testing.T) {
 	parser := Pair(ab, c).ToOptions()
 
 	assertSuccess(t, R{Invalid[P](), true}, parser, "-c")
-	assertSuccess(t, R{Valid(P{struct{}{}, 1}), false}, parser, "-a", "1")
-	assertSuccess(t, R{Valid(P{struct{}{}, 1}), true}, parser, "-c", "-a", "1")
-	assertSuccess(t, R{Valid(P{struct{}{}, 1}), true}, parser, "-a", "1", "-c")
+	assertSuccess(t, R{Valid(P{struct{}{}, 1}), false}, parser, "-a 1")
+	assertSuccess(t, R{Valid(P{struct{}{}, 1}), true}, parser, "-c -a 1")
+	assertSuccess(t, R{Valid(P{struct{}{}, 1}), true}, parser, "-a 1 -c")
 }
 
 func TestAdjacent_error_message_pos_single(t *testing.T) {
@@ -94,7 +94,7 @@ func TestAdjacent_is_adjacent(t *testing.T) {
 
 	assertFailure(t, parser, "expected `B`, pass `--help` for usage information", "-a", "-a", "10", "20")
 
-	assertSuccess(t, []uint{10, 20}, parser, "-a", "10", "-a", "20")
+	assertSuccess(t, []uint{10, 20}, parser, "-a 10 -a 20")
 }
 
 func TestAdjacent_with_switch(t *testing.T) {
@@ -105,9 +105,9 @@ func TestAdjacent_with_switch(t *testing.T) {
 	parser := Pair(ab, c).ToOptions()
 
 	type R = fun.Pair[[]uint, bool]
-	assertSuccess(t, R{[]uint{10}, true}, parser, "-a", "10", "-c")
-	assertSuccess(t, R{[]uint{10, 20}, true}, parser, "-a", "10", "-c", "-a", "20")
-	assertSuccess(t, R{[]uint{10, 20}, true}, parser, "-c", "-a", "10", "-a", "20")
+	assertSuccess(t, R{[]uint{10}, true}, parser, "-a 10 -c")
+	assertSuccess(t, R{[]uint{10, 20}, true}, parser, "-a 10 -c -a 20")
+	assertSuccess(t, R{[]uint{10, 20}, true}, parser, "-c -a 10 -a 20")
 }
 
 func TestAdjacent_limits_commands(t *testing.T) {
@@ -115,7 +115,7 @@ func TestAdjacent_limits_commands(t *testing.T) {
 	s := Short('s').Switch()
 	parser := Pair(s, x).ToOptions()
 
-	assertSuccess(t, ppair(true, struct{}{}), parser, "a", "-s")
+	assertSuccess(t, ppair(true, struct{}{}), parser, "a -s")
 }
 
 func TestCommands_and_adjacent(t *testing.T) {
@@ -135,7 +135,7 @@ func TestCommands_and_adjacent(t *testing.T) {
 
 	parser := Pair(switch_, cmds).ToOptions()
 
-	assertSuccess(t, ppair(true, "12"), parser, "sleep", "--time", "12", "-s")
+	assertSuccess(t, ppair(true, "12"), parser, "sleep --time 12 -s")
 
 	// TODO - this is ugly
 	const expected = `Usage: [-s] COMMAND ...
@@ -158,7 +158,7 @@ func TestTwo_adjacent_args(t *testing.T) {
 	point := Pair(x, y).Adjacent()
 	parser := Pair(point, c).ToOptions()
 
-	assertSuccess(t, ppair(ppair(3, 4), true), parser, "-x", "3", "-y", "4", "-c")
+	assertSuccess(t, ppair(ppair(3, 4), true), parser, "-x 3 -y 4 -c")
 	// NOTE: adjacent groups must currently be adjacent to the first element; a
 	// proper fix is to split "adjacent" into "adjacent to" and "adjacent block".
 	// TODO: get back to allowing "-y 3 -x 4 -c" here.

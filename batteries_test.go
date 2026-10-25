@@ -14,7 +14,7 @@ func TestToggle_flag(t *testing.T) {
 		Short('n'), FlagN,
 	).ToOptions()
 
-	assertSuccess(t, Invalid[Flag](), parser)
-	assertSuccess(t, Valid(FlagN), parser, "-y", "-y", "-n")
-	assertSuccess(t, Valid(FlagY), parser, "-y", "-y", "-n", "-y")
+	assertSuccess(t, Invalid[Flag](), parser, "")
+	assertSuccess(t, Valid(FlagN), parser, "-y -y -n")
+	assertSuccess(t, Valid(FlagY), parser, "-y -y -n -y")
 }

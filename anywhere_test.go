@@ -53,9 +53,9 @@ func TestAnywhere_catch_optional(t *testing.T) {
 
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[Opt[P], bool]
-	assertSuccess(t, R{Valid(P{struct{}{}, 10}), false}, parser, "-a", "10")
+	assertSuccess(t, R{Valid(P{struct{}{}, 10}), false}, parser, "-a 10")
 	assertSuccess(t, R{Invalid[P](), true}, parser, "-a")
-	assertSuccess(t, R{Invalid[P](), false}, parser)
+	assertSuccess(t, R{Invalid[P](), false}, parser, "")
 }
 
 func TestAnywhere_catch_many(t *testing.T) {
@@ -68,8 +68,8 @@ func TestAnywhere_catch_many(t *testing.T) {
 	type P = fun.Pair[struct{}, uint]
 	type R = fun.Pair[[]fun.Pair[struct{}, uint], bool]
 	assertSuccess(t, R{[]P{}, true}, parser, "-a")
-	assertSuccess(t, R{[]P{{struct{}{}, 10}}, false}, parser, "-a", "10")
-	assertSuccess(t, R{[]P{}, false}, parser)
+	assertSuccess(t, R{[]P{{struct{}{}, 10}}, false}, parser, "-a 10")
+	assertSuccess(t, R{[]P{}, false}, parser, "")
 }
 
 func TestAnywhere_catch_fallback(t *testing.T) {
@@ -81,9 +81,9 @@ func TestAnywhere_catch_fallback(t *testing.T) {
 	bc := Short('a').Switch()
 	parser := Pair(ab, bc).ToOptions()
 
-	assertSuccess(t, R{P{struct{}{}, 12}, false}, parser, "-a", "12")
+	assertSuccess(t, R{P{struct{}{}, 12}, false}, parser, "-a 12")
 	assertSuccess(t, R{P{struct{}{}, 10}, false}, parser, "-a")
-	assertSuccess(t, R{P{struct{}{}, 10}, false}, parser)
+	assertSuccess(t, R{P{struct{}{}, 10}, false}, parser, "")
 }
 
 func TestParse_anywhere_catch_optional(t *testing.T) {
@@ -118,7 +118,7 @@ func TestAnywhere_literal(t *testing.T) {
 	type R = fun.Pair[[]P, bool]
 	parser := Pair(a, b).ToOptions()
 
-	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-b", "-mode", "12")
-	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-mode", "12", "-b")
-	assertSuccess(t, R{[]P{{struct{}{}, 12}}, false}, parser, "-mode", "12")
+	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-b -mode 12")
+	assertSuccess(t, R{[]P{{struct{}{}, 12}}, true}, parser, "-mode 12 -b")
+	assertSuccess(t, R{[]P{{struct{}{}, 12}}, false}, parser, "-mode 12")
 }

@@ -117,8 +117,7 @@ func TestHelpCommandDispatch(t *testing.T) {
 		OptionWithArgName: "an",
 		OptionWithChoices: "dog",
 		Hidden:            "h",
-	}, parser, "command", "--extra-verbose", "--extra-verbose", "--env-default2", "e2",
-		"--opt-with-arg-name", "an", "--opt-with-choices", "dog", "--hidden", "h")
+	}, parser, "command --extra-verbose --extra-verbose --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h")
 	// hidden long aliases
 	assertSuccess(t, cmdHelpCommands{
 		HelpCommand:       helpCommand{ExtraVerbose: []bool{true}},
@@ -126,16 +125,14 @@ func TestHelpCommandDispatch(t *testing.T) {
 		OptionWithArgName: "an",
 		OptionWithChoices: "dog",
 		Hidden:            "h",
-	}, parser, "cm", "--extra-verbose", "--env-default2", "e2", "--opt-with-arg-name", "an",
-		"--opt-with-choices", "dog", "--hidden", "h")
+	}, parser, "cm --extra-verbose --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h")
 	assertSuccess(t, cmdHelpCommands{
 		HelpCommand:       helpCommand{ExtraVerbose: []bool{true}},
 		EnvDefault2:       "e2",
 		OptionWithArgName: "an",
 		OptionWithChoices: "dog",
 		Hidden:            "h",
-	}, parser, "cmd", "--extra-verbose", "--env-default2", "e2", "--opt-with-arg-name", "an",
-		"--opt-with-choices", "dog", "--hidden", "h")
+	}, parser, "cmd --extra-verbose --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h")
 	// nested subcommand
 	assertSuccess(t, cmdHelpCommands{
 		EnvDefault2:       "e2",
@@ -146,8 +143,7 @@ func TestHelpCommandDispatch(t *testing.T) {
 			Opt:        "parent-opt",
 			SubCommand: helpParentSub{Opt: "sub-opt"},
 		},
-	}, parser, "parent", "--opt", "parent-opt", "sub", "--opt", "sub-opt",
-		"--env-default2", "e2", "--opt-with-arg-name", "an", "--opt-with-choices", "dog", "--hidden", "h")
+	}, parser, "parent --opt parent-opt sub --opt sub-opt --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h")
 }
 
 func TestHelpCommandsOptional(t *testing.T) {
@@ -169,8 +165,7 @@ func TestHelpCommandsOptional(t *testing.T) {
 		Filename:          "file",
 		Number:            3,
 		HiddenInHelp:      1.5,
-	}, parser, "file", "3", "1.5", "--env-default2", "e2", "--opt-with-arg-name", "an",
-		"--opt-with-choices", "dog", "--hidden", "h")
+	}, parser, "file 3 1.5 --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h")
 }
 
 func TestHelpFlagsAndPositionals(t *testing.T) {
@@ -191,9 +186,7 @@ func TestHelpFlagsAndPositionals(t *testing.T) {
 		Filename:          "name",
 		Number:            2,
 		HiddenInHelp:      1.5,
-	}, parser, "-v", "-v", "--ptrslice", "a", "--opt-with-choices", "dog",
-		"--hidden", "h", "-s", "x", "--intmap", "k:1", "name", "2", "1.5",
-		"--env-default2", "e2", "--opt-with-arg-name", "an")
+	}, parser, "-v -v --ptrslice a --opt-with-choices dog --hidden h -s x --intmap k:1 name 2 1.5 --env-default2 e2 --opt-with-arg-name an")
 
 	// default map entries can be overridden
 	assertSuccess(t, cmdHelp{
@@ -211,8 +204,7 @@ func TestHelpFlagsAndPositionals(t *testing.T) {
 		Filename:          "name",
 		Number:            2,
 		HiddenInHelp:      1.5,
-	}, parser, "--default-map", "x:1", "--env-default2", "e2", "--opt-with-arg-name", "an",
-		"--opt-with-choices", "dog", "--hidden", "h", "name", "2", "1.5")
+	}, parser, "--default-map x:1 --env-default2 e2 --opt-with-arg-name an --opt-with-choices dog --hidden h name 2 1.5")
 }
 
 func TestHelpChoices(t *testing.T) {

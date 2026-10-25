@@ -111,14 +111,14 @@ func TestFluentGenericMethods(t *testing.T) {
 			return res
 		}).
 		ToOptions()
-	assertSuccess(t, uint32(3), parser, "1", "2")
+	assertSuccess(t, uint32(3), parser, "1 2")
 
 	parser2 := Map2(
 		Positional[uint32]("W", ParseUint32),
 		Positional[uint32]("H", ParseUint32),
 		func(w, h uint32) uint32 { return w * h }).
 		ToOptions()
-	assertSuccess(t, uint32(20), parser2, "4", "5")
+	assertSuccess(t, uint32(20), parser2, "4 5")
 
 	parser3 := Parse(
 		Positional[uint32]("N", ParseUint32),
