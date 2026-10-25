@@ -78,7 +78,7 @@ func Sensors() {
 			address,
 		).Adjacent().Map(func(x fun.Pair[fun.Pair[fun.Pair[struct{}, string], fun.Pair[string, uint]], uint]) Sensor {
 			return Sensor{x.K.K.K, x.K.K.V, x.K.V.K, x.K.V.V, x.V}
-		}).Many() // TODO: adjacent must be after Map somehow
+		}).Many()
 		return sensors.Map(func(x []Sensor) Opts { return Opts{x} })
 	}()
 

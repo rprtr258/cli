@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/rprtr258/fun"
+	"github.com/rprtr258/fun/set"
 )
 
 // parseError is the internal representation of an unsuccessful command line
@@ -709,14 +710,18 @@ func summarize_missing(items []missingItem, inner meta, state *state) parseError
 
 	best_scope := best_item.scope
 
-	saw_command := false
+	saw_commands := set.New[string](0)
 	expected := slices.Collect(filter_map(slices.Values(items), func(i missingItem) (item, bool) {
-		if _, cmd := i.item.v.(itemCommand); i.scope == best_scope && !(saw_command && cmd) {
-			saw_command = saw_command || cmd
-			return i.item, true
-		} else {
+		if i.scope != best_scope {
 			return item{}, false
 		}
+		if cmd, is_cmd := i.item.v.(itemCommand); is_cmd {
+			if saw_commands.Contains(cmd.name) {
+				return item{}, false
+			}
+			saw_commands.Add(cmd.name)
+		}
+		return i.item, true
 	}))
 
 	best_scope[0] = max(best_scope.start(), best_item.position)

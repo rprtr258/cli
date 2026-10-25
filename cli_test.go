@@ -362,7 +362,7 @@ func TestGroupHelpCommands(t *testing.T) {
 		Help("command that does C")
 	parser := Choice(Choice(a, b).GroupHelp("Explanation applicable for both A and B:"), c).ToOptions()
 
-	const expected_help = `Usage: COMMAND ...
+	const expected_help = `Usage: (cmd_a | cmd_b | cmd_c)
 
 Explanation applicable for both A and B:
     cmd_a       command that does A
@@ -409,7 +409,7 @@ Available options:
 	{
 		const expected_help = `This is global info
 
-Usage: COMMAND ...
+Usage: bar
 
 Available options:
     -h, --help  Prints help information
@@ -517,14 +517,14 @@ func TestGit(t *testing.T) {
 	}()
 
 	t.Run("no_command", func(t *testing.T) {
-		const expected_err = "expected `COMMAND ...`, pass `--help` for usage information"
+		const expected_err = "expected `fetch` or `add`, pass `--help` for usage information"
 		assertFailure(t, parser, expected_err, "")
 	})
 
 	t.Run("root_help", func(t *testing.T) {
 		const expected_help = `The stupid content tracker
 
-Usage: COMMAND ...
+Usage: (fetch | add)
 
 Available options:
     -h, --help  Prints help information
@@ -733,7 +733,7 @@ Available options:
 	{
 		const expected_help = `outer
 
-Usage: [COMMAND ...]
+Usage: [foo]
 
 Available options:
     -h, --help  Prints help information
@@ -753,7 +753,7 @@ func TestCommandWithAliases(t *testing.T) {
 	{
 		const expected_help = `outer
 
-Usage: COMMAND ...
+Usage: foo
 
 Available options:
     -h, --help  Prints help information
@@ -823,7 +823,7 @@ func TestHelpForCommands(t *testing.T) {
 	h := Pure(struct{}{}).ToOptions().Command("thing_h")
 	parser := Choice(d, e, h).ToOptions()
 
-	const expected_help = `Usage: COMMAND ...
+	const expected_help = `Usage: (thing_d | thing_e | thing_h)
 
 Available options:
     -h, --help  Prints help information
@@ -1048,7 +1048,7 @@ func TestDid_you_mean_inside_command(t *testing.T) {
 	b := Long("parameter").Switch()
 	parser := Choice(a, b).ToOptions().Command("cmd").ToOptions()
 
-	assertFailure(t, parser, "expected `COMMAND ...`, got `--fla`. Pass `--help` for usage information", "--fla")
+	assertFailure(t, parser, "expected `cmd`, got `--fla`. Pass `--help` for usage information", "--fla")
 
 	assertFailure(t, parser, "no such flag: `--fla`, did you mean `--flag`?", "cmd --fla")
 
@@ -1270,12 +1270,10 @@ func TestFancy_negative(t *testing.T) {
 	assertSuccess(t, ppair[int32, uint](-10, 42), parser, "-a -10")
 	assertSuccess(t, ppair[int32, uint](-20, 110), parser, "-a=-20 -c 110")
 	{
-		// TODO - rendering sucks once you start inventing fancy combinations and don't provide help...
 		const expected = `Usage: -a A [-c=C]
 
 Available options:
-  -a A
-
+    -a A
     -c=C
     -h, --help  Prints help information
 `
@@ -1369,7 +1367,7 @@ func TestFlag_like_commands(t *testing.T) {
 	assertSuccess(t, 2, parser, "remove -b")
 
 	{
-		const expected = "Usage: COMMAND ...\n\nAvailable options:\n    -h, --help  Prints help information\n\nAvailable commands:\n    --add\n    remove\n"
+		const expected = "Usage: (--add | remove)\n\nAvailable options:\n    -h, --help  Prints help information\n\nAvailable commands:\n    --add\n    remove\n"
 		assertHelp(t, parser, expected, "")
 	}
 

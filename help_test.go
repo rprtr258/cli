@@ -60,8 +60,8 @@ func TestHelp(t *testing.T) {
 	assertHelp(t, parser, `Usage: [-v]... [--ptrslice=PTRSLICE]... [--empty-description] [--default=DEFAULT] [--default-map=
 <KEY:VALUE>] [--env-default1=ENVDEFAULT1] --env-default2=ENVDEFAULT2 --opt-with-arg-name=<something>
 --opt-with-choices=<choice> --hidden=HIDDEN [--this-hidden-option-has-a-ridiculously-long-name] [-s=
-STRINGSLICE]... [--intmap=<KEY:VALUE>] COMMAND ... COMMAND ... COMMAND ... COMMAND ... <filename>
-<num> <hidden-in-help>
+STRINGSLICE]... [--intmap=<KEY:VALUE>] bommand command hidden-command parent <filename> <num>
+<hidden-in-help>
 
 Available positional items:
     <filename>                A filename with a long description to trigger line wrapping

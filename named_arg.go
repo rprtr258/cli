@@ -90,6 +90,11 @@ func (self NamedArg) Help(help string) NamedArg {
 // for `Flag(self, true, false)`.
 //
 // With [Construct] a `bool` field without a consumer tag parses as a switch.
+//
+// # Panics
+//
+// Panics if the switch has no name: add at least one [NamedArg.Short],
+// [NamedArg.Long] or [NamedArg.Env].
 func (self NamedArg) Switch() Parser[bool] {
 	return flagParser(true, Valid(false), self)
 }

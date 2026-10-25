@@ -7,7 +7,16 @@ import "os"
 //
 // This is an unexported constructor shared by all flag parsers; the fluent
 // combinators continue on the returned [Parser].
+//
+// # Panics
+//
+// Panics if the flag has no name: add at least one [NamedArg.Short],
+// [NamedArg.Long] or [NamedArg.Env].
 func flagParser[T any](present T, absent Opt[T], named NamedArg) Parser[T] {
+	if _, ok := named.flag_item(); !ok && len(named.env) == 0 {
+		panic("cli usage BUG: flag must have at least one name: use Short, Long or Env")
+	}
+
 	eval := func(state *state) (T, parseError) {
 		if state.takeBoolFlag(named) || func() bool {
 			_, ok := find_map(named.env, os.LookupEnv)
@@ -32,9 +41,8 @@ func flagParser[T any](present T, absent Opt[T], named NamedArg) Parser[T] {
 			return *new(T), errorMissing([]missingItem{missing})
 		} else if len(named.env) > 0 {
 			return *new(T), errorNoEnv(named.env[0])
-		} else {
-			panic(`todo!("no key!")`)
 		}
+		panic("unreachable") // nameless flags are rejected by flagParser
 	}
 
 	meta := meta(metaSkip{})
@@ -48,6 +56,11 @@ func flagParser[T any](present T, absent Opt[T], named NamedArg) Parser[T] {
 //
 // More generic version of [NamedArg.Switch] that can use arbitrary type instead of
 // [bool].
+//
+// # Panics
+//
+// Panics if the flag has no name: add at least one [NamedArg.Short],
+// [NamedArg.Long] or [NamedArg.Env].
 func (self NamedArg) Flag[T any](present, absent T) Parser[T] {
 	return flagParser(present, Valid(absent), self)
 }
@@ -57,6 +70,11 @@ func (self NamedArg) Flag[T any](present, absent T) Parser[T] {
 // Similar to [Flag] takes no Opt arguments, but would only
 // succeed if user specifies its name on a command line.
 // Works best in combination with other parsers.
+//
+// # Panics
+//
+// Panics if the flag has no name: add at least one [NamedArg.Short],
+// [NamedArg.Long] or [NamedArg.Env].
 func (self NamedArg) ReqFlag[T any](present T) Parser[T] {
 	return flagParser(present, Invalid[T](), self)
 }

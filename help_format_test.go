@@ -220,13 +220,12 @@ func TestAnywhere_invariant_check(t *testing.T) {
 	const expected = `Usage: [-a] --tag NAME VAL [-b]
 
 Available options:
-    -a          help for a
-  --tag NAME VAL
-    NAME        help for name
-    VAL         help for val
-
-    -b          help for b
-    -h, --help  Prints help information
+    -a              help for a
+    --tag NAME VAL
+    NAME            help for name
+    VAL             help for val
+    -b              help for b
+    -h, --help      Prints help information
 `
 	assertHelp(t, parser, expected, "")
 
@@ -249,15 +248,14 @@ func TestMulti_arg_help(t *testing.T) {
 	const expected = `Usage: [-v] [-f [-e] NAME STATE] [-d]
 
 Available options:
-    -v, --verbose   verbose
-  -f [-e] NAME STATE
-    -f, --flag      flag help
-    -e, --extra     extra strange
-    NAME            pos1 help
-    STATE           pos2 help
-
-    -d, --detailed  detailed
-    -h, --help      Prints help information
+    -v, --verbose       verbose
+    -f [-e] NAME STATE
+    -f, --flag          flag help
+    -e, --extra         extra strange
+    NAME                pos1 help
+    STATE               pos2 help
+    -d, --detailed      detailed
+    -h, --help          Prints help information
 `
 
 	assertHelp(t, parser, expected, "")
@@ -273,7 +271,7 @@ func TestMulti_pos_help(t *testing.T) {
 	const expected = `Usage: [-v] NAME VAL
 
 Available positional items:
-  NAME VAL
+    NAME VAL
     NAME           name help
     VAL            val help
 

@@ -89,7 +89,7 @@ func TestCommands_no_fallback_meta(t *testing.T) {
 	b := Pure(struct{}{}).ToOptions().Command("b")
 	parser := Choice(a, b).ToOptions()
 
-	assert_usage(t, parser, "COMMAND ...")
+	assert_usage(t, parser, "(a | b)")
 }
 
 func TestCommands_and_fallback_meta(t *testing.T) {
@@ -97,21 +97,21 @@ func TestCommands_and_fallback_meta(t *testing.T) {
 	b := Pure(struct{}{}).ToOptions().Command("b")
 	parser := Choice(a, b).Fallback(struct{}{}).ToOptions()
 
-	assert_usage(t, parser, "[COMMAND ...]")
+	assert_usage(t, parser, "[a | b]")
 }
 
 func TestCommand_no_fallback(t *testing.T) {
 	a := Pure(struct{}{}).ToOptions().Command("a")
 	parser := a.ToOptions()
 
-	assert_usage(t, parser, "COMMAND ...")
+	assert_usage(t, parser, "a")
 }
 
 func TestCommand_and_fallback_meta(t *testing.T) {
 	a := Pure(struct{}{}).ToOptions().Command("a")
 	parser := a.Fallback(struct{}{}).ToOptions()
 
-	assert_usage(t, parser, "[COMMAND ...]")
+	assert_usage(t, parser, "[a]")
 }
 
 func TestRequierd_select(t *testing.T) {
