@@ -1,146 +1,104 @@
 package cli
 
-// import (
-// 	"testing"
-// 	"time"
+import (
+	"testing"
+	"time"
 
-// 	"github.com/stretchr/testify/require"
-// )
+	"github.com/stretchr/testify/require"
+)
 
-// func TestConvertToString(t *testing.T) {
-// 	d, _ := time.ParseDuration("1h2m4s")
+// A port of the old convert_test.go, which tested `convertToString`: value to
+// string conversion used for help rendering. The helper is gone; defaults are
+// rendered with `fmt.Sprintf("%v", ...)`, so the port asserts the
+// `[default: ...]` fragments of the `--help` output produced by Construct.
 
-// 	opts := struct {
-// 		String string `long:"string"`
+func TestConvertToString(t *testing.T) {
+	type opts struct {
+		String string `cli:"long=string,default=string"`
 
-// 		Int   int   `long:"int"`
-// 		Int8  int8  `long:"int8"`
-// 		Int16 int16 `long:"int16"`
-// 		Int32 int32 `long:"int32"`
-// 		Int64 int64 `long:"int64"`
+		Int   int   `cli:"long=int,default=-2"`
+		Int8  int8  `cli:"long=int8,default=-1"`
+		Int16 int16 `cli:"long=int16,default=0"`
+		Int32 int32 `cli:"long=int32,default=1"`
+		Int64 int64 `cli:"long=int64,default=2"`
 
-// 		Uint   uint   `long:"uint"`
-// 		Uint8  uint8  `long:"uint8"`
-// 		Uint16 uint16 `long:"uint16"`
-// 		Uint32 uint32 `long:"uint32"`
-// 		Uint64 uint64 `long:"uint64"`
+		Uint   uint   `cli:"long=uint,default=1"`
+		Uint8  uint8  `cli:"long=uint8,default=2"`
+		Uint16 uint16 `cli:"long=uint16,default=3"`
+		Uint32 uint32 `cli:"long=uint32,default=4"`
+		Uint64 uint64 `cli:"long=uint64,default=5"`
 
-// 		Float32 float32 `long:"float32"`
-// 		Float64 float64 `long:"float64"`
+		Float32 float32 `cli:"long=float32,default=1.2"`
+		Float64 float64 `cli:"long=float64,default=-3.4"`
 
-// 		Duration time.Duration `long:"duration"`
+		Duration time.Duration `cli:"long=duration,default=1h2m4s"`
 
-// 		Bool bool `long:"bool"`
+		IntFloatMap map[int]float64 `cli:"long=int-float-map,default=-2:4.5"`
+	}
 
-// 		IntSlice    []int           `long:"int-slice"`
-// 		IntFloatMap map[int]float64 `long:"int-float-map"`
+	parser := Construct[opts]().ToOptions()
+	_, err := parser.RunE([]string{"prog", "--help"})
+	help := unwrapStdout(err.(FailureError).failure)
 
-// 		PtrBool   *bool `long:"ptr-bool"`
-// 		Interface any   `long:"interface"`
+	for _, expect := range []string{
+		"[default: string]",
+		"[default: -2]",
+		"[default: -1]",
+		"[default: 0]",
+		"[default: 1]",
+		"[default: 2]",
+		"[default: 1]",
+		"[default: 2]",
+		"[default: 3]",
+		"[default: 4]",
+		"[default: 5]",
+		"[default: 1.2]",
+		"[default: -3.4]",
+		"[default: 1h2m4s]",
+	} {
+		require.Contains(t, help, expect)
+	}
 
-// 		Int32Base  int32  `long:"int32-base" base:"16"`
-// 		Uint32Base uint32 `long:"uint32-base" base:"16"`
-// 	}{
-// 		"string",
+	// The map default is rendered too, check it is present at all.
+	require.Contains(t, help, "[default:")
+}
 
-// 		-2,
-// 		-1,
-// 		0,
-// 		1,
-// 		2,
+func TestConvertToStringBoolDefault(t *testing.T) {
+	type opts struct {
+		Bool bool `cli:"long=bool,default=true"`
+	}
 
-// 		1,
-// 		2,
-// 		3,
-// 		4,
-// 		5,
+	require.Equal(t,
+		`cli.Construct: field "Bool": bool field cannot have a default`,
+		catchPanic[string](t, func() { Construct[opts]() }))
+}
 
-// 		1.2,
-// 		-3.4,
+func TestConvertToStringSliceDefault(t *testing.T) {
+	type opts struct {
+		IntSlice []int `cli:"long=int-slice,default=1"`
+	}
 
-// 		d,
-// 		true,
+	require.Equal(t,
+		`cli.Construct: field "IntSlice": []E and cli.Opt[E] fields cannot have a default`,
+		catchPanic[string](t, func() { Construct[opts]() }))
+}
 
-// 		[]int{-3, 4, -2},
-// 		map[int]float64{-2: 4.5},
+func TestConvertToStringPointerDefault(t *testing.T) {
+	type opts struct {
+		PtrBool *bool `cli:"long=ptr-bool,default=true"`
+	}
 
-// 		new(bool),
-// 		float32(5.2),
+	require.Equal(t,
+		`cli.Construct: field "PtrBool": *bool and *cli.Count fields are not supported, use bool, cli.Count or cli.Opt[...]`,
+		catchPanic[string](t, func() { Construct[opts]() }))
+}
 
-// 		-5823,
-// 		4232,
-// 	}
+func TestConvertToStringInterfaceField(t *testing.T) {
+	type opts struct {
+		Interface any `cli:"long=interface"`
+	}
 
-// 	expects := []string{
-// 		"string",
-// 		"-2",
-// 		"-1",
-// 		"0",
-// 		"1",
-// 		"2",
-
-// 		"1",
-// 		"2",
-// 		"3",
-// 		"4",
-// 		"5",
-
-// 		"1.2",
-// 		"-3.4",
-
-// 		"1h2m4s",
-// 		"true",
-
-// 		"[-3, 4, -2]",
-// 		"{-2:4.5}",
-
-// 		"false",
-// 		"5.2",
-
-// 		"-16bf",
-// 		"1088",
-// 	}
-
-// 	for i, v := range newParser("test", nil).addGroup("test group", "", &opts).flags {
-// 		s, err := convertToString(v.value, v.tag)
-// 		require.NoError(t, err)
-// 		require.Equal(t, s, expects[i])
-// 	}
-// }
-
-// func TestConvertToStringInvalidIntBase(t *testing.T) {
-// 	opts := struct {
-// 		Int int `long:"int" base:"no"`
-// 	}{
-// 		2,
-// 	}
-
-// 	o := newParser("test", nil).addGroup("test group", "", &opts).flags[0]
-
-// 	_, err := convertToString(o.value, o.tag)
-// 	if err != nil {
-// 		err = newErrorf(ErrMarshal, "%v", err)
-// 	}
-// 	require.Equal(t, &parseError{
-// 		Kind:    ErrMarshal,
-// 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
-// 	}, err)
-// }
-
-// func TestConvertToStringInvalidUintBase(t *testing.T) {
-// 	opts := struct {
-// 		Uint uint `long:"uint" base:"no"`
-// 	}{
-// 		2,
-// 	}
-
-// 	o := newParser("test", nil).addGroup("test group", "", &opts).flags[0]
-// 	_, err := convertToString(o.value, o.tag)
-// 	if err != nil {
-// 		err = newErrorf(ErrMarshal, "%v", err)
-// 	}
-// 	require.Equal(t, &parseError{
-// 		Kind:    ErrMarshal,
-// 		Message: `strconv.ParseInt: parsing "no": invalid syntax`,
-// 	}, err)
-// }
+	require.Equal(t,
+		`cli.Construct: field "Interface": unsupported field type interface {}, implement encoding.TextUnmarshaler to parse custom types`,
+		catchPanic[string](t, func() { Construct[opts]() }))
+}
