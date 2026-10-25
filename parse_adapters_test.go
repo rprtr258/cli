@@ -8,32 +8,32 @@ import (
 func TestParseAdapters_int(t *testing.T) {
 	parser := Long("number").Argument("NUM", ParseInt).ToOptions()
 	assertSuccess(t, 12, parser, "--number=12")
-	assertFailure(t, parser, "couldn't parse `x`: invalid syntax", "--number=x")
-	assertFailure(t, parser, "couldn't parse `99999999999999999999`: value out of range", "--number=99999999999999999999")
+	assertFailure(t, parser, "couldn't parse `--number=x`: invalid syntax", "--number=x")
+	assertFailure(t, parser, "couldn't parse `--number=99999999999999999999`: value out of range", "--number=99999999999999999999")
 }
 
 func TestParseAdapters_uint(t *testing.T) {
 	parser := Long("number").Argument("NUM", ParseUint).ToOptions()
 	assertSuccess(t, uint(12), parser, "--number=12")
-	assertFailure(t, parser, "couldn't parse `-1`: invalid syntax", "--number=-1")
+	assertFailure(t, parser, "couldn't parse `--number=-1`: invalid syntax", "--number=-1")
 }
 
 func TestParseAdapters_float(t *testing.T) {
 	parser := Long("number").Argument("NUM", ParseFloat).ToOptions()
 	assertSuccess(t, 1.5, parser, "--number=1.5")
-	assertFailure(t, parser, "couldn't parse `x`: invalid syntax", "--number=x")
+	assertFailure(t, parser, "couldn't parse `--number=x`: invalid syntax", "--number=x")
 }
 
 func TestParseAdapters_bool(t *testing.T) {
 	parser := Long("flag").Argument("FLAG", ParseBool).ToOptions()
 	assertSuccess(t, true, parser, "--flag=true")
-	assertFailure(t, parser, "couldn't parse `x`: invalid syntax", "--flag=x")
+	assertFailure(t, parser, "couldn't parse `--flag=x`: invalid syntax", "--flag=x")
 }
 
 func TestParseAdapters_duration(t *testing.T) {
 	parser := Long("timeout").Argument("DURATION", ParseDuration).ToOptions()
 	assertSuccess(t, 1500*time.Millisecond, parser, "--timeout=1s500ms")
-	assertFailure(t, parser, `couldn't parse `+"`5`"+`: time: missing unit in duration "5"`, "--timeout=5")
+	assertFailure(t, parser, `couldn't parse `+"`--timeout=5`"+`: time: missing unit in duration "5"`, "--timeout=5")
 }
 
 func TestParseAdapters_string(t *testing.T) {

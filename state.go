@@ -365,7 +365,13 @@ func (self *state) takeFlag(
 
 	ww, ok := self.get(idx + 1)
 	if !ok || ww.kind != argKindWord {
-		return Opt[string]{}, errorNoArgument{idx, metavar}
+		// Capture the context right away: sibling parsers in a conjunction may
+		// consume the following item before the error gets rendered.
+		nextFlag := Invalid[string]()
+		if ok && (ww.IsShort() || ww.IsLong()) {
+			nextFlag = Valid(ww.str)
+		}
+		return Opt[string]{}, errorNoArgument{idx, metavar, nextFlag}
 	}
 
 	self.currentIdx = Valid(idx + 1)

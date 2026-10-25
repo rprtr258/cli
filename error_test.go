@@ -26,9 +26,8 @@ func TestNo_argument(t *testing.T) {
 
 	assertSuccess(t, ppair(int32(-42), false), parser, "-a -42")
 
-	// TODO: restore the alternative spelling of this failure:
-	// "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument"
-	assertFailure(t, parser, "`-a` requires an argument `N`", "-a -2")
+	// the item after the flag is itself a flag: suggest the `-a=-2` escape hatch
+	assertFailure(t, parser, "`-a` requires an argument `N`, got a flag `-2`, try `-a=-2` to use it as an argument", "-a -2")
 }
 
 func TestCannot_be_used_partial_arg(t *testing.T) {
@@ -111,8 +110,8 @@ func TestShould_not_split_adjacent_ambig_options(t *testing.T) {
 func TestAdjacent_option_complains_to(t *testing.T) {
 	parser := Short('a').Argument("A", ParseUint).ToOptions()
 
-	// TODO - this should point to the whole "-ayam" thing
-	assertFailure(t, parser, "couldn't parse `yam`: invalid syntax", "-ayam")
+	// the value is glued to the flag, so the error points to the whole `-ayam` token
+	assertFailure(t, parser, "couldn't parse `-ayam`: invalid syntax", "-ayam")
 }
 
 func TestSome_pos_with_invalid_flag(t *testing.T) {
