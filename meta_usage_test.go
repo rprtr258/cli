@@ -172,7 +172,7 @@ func TestRequired_or_many(t *testing.T) {
 func TestNo_actual_arguments_also_works(t *testing.T) {
 	parser := Pure(true).ToOptions()
 
-	assertHelp(t, parser, "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n")
+	assertHelp(t, parser, "Usage: \n\nAvailable options:\n    -h, --help  Prints help information\n", "")
 }
 
 func TestA_or_b(t *testing.T) {

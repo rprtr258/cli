@@ -24,7 +24,7 @@ func TestGroupParse(t *testing.T) {
 	assertSuccess(t, withGroup{Verbose: true, Auth: groupAuth{Token: "secret"}, Limit: 3},
 		parser, "-v --token secret --limit 3")
 	// options inside a group keep their own required-ness: Token has no default
-	assertFailure(t, parser, "expected `--token=TOKEN`, pass `--help` for usage information", "--limit", "3")
+	assertFailure(t, parser, "expected `--token=TOKEN`, pass `--help` for usage information", "--limit 3")
 }
 
 func TestGroupHelp(t *testing.T) {
@@ -41,7 +41,7 @@ Available options:
         --limit=LIMIT
                        [default: 10]
     -h, --help         Prints help information
-`)
+`, "")
 }
 
 // --- hidden ---
@@ -66,7 +66,7 @@ func TestHiddenHelp(t *testing.T) {
 
 Available options:
     -h, --help  Prints help information
-`)
+`, "")
 }
 
 // --- commands ---
@@ -123,7 +123,7 @@ Available options:
 Available commands:
     add         Add an item
     rm          Remove an item
-`)
+`, "")
 }
 
 // --- maps ---
@@ -147,13 +147,13 @@ func TestMapFieldParse(t *testing.T) {
 func TestMapFieldFailureNoColon(t *testing.T) {
 	parser := Construct[withMaps]().ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `x`: expected `key:value`", "--label", "x")
+	assertFailure(t, parser, "couldn't parse `x`: expected `key:value`", "--label x")
 }
 
 func TestMapFieldFailureBadValue(t *testing.T) {
 	parser := Construct[withMaps]().ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `x:abc`: invalid syntax", "--count", "x:abc")
+	assertFailure(t, parser, "couldn't parse `x:abc`: invalid syntax", "--count x:abc")
 }
 
 func TestMapFieldHelp(t *testing.T) {
@@ -166,7 +166,7 @@ Available options:
         --count=<KEY:VALUE>
                              [default: map[a:1 b:2]]
     -h, --help               Prints help information
-`)
+`, "")
 }
 
 // --- pointers ---
@@ -207,8 +207,7 @@ func TestChoiceTagParse(t *testing.T) {
 	parser := Construct[withChoices]().ToOptions()
 
 	assertSuccess(t, withChoices{Animal: "dog"}, parser, "--animal dog")
-	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`",
-		"--animal", "zebra")
+	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`", "--animal zebra")
 }
 
 func TestChoiceTagHelp(t *testing.T) {
@@ -219,13 +218,13 @@ func TestChoiceTagHelp(t *testing.T) {
 Available options:
         --animal=ANIMAL  A pet  (one of: cat, dog)
     -h, --help           Prints help information
-`)
+`, "")
 }
 
 func TestChoiceTagCompletion(t *testing.T) {
 	parser := Construct[withChoices]().ToOptions()
 
-	assertCompletion(t, parser, "cat\tcat\t\tA pet\ndog\tdog\t\tA pet\n\n", "--animal", "")
+	assertCompletion(t, parser, "cat\tcat\t\tA pet\ndog\tdog\t\tA pet\n\n", `--animal ""`)
 }
 
 // --- panics ---

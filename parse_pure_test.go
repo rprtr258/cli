@@ -41,7 +41,7 @@ func TestDefaultValueUsingPureWithErr(t *testing.T) {
 	b := PureWith(func() (uint32, error) { return 0, errors.New("some-err") })
 
 	opts := Choice(a, b).ToOptions()
-	assertFailure(t, opts, "some-err")
+	assertFailure(t, opts, "some-err", "")
 }
 
 func TestDefaultValueUsingPureWithOkForSome(t *testing.T) {

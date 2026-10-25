@@ -21,7 +21,7 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 `
-	assertHelp(t, parser, expected_help)
+	assertHelp(t, parser, expected_help, "")
 }
 
 func TestHelp_for_positional(t *testing.T) {
@@ -38,7 +38,7 @@ Available positional items:
 Available options:
     -h, --help  Prints help information
 `
-	assertHelp(t, parser, expected_help)
+	assertHelp(t, parser, expected_help, "")
 }
 
 func TestDash_is_positional(t *testing.T) {
@@ -51,7 +51,7 @@ func TestHelpful_error_message(t *testing.T) {
 	parser := Positional("FOO", ParseString).Parser().Some("you need to specify at least one FOO").
 		ToOptions()
 
-	assertFailure(t, parser, "you need to specify at least one FOO")
+	assertFailure(t, parser, "you need to specify at least one FOO", "")
 }
 
 func TestPositional_argument(t *testing.T) {
@@ -69,7 +69,7 @@ Available options:
     -h, --help  Prints help information
 `
 
-	assertHelp(t, parser, expected)
+	assertHelp(t, parser, expected, "")
 }
 
 func TestPositional_help_complain_1(t *testing.T) {
@@ -124,13 +124,13 @@ func TestPositional_help_complain_4(t *testing.T) {
 func TestStrictly_positional(t *testing.T) {
 	parser := Positional("A", ParseString).Strict().ToOptions()
 
-	assertHelp(t, parser, "Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n")
+	assertHelp(t, parser, "Usage: -- A\n\nAvailable options:\n    -h, --help  Prints help information\n", "")
 
 	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a")
 
 	assertSuccess(t, "a", parser, "-- a")
 
-	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a", "--")
+	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a --")
 
 	assertFailure(t, parser, "expected `A`, pass `--help` for usage information", "--")
 }
@@ -140,7 +140,7 @@ func TestNon_strictly_positional(t *testing.T) {
 
 	assertSuccess(t, "a", parser, "a")
 
-	assertFailure(t, parser, "expected `A` to be on the left side of `--`", "--", "a")
+	assertFailure(t, parser, "expected `A` to be on the left side of `--`", "-- a")
 
 	assertFailure(t, parser, "expected `A`, pass `--help` for usage information", "--")
 }

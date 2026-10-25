@@ -14,8 +14,7 @@ func TestChoiceAccept(t *testing.T) {
 func TestChoiceReject(t *testing.T) {
 	parser := Long("animal").Argument("ANIMAL", ParseString).Choice("dog", "cat").ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`",
-		"--animal", "zebra")
+	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`", "--animal zebra")
 }
 
 func TestChoiceRepeated(t *testing.T) {
@@ -24,8 +23,7 @@ func TestChoiceRepeated(t *testing.T) {
 		ToOptions()
 
 	assertSuccess(t, "ant", parser, "--animal ant")
-	assertFailure(t, parser, "couldn't parse `yak`: expected one of `ant`, `cat`, `dog`",
-		"--animal", "yak")
+	assertFailure(t, parser, "couldn't parse `yak`: expected one of `ant`, `cat`, `dog`", "--animal yak")
 }
 
 func TestChoiceHelp(t *testing.T) {
@@ -36,11 +34,11 @@ func TestChoiceHelp(t *testing.T) {
 Available options:
         --animal=ANIMAL  A pet  (one of: cat, dog)
     -h, --help           Prints help information
-`)
+`, "")
 }
 
 func TestChoiceCompletion(t *testing.T) {
 	parser := Long("animal").Argument("ANIMAL", ParseString).Choice("dog", "cat").ToOptions()
 
-	assertCompletion(t, parser, "cat\tcat\t\t\ndog\tdog\t\t\n\n", "--animal", "")
+	assertCompletion(t, parser, "cat\tcat\t\t\ndog\tdog\t\t\n\n", `--animal ""`)
 }

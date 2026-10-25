@@ -58,30 +58,36 @@ func assertSuccess[T any](
 }
 
 // Parser must fail with the given stderr message for the given args.
-func assertFailure[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+func assertFailure[T any](t *testing.T, parser *OptionParser[T], expected, command string) {
 	t.Helper()
 
-	_, err := parser.run(newArgList(args...))
-	require.Equal(t, expected, unwrapStderr(err))
+	args, err := split_example_args(command)
+	require.NoError(t, err)
+	_, failure := parser.run(newArgList(args...))
+	require.Equal(t, expected, unwrapStderr(failure))
 }
 
 // Parser must print the expected stdout for the given args, `--help` by default.
-func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+func assertHelp[T any](t *testing.T, parser *OptionParser[T], expected, command string) {
 	t.Helper()
 
+	args, err := split_example_args(command)
+	require.NoError(t, err)
 	if len(args) == 0 {
 		args = []string{"--help"}
 	}
-	_, err := parser.run(newArgList(args...))
-	require.Equal(t, expected, unwrapStdout(err))
+	_, failure := parser.run(newArgList(args...))
+	require.Equal(t, expected, unwrapStdout(failure))
 }
 
 // Parser must produce the expected completion output for the given args.
-func assertCompletion[T any](t *testing.T, parser *OptionParser[T], expected string, args ...string) {
+func assertCompletion[T any](t *testing.T, parser *OptionParser[T], expected, command string) {
 	t.Helper()
 
-	_, err := parser.run(newArgList(args...).setComp(0))
-	require.Equal(t, expected, unwrapStdout(err))
+	args, err := split_example_args(command)
+	require.NoError(t, err)
+	_, failure := parser.run(newArgList(args...).setComp(0))
+	require.Equal(t, expected, unwrapStdout(failure))
 }
 
 // first line of `--help` output without the `Usage: ` prefix must be the expected usage.

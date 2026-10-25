@@ -47,7 +47,7 @@ func TestGet_any_magic(t *testing.T) {
 		ToOptions()
 
 	// -b anana - isn't a -banana
-	assertFailure(t, parser, "`-b` is not expected in this context", "-b", "anana")
+	assertFailure(t, parser, "`-b` is not expected in this context", "-b anana")
 
 	// close enough :)
 	assertSuccess(t, true, parser, "-b=anana")

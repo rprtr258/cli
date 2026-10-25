@@ -92,7 +92,7 @@ Available commands:
     command                   A command
     hidden-command            A hidden command
     parent                    A parent command
-`)
+`, "")
 }
 
 type cmdHelpCommands struct {
@@ -210,6 +210,5 @@ func TestHelpFlagsAndPositionals(t *testing.T) {
 func TestHelpChoices(t *testing.T) {
 	parser := Construct[cmdHelp]().ToOptions()
 
-	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`",
-		"--opt-with-choices", "zebra")
+	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`", "--opt-with-choices zebra")
 }
