@@ -153,6 +153,7 @@ text. Ready-made adapters for common types are provided: `ParseString`,
 ## Composing parsers
 
 - `Map2`-`Map6` - sequential composition: combine 2 to 6 parsers into the value their function returns
+- `MapStruct2`-`MapStruct6` - like `Map2`-`Map6`, but producing a struct with fields filled from the parser results in declaration order
 - `Construct` - struct composition from `cli` tags
 - `Pair` / `Triple` - like `Map2`/`Map3`, but producing `fun.Pair`/`Tuple` values
 - `Choice` - parallel composition: the first parser that consumes the leftmost value wins

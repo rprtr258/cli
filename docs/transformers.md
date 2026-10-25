@@ -11,6 +11,7 @@ applicable to switches, which are always present.
 | `Def` | `Parser[T] -> Parser[T]` | Fall back when missing: `.Def(x)` |
 | `Map` | `Parser[T] -> Parser[U]` | Pure transform of the value: `.Map(func(t T) U)` |
 | `Map2` | `(Parser[T], Parser[U]) -> Parser[V]` | Pure transform of two parsers |
+| `MapStruct2`-`MapStruct6` | `(Parser[T], Parser[U], ...) -> Parser[V]` | Fill `V`'s fields from the parser results in declaration order |
 | `Some` | `Parser[T] -> Parser[[]T]` | One or more values |
 | `Many` | `Parser[T] -> Parser[[]T]` | Zero or more values |
 | `Optional` | `Parser[T] -> Parser[Opt[T]]` | Zero or one value |

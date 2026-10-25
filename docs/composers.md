@@ -7,6 +7,7 @@ Composition combines parsers of different types into one:
 | `Map2(f)` | two parsers, `(T, U) -> V` |
 | `Map3(f)` | three parsers, `(T, U, S) -> V` |
 | `Map4(f)` | four parsers, `(T, U, S, R) -> V` |
+| `MapStruct2[T]`-`MapStruct6[T]` | like `Map2`-`Map6`, but fill the fields of `T` from the parser results in declaration order |
 | `Sequence(parsers...)` | any parsers, `[]any -> V` |
 
 Use `Map2`–`Map4` when the shape is known — they stay fully type-checked. Use
