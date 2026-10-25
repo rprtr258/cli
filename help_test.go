@@ -1,175 +1,223 @@
 package cli
 
-// import (
-// 	"context"
-// 	"strings"
-// 	"testing"
+import (
+	"testing"
+)
 
-// 	"github.com/stretchr/testify/require"
-// )
+// A port of the go-flags `TestHelp` golden test, adapted to this library's
+// declaration style: `cli` tags, groups, struct-side commands with aliases,
+// hidden fields, map flags, pointer slices, choices and positionals.
 
-// type cmdBommand struct {
-// 	Hidden bool `long:"hidden" description:"A hidden goflags.Option"`
-// }
+type helpBommand struct {
+	Hidden bool `cli:"long=hidden,help='A hidden goflags.Option'"`
+}
 
-// type cmdCommand struct {
-// 	ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
-// }
+type helpCommand struct {
+	ExtraVerbose []bool `cli:"long=extra-verbose,help='Use for extra verbosity'"`
+}
 
-// type cmdHidden struct {
-// 	ExtraVerbose []bool `long:"extra-verbose" description:"Use for extra verbosity"`
-// }
+type helpParentSub struct {
+	Opt string `cli:"long=opt,help='This is a sub command goflags.Option'"`
+}
 
-// type cmdParentSub struct {
-// 	Opt string `long:"opt" description:"This is a sub command goflags.Option"`
-// }
+type helpParent struct {
+	Opt        string        `cli:"long=opt,help='This is a parent command goflags.Option'"`
+	SubCommand helpParentSub `cli:"command=sub,help='A sub command'"`
+}
 
-// type cmdParent struct {
-// 	Opt        string       `long:"opt" description:"This is a parent command goflags.Option"`
-// 	SubCommand cmdParentSub `command:"sub" description:"A sub command"`
-// }
+type cmdHelp struct {
+	Verbose          []bool    `cli:"short=v,long=verbose,help='Show verbose debug information'"`
+	PtrSlice         []*string `cli:"long=ptrslice,help='A slice of pointers to string'"`
+	EmptyDescription bool      `cli:"long=empty-description"`
 
-// type cmdHelp struct {
-// 	Verbose          []bool    `short:"v" long:"verbose" description:"Show verbose debug information"`
-// 	PtrSlice         []*string `long:"ptrslice" description:"A slice of pointers to string"`
-// 	EmptyDescription bool      `long:"empty-description"`
+	Default           string            `cli:"long=default,default='Some value',help='Test default value'"`
+	DefaultMap        map[string]string `cli:"long=default-map,default=some:value,default=another:value,help='Testdefault map value'"`
+	EnvDefault1       string            `cli:"long=env-default1,default='Some value',help='Test env-default1 value'"`
+	EnvDefault2       string            `cli:"long=env-default2,help='Test env-default2 value'"`
+	OptionWithArgName string            `cli:"long=opt-with-arg-name,metavar=something,help='Opt with named argument'"`
+	OptionWithChoices string            `cli:"long=opt-with-choices,metavar=choice,choice=dog,choice=cat,help='Opt with choices'"`
+	Hidden            string            `cli:"long=hidden,help='Hidden goflags.Option'"`
 
-// 	Default           string            `long:"default" default:"Some\nvalue" description:"Test default value"`
-// 	DefaultArray      []string          `long:"default-array" default:"Some value" default:"Other\tvalue" description:"Test default array value"`
-// 	DefaultMap        map[string]string `long:"default-map" default:"some:value" default:"another:value" description:"Testdefault map value"`
-// 	EnvDefault1       string            `long:"env-default1" default:"Some value" description:"Test env-default1 value"`
-// 	EnvDefault2       string            `long:"env-default2" description:"Test env-default2 value"`
-// 	OptionWithArgName string            `long:"opt-with-arg-name" value-name:"something" description:"Opt with named argument"`
-// 	OptionWithChoices string            `long:"opt-with-choices" value-name:"choice" choice:"dog" choice:"cat" description:"Opt with choices"`
-// 	Hidden            string            `long:"hidden" description:"Hidden goflags.Option"`
+	HiddenOptionWithVeryLongName bool `cli:"long=this-hidden-option-has-a-ridiculously-long-name"`
 
-// 	HiddenOptionWithVeryLongName bool `long:"this-hidden-option-has-a-ridiculously-long-name"`
+	StringSlice []string       `cli:"short=s,help='A slice of strings'"`
+	IntMap      map[string]int `cli:"long=intmap,default=a:1,help='A map from string to int'"`
 
-// 	StringSlice []string       `short:"s" default:"some" default:"value" description:"A slice of strings"`
-// 	IntMap      map[string]int `long:"intmap" default:"a:1" description:"A map from string to int"`
+	// positional items
+	Filename     string  `cli:"metavar=filename,help='A filename with a long description to trigger line wrapping'"`
+	Number       int     `cli:"metavar=num,help='A number'"`
+	HiddenInHelp float32 `cli:"metavar=hidden-in-help"`
 
-// 	// TODO: get back when groups are implemented
-// 	// HiddenGroup struct {
-// 	// 	InsideHiddenGroup string `long:"inside-hidden-group" description:"Inside hidden group"`
-// 	// 	Padder            bool   `long:"this-option-in-a-hidden-group-has-a-ridiculously-long-name"`
-// 	// } `group:"Hidden group"`
+	HelpBommand       helpBommand `cli:"command=bommand,help='A command with only hidden goflags.Options'"`
+	HelpCommand       helpCommand `cli:"command=command,alias=cm,alias=cmd,help='A command'"`
+	HelpHiddenCmd     helpBommand `cli:"command=hidden-command,help='A hidden command'"`
+	HelpParentCommand helpParent  `cli:"command=parent,help='A parent command'"`
+}
 
-// 	// GroupWithOnlyHiddenOptions struct {
-// 	// 	SecretFlag bool `long:"secret" description:"Hidden flag in a non-hidden group"`
-// 	// }
+func TestHelp(t *testing.T) {
+	parser := Construct[cmdHelp]().ToOptions()
 
-// 	// Sip struct {
-// 	// 	Opt                  string `long:"opt" description:"This is a subgroup goflags.Option"`
-// 	// 	HiddenInsideGroup    string `long:"hidden-inside-group" description:"Hidden inside group"`
-// 	// 	NotHiddenInsideGroup string `long:"not-hidden-inside-group" description:"Not hidden inside group"`
+	assertHelp(t, parser, `Usage: [-v]... [--ptrslice=PTRSLICE]... [--empty-description] [--default=DEFAULT] [--default-map=
+<KEY:VALUE>] [--env-default1=ENVDEFAULT1] --env-default2=ENVDEFAULT2 --opt-with-arg-name=<something>
+--opt-with-choices=<choice> --hidden=HIDDEN [--this-hidden-option-has-a-ridiculously-long-name] [-s=
+STRINGSLICE]... [--intmap=<KEY:VALUE>] COMMAND ... COMMAND ... COMMAND ... COMMAND ... <filename>
+<num> <hidden-in-help>
 
-// 	// 	Sap struct {
-// 	// 		Opt string `long:"opt" description:"This is a subsubgroup goflags.Option"`
-// 	// 	}
-// 	// }
+Available positional items:
+    <filename>                A filename with a long description to trigger line wrapping
+    <num>                     A number
 
-// 	Bommand       cmdBommand `command:"bommand" description:"A command with only hidden goflags.Options"`
-// 	Command       cmdCommand `command:"command" alias:"cm" alias:"cmd" description:"A command"`
-// 	HiddenCommand cmdHidden  `command:"hidden-command" description:"A hidden command"`
-// 	ParentCommand cmdParent  `command:"parent" description:"A parent command"`
+Available options:
+    -v, --verbose             Show verbose debug information
+        --ptrslice=PTRSLICE   A slice of pointers to string
+        --empty-description
+        --default=DEFAULT     Test default value
+                              [default: Some value]
+        --default-map=<KEY:VALUE>  Testdefault map value
+                              [default: map[another:value some:value]]
+        --env-default1=ENVDEFAULT1  Test env-default1 value
+                              [default: Some value]
+        --env-default2=ENVDEFAULT2  Test env-default2 value
+        --opt-with-arg-name=<something>  Opt with named argument
+        --opt-with-choices=<choice>  Opt with choices  (one of: cat, dog)
+        --hidden=HIDDEN       Hidden goflags.Option
+        --this-hidden-option-has-a-ridiculously-long-name
+    -s=STRINGSLICE            A slice of strings
+        --intmap=<KEY:VALUE>  A map from string to int
+                              [default: map[a:1]]
+    -h, --help                Prints help information
 
-// 	argList struct {
-// 		Filename     string  `positional-arg-name:"filename" description:"A filename with a long description to trigger line wrapping"`
-// 		Number       int     `positional-arg-name:"num" description:"A number"`
-// 		HiddenInHelp float32 `positional-arg-name:"hidden-in-help"`
-// 	} `positional-args:"yes"`
-// }
+Available commands:
+    bommand                   A command with only hidden goflags.Options
+    command                   A command
+    hidden-command            A hidden command
+    parent                    A parent command
+`)
+}
 
-// func TestHelp(t *testing.T) {
-// 	err := Run[cmdHelp](context.Background(), "x", "--help")
-// 	require.Equal(t, parseError{
-// 		Kind: ErrHelp,
-// 		Message: strings.Join([]string{
-// 			"Usage: \x1b[94mx\x1b[0m \x1b[91m[COMMAND]\x1b[0m \x1b[93m[FLAGS]\x1b[0m \x1b[95m[ARGUMENTS]\x1b[0m",
-// 			"",
-// 			"",
-// 			"",
-// 			"Commands:",
-// 			"\t\x1b[91mbommand\x1b[0m          A command with only hidden goflags.Options",
-// 			"\t\x1b[91mcommand\x1b[0m,\x1b[31mcm\x1b[0m,\x1b[31mcmd\x1b[0m   A command",
-// 			"\t\x1b[91mhidden-command\x1b[0m   A hidden command",
-// 			"\t\x1b[91mparent\x1b[0m           A parent command",
-// 			"",
-// 			"Arguments:",
-// 			"\t\x1b[95m[Filename]\x1b[0m \x1b[92mstring\x1b[0m        A filename with a long description to trigger line wrapping",
-// 			"\t\x1b[95m[Number]\x1b[0m \x1b[92mstring\x1b[0m          A number",
-// 			"\t\x1b[95m[HiddenInHelp]\x1b[0m \x1b[92mstring\x1b[0m    ",
-// 			"",
-// 			"Flags:",
-// 			"\t\x1b[93m-v\x1b[0m, \x1b[93m--verbose\x1b[0m                                        Show verbose debug information",
-// 			"\t\x1b[93m--ptrslice\x1b[0m                                           A slice of pointers to string",
-// 			"\t\x1b[93m--empty-description\x1b[0m                                  ",
-// 			"\t\x1b[93m--default\x1b[0m                                            Test default value (default: Some\nvalue)",
-// 			"\t\x1b[93m--default-array\x1b[0m                                      Test default array value (default: Some value, Other\tvalue)",
-// 			"\t\x1b[93m--default-map\x1b[0m                                        Testdefault map value (default: some:value, another:value)",
-// 			"\t\x1b[93m--env-default1\x1b[0m                                       Test env-default1 value (default: Some value)",
-// 			"\t\x1b[93m--env-default2\x1b[0m                                       Test env-default2 value",
-// 			"\t\x1b[93m--opt-with-arg-name\x1b[0m                                  goflags.Option with named argument",
-// 			"\t\x1b[93m--opt-with-choices\x1b[0m                                   goflags.Option with choices",
-// 			"\t\x1b[93m--hidden\x1b[0m                                             Hidden goflags.Option",
-// 			"\t\x1b[93m--this-hidden-option-has-a-ridiculously-long-name\x1b[0m    ",
-// 			"\t\x1b[93m-s\x1b[0m                                                   A slice of strings (default: some, value)",
-// 			"\t\x1b[93m--intmap\x1b[0m                                             A map from string to int (default: a:1)",
-// 			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m                                           Print this help message",
-// 			"",
-// 		}, "\n"),
-// 	}, err)
-// }
+type cmdHelpCommands struct {
+	EnvDefault2       string `cli:"long=env-default2,help='Test env-default2 value'"`
+	OptionWithArgName string `cli:"long=opt-with-arg-name,metavar=something,help='Opt with named argument'"`
+	OptionWithChoices string `cli:"long=opt-with-choices,metavar=choice,choice=dog,choice=cat,help='Opt with choices'"`
+	Hidden            string `cli:"long=hidden,help='Hidden goflags.Option'"`
 
-// type helpCommandNoOptions struct {
-// 	Command cmdParentSub `command:"command" description:"A command"`
-// }
+	HelpBommand       helpBommand `cli:"command=bommand,help='A command with only hidden goflags.Options'"`
+	HelpCommand       helpCommand `cli:"command=command,alias=cm,alias=cmd,help='A command'"`
+	HelpHiddenCmd     helpBommand `cli:"command=hidden-command,help='A hidden command'"`
+	HelpParentCommand helpParent  `cli:"command=parent,help='A parent command'"`
+}
 
-// func TestHelpCommand(t *testing.T) {
-// 	err := Run[helpCommandNoOptions](context.Background(), "x", "command", "--help")
-// 	require.Equal(t, &parseError{
-// 		Kind: ErrHelp,
-// 		Message: strings.Join([]string{
-// 			"Usage: \x1b[94mx command\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
-// 			"",
-// 			"A command",
-// 			"",
-// 			"Flags:",
-// 			"\t\x1b[93m--opt\x1b[0m         This is a sub command goflags.Option",
-// 			"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m    Print this help message",
-// 			"",
-// 		}, "\n"),
-// 	}, err)
-// }
+func TestHelpCommandDispatch(t *testing.T) {
+	parser := Construct[cmdHelpCommands]().ToOptions()
 
-// type cmdHelpDefaults struct {
-// 	WithDefault             string `long:"with-default" default:"default-value" description:"With default"`
-// 	WithoutDefault          string `long:"without-default" description:"Without default"`
-// 	WithProgrammaticDefault string `long:"with-programmatic-default" description:"With programmatic default" default:"default-value"`
-// }
+	// `--env-default2` and `--opt-with-arg-name` have no defaults: required
+	assertSuccess(t, cmdHelpCommands{
+		HelpCommand:       helpCommand{ExtraVerbose: []bool{true, true}},
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+	}, parser, "command", "--extra-verbose", "--extra-verbose", "--env-default2", "e2",
+		"--opt-with-arg-name", "an", "--opt-with-choices", "dog", "--hidden", "h")
+	// hidden long aliases
+	assertSuccess(t, cmdHelpCommands{
+		HelpCommand:       helpCommand{ExtraVerbose: []bool{true}},
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+	}, parser, "cm", "--extra-verbose", "--env-default2", "e2", "--opt-with-arg-name", "an",
+		"--opt-with-choices", "dog", "--hidden", "h")
+	assertSuccess(t, cmdHelpCommands{
+		HelpCommand:       helpCommand{ExtraVerbose: []bool{true}},
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+	}, parser, "cmd", "--extra-verbose", "--env-default2", "e2", "--opt-with-arg-name", "an",
+		"--opt-with-choices", "dog", "--hidden", "h")
+	// nested subcommand
+	assertSuccess(t, cmdHelpCommands{
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+		HelpParentCommand: helpParent{
+			Opt:        "parent-opt",
+			SubCommand: helpParentSub{Opt: "sub-opt"},
+		},
+	}, parser, "parent", "--opt", "parent-opt", "sub", "--opt", "sub-opt",
+		"--env-default2", "e2", "--opt-with-arg-name", "an", "--opt-with-choices", "dog", "--hidden", "h")
+}
 
-// func TestHelpDefaults(t *testing.T) {
-// 	for name, args := range map[string][]string{
-// 		"just help":  {"x", "-h"},
-// 		"some flags": {"x", "--with-default", "other-value", "--with-programmatic-default", "other-value", "-h"},
-// 	} {
-// 		t.Run(name, func(t *testing.T) {
-// 			err := Run[cmdHelpDefaults](context.Background(), args...)
-// 			require.Equal(t, &parseError{
-// 				Kind: ErrHelp,
-// 				Message: strings.Join([]string{
-// 					"Usage: \x1b[94mx\x1b[0m \x1b[93m[FLAGS]\x1b[0m",
-// 					"",
-// 					"",
-// 					"",
-// 					"Flags:",
-// 					"\t\x1b[93m--with-default\x1b[0m                 With default (default: default-value)",
-// 					"\t\x1b[93m--without-default\x1b[0m              Without default",
-// 					"\t\x1b[93m--with-programmatic-default\x1b[0m    With programmatic default (default: default-value)",
-// 					"\t\x1b[93m-h\x1b[0m, \x1b[93m--help\x1b[0m                     Print this help message",
-// 					"",
-// 				}, "\n"),
-// 			}, err)
-// 		})
-// 	}
-// }
+func TestHelpCommandsOptional(t *testing.T) {
+	parser := Construct[cmdHelp]().ToOptions()
+
+	// commands are optional: absent command leaves the field zero-valued
+	assertSuccess(t, cmdHelp{
+		Verbose:           []bool{false},
+		PtrSlice:          []*string{},
+		Default:           "Some value",
+		DefaultMap:        map[string]string{"some": "value", "another": "value"},
+		EnvDefault1:       "Some value",
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+		StringSlice:       []string{},
+		IntMap:            map[string]int{"a": 1},
+		Filename:          "file",
+		Number:            3,
+		HiddenInHelp:      1.5,
+	}, parser, "file", "3", "1.5", "--env-default2", "e2", "--opt-with-arg-name", "an",
+		"--opt-with-choices", "dog", "--hidden", "h")
+}
+
+func TestHelpFlagsAndPositionals(t *testing.T) {
+	parser := Construct[cmdHelp]().ToOptions()
+
+	assertSuccess(t, cmdHelp{
+		Verbose:           []bool{true, true},
+		PtrSlice:          []*string{strptr("a")},
+		Default:           "Some value",
+		DefaultMap:        map[string]string{"some": "value", "another": "value"},
+		EnvDefault1:       "Some value",
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+		StringSlice:       []string{"x"},
+		IntMap:            map[string]int{"k": 1},
+		Filename:          "name",
+		Number:            2,
+		HiddenInHelp:      1.5,
+	}, parser, "-v", "-v", "--ptrslice", "a", "--opt-with-choices", "dog",
+		"--hidden", "h", "-s", "x", "--intmap", "k:1", "name", "2", "1.5",
+		"--env-default2", "e2", "--opt-with-arg-name", "an")
+
+	// default map entries can be overridden
+	assertSuccess(t, cmdHelp{
+		Verbose:           []bool{false},
+		PtrSlice:          []*string{},
+		Default:           "Some value",
+		DefaultMap:        map[string]string{"x": "1"},
+		EnvDefault1:       "Some value",
+		EnvDefault2:       "e2",
+		OptionWithArgName: "an",
+		OptionWithChoices: "dog",
+		Hidden:            "h",
+		StringSlice:       []string{},
+		IntMap:            map[string]int{"a": 1},
+		Filename:          "name",
+		Number:            2,
+		HiddenInHelp:      1.5,
+	}, parser, "--default-map", "x:1", "--env-default2", "e2", "--opt-with-arg-name", "an",
+		"--opt-with-choices", "dog", "--hidden", "h", "name", "2", "1.5")
+}
+
+func TestHelpChoices(t *testing.T) {
+	parser := Construct[cmdHelp]().ToOptions()
+
+	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`",
+		"--opt-with-choices", "zebra")
+}

@@ -71,6 +71,8 @@ type itemArgument struct {
 	shorts  []byte
 	metavar Metavar
 	env     Opt[string]
+	// allowed values shown in help and offered as completions; empty means any
+	choices []string
 }
 
 func (itemArgument) isItem() {}
@@ -80,6 +82,7 @@ func (self itemArgument) clone() itemI {
 		append([]byte(nil), self.shorts...),
 		self.metavar,
 		self.env,
+		append([]string(nil), self.choices...),
 	}
 }
 
@@ -122,8 +125,8 @@ func (i item) String() string {
 		)
 	case itemArgument:
 		return fmt.Sprintf(
-			"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v}",
-			i.help, v.name, v.shorts, v.metavar, v.env,
+			"Argument{help: %v, name: %#v, shorts: %#v, metavar: %s, env: %v, choices: %#v}",
+			i.help, v.name, v.shorts, v.metavar, v.env, v.choices,
 		)
 	}
 	panic("unreachable")
@@ -149,7 +152,7 @@ func (self *item) normalize(short bool) {
 		*self = item{self.help, itemFlag{v.name, v.shorts, v.env}}
 	case itemArgument:
 		v.name.normalize(short)
-		*self = item{self.help, itemArgument{v.name, v.shorts, v.metavar, v.env}}
+		*self = item{self.help, itemArgument{v.name, v.shorts, v.metavar, v.env, v.choices}}
 	}
 }
 
