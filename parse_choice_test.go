@@ -7,8 +7,8 @@ import (
 func TestChoiceAccept(t *testing.T) {
 	parser := Long("animal").Argument("ANIMAL", ParseString).Choice("dog", "cat").ToOptions()
 
-	assertSuccess(t, "dog", parser, "--animal", "dog")
-	assertSuccess(t, "cat", parser, "--animal", "cat")
+	assertSuccess(t, "dog", parser, "--animal dog")
+	assertSuccess(t, "cat", parser, "--animal cat")
 }
 
 func TestChoiceReject(t *testing.T) {
@@ -23,7 +23,7 @@ func TestChoiceRepeated(t *testing.T) {
 	parser := Long("animal").Argument("ANIMAL", ParseString).Choice("dog").Choice("ant").Choice("cat").
 		ToOptions()
 
-	assertSuccess(t, "ant", parser, "--animal", "ant")
+	assertSuccess(t, "ant", parser, "--animal ant")
 	assertFailure(t, parser, "couldn't parse `yak`: expected one of `ant`, `cat`, `dog`",
 		"--animal", "yak")
 }

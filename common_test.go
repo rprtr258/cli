@@ -46,12 +46,14 @@ func assertSuccess[T any](
 	t *testing.T,
 	expected T,
 	parser *OptionParser[T],
-	args ...string,
+	command string,
 ) {
 	t.Helper()
 
-	actual, err := parser.run(newArgList(args...))
-	require.Nil(t, err)
+	args, err := split_example_args(command)
+	require.NoError(t, err)
+	actual, err2 := parser.run(newArgList(args...))
+	require.Nil(t, err2)
 	require.Equal(t, expected, actual)
 }
 

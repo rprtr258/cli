@@ -22,7 +22,7 @@ func TestGroupParse(t *testing.T) {
 
 	// group options are parsed as usual parent options
 	assertSuccess(t, withGroup{Verbose: true, Auth: groupAuth{Token: "secret"}, Limit: 3},
-		parser, "-v", "--token", "secret", "--limit", "3")
+		parser, "-v --token secret --limit 3")
 	// options inside a group keep their own required-ness: Token has no default
 	assertFailure(t, parser, "expected `--token=TOKEN`, pass `--help` for usage information", "--limit", "3")
 }
@@ -55,8 +55,8 @@ func TestHiddenParse(t *testing.T) {
 	parser := Construct[withHidden]().ToOptions()
 
 	// hidden fields parse normally
-	assertSuccess(t, withHidden{Token: "x", Secret: true}, parser, "--token", "x", "-s")
-	assertSuccess(t, withHidden{}, parser)
+	assertSuccess(t, withHidden{Token: "x", Secret: true}, parser, "--token x -s")
+	assertSuccess(t, withHidden{}, parser, "")
 }
 
 func TestHiddenHelp(t *testing.T) {
@@ -88,14 +88,14 @@ type withCommands struct {
 func TestCommandDispatch(t *testing.T) {
 	parser := Construct[withCommands]().ToOptions()
 
-	assertSuccess(t, withCommands{Add: cmdAdd{Name: "x"}}, parser, "add", "--name", "x")
-	assertSuccess(t, withCommands{Rm: cmdRm{Force: true}}, parser, "rm", "-f")
+	assertSuccess(t, withCommands{Add: cmdAdd{Name: "x"}}, parser, "add --name x")
+	assertSuccess(t, withCommands{Rm: cmdRm{Force: true}}, parser, "rm -f")
 }
 
 func TestCommandAlias(t *testing.T) {
 	parser := Construct[withCommands]().ToOptions()
 
-	assertSuccess(t, withCommands{Rm: cmdRm{Force: true}}, parser, "remove", "-f")
+	assertSuccess(t, withCommands{Rm: cmdRm{Force: true}}, parser, "remove -f")
 }
 
 func TestCommandAbsent(t *testing.T) {
@@ -139,9 +139,9 @@ func TestMapFieldParse(t *testing.T) {
 	assertSuccess(t, withMaps{
 		Labels: map[string]string{"x": "1", "y": "2"},
 		Counts: map[string]int{"a": 1, "b": 2},
-	}, parser, "--label", "x:1", "--label", "y:2", "--count", "a:1", "--count", "b:2")
+	}, parser, "--label x:1 --label y:2 --count a:1 --count b:2")
 	// map fields are optional: absence gives empty maps
-	assertSuccess(t, withMaps{Counts: map[string]int{"a": 1, "b": 2}}, parser)
+	assertSuccess(t, withMaps{Counts: map[string]int{"a": 1, "b": 2}}, parser, "")
 }
 
 func TestMapFieldFailureNoColon(t *testing.T) {
@@ -185,13 +185,13 @@ func TestPointerParse(t *testing.T) {
 		Opt:    &one,
 		Ptrs:   []*string{strptr("a"), strptr("b")},
 		DefPtr: iptr(7),
-	}, parser, "--opt", "1", "--ptr", "a", "--ptr", "b")
+	}, parser, "--opt 1 --ptr a --ptr b")
 
 	// absent pointer fields stay nil, absent slices are empty
-	assertSuccess(t, withPointers{Ptrs: []*string{}, DefPtr: iptr(7)}, parser)
+	assertSuccess(t, withPointers{Ptrs: []*string{}, DefPtr: iptr(7)}, parser, "")
 
 	seven := 7
-	assertSuccess(t, withPointers{Opt: &seven, Ptrs: []*string{}, DefPtr: iptr(7)}, parser, "--opt", "7")
+	assertSuccess(t, withPointers{Opt: &seven, Ptrs: []*string{}, DefPtr: iptr(7)}, parser, "--opt 7")
 }
 
 func strptr(s string) *string { return &s }
@@ -206,7 +206,7 @@ type withChoices struct {
 func TestChoiceTagParse(t *testing.T) {
 	parser := Construct[withChoices]().ToOptions()
 
-	assertSuccess(t, withChoices{Animal: "dog"}, parser, "--animal", "dog")
+	assertSuccess(t, withChoices{Animal: "dog"}, parser, "--animal dog")
 	assertFailure(t, parser, "couldn't parse `zebra`: expected one of `cat`, `dog`",
 		"--animal", "zebra")
 }

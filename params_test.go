@@ -14,9 +14,9 @@ func TestGet_any_simple(t *testing.T) {
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, string]
-	assertSuccess(t, R{true, "-b"}, parser, "-a", "-b")
-	assertSuccess(t, R{true, "-b"}, parser, "-b", "-a")
-	assertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo", "-a")
+	assertSuccess(t, R{true, "-b"}, parser, "-a -b")
+	assertSuccess(t, R{true, "-b"}, parser, "-b -a")
+	assertSuccess(t, R{true, "-b=foo"}, parser, "-b=foo -a")
 }
 
 func TestGet_any_many(t *testing.T) {
@@ -25,9 +25,9 @@ func TestGet_any_many(t *testing.T) {
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[bool, []string]
-	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a", "-b")
-	assertSuccess(t, R{true, []string{"-b"}}, parser, "-b", "-a")
-	assertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b", "-a", "-b")
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-a -b")
+	assertSuccess(t, R{true, []string{"-b"}}, parser, "-b -a")
+	assertSuccess(t, R{true, []string{"-b", "-b"}}, parser, "-b -a -b")
 }
 
 func TestGet_any_many2(t *testing.T) {
@@ -52,7 +52,7 @@ func TestGet_any_magic(t *testing.T) {
 	// close enough :)
 	assertSuccess(t, true, parser, "-b=anana")
 	assertSuccess(t, true, parser, "-banana")
-	assertSuccess(t, false, parser)
+	assertSuccess(t, false, parser, "")
 }
 
 func TestFrom_str_works_with_parse(t *testing.T) {
@@ -69,11 +69,11 @@ func TestSquashed_short_names(t *testing.T) {
 	type R = fun.Pair[bool, string]
 
 	// an odd one, short flag a is squashed with short argument b
-	assertSuccess(t, R{true, "foo"}, parser, "-ab", "foo")
+	assertSuccess(t, R{true, "foo"}, parser, "-ab foo")
 
 	// same, but body for b is adjacent as well
 	assertSuccess(t, R{true, "foo"}, parser, "-abfoo")
 
 	// normal
-	assertSuccess(t, R{true, "foo"}, parser, "-a", "-bfoo")
+	assertSuccess(t, R{true, "foo"}, parser, "-a -bfoo")
 }

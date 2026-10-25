@@ -128,7 +128,7 @@ func TestStrictly_positional(t *testing.T) {
 
 	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a")
 
-	assertSuccess(t, "a", parser, "--", "a")
+	assertSuccess(t, "a", parser, "-- a")
 
 	assertFailure(t, parser, "expected `A` to be on the right side of `--`", "a", "--")
 

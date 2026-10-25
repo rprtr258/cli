@@ -28,9 +28,8 @@ func TestConstructBasic(t *testing.T) {
 	}
 	parser := Construct[Out]().ToOptions()
 
-	assertSuccess(t, Out{Debug: true, Speed: 3.14, Output: "out.txt"}, parser,
-		"-d", "--speed", "3.14", "-o", "out.txt")
-	assertSuccess(t, Out{Debug: true, Speed: 42, Output: "out"}, parser, "--debug", "--output=out")
+	assertSuccess(t, Out{Debug: true, Speed: 3.14, Output: "out.txt"}, parser, "-d --speed 3.14 -o out.txt")
+	assertSuccess(t, Out{Debug: true, Speed: 42, Output: "out"}, parser, "--debug --output=out")
 	// Output has no default - must fail with no arguments
 	assertFailure(t, parser, "expected `-o=FILE`, pass `--help` for usage information")
 }
@@ -43,7 +42,7 @@ func TestConstructPositionalBeforeNamed(t *testing.T) {
 	}
 	parser := Construct[Out]().ToOptions()
 
-	assertSuccess(t, Out{Src: "a", Dst: "b", Force: true}, parser, "-f", "a", "b")
+	assertSuccess(t, Out{Src: "a", Dst: "b", Force: true}, parser, "-f a b")
 }
 
 func TestConstructMany(t *testing.T) {
@@ -56,8 +55,8 @@ func TestConstructMany(t *testing.T) {
 
 	assertSuccess(t,
 		Out{Files: []string{"a", "b"}, Tags: []string{"x", "y"}, Nums: []int{1, 2}},
-		parser, "a", "b", "--tag", "x", "--tag", "y", "-n", "1", "-n", "2")
-	assertSuccess(t, Out{Files: []string{}, Tags: []string{}, Nums: []int{}}, parser)
+		parser, "a b --tag x --tag y -n 1 -n 2")
+	assertSuccess(t, Out{Files: []string{}, Tags: []string{}, Nums: []int{}}, parser, "")
 }
 
 func TestConstructOptional(t *testing.T) {
@@ -67,10 +66,10 @@ func TestConstructOptional(t *testing.T) {
 	}
 	parser := Construct[Out]().ToOptions()
 
-	assertSuccess(t, Out{}, parser)
+	assertSuccess(t, Out{}, parser, "")
 	assertSuccess(t,
 		Out{Speed: Valid(1.5), Name: Valid("bob")},
-		parser, "--speed", "1.5", "bob")
+		parser, "--speed 1.5 bob")
 
 	assertFailure(t, parser,
 		"couldn't parse `x`: invalid syntax",
@@ -83,10 +82,10 @@ func TestConstructCount(t *testing.T) {
 	}
 	parser := Construct[Out]().ToOptions()
 
-	for _, args := range [][]string{{"-v", "-v", "-v"}, {"-vvv"}, {"--verbose", "--verbose", "--verbose"}} {
-		assertSuccess(t, Out{Verbose: 3}, parser, args...)
+	for _, command := range []string{"-v -v -v", "-vvv", "--verbose --verbose --verbose"} {
+		assertSuccess(t, Out{Verbose: 3}, parser, command)
 	}
-	assertSuccess(t, Out{}, parser)
+	assertSuccess(t, Out{}, parser, "")
 }
 
 func TestConstructEnv(t *testing.T) {
@@ -96,8 +95,8 @@ func TestConstructEnv(t *testing.T) {
 	parser := Construct[Out]().ToOptions()
 
 	t.Setenv("CLI_CONSTRUCT_TEST_HOME", "/tmp/x")
-	assertSuccess(t, Out{Home: "/tmp/x"}, parser)
-	assertSuccess(t, Out{Home: "/override"}, parser, "--home", "/override")
+	assertSuccess(t, Out{Home: "/tmp/x"}, parser, "")
+	assertSuccess(t, Out{Home: "/override"}, parser, "--home /override")
 }
 
 func TestConstructMissingAggregated(t *testing.T) {
@@ -135,7 +134,7 @@ func TestConstructTextUnmarshaler(t *testing.T) {
 
 	assertSuccess(t,
 		Out{Port: 8080, Timeout: 10 * time.Second, Deadline: 90 * time.Second},
-		parser, "-p", "8080", "--deadline", "1m30s")
+		parser, "-p 8080 --deadline 1m30s")
 
 	_, err := parser.run(newArgList("-p", "not-a-port"))
 	require.NotNil(t, err)
@@ -149,8 +148,7 @@ func TestConstructAdjacentStructGroup(t *testing.T) {
 	}
 	parser := Construct[Rect]().Adjacent().ToOptions()
 
-	assertSuccess(t, Rect{Rect: true, Width: 10, Height: 20}, parser,
-		"--rect", "--width", "10", "--height", "20")
+	assertSuccess(t, Rect{Rect: true, Width: 10, Height: 20}, parser, "--rect --width 10 --height 20")
 
 	// group broken by an unconsumable item
 	_, err := parser.run(newArgList("--rect", "--width", "10", "stop", "--height", "20"))
@@ -258,5 +256,5 @@ func TestConstructQuotedHelp(t *testing.T) {
 		Speed float64 `cli:"long=speed,help='Set speed, m/s'"`
 	}
 	parser := Construct[Out]().ToOptions()
-	assertSuccess(t, Out{Speed: 5}, parser, "--speed", "5")
+	assertSuccess(t, Out{Speed: 5}, parser, "--speed 5")
 }

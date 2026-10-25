@@ -43,16 +43,16 @@ func TestParseAdapters_string(t *testing.T) {
 
 func TestCollect_no_typeparam(t *testing.T) {
 	parser := Long("n").Argument("N", ParseInt).Parser().Many().ToOptions()
-	assertSuccess(t, []int{1, 2}, parser, "--n", "1", "--n", "2")
+	assertSuccess(t, []int{1, 2}, parser, "--n 1 --n 2")
 
 	parser = Long("n").Argument("N", ParseInt).Parser().Some("no numbers given").ToOptions()
-	assertSuccess(t, []int{3, 4}, parser, "--n=3", "--n=4")
+	assertSuccess(t, []int{3, 4}, parser, "--n=3 --n=4")
 
 	parser = Long("n").Argument("N", ParseInt).Parser().ManyCatch().ToOptions()
 	assertSuccess(t, []int{5}, parser, "--n=5")
 
 	parser = Long("n").Argument("N", ParseInt).Parser().SomeCatch("no numbers given").ToOptions()
-	assertSuccess(t, []int{6, 7}, parser, "--n=6", "--n=7")
+	assertSuccess(t, []int{6, 7}, parser, "--n=6 --n=7")
 
 	parser = Long("n").Argument("N", ParseInt).Parser().Collect().ToOptions()
 	assertSuccess(t, []int{8}, parser, "--n=8")

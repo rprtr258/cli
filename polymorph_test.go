@@ -21,7 +21,7 @@ func TestGeneric_argument_field(t *testing.T) {
 	parser := Pair(a, b).ToOptions()
 
 	type R = fun.Pair[Opt[Poly[uint]], Opt[Poly[uint32]]]
-	assertSuccess(t, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()}, parser, "--uint", "12")
-	assertSuccess(t, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})}, parser, "--uint32", "12")
-	assertSuccess(t, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})}, parser, "--uint32", "12", "--uint", "24")
+	assertSuccess(t, R{Valid(Poly[uint]{field: 12}), Invalid[Poly[uint32]]()}, parser, "--uint 12")
+	assertSuccess(t, R{Invalid[Poly[uint]](), Valid(Poly[uint32]{field: 12})}, parser, "--uint32 12")
+	assertSuccess(t, R{Valid(Poly[uint]{field: 24}), Valid(Poly[uint32]{field: 12})}, parser, "--uint32 12 --uint 24")
 }
